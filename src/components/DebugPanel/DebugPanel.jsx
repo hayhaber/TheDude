@@ -11,6 +11,7 @@ import './DebugPanel.css';
 // permanently.
 export function DebugPanel() {
   const [audioState, setAudioState] = useState('not created yet');
+  const [audioTime, setAudioTime] = useState(0);
   const [errors, setErrors] = useState([]);
   const [touchInfo] = useState({
     maxTouchPoints: navigator.maxTouchPoints,
@@ -32,6 +33,7 @@ export function DebugPanel() {
       try {
         const ctx = getAudioContext();
         setAudioState(ctx.state);
+        setAudioTime(ctx.currentTime);
       } catch (e) {
         setAudioState('ctx creation threw: ' + e.message);
       }
@@ -66,7 +68,7 @@ export function DebugPanel() {
         <strong>build:</strong> {typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : 'unknown'}
       </div>
       <div className="debug-panel-row">
-        <strong>audioContext.state:</strong> {audioState}
+        <strong>audioContext.state:</strong> {audioState} · <strong>currentTime:</strong> {audioTime.toFixed(2)}
       </div>
       <div className="debug-panel-row">
         <strong>maxTouchPoints:</strong> {touchInfo.maxTouchPoints} · <strong>standalone:</strong> {String(touchInfo.standalone)}

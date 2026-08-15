@@ -1,13 +1,44 @@
 let audioContext = null;
 
+// Any state other than 'running' means no sound will actually be heard —
+// crucially this includes WebKit's own 'interrupted' state (not in the
+// base Web Audio spec, only on iOS/Safari), which 'suspended' alone
+// doesn't cover. See getAudioContext's own comment for when this fires.
+function resumeIfNotRunning(ctx) {
+  if (ctx.state !== 'running') ctx.resume();
+}
+
 // Shared across chord playback and the metronome so they don't fight over
 // separate AudioContexts (and so one user gesture unlocks both).
 export function getAudioContext() {
   if (!audioContext) {
     const Ctor = window.AudioContext || window.webkitAudioContext;
     audioContext = new Ctor();
+    // On iOS/Safari specifically, the audio session can drop to a WebKit-
+    // only 'interrupted' state at any time after it was already happily
+    // 'running' — backgrounding an installed home-screen PWA (which is
+    // exactly what "close and reopen the app" during testing does), the
+    // screen locking, a phone call, Control Center, even a brief system
+    // sound, can all trigger it. Nothing else in the Web Audio spec
+    // recovers from this automatically; only an explicit resume() does,
+    // and it has to be re-issued every time it happens, not just once at
+    // startup — hence listening for the context's own statechange event
+    // rather than a single check. (Confirmed via the on-page debug panel:
+    // ctx.state read 'interrupted' with ctx.currentTime frozen at 0 on a
+    // real iPad, which is what made piano/metronome go silent there even
+    // though the desktop-only 'suspended' handling below looked correct.)
+    audioContext.addEventListener('statechange', () => resumeIfNotRunning(audioContext));
+    // Covers the same "PWA was backgrounded, audio session dropped"
+    // scenario from the other direction — the moment the app becomes
+    // visible again, not only reacting to the context's own event (belt
+    // and suspenders, since iOS's exact sequencing of statechange vs.
+    // visibilitychange isn't guaranteed).
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') resumeIfNotRunning(audioContext);
+    });
+    window.addEventListener('pageshow', () => resumeIfNotRunning(audioContext));
   }
-  if (audioContext.state === 'suspended') audioContext.resume();
+  resumeIfNotRunning(audioContext);
   return audioContext;
 }
 
@@ -25,7 +56,6 @@ export function getAudioContext() {
 export function unlockAudioContextOnFirstGesture() {
   function unlock() {
     const ctx = getAudioContext();
-    if (ctx.state === 'suspended') ctx.resume();
     const buffer = ctx.createBuffer(1, 1, 22050);
     const source = ctx.createBufferSource();
     source.buffer = buffer;

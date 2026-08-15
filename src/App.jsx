@@ -9,6 +9,7 @@ import { PracticeView } from './components/PracticeView/PracticeView';
 import { StudiesSection } from './components/StudiesSection/StudiesSection';
 import { SongsView } from './components/SongsView/SongsView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
+import { DebugPanel } from './components/DebugPanel/DebugPanel';
 import { NoteColorLegend } from './components/NoteColorLegend/NoteColorLegend';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './music/chordSymbolParser';
 import { computeChordPositions } from './music/computeChordPositions';
@@ -1401,6 +1402,9 @@ function App() {
       {activeSection === 'songs' && <SongsView onSongActiveChordChange={setSongActiveChord} />}
 
       {activeSection === 'vocal' && <VocalTrainingView />}
+      {/* TEMPORARY — see DebugPanel.jsx's own comment. Remove this line +
+          the import once the iOS audio/touch issues are confirmed fixed. */}
+      <DebugPanel />
     </AppShell>
   );
 }

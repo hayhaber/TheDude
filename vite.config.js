@@ -5,6 +5,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Stamped into the bundle so the on-page debug panel (see
+  // src/components/DebugPanel/DebugPanel.jsx) can show which build is
+  // actually running — the fastest way to tell "my fix isn't showing up"
+  // apart from "the device is still serving a stale cached build".
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   // alphaTab (Songs -> Guitar Pro import) offloads rendering/audio work to
   // Web Workers/AudioWorklets and ships its own font+soundfont assets — this
   // plugin wires up the bundling for those and copies the assets to
@@ -35,6 +42,13 @@ export default defineConfig({
         // limit — that one's needed on every visit.
         globIgnores: ['**/alphaTab.worker-*.js', '**/alphaTab.worklet-*.js'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // A new service worker version now takes over immediately instead
+        // of waiting for every open tab/PWA instance to fully close first
+        // — critical while actively iterating on iOS-specific fixes, where
+        // "did you fully close and reopen the app" was itself uncertain to
+        // actually pick up a new deploy.
+        clientsClaim: true,
+        skipWaiting: true,
       },
       manifest: {
         name: 'Chord Progression',

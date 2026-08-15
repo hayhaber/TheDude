@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { ChordInput } from '../ChordInput/ChordInput';
 import { CapoInput } from '../CapoInput/CapoInput';
 import { ChordChips } from '../ChordChips/ChordChips';
@@ -77,6 +78,18 @@ export function ComposeView({
   const isGuitar = instrument === 'guitar';
   const activeChordText = progression[activeIndex]?.text ?? '';
 
+  // Banking a group (Training's own "+") clears progressionText so the
+  // player can type the next one — but a cleared field with no cursor in
+  // it reads as "now what?", not as an invitation to keep typing. Jumping
+  // focus back into the input the instant a group is banked makes the
+  // next step obvious without any extra copy.
+  const chordInputRef = useRef(null);
+  const trainingGroupCount = training?.groups.length ?? 0;
+  useEffect(() => {
+    if (training?.flowOpen && trainingGroupCount > 0) chordInputRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainingGroupCount]);
+
   return (
     <div className="compose-view">
       <div>
@@ -85,7 +98,7 @@ export function ComposeView({
       </div>
 
       <div className="compose-input-row">
-        <ChordInput value={progressionText} onChange={setProgressionText} />
+        <ChordInput value={progressionText} onChange={setProgressionText} inputRef={chordInputRef} />
       </div>
 
       {isGuitar && soundingProgressionText && (

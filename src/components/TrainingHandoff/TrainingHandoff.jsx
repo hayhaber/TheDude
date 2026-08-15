@@ -50,7 +50,7 @@ export function TrainingHandoff({ training, hasProgression }) {
         )}
 
         <p className="training-handoff-hint" dir="auto">
-          {t('compose.trainingHint')}
+          {hasProgression ? t('compose.trainingHint') : t('compose.trainingHintTypeNext')}
         </p>
 
         <div className="training-handoff-actions">

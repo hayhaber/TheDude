@@ -15,6 +15,66 @@ export function onAudioEvent(fn) {
   return () => audioEventListeners.delete(fn);
 }
 
+// A short, silent, looping WAV — its only job is to exist as a real
+// HTMLMediaElement. On iOS/Safari specifically (confirmed via the debug
+// panel: a raw Web Audio oscillator reported ctx.state 'running' and
+// "fired OK" with zero JS errors, yet produced no audible sound at all,
+// while a YouTube video on the very same device played fine), a pure Web
+// Audio API graph with no real <audio>/<video> element anywhere on the
+// page can fail to claim iOS's "playback" audio session category — the
+// AudioContext keeps processing internally exactly as if everything were
+// fine, but the output never actually reaches the speaker. Playing this
+// silent element is the standard, widely-documented workaround: it forces
+// WebKit to establish a real playback session, which the rest of the Web
+// Audio graph (oscillators, smplr's sample playback) then correctly
+// routes through. 16-bit PCM (0 = true silence) rather than 8-bit
+// (silence is 128 there, or a 0 sample is a jarring DC click).
+function buildSilentWavDataUri(durationSeconds) {
+  const sampleRate = 8000;
+  const numSamples = Math.floor(sampleRate * durationSeconds);
+  const dataSize = numSamples * 2; // 16-bit mono
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+  function writeString(offset, str) {
+    for (let i = 0; i < str.length; i += 1) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataSize, true);
+  // Sample bytes are already zero-initialized by ArrayBuffer — true silence.
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return 'data:audio/wav;base64,' + btoa(binary);
+}
+
+let silentAudioEl = null;
+function ensureSilentAudioPlaying() {
+  if (!silentAudioEl) {
+    silentAudioEl = new Audio(buildSilentWavDataUri(1));
+    silentAudioEl.loop = true;
+    silentAudioEl.setAttribute('playsinline', 'true');
+    silentAudioEl.volume = 0.01;
+  }
+  // A rejected play() Promise here (autoplay policy, not-yet-a-gesture)
+  // is expected and harmless — the real call is the one made from inside
+  // unlockAudioContextOnFirstGesture's handler below, which IS a gesture.
+  silentAudioEl.play().catch(() => {});
+}
+
 // Any state other than 'running' means no sound will actually be heard —
 // crucially this includes WebKit's own 'interrupted' state (not in the
 // base Web Audio spec, only on iOS/Safari), which 'suspended' alone
@@ -49,9 +109,15 @@ export function getAudioContext() {
     // and suspenders, since iOS's exact sequencing of statechange vs.
     // visibilitychange isn't guaranteed).
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') resumeIfNotRunning(audioContext);
+      if (document.visibilityState === 'visible') {
+        resumeIfNotRunning(audioContext);
+        ensureSilentAudioPlaying();
+      }
     });
-    window.addEventListener('pageshow', () => resumeIfNotRunning(audioContext));
+    window.addEventListener('pageshow', () => {
+      resumeIfNotRunning(audioContext);
+      ensureSilentAudioPlaying();
+    });
   }
   resumeIfNotRunning(audioContext);
   return audioContext;
@@ -76,6 +142,7 @@ export function unlockAudioContextOnFirstGesture() {
     source.buffer = buffer;
     source.connect(ctx.destination);
     source.start(0);
+    ensureSilentAudioPlaying();
     window.removeEventListener('touchstart', unlock);
     window.removeEventListener('mousedown', unlock);
     window.removeEventListener('keydown', unlock);

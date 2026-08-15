@@ -76,7 +76,7 @@ export function ImproviseView({
         </label>
       </div>
 
-      <div className="mode-toggle improvise-tabs" role="group" aria-label={t('improvise.tabsLabel')}>
+      <div className="mode-toggle wrap improvise-tabs" role="group" aria-label={t('improvise.tabsLabel')}>
         {TABS.map((tab_) => (
           <button key={tab_.key} type="button" className={tab === tab_.key ? 'active' : ''} onClick={() => setTab(tab_.key)}>
             {t(tab_.labelKey)}

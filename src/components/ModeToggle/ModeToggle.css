@@ -83,18 +83,46 @@
    across 4+ long labels is exactly what stretches into one long, mostly-
    empty gray bar instead of separate buttons (same root cause the Studies
    course-tabs bar had before it got its own dedicated flex-wrap fix).
-   `.wrap` swaps the grid for a flex-wrap row of individually-sized pills —
-   same visual pill language (background/radius/active state, all inherited
-   from the base rules above), no shared-width constraint, wraps onto a 2nd
-   line rather than overflowing or stretching. */
+   `.wrap` swaps the grid for a flex-wrap row of individually-sized pills.
+
+   It does NOT reuse the base rules' visual language, though — the base
+   segmented-control look (tinted container + fully transparent inactive
+   buttons, 2px gap) only reads as separate pills when there are just 2-3
+   short buttons close together; spread across 4+ (or long-label, full-row-
+   width) buttons, the transparent inactive buttons blend into the tinted
+   container and the 2px gaps become imperceptible, so the whole thing reads
+   as one continuous gray bar with only the active pill visibly separated
+   (reported directly against the Improvise sub-tabs and the Practice tab
+   bar). `.wrap` instead borrows the already-correct fix for exactly this —
+   the Studies course-tabs bar's own bordered-chip pattern (see
+   StudiesSection.css's .studies-course-tabs): every button, active or not,
+   carries its own visible border + solid background, so each one reads as
+   an individual pill regardless of state; the shared tinted container
+   background is dropped since the pills now carry their own. */
 .mode-toggle.wrap {
   display: flex;
   flex-wrap: wrap;
   width: auto;
   max-width: 100%;
+  background: transparent;
+  gap: var(--space-2);
 }
 
 .mode-toggle.wrap button {
   min-width: 0;
   flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.mode-toggle.wrap button:hover {
+  background: rgba(120, 120, 128, 0.12);
+}
+
+.mode-toggle.wrap button.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: none;
 }

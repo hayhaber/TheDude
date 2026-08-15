@@ -343,6 +343,11 @@
   -webkit-overflow-scrolling: touch;
   cursor: grab;
   scrollbar-width: thin;
+  /* Explicit horizontal-only panning, no pinch-zoom — belt-and-suspenders
+     alongside .piano-key's own touch-action:none below (see its comment):
+     this covers the empty margins/nav-button area of the strip too, not
+     just the keys themselves. */
+  touch-action: pan-x;
 }
 
 .piano-keyboard-scroll:active {
@@ -373,6 +378,20 @@
   cursor: pointer;
   border: none;
   padding: 0;
+  /* Without this, iOS Safari's own gesture recognizer gets first look at
+     any two simultaneous touches landing on this element and its neighbor
+     — which is exactly what pressing a 2-3 note chord with separate
+     fingers looks like geometrically — and can interpret it as the start
+     of a pinch-zoom instead of handing both touches through to our own
+     touchstart handlers (PianoKeyboard.jsx's handleTouchStartKey), which
+     is what silently broke multi-touch chords on a real iPad even though
+     the same synthetic-touch-event tests passed in a desktop browser (no
+     native gesture recognizer to fight there). `none` here is safe: the
+     app's own onTouchStart/onTouchEnd fully replace any native gesture
+     this element would otherwise get, and the keyboard's horizontal pan
+     still works from the surrounding scroll strip (touch-action: pan-x
+     above) or the dedicated ‹ › octave-nav buttons. */
+  touch-action: none;
   font: inherit;
   transition: background-color 0.12s ease, transform 0.08s ease;
   user-select: none;

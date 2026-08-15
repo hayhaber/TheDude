@@ -99,6 +99,7 @@
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   font-size: 12px;
   font-weight: 590;
   padding: 0 14px;

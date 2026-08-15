@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ChordInput } from '../ChordInput/ChordInput';
+import { SparklesIcon } from '../SparklesIcon/SparklesIcon';
 import { CapoInput } from '../CapoInput/CapoInput';
 import { ChordChips } from '../ChordChips/ChordChips';
 import { PositionControls } from '../PositionControls/PositionControls';
@@ -176,6 +177,7 @@ export function ComposeView({
               aria-pressed={smoothMode}
               onClick={() => setSmoothMode((v) => !v)}
             >
+              <SparklesIcon />
               {t('compose.smooth')}
             </button>
             <InfoTooltip text={t('compose.smoothTooltip')} label={t('compose.smoothTooltipLabel')} />
@@ -201,6 +203,7 @@ export function ComposeView({
               aria-pressed={pianoSmoothMode}
               onClick={() => setPianoSmoothMode((v) => !v)}
             >
+              <SparklesIcon />
               {t('compose.smooth')}
             </button>
             <InfoTooltip text={t('compose.pianoSmoothTooltip')} label={t('compose.smoothTooltipLabel')} />

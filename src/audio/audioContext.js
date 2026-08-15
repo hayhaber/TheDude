@@ -72,7 +72,13 @@ function ensureSilentAudioPlaying() {
   // A rejected play() Promise here (autoplay policy, not-yet-a-gesture)
   // is expected and harmless — the real call is the one made from inside
   // unlockAudioContextOnFirstGesture's handler below, which IS a gesture.
-  silentAudioEl.play().catch(() => {});
+  // Logged either way (TEMPORARY, see DebugPanel.jsx) since whether this
+  // silent element actually plays is itself a live open question, not a
+  // known-working assumption.
+  silentAudioEl
+    .play()
+    .then(() => logAudioEvent(`silent keep-alive <audio> play() resolved OK, paused=${silentAudioEl.paused}`))
+    .catch((e) => logAudioEvent(`silent keep-alive <audio> play() REJECTED: ${e.message}`));
 }
 
 // Any state other than 'running' means no sound will actually be heard —

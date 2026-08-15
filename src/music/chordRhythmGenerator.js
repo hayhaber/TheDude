@@ -17,7 +17,7 @@ import { buildDiatonicChords } from './harmonyCurriculum';
 // THIS format — read to a player as "the generator is stuck repeating
 // itself," not as music. Keep that invariant (no adjacent duplicates) for
 // any pattern added here.
-const PROGRESSION_PATTERNS = [
+export const PROGRESSION_PATTERNS = [
   [0, 3, 4, 0], // I - IV - V - I
   [1, 4, 0], // ii - V - I
   [0, 4, 5, 3], // I - V - vi - IV (the classic pop loop)

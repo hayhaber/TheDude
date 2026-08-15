@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { GUITAR_CHORD_RHYTHM_MODES, generateGuitarChordRhythmProgression } from '../music/guitarChordRhythmContent';
+import { GUITAR_CHORD_RHYTHM_MODES, generateGuitarChordRhythmProgression, parseGuitarChordProgressionText } from '../music/guitarChordRhythmContent';
 import { useMicChordDetector } from './useMicChordDetector';
 
 // Same "how long before its window opens the block/chip is already
@@ -9,6 +9,30 @@ import { useMicChordDetector } from './useMicChordDetector';
 export const LEAD_TIME_S = 2.5;
 const TAIL_S = 0.6;
 const DEFAULT_MODE = GUITAR_CHORD_RHYTHM_MODES[0].key;
+const DEFAULT_BEATS_PER_CHORD = 4;
+const AUTO_SEQUENCE_LENGTH = 8;
+const AUTO_TOPUP_LENGTH = 8; // how many more chords 'timer'/'endless' auto mode generates once the queue is running low
+const AUTO_TIMER_S = 60; // the "60-second timer" auto-duration option
+const NEAR_END_THRESHOLD = 2; // top up once fewer than this many chords remain queued after the active one
+
+function repeatList(list, times) {
+  const out = [];
+  for (let i = 0; i < Math.max(0, times); i += 1) out.push(...list);
+  return out;
+}
+
+// Builds one contiguous, back-to-back block of timed chords starting at
+// `startTime` — used both for the initial sequence (startTime = LEAD_TIME_S)
+// and for extending it later (startTime = the previous last chord's own
+// endTime, so a loop repeat or a freshly-generated top-up batch continues
+// the timeline with zero gap and stays perfectly on the beat).
+function buildTimedChords(chordList, startTime, secondsPerBeat, beatsPerChord) {
+  return chordList.map((chord, i) => {
+    const s = startTime + i * beatsPerChord * secondsPerBeat;
+    const e = s + beatsPerChord * secondsPerBeat;
+    return { ...chord, startTime: s, endTime: e };
+  });
+}
 
 // Guitar's own "Guitar Hero for chords" — architecturally the exact same
 // continuous-tick-loop engine as useChordRhythm.js (piano), rebuilt here
@@ -19,9 +43,32 @@ const DEFAULT_MODE = GUITAR_CHORD_RHYTHM_MODES[0].key;
 // gate on, so the tick loop itself checks "does the mic's current best
 // guess match the active chord" every frame instead of waiting for a
 // discrete input event.
+//
+// Three content sources (mirrors the piano version's preset/custom split,
+// plus a third for real-song practice):
+//   'auto'   — generated from a chord-name pool (see guitarChordRhythmContent.js),
+//              with its own duration mode: a fixed short run, a 60s timer,
+//              or endless-until-stopped (each topped up with a fresh
+//              theory-generated batch as the queue runs low).
+//   'custom' — one typed progression (any chord parseChordSymbol accepts,
+//              not just the four generated pools), optionally looped.
+//   'song'   — two typed progressions (verse/chorus), each with its own
+//              repeat count, chained into one sequence; optionally looped
+//              as a whole once both sections have played through.
+// 'loop' only applies to 'custom'/'song' (a fixed, player-authored
+// sequence repeating itself) — 'auto' mode's own duration selector already
+// covers "keep going," via freshly-varied content rather than a repeat.
 export function useGuitarChordRhythm(metronome) {
+  const [source, setSource] = useState('auto'); // 'auto' | 'custom' | 'song'
   const [mode, setMode] = useState(DEFAULT_MODE);
-  const [beatsPerChord, setBeatsPerChord] = useState(4);
+  const [autoDuration, setAutoDuration] = useState('fixed'); // 'fixed' | 'timer' | 'endless'
+  const [customText, setCustomText] = useState('G D Em C');
+  const [verseText, setVerseText] = useState('Em C G D');
+  const [verseRepeats, setVerseRepeats] = useState(2);
+  const [chorusText, setChorusText] = useState('G D Em C');
+  const [chorusRepeats, setChorusRepeats] = useState(2);
+  const [loop, setLoop] = useState(false);
+  const [beatsPerChord, setBeatsPerChord] = useState(DEFAULT_BEATS_PER_CHORD);
   const [viewMode, setViewMode] = useState('falling'); // 'falling' | 'timeline'
 
   const [sequence, setSequence] = useState([]);
@@ -32,6 +79,12 @@ export function useGuitarChordRhythm(metronome) {
   const [score, setScore] = useState({ hits: 0, misses: 0 });
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
+  // 'match' | 'mismatch' | null — the mic's CURRENT guess compared against
+  // whichever chord is active right now, updated every frame. This is what
+  // gives real-time positive/negative feedback while a chord's window is
+  // still open, distinct from `results[index]`, which is only set once a
+  // chord is fully judged (on a match, or once its window times out).
+  const [micMatchStatus, setMicMatchStatus] = useState(null);
 
   const mic = useMicChordDetector();
 
@@ -39,9 +92,23 @@ export function useGuitarChordRhythm(metronome) {
   const resultsRef = useRef({});
   const activeIndexRef = useRef(-1);
   const secondsPerBeatRef = useRef(0.75);
+  const beatsPerChordRef = useRef(DEFAULT_BEATS_PER_CHORD);
   const nowRef = useRef(0);
   const startPerfTimeRef = useRef(0);
   const rafIdRef = useRef(null);
+  const micMatchStatusRef = useRef(null);
+  // Snapshotted at loadSequence() time — every control that drives these is
+  // disabled while playing, so they never change mid-session, but a ref
+  // (not the raw state closure) matches this codebase's existing
+  // convention (see useChordRhythm.js's strictModeRef) for what the
+  // long-lived tick() closure reads.
+  const sourceRef = useRef('auto');
+  const modeRef = useRef(DEFAULT_MODE);
+  const autoDurationRef = useRef('fixed');
+  const loopRef = useRef(false);
+  // The ORIGINAL (un-repeated-for-looping) chord list for 'custom'/'song' —
+  // what gets re-appended each time the loop wraps back to the start.
+  const baseLoopListRef = useRef(null);
 
   function judgeChord(index, isCorrect) {
     if (resultsRef.current[index] != null) return;
@@ -72,6 +139,32 @@ export function useGuitarChordRhythm(metronome) {
     return -1;
   }
 
+  // Tops up the queued sequence once it's running low, so a session never
+  // "runs dry" mid-loop/mid-timer/mid-endless-run — called every tick, a
+  // no-op unless fewer than NEAR_END_THRESHOLD chords remain after the
+  // active one AND the current mode actually wants more (see the comment
+  // on the hook itself for which source/duration combos extend vs. end).
+  function extendIfNeeded(elapsed) {
+    const seq = sequenceRef.current;
+    const remaining = seq.length - (activeIndexRef.current + 1);
+    if (activeIndexRef.current < 0 || remaining > NEAR_END_THRESHOLD) return;
+
+    let more = null;
+    if (sourceRef.current === 'auto') {
+      if (autoDurationRef.current === 'fixed') return;
+      if (autoDurationRef.current === 'timer' && elapsed >= AUTO_TIMER_S) return;
+      more = generateGuitarChordRhythmProgression(modeRef.current, AUTO_TOPUP_LENGTH).sequence;
+    } else if (loopRef.current && baseLoopListRef.current && baseLoopListRef.current.length > 0) {
+      more = baseLoopListRef.current;
+    }
+    if (!more || more.length === 0) return;
+
+    const last = seq[seq.length - 1];
+    const built = buildTimedChords(more, last.endTime, secondsPerBeatRef.current, beatsPerChordRef.current);
+    sequenceRef.current = [...seq, ...built];
+    setSequence(sequenceRef.current);
+  }
+
   // rAF-driven, exactly like useChordRhythm.js's own tick — see that
   // hook's comment on why a timer-based loop reads as stuttery compared to
   // one scheduled right before the browser's next actual paint.
@@ -80,23 +173,30 @@ export function useGuitarChordRhythm(metronome) {
     nowRef.current = elapsed;
     setNow(elapsed);
 
-    const seq = sequenceRef.current;
     activeIndexRef.current = activeIndexAt(elapsed);
 
     // The mic's current best guess, checked against whichever chord is
     // active RIGHT NOW — a match ends that chord's window early as a hit,
     // the same "early satisfying answer" pattern the piano version's click
     // handler gives, just driven by a continuous signal instead of a
-    // discrete event.
+    // discrete event. Also drives micMatchStatus (see its own comment) for
+    // real-time positive/negative feedback independent of judging.
     const activeIndex = activeIndexRef.current;
-    if (activeIndex >= 0 && resultsRef.current[activeIndex] == null) {
-      const target = seq[activeIndex];
-      const g = mic.guessRef.current;
-      if (g && g.root === target.rootPitchClass && g.qualityKey === target.qualityKey) {
-        judgeChord(activeIndex, true);
-      }
+    const g = mic.guessRef.current;
+    let matchStatus = null;
+    if (activeIndex >= 0) {
+      const target = sequenceRef.current[activeIndex];
+      if (g) matchStatus = g.root === target.rootPitchClass && g.qualityKey === target.qualityKey ? 'match' : 'mismatch';
+      if (matchStatus === 'match' && resultsRef.current[activeIndex] == null) judgeChord(activeIndex, true);
+    }
+    if (matchStatus !== micMatchStatusRef.current) {
+      micMatchStatusRef.current = matchStatus;
+      setMicMatchStatus(matchStatus);
     }
 
+    extendIfNeeded(elapsed);
+
+    const seq = sequenceRef.current;
     for (let i = 0; i < seq.length; i += 1) {
       if (resultsRef.current[i] == null && elapsed >= seq[i].endTime) {
         judgeChord(i, false);
@@ -112,18 +212,38 @@ export function useGuitarChordRhythm(metronome) {
   }
 
   function loadSequence() {
-    const generated = generateGuitarChordRhythmProgression(mode);
-    const bpm = generated.bpmSuggested;
-    const nextBeatsPerChord = generated.beatsPerChord;
+    sourceRef.current = source;
+    modeRef.current = mode;
+    autoDurationRef.current = autoDuration;
+    loopRef.current = loop;
+
+    let chordList;
+    let bpm = metronome.bpm;
+    let nextBeatsPerChord = beatsPerChord;
+    let baseLoopList = null;
+
+    if (source === 'auto') {
+      const generated = generateGuitarChordRhythmProgression(mode, AUTO_SEQUENCE_LENGTH);
+      chordList = generated.sequence;
+      bpm = generated.bpmSuggested;
+      nextBeatsPerChord = generated.beatsPerChord;
+    } else if (source === 'song') {
+      const verseChords = parseGuitarChordProgressionText(verseText);
+      const chorusChords = parseGuitarChordProgressionText(chorusText);
+      chordList = [...repeatList(verseChords, verseRepeats), ...repeatList(chorusChords, chorusRepeats)];
+      baseLoopList = chordList;
+    } else {
+      chordList = parseGuitarChordProgressionText(customText);
+      baseLoopList = chordList;
+    }
+
     metronome.setBpm(bpm);
     setBeatsPerChord(nextBeatsPerChord);
     secondsPerBeatRef.current = 60 / bpm;
+    beatsPerChordRef.current = nextBeatsPerChord;
+    baseLoopListRef.current = baseLoopList;
 
-    const built = generated.sequence.map((chord, i) => {
-      const startTime = LEAD_TIME_S + i * nextBeatsPerChord * secondsPerBeatRef.current;
-      const endTime = startTime + nextBeatsPerChord * secondsPerBeatRef.current;
-      return { ...chord, startTime, endTime };
-    });
+    const built = buildTimedChords(chordList, LEAD_TIME_S, secondsPerBeatRef.current, nextBeatsPerChord);
     sequenceRef.current = built;
     setSequence(built);
     setEnded(false);
@@ -133,6 +253,8 @@ export function useGuitarChordRhythm(metronome) {
     resultsRef.current = {};
     setResults({});
     activeIndexRef.current = -1;
+    micMatchStatusRef.current = null;
+    setMicMatchStatus(null);
     return built;
   }
 
@@ -171,8 +293,24 @@ export function useGuitarChordRhythm(metronome) {
   const accuracyPct = score.hits + score.misses > 0 ? Math.round((score.hits / (score.hits + score.misses)) * 100) : null;
 
   return {
+    source,
+    setSource,
     mode,
     setMode,
+    autoDuration,
+    setAutoDuration,
+    customText,
+    setCustomText,
+    verseText,
+    setVerseText,
+    verseRepeats,
+    setVerseRepeats,
+    chorusText,
+    setChorusText,
+    chorusRepeats,
+    setChorusRepeats,
+    loop,
+    setLoop,
     beatsPerChord,
     viewMode,
     setViewMode,
@@ -191,5 +329,6 @@ export function useGuitarChordRhythm(metronome) {
     micIsListening: mic.isListening,
     micError: mic.error,
     micGuess: mic.guess,
+    micMatchStatus,
   };
 }

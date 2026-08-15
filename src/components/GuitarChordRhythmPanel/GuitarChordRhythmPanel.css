@@ -173,6 +173,34 @@
   font-size: 13px;
   font-weight: 590;
   color: var(--text-secondary);
+  transition: color 0.12s ease;
+}
+
+/* Real-time positive/negative feedback while a chord's window is still
+   open — distinct from the block's own hit/miss coloring, which only
+   applies once a chord is fully judged (a match, or its window timing
+   out). Lets the player know instantly whether what they're playing RIGHT
+   NOW is the target chord, not just after the fact. */
+.guitar-chord-rhythm-mic-status.good {
+  color: #34c759;
+}
+
+.guitar-chord-rhythm-mic-status.bad {
+  color: var(--danger);
+}
+
+@keyframes guitar-chord-rhythm-mismatch-pulse {
+  from {
+    box-shadow: 0 0 0 2px rgba(255, 69, 58, 0.25);
+  }
+  to {
+    box-shadow: 0 0 0 7px rgba(255, 69, 58, 0.45);
+  }
+}
+
+.guitar-chord-rhythm-block.mic-mismatch,
+.guitar-chord-rhythm-chip.mic-mismatch {
+  animation: guitar-chord-rhythm-mismatch-pulse 0.4s ease-in-out infinite alternate;
 }
 
 .guitar-chord-rhythm-score {

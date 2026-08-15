@@ -56,11 +56,29 @@ function timelineTop(chord, chipHeight) {
   return 8 + (1 - ratio) * usableHeight;
 }
 
+const REPEAT_OPTIONS = [1, 2, 3, 4, 5, 6, 8];
+
 export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
   const { t } = useLanguage();
   const {
+    source,
+    setSource,
     mode,
     setMode,
+    autoDuration,
+    setAutoDuration,
+    customText,
+    setCustomText,
+    verseText,
+    setVerseText,
+    verseRepeats,
+    setVerseRepeats,
+    chorusText,
+    setChorusText,
+    chorusRepeats,
+    setChorusRepeats,
+    loop,
+    setLoop,
     beatsPerChord,
     viewMode,
     setViewMode,
@@ -79,6 +97,7 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
     micIsListening,
     micError,
     micGuess,
+    micMatchStatus,
   } = guitarChordRhythm;
 
   const blockWidth = Math.max(56, 96 - beatsPerChord * 4);
@@ -102,16 +121,108 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
       <div className="guitar-chord-rhythm-controls">
         <div className="guitar-chord-rhythm-field">
           <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
-            {t('guitarChordRhythm.mode')}
+            {t('guitarChordRhythm.source')}
           </span>
-          <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.mode')}>
-            {GUITAR_CHORD_RHYTHM_MODES.map((m) => (
-              <button key={m.key} type="button" className={mode === m.key ? 'active' : ''} onClick={() => setMode(m.key)} disabled={isPlaying}>
-                {t(`guitarChordRhythm.mode.${m.key}`)}
+          <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.source')}>
+            {['auto', 'custom', 'song'].map((key) => (
+              <button key={key} type="button" className={source === key ? 'active' : ''} onClick={() => setSource(key)} disabled={isPlaying}>
+                {t(`guitarChordRhythm.source.${key}`)}
               </button>
             ))}
           </div>
         </div>
+
+        {source === 'auto' && (
+          <>
+            <div className="guitar-chord-rhythm-field">
+              <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
+                {t('guitarChordRhythm.mode')}
+              </span>
+              <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.mode')}>
+                {GUITAR_CHORD_RHYTHM_MODES.map((m) => (
+                  <button key={m.key} type="button" className={mode === m.key ? 'active' : ''} onClick={() => setMode(m.key)} disabled={isPlaying}>
+                    {t(`guitarChordRhythm.mode.${m.key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="guitar-chord-rhythm-field">
+              <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
+                {t('guitarChordRhythm.duration')}
+              </span>
+              <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.duration')}>
+                {['fixed', 'timer', 'endless'].map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={autoDuration === key ? 'active' : ''}
+                    onClick={() => setAutoDuration(key)}
+                    disabled={isPlaying}
+                  >
+                    {t(`guitarChordRhythm.duration.${key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {source === 'custom' && (
+          <label className="guitar-chord-rhythm-field">
+            {t('guitarChordRhythm.customLabel')}
+            <input type="text" value={customText} onChange={(e) => setCustomText(e.target.value)} disabled={isPlaying} placeholder="G D Em C" dir="ltr" />
+          </label>
+        )}
+
+        {source === 'song' && (
+          <>
+            <label className="guitar-chord-rhythm-field">
+              {t('guitarChordRhythm.verseLabel')}
+              <input type="text" value={verseText} onChange={(e) => setVerseText(e.target.value)} disabled={isPlaying} placeholder="Em C G D" dir="ltr" />
+            </label>
+            <label className="guitar-chord-rhythm-field">
+              {t('guitarChordRhythm.repeats')}
+              <select value={verseRepeats} onChange={(e) => setVerseRepeats(Number(e.target.value))} disabled={isPlaying}>
+                {REPEAT_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="guitar-chord-rhythm-field">
+              {t('guitarChordRhythm.chorusLabel')}
+              <input type="text" value={chorusText} onChange={(e) => setChorusText(e.target.value)} disabled={isPlaying} placeholder="G D Em C" dir="ltr" />
+            </label>
+            <label className="guitar-chord-rhythm-field">
+              {t('guitarChordRhythm.repeats')}
+              <select value={chorusRepeats} onChange={(e) => setChorusRepeats(Number(e.target.value))} disabled={isPlaying}>
+                {REPEAT_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+
+        {(source === 'custom' || source === 'song') && (
+          <div className="guitar-chord-rhythm-field">
+            <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
+              {t('guitarChordRhythm.loop')}
+            </span>
+            <div className="mode-toggle" role="group" aria-label={t('guitarChordRhythm.loop')}>
+              <button type="button" className={!loop ? 'active' : ''} onClick={() => setLoop(false)} disabled={isPlaying}>
+                {t('guitarChordRhythm.loop.off')}
+              </button>
+              <button type="button" className={loop ? 'active' : ''} onClick={() => setLoop(true)} disabled={isPlaying}>
+                {t('guitarChordRhythm.loop.on')}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="guitar-chord-rhythm-field">
           <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
@@ -144,12 +255,13 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
             const result = results[i];
             const color = result === 'hit' ? '#34c759' : result === 'miss' ? 'var(--danger)' : colorForChord(chord.chordText);
             const crossing = now >= chord.startTime && now < chord.endTime;
+            const micClass = crossing && !result && micMatchStatus === 'mismatch' ? ' mic-mismatch' : '';
             const xPercent = xPercentForChord(chord);
             const top = fallingTop(chord, now);
             return (
               <div
                 key={i}
-                className={'guitar-chord-rhythm-block' + (crossing ? ' landed' : '') + (result ? ` ${result}` : '')}
+                className={'guitar-chord-rhythm-block' + (crossing ? ' landed' : '') + (result ? ` ${result}` : '') + micClass}
                 style={{ left: `${xPercent}%`, top, width: blockWidth, height: blockHeight, background: color, borderColor: color }}
               >
                 {crossing && !result ? '▶ ' : ''}
@@ -167,12 +279,13 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
             const result = results[i];
             const color = result === 'hit' ? '#34c759' : result === 'miss' ? 'var(--danger)' : colorForChord(chord.chordText);
             const crossing = now >= chord.startTime && now < chord.endTime;
+            const micClass = crossing && !result && micMatchStatus === 'mismatch' ? ' mic-mismatch' : '';
             const left = `${timelineLeft(chord, now)}%`;
             const top = timelineTop(chord, 40);
             return (
               <div
                 key={i}
-                className={'guitar-chord-rhythm-chip' + (crossing ? ' landed' : '') + (result ? ` ${result}` : '')}
+                className={'guitar-chord-rhythm-chip' + (crossing ? ' landed' : '') + (result ? ` ${result}` : '') + micClass}
                 style={{ left, top, background: color, borderColor: color }}
               >
                 {crossing && !result ? '▶ ' : ''}
@@ -184,12 +297,15 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
       )}
 
       {isPlaying && (
-        <p className="guitar-chord-rhythm-mic-status" dir="auto">
+        <p className={'guitar-chord-rhythm-mic-status' + (micMatchStatus === 'match' ? ' good' : micMatchStatus === 'mismatch' ? ' bad' : '')} dir="auto">
           {micError
             ? t('trainer.micError', { message: micError })
             : micIsListening
             ? micGuess
-              ? t('guitarChordRhythm.hearing', { chord: micGuess.chord, confidence: Math.round(micGuess.confidence * 100) })
+              ? t(micMatchStatus === 'mismatch' ? 'guitarChordRhythm.hearingWrong' : 'guitarChordRhythm.hearing', {
+                  chord: micGuess.chord,
+                  confidence: Math.round(micGuess.confidence * 100),
+                })
               : t('guitarChordRhythm.listening')
             : t('earTraining.mic.permission')}
         </p>

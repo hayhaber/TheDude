@@ -1,0 +1,210 @@
+.falling-notes-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.falling-notes-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.falling-notes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.falling-notes-field select {
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 160px;
+}
+
+.falling-notes-midi-btn {
+  height: 36px;
+  font-size: 13px;
+  font-weight: 590;
+  padding: 0 16px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.falling-notes-midi-btn:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.falling-notes-midi-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.falling-notes-midi-status {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.falling-notes-midi-status.connected {
+  color: #34c759;
+}
+
+.falling-notes-stage {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.falling-notes-lane {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+.falling-note-block {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 700;
+  transition: background-color 0.1s ease, border-color 0.1s ease, opacity 0.15s ease;
+}
+
+.falling-note-block.black {
+  background: var(--accent);
+  color: #fff;
+  z-index: 1;
+}
+
+.falling-note-block.hit {
+  background: #34c759;
+  border-color: #34c759;
+  color: #fff;
+}
+
+.falling-note-block.miss {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  opacity: 0.6;
+}
+
+.falling-notes-hit-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--text);
+  opacity: 0.4;
+}
+
+.falling-notes-keyboard {
+  position: relative;
+  display: flex;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.falling-key-col {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.falling-key {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  transition: background-color 0.08s ease, transform 0.05s ease;
+}
+
+.falling-key-white {
+  width: 100%;
+  height: 100%;
+  background: #fdfdfb;
+  border: 1px solid #cfcfd2;
+  border-radius: 0 0 4px 4px;
+}
+
+.falling-key-white:hover {
+  background: var(--accent-bg);
+}
+
+.falling-key-white.target {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.falling-key-white.hit {
+  background: #34c759;
+}
+
+.falling-key-white.miss {
+  background: var(--danger);
+}
+
+.falling-key-black {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  background: #1c1c1e;
+  border: 1px solid var(--surface);
+  border-radius: 0 0 3px 3px;
+}
+
+.falling-key-black.target {
+  background: var(--accent);
+}
+
+.falling-key-black.hit {
+  background: #34c759;
+}
+
+.falling-key-black.miss {
+  background: var(--danger);
+}
+
+.falling-key:active {
+  transform: translateY(1px);
+}
+
+.falling-notes-score {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.falling-notes-complete {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}

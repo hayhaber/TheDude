@@ -1,0 +1,54 @@
+.note-info-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  max-width: 480px;
+}
+
+.note-info-dot {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.note-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.note-info-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 590;
+  color: var(--text);
+}
+
+.note-info-degree {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.note-info-reason {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}

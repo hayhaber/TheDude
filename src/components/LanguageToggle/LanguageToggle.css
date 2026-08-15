@@ -1,0 +1,10 @@
+.language-toggle {
+  margin: 0;
+}
+
+.language-toggle button {
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}

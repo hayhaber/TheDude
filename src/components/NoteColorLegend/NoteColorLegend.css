@@ -1,0 +1,29 @@
+.note-color-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  /* Sits directly under the Fretboard/PianoKeyboard now, inside Stage's
+     fixed-height .stage-legend-reserve slot (which centers it vertically) —
+     no margin of its own needed, unlike its old spot stacked among
+     ComposeView's other controls. */
+  width: 100%;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.note-color-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-color-legend-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

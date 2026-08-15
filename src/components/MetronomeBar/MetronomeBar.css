@@ -1,0 +1,224 @@
+.metronome-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metronome-bar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 6px;
+  border-radius: 980px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.metronome-bar-toggle {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+/* Visible circle stays compact (this pill is deliberately minimal-chrome),
+   but the real tap target is still a full 44x44pt — an invisible hit-slop
+   extension, same technique used below for .metronome-bar-expand. */
+.metronome-bar-toggle::before,
+.metronome-bar-expand::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.metronome-bar-toggle:hover {
+  background: var(--accent-hover);
+}
+
+.metronome-bar-toggle:active {
+  transform: scale(0.92);
+}
+
+.metronome-bar-toggle.running {
+  background: var(--danger);
+}
+
+.metronome-bar-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(120, 120, 128, 0.3);
+  flex-shrink: 0;
+  transition: background 0.06s ease, transform 0.06s ease;
+}
+
+.metronome-bar-pulse.live {
+  background: var(--accent);
+}
+
+.metronome-bar-pulse.accent {
+  background: #34c759;
+  transform: scale(1.3);
+}
+
+.metronome-bar-bpm {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.metronome-bar-bpm-unit {
+  font-size: 10px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.metronome-bar-expand {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.metronome-bar-expand:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.metronome-bar-expand.active {
+  color: var(--accent);
+}
+
+/* ---------- Right-side drawer, top-anchored ----------
+   Same scrim + translateX slide pattern as TunerBar.css's .tuner-drawer,
+   portaled to document.body for the same containing-block reason (see
+   MetronomeBar.jsx's comment) — but anchored to the TOP of the screen with
+   a capped max-height instead of stretching top:0/bottom:0, so it never
+   grows down far enough to cover the fretboard/piano Stage pinned at the
+   bottom of the viewport (see AppShell.css's .app-stage-anchor). The gap
+   value approximates the Stage's typical rendered height plus its own
+   padding/border; the drawer's own overflow-y:auto is the fallback if the
+   Drum Machine mixer ever makes the content taller than that still leaves. */
+.metronome-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.metronome-drawer-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Sized to its own content by default (no max-height/scroll at all) — the
+   compact controls (beats/tap/dial/time-sig/sound/start/volume) are a
+   small, fixed set that never needs capping, so this stays exactly as
+   tall as it needs to be and no taller. Only once the Drum Machine mixer
+   joins the content (.expanded, toggled from Metronome.jsx's own
+   drums.drumsActive) does a max-height + scroll fallback kick in — "expand
+   downward for the extra controls," per explicit request, not "always
+   pre-reserve room for content that usually isn't even showing." */
+.metronome-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 41;
+  width: min(380px, 100vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-bottom-left-radius: 20px;
+  padding: var(--space-2) var(--space-4);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(100%);
+  pointer-events: none;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.2s ease;
+}
+
+.metronome-drawer.expanded {
+  max-height: calc(100svh - var(--stage-reserve-height, 340px));
+  overflow-y: auto;
+}
+
+.metronome-drawer.open {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.metronome-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metronome-drawer-title {
+  margin: 0;
+}
+
+.metronome-drawer-close {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.metronome-drawer-close:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+/* The Metronome component has its own card chrome (border/background/
+   shadow) for when it's used elsewhere — drop that here so it doesn't
+   render as a box-within-a-box inside the drawer. */
+.metronome-drawer-body .metronome {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}

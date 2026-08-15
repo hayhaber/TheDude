@@ -1,0 +1,25 @@
+.practice-view {
+  max-width: 900px;
+}
+
+.practice-view .subtitle {
+  margin-top: 0;
+  margin-bottom: var(--space-6);
+  color: var(--text-secondary);
+  font-size: 17px;
+}
+
+.practice-view > * + * {
+  margin-top: var(--space-5);
+}
+
+.practice-tabs {
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.practice-drills {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}

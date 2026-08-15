@@ -1,0 +1,78 @@
+.insights-panel {
+  min-width: 0;
+}
+
+.insights-panel-title {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--space-3);
+}
+
+/* Child panels (ScaleAnalysisPanel, PositionRoadmapPanel, TensionMeter,
+   NoteInfoPanel) already carry their own bottom margin + max-width tuned
+   for a wider flow layout — both are harmless here (max-width just caps
+   below the column's actual width; margin still spaces them correctly). */
+.insights-panel .landing-notes-hint {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+
+/* Positioning anchor for .compose-now-playing — see InsightsPanel.jsx's own
+   comment for why this exists (so the label can overlay Tension's row
+   without adding flow height that would push NoteInfoPanel/landing-notes
+   away from Tension). No visual styling of its own. */
+.tension-with-chord-label {
+  position: relative;
+}
+
+/* "Now Playing" — absolutely positioned over TensionMeter's own row (top:0
+   against the .tension-with-chord-label anchor directly above), so it
+   scrolls together with Tension but contributes zero height of its own.
+   Centered across the FULL page width rather than confined to this panel's
+   own narrow column: `left: 50vw` is a fixed pixel value (half the
+   viewport's width) but — because this element is absolutely positioned —
+   gets applied as an offset from its CONTAINING BLOCK's edge, not the true
+   viewport edge, so the `- 72px` cancels that block's own distance from
+   the real viewport edge (the nav is an off-canvas drawer here, not a
+   permanently-docked sidebar — see AppShell.css — so that distance is
+   just the 72px .app-section-content reserves to clear the hamburger
+   button); translateX(-50%) then centers the text itself on that point.
+   A small inset (sunken) frame sits behind the letter — same background
+   color as the page (var(--bg)), not a contrasting card — via the ::before
+   below, which is sized/positioned relative to THIS element's own box
+   (already a valid positioning context since it's position:absolute) and
+   taken out of flow, so it never touches top/left/transform here: the
+   letter's own position is byte-for-byte the same as before this frame
+   existed. */
+.compose-now-playing {
+  position: absolute;
+  top: 0;
+  left: calc(50vw - 72px);
+  transform: translateX(-50%);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.compose-now-playing::before {
+  content: '';
+  position: absolute;
+  inset: -3px -14px;
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: inset 2px 2px 4px var(--inset-shadow-dark), inset -2px -2px 4px var(--inset-shadow-light);
+  z-index: -1;
+}
+
+@media (max-width: 899px) {
+  .compose-now-playing {
+    left: calc(50vw - var(--space-4));
+  }
+}

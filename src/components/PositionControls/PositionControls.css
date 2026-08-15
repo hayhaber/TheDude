@@ -1,0 +1,78 @@
+.position-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 20px;
+}
+
+.position-controls-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.position-controls button {
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  padding: 9px 18px;
+  border-radius: 980px;
+  border: none;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.position-controls-nav button:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.position-controls-nav button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.position-controls-nav button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.position-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.position-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.position-chip {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 590;
+  border-radius: 980px;
+  border: none;
+  background: rgba(120, 120, 128, 0.12);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.position-chip:hover {
+  background: rgba(120, 120, 128, 0.22);
+}
+
+.position-chip:active {
+  transform: scale(0.9);
+}
+
+.position-chip.active {
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}

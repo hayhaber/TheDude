@@ -1,0 +1,128 @@
+/* Reuses StudiesView's rail/lesson-detail shell (.studies-layout,
+   .studies-rail, .studies-lesson, etc.) — same visual shell, different
+   course, so styles are shared rather than duplicated. */
+@import '../StudiesView/StudiesView.css';
+
+.scales-view {
+  max-width: 900px;
+}
+
+/* flex-end, not center — "Key" is a label-above-select column (.scales-field)
+   sitting next to the labelless Degrees/Note Names toggle; centering aligned
+   them by their own (different) total heights, leaving the select's and the
+   toggle's visible boxes on different vertical lines. Bottom-aligning is
+   what actually reads as "these two controls sit on the same line,"
+   regardless of the label taking up space above one of them — same fix as
+   ComposeView.css's .compose-input-row (Capo next to the labelless chord
+   input) and EarTrainingModal.css's .ear-training-controls. */
+.scales-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+/* .mode-toggle's own margin-bottom is for its original stacked/column usage
+   (spacing before the next block below it) — in this side-by-side row it
+   just pushes the toggle's visible bottom edge up away from the row's
+   flex-end line, same fix as ComposeView.css's .compose-toggle-row and
+   EarTrainingModal.css's .ear-training-controls. */
+.scales-controls .mode-toggle {
+  margin: 0;
+}
+
+.scales-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.scales-field select,
+.scales-field input {
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.scales-field input[type='number'] {
+  width: 70px;
+}
+
+.scales-position-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.scales-position-nav button {
+  font-size: 14px;
+  font-weight: 590;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.scales-position-nav button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.scales-practice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.scales-loop-fields {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.scales-practice-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.scales-finish-btn {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 590;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.scales-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.scales-badge {
+  font-size: 12px;
+  font-weight: 650;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--scale-root-color) 16%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--scale-root-color) 35%, var(--border));
+  color: var(--text);
+}

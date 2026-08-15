@@ -1,0 +1,183 @@
+/* Reuses SettingsPanel.css's .settings-field/switch classes for identical
+   visual language inside the drawer body — only the drawer chrome itself
+   (this file) and the trigger button are specific to this component. */
+.display-options-menu {
+  display: inline-block;
+}
+
+.display-options-heatmap {
+  margin-top: 2px;
+}
+
+/* Neutral white pill at rest — matching the clean, un-tinted look of this
+   page's other pill controls (e.g. the chord-progression Prev/Next
+   buttons) instead of standing out as the one blue-accented control among
+   otherwise neutral ones. Still tints blue while the drawer is open, so
+   there's a clear "this is expanded" state — a resting-vs-active color
+   change is a real signal, not decoration. */
+.display-options-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 980px;
+  border: none;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 590;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.15s ease, transform 0.12s ease;
+}
+
+.display-options-trigger:hover {
+  background-color: var(--border);
+}
+
+.display-options-trigger:active {
+  transform: scale(0.96);
+}
+
+.display-options-trigger.active {
+  background-color: var(--accent-bg);
+  color: var(--accent);
+}
+
+.display-options-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+}
+
+/* ---------- Right-side drawer, top-anchored ----------
+   Same scrim + translateX slide + top-anchored/capped-height recipe as
+   MetronomeBar.css's .metronome-drawer (see its own comment for the full
+   rationale — in short: anchored to the TOP with a max-height instead of
+   stretching top:0/bottom:0, so it never grows down far enough to cover the
+   fretboard/piano Stage pinned at the bottom of the viewport). Portaled to
+   document.body for the same reason: AppShell's nav drawer has a `transform`
+   on itself, which would otherwise hijack this drawer's fixed positioning. */
+.display-options-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.display-options-drawer-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.display-options-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 41;
+  width: min(380px, 100vw);
+  /* A smaller reserve than MetronomeBar's shared --stage-reserve-height
+     (340px, sized for that drawer's potentially-tall Drum Machine mixer) —
+     this drawer's content is a handful of short rows, so it doesn't need
+     nearly as much guaranteed Stage clearance underneath it. Still leaves
+     160px at the bottom on any viewport so it can never fully cover the
+     Stage, while giving this specific drawer enough headroom that its own
+     (short) content fits without a scrollbar on ordinary screens. */
+  max-height: calc(100svh - 160px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-bottom-left-radius: 20px;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  transform: translateX(100%);
+  pointer-events: none;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.display-options-drawer.open {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.display-options-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.display-options-drawer-title {
+  margin: 0;
+}
+
+.display-options-drawer-close {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.display-options-drawer-close:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.display-options-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Settings-list row: label on the left, its control hugging the right edge
+   — not SettingsPanel.css's original stacked column (label above, full-width
+   control below). That stacked layout is what made ModeToggle/LabelModeToggle/
+   ColorModeToggle's 2-button pill visually read as "a long gray bar": as a
+   flex item inside a COLUMN, the pill inherited the column's default
+   align-items:stretch and filled the whole row width, leaving its 2 small
+   buttons floating in a lot of empty tinted background to their right. A row
+   layout doesn't have that problem — align-items:stretch only affects the
+   CROSS axis, which is height in a row, so the pill (and the Inversion
+   dropdown, and the Heat map switch) naturally hug their own content width
+   instead, while the row itself still spans edge-to-edge via
+   justify-content: space-between. Each row is also a fixed, compact height
+   now instead of label+pill stacked, which is what actually gets the whole
+   drawer to fit without scrolling on a normal viewport. */
+.display-options-drawer-body .settings-field {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 13px;
+  font-weight: 590;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text);
+}
+
+.display-options-drawer-body .settings-field + .settings-field {
+  margin-top: 0; /* the drawer-body's own flex gap already spaces rows */
+  border-top: 1px solid var(--border);
+}
+
+.display-options-drawer-body .settings-field select {
+  width: auto;
+  min-width: 120px;
+}

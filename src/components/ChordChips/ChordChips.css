@@ -1,0 +1,88 @@
+.chord-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0 20px;
+}
+
+.chord-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chord-chip {
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  padding: 7px 16px;
+  border-radius: 980px;
+  border: none;
+  background: rgba(120, 120, 128, 0.12);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.chord-chip:hover {
+  background: rgba(120, 120, 128, 0.22);
+}
+
+.chord-chip:active {
+  transform: scale(0.96);
+}
+
+.chord-chip.active {
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.chord-chip.invalid {
+  background: transparent;
+  border: 1px dashed var(--danger);
+  color: var(--danger);
+}
+
+.chord-chip.invalid.active {
+  background: transparent;
+  color: var(--danger);
+}
+
+.chord-chips-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.chord-chips-nav-button {
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  padding: 9px 18px;
+  border-radius: 980px;
+  border: none;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.chord-chips-nav-button:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.chord-chips-nav-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.chord-chips-nav-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.chord-chips-nav-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}

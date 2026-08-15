@@ -1,0 +1,260 @@
+.chord-rhythm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* flex-start (not flex-end) + every group below sharing the same label-row
+   height is what keeps every control's actual button/select/input on one
+   consistent top edge — see the standing "control-row alignment" rule.
+   Previously this used flex-end, which put the bare toggle groups (no
+   label line above them) visibly higher than the labeled select/input
+   fields sitting next to them. */
+.chord-rhythm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.chord-rhythm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Every group in the row — even ones with no real label text (the mode
+   toggles, the play button) — gets this exact label-height placeholder,
+   so every group's actual control lines up on the same top edge as the
+   labeled select/input fields. */
+.chord-rhythm-field-label {
+  display: block;
+  height: 13px;
+  line-height: 13px;
+}
+
+.chord-rhythm-field select,
+.chord-rhythm-field input,
+.chord-rhythm-generated {
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 140px;
+  margin: 0;
+}
+
+.chord-rhythm-generated {
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chord-rhythm-field .mode-toggle,
+.chord-rhythm-field .play-button {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Falling chord blocks — a wide colored block per chord (not per note,
+   unlike Falling Notes) drops toward a hit-line; the queue above it
+   previews what's coming, same "look ahead" idea the timeline view gives
+   more room to, just compressed into a stack instead of a scroll. */
+.chord-rhythm-lane {
+  position: relative;
+  height: 200px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* `top`/`left`/`width`/`height` are all set inline, every tick, as a pure
+   function of elapsed time and this chord's own fixed startTime/endTime
+   (see useChordRhythm.js + ChordRhythmPanel.jsx's fallingTop/timelineLeft).
+   Deliberately NO CSS transition here — the position is already smooth and
+   continuous at ~60fps from the tick loop itself; a transition on top of
+   that would lag behind and fight the next tick's already-more-current
+   value, reintroducing exactly the kind of stutter this rewrite removes. */
+.chord-rhythm-block {
+  position: absolute;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* A pulsing glow for as long as the block is actively crossing the
+   hit-line/playhead (its startTime..endTime window) AND not yet judged —
+   the "play it NOW" signal has to be impossible to miss, since it's the
+   direct answer to "when exactly do I play this." A static ring reads as
+   just decoration; an animated pulse reads as "something is happening
+   right now." Once judged (.hit/.miss below) the pulse stops — the
+   question is answered, no need to keep insisting. */
+@keyframes chord-rhythm-pulse {
+  from {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+  }
+  to {
+    box-shadow: 0 0 0 11px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.chord-rhythm-block.landed:not(.hit):not(.miss),
+.chord-rhythm-chip.landed:not(.hit):not(.miss) {
+  animation: chord-rhythm-pulse 0.55s ease-in-out infinite alternate;
+}
+
+/* Hit/miss judgement colors the block itself, in place — it keeps moving
+   and finishes crossing the line rather than being replaced by a separate
+   fixed-position flash element (the earlier approach, which is what read
+   as "jumping to the center" — see the useChordRhythm.js rewrite notes). */
+.chord-rhythm-block.hit,
+.chord-rhythm-chip.hit {
+  box-shadow: 0 0 0 6px rgba(52, 199, 89, 0.35);
+}
+
+.chord-rhythm-block.miss,
+.chord-rhythm-chip.miss {
+  box-shadow: 0 0 0 6px rgba(255, 69, 58, 0.3);
+}
+
+/* A translucent band around the hit-line, always visible even before play
+   starts — it marks WHERE the judging zone is, independent of whether
+   anything is in it right now. `.active` (something's actually crossing
+   this instant) brightens it into a clear "now" signal on top of that
+   always-there "here" one — together they answer both halves of "when do
+   I play": approximately where, and precisely when. */
+.chord-rhythm-hit-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 122px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px dashed rgba(255, 255, 255, 0.14);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.chord-rhythm-hit-zone.active {
+  background: rgba(255, 214, 10, 0.14);
+  border-color: rgba(255, 214, 10, 0.55);
+}
+
+.chord-rhythm-hitline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 150px;
+  height: 2px;
+  background: var(--text);
+  opacity: 0.4;
+  transition: background-color 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+}
+
+.chord-rhythm-hitline.active {
+  background: #ffd60a;
+  opacity: 1;
+  box-shadow: 0 0 10px 2px rgba(255, 214, 10, 0.6);
+}
+
+/* Scrolling chord timeline — chord chips cross a fixed playhead in the
+   center, DAW style, giving a longer visual look-ahead than the falling
+   lane at the cost of feeling less "game-like". */
+.chord-rhythm-timeline {
+  position: relative;
+  height: 90px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Vertical counterpart of the falling lane's hit-zone band — same always
+   visible / brightens-when-active pattern, just spanning the timeline's
+   full height around the playhead instead of the lane's full width around
+   the hit-line. */
+.chord-rhythm-hit-zone.timeline {
+  left: calc(50% - 28px);
+  right: auto;
+  top: 0;
+  bottom: 0;
+  height: auto;
+  width: 56px;
+  border-top: none;
+  border-bottom: none;
+  border-left: 1px dashed rgba(255, 255, 255, 0.14);
+  border-right: 1px dashed rgba(255, 255, 255, 0.14);
+}
+
+.chord-rhythm-playhead {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--text);
+  opacity: 0.4;
+  transition: background-color 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+}
+
+.chord-rhythm-playhead.active {
+  background: #ffd60a;
+  opacity: 1;
+  box-shadow: 0 0 10px 2px rgba(255, 214, 10, 0.6);
+}
+
+/* Same "no CSS transition, pure per-tick inline style" approach as the
+   falling block above, and for the same reason. `top` also varies per chip
+   now (see timelineTop) — the vertical axis is free once horizontal is
+   spoken for by time, so it's used to spread chips by keyboard position,
+   piano-roll style, the same principle the falling view uses horizontally. */
+.chord-rhythm-chip {
+  position: absolute;
+  width: 64px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.chord-rhythm-chip.landed {
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.28);
+}
+
+.chord-rhythm-score {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.chord-rhythm-complete {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}

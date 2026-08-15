@@ -1,0 +1,209 @@
+.guitar-tuner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 22px;
+  /* The outer "device body" — a light-gray/metal-look casing around the
+     dark screen below, echoing a real clip-on tuner's plastic housing
+     rather than just floating the screen directly on the page background. */
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+/* ---------- Screen ----------
+   Modeled on a real clip-on tuner's small backlit LCD/LED display (e.g.
+   D'Addario's Micro Headstock Tuner: dark screen, a big tri-color note
+   letter, a segmented LED meter bar) — dark regardless of the app's own
+   light/dark theme, since a real tuner's screen doesn't follow room
+   lighting either, and the tri-color red/amber/green scheme needs a dark
+   backdrop to actually read as "glowing." */
+.guitar-tuner-screen {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  border-radius: 14px;
+  background: radial-gradient(120% 140% at 50% 0%, #1c1e1c 0%, #0a0b0a 70%);
+  border: 1px solid #000;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  position: relative;
+  transition: box-shadow 0.2s ease;
+}
+
+.guitar-tuner-screen.zone-in-tune {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 18px rgba(52, 199, 89, 0.35);
+}
+
+.guitar-tuner-note-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.guitar-tuner-note {
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #4a4f4a;
+  text-shadow: none;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.zone-off .guitar-tuner-note {
+  color: #ff453a;
+  text-shadow: 0 0 18px rgba(255, 69, 58, 0.65);
+}
+
+.zone-close .guitar-tuner-note {
+  color: #ffd60a;
+  text-shadow: 0 0 18px rgba(255, 214, 10, 0.6);
+}
+
+.zone-in-tune .guitar-tuner-note {
+  color: #34ff6b;
+  text-shadow: 0 0 20px rgba(52, 255, 107, 0.75);
+}
+
+/* Small directional flat/sharp indicators either side of the note letter —
+   the same "which way to turn the peg" affordance a real tuner's arrows
+   give, dim until the reading is clearly off in that direction. */
+.guitar-tuner-flat-arrow,
+.guitar-tuner-sharp-arrow {
+  font-size: 22px;
+  font-weight: 700;
+  color: #3a3d3a;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.guitar-tuner-flat-arrow.active,
+.guitar-tuner-sharp-arrow.active {
+  color: #ff453a;
+  text-shadow: 0 0 10px rgba(255, 69, 58, 0.7);
+}
+
+/* Segmented LED meter bar — fills outward from the true center segment
+   toward however sharp/flat the current reading is, red at the outer
+   segments fading toward green at center, exactly the tri-color language
+   the note letter above already uses. */
+.guitar-tuner-meter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 26px;
+  width: 100%;
+  padding: 0 4px;
+}
+
+.guitar-tuner-segment {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40%;
+  border-radius: 2px;
+  background: #2a2c2a;
+  transition: height 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.guitar-tuner-segment.center {
+  height: 100%;
+  background: #4a4f4a;
+}
+
+/* Lit segments are colored by distance from center — the outer thirds read
+   red, the middle third amber, the true center (already handled by
+   .zone-in-tune below) green — so the bar itself gradient-codes severity
+   the same way a real tuner's LED strip does, not just one flat color. */
+.guitar-tuner-segment.lit {
+  height: 85%;
+  background: #ff453a;
+  box-shadow: 0 0 6px rgba(255, 69, 58, 0.55);
+}
+
+.guitar-tuner-segment.lit:nth-child(5),
+.guitar-tuner-segment.lit:nth-child(6),
+.guitar-tuner-segment.lit:nth-child(7),
+.guitar-tuner-segment.lit:nth-child(8),
+.guitar-tuner-segment.lit:nth-child(9),
+.guitar-tuner-segment.lit:nth-child(10),
+.guitar-tuner-segment.lit:nth-child(11) {
+  background: #ffd60a;
+  box-shadow: 0 0 6px rgba(255, 214, 10, 0.55);
+}
+
+.guitar-tuner-segment.center.lit,
+.zone-in-tune .guitar-tuner-segment.lit {
+  height: 100%;
+  background: #34ff6b;
+  box-shadow: 0 0 8px rgba(52, 255, 107, 0.7);
+}
+
+.guitar-tuner-frequency {
+  font-size: 13px;
+  color: #6b706b;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Fixed height reserved always (not height:0 <-> auto) — the screen must
+   stay exactly the same size whether or not a note is currently detected,
+   so only opacity toggles, never layout. */
+.guitar-tuner-in-tune-badge {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  height: 16px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #34ff6b;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.guitar-tuner-in-tune-badge.visible {
+  opacity: 1;
+}
+
+/* Fixed height for exactly 2 lines, always — same "reserve the space, don't
+   let content size the box" rule as .guitar-tuner-in-tune-badge above. The
+   text here varies a lot by state (the long "Click Start Listening..."
+   idle prompt wraps to 2 lines, "Play a note..." is 1, a browser's own
+   getUserMedia error string is unpredictable length, and mid-note it's
+   empty) — without a fixed height the whole tuner card visibly grew/shrank
+   switching between idle, listening, and detecting. line-clamp keeps an
+   unusually long error message from overflowing past the reserved 2 lines
+   instead of pushing the card taller. */
+.guitar-tuner-status {
+  margin: 0;
+  height: 32px;
+  line-height: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.guitar-tuner-toggle {
+  font-size: 15px;
+  font-weight: 590;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 980px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}

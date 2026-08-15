@@ -1,0 +1,162 @@
+.technique-masters-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 720px;
+}
+
+.technique-masters-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  max-width: 260px;
+}
+
+.technique-masters-field select {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.technique-masters-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.technique-masters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.technique-masters-empty {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.technique-masters-card {
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.technique-masters-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.technique-masters-card-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.technique-masters-focus {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 590;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.technique-masters-description {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.technique-masters-routine {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.technique-masters-routine-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.technique-masters-routine p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.technique-masters-visualize {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.technique-masters-visualize-btn {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 7px 14px;
+  border: 1px solid var(--technique-action-color, #ff2d55);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--technique-action-color, #ff2d55);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.technique-masters-visualize-btn.active {
+  background: var(--technique-action-color, #ff2d55);
+  color: #fff;
+}
+
+.technique-masters-visualize-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.technique-masters-visualize-controls button {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.technique-masters-step-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.technique-masters-visualize-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}

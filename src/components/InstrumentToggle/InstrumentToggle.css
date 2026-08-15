@@ -1,0 +1,13 @@
+.instrument-toggle {
+  margin: 0;
+}
+
+.instrument-toggle button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 590;
+  white-space: nowrap;
+}

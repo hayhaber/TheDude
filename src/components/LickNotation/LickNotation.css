@@ -1,0 +1,14 @@
+.lick-notation {
+  display: flex;
+  justify-content: flex-start;
+  overflow-x: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
+}
+
+.lick-notation svg {
+  max-width: none;
+  height: auto;
+}

@@ -1,0 +1,321 @@
+.ear-training-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ear-training-modal {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Embedded in a tab (PracticeView) instead of a floating modal card. */
+.ear-training-modal-inline {
+  width: 100%;
+  max-width: 720px;
+  max-height: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.ear-training-start-card {
+  max-width: 480px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ear-training-start-copy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ear-training-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Plain text, no border/background — its own line directly below Skip/Next,
+   right-aligned to match their edge (both this and .ear-training-actions
+   share the same container width, so text-align:right lands on the same
+   edge Skip/Next sit at via their own margin-left:auto). Sized to match
+   their overall visual footprint (13px text plus 9px/16px padding reads as
+   noticeably bigger than plain 13px text with no padding, hence the larger
+   font-size here). Blue by default, red for the last 10 seconds. */
+.ear-training-timer-inline {
+  text-align: right;
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #007aff;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.ear-training-timer-inline.danger {
+  color: #ff3b30;
+}
+
+.ear-training-title {
+  margin: 0;
+}
+
+.ear-training-exit {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 7px 16px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--danger);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.ear-training-exit:hover {
+  background: var(--border);
+}
+
+.ear-training-exit:active {
+  transform: scale(0.96);
+}
+
+.ear-training-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.ear-training-controls .mode-toggle {
+  margin: 0;
+}
+
+.ear-training-mode-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ear-training-mode-field select {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 7px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.ear-training-mode-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.ear-training-scoreboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ear-training-scoreboard strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.ear-training-score-detail {
+  font-size: 11px;
+}
+
+.ear-training-prompt {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 590;
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ear-training-prompt.correct {
+  background: color-mix(in srgb, #34c759 16%, var(--bg));
+  border-color: #34c759;
+}
+
+.ear-training-prompt.incorrect {
+  background: color-mix(in srgb, var(--danger) 14%, var(--bg));
+  border-color: var(--danger);
+}
+
+.ear-training-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ear-training-progress-label {
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+/* Groups Skip/Next with the countdown at the row's trailing edge as one
+   unit — see the comment in EarTrainingModal.jsx for why this lives on the
+   wrapper rather than on each button individually. */
+.ear-training-trailing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.ear-training-skip {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 9px 16px;
+  border-radius: 980px;
+  border: none;
+  background: var(--border);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.ear-training-skip:hover {
+  background: rgba(120, 120, 128, 0.22);
+}
+
+.ear-training-skip:active {
+  transform: scale(0.96);
+}
+
+.ear-training-next {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 9px 16px;
+  border-radius: 980px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.ear-training-next:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ear-training-next:active {
+  transform: scale(0.96);
+}
+
+.ear-training-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.ear-training-summary h3 {
+  margin: 0;
+}
+
+.ear-training-summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.ear-training-summary-stats strong {
+  font-size: 18px;
+  color: var(--text);
+}
+
+.ear-training-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ear-training-choice {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 9px 16px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.ear-training-choice:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.ear-training-choice:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ear-training-choice:disabled {
+  cursor: default;
+}
+
+.ear-training-choice.correct {
+  background: #34c759;
+  border-color: #34c759;
+  color: #fff;
+}
+
+.ear-training-choice.incorrect {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}

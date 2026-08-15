@@ -1,0 +1,323 @@
+/* Reuses StudiesView's rail/lesson-detail shell (.studies-layout,
+   .studies-rail, .studies-lesson, etc.) — same shell every other Studies
+   course uses — and CircleOfFifthsQuiz's quiz-choice styling (.circle-quiz*)
+   for every drill's "play, then pick an answer, get feedback" UI, so this
+   course's practice tools look and feel identical to the app's other
+   quizzes rather than introducing a 4th visual language for the same job. */
+@import '../StudiesView/StudiesView.css';
+@import '../CircleOfFifthsQuiz/CircleOfFifthsQuiz.css';
+/* .ear-training-mic-* classes, reused wholesale by SingRootDrill.jsx rather
+   than a second copy of the same "toggle mic, show status" chrome. */
+@import '../EarTrainingModal/EarTrainingMicAnswer.css';
+
+.chords-by-ear-view {
+  max-width: 900px;
+}
+
+.cbe-strategy-text {
+  white-space: pre-line;
+}
+
+.cbe-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.cbe-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.cbe-controls .mode-toggle {
+  margin: 0;
+}
+
+.cbe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.cbe-field select {
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.cbe-readout {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+}
+
+.cbe-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.cbe-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cbe-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 64px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* .cbe-chip doubles as a plain display swatch (ProgressionDemo) and a real
+   clickable button (ChordRoadMapDemo) — the interactive states only kick in
+   when it's rendered as a <button>, which a non-interactive <div> swatch
+   simply never matches. */
+button.cbe-chip {
+  cursor: pointer;
+}
+
+button.cbe-chip:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.cbe-chip.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.cbe-chip-roman {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cbe-chip-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cbe-drill {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.cbe-drill-key {
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cbe-drill-key strong {
+  color: var(--text);
+  text-transform: none;
+}
+
+/* Find-the-Key's 12-fret picker — one button per fret of the low E string,
+   the literal "slide up and down the neck" interaction rendered as a row
+   of taps rather than a drag gesture. */
+.cbe-fret-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cbe-fret-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 40px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cbe-fret-btn:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.cbe-fret-num {
+  font-size: 10px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.cbe-fret-btn.picked {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cbe-fret-btn.correct {
+  background: #34c759;
+  border-color: #34c759;
+  color: #fff;
+}
+
+.cbe-fret-btn.incorrect {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+/* Progression dictation — one slot per chord in the sequence, each with its
+   own small set of options, laid out as a wrapping row of cards so a 6-chord
+   Expert-tier question doesn't force horizontal scrolling. */
+.cbe-sequence-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.cbe-sequence-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.cbe-sequence-slot-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cbe-sequence-slot-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.circle-quiz-choice.selected {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cbe-sequence-freetext {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cbe-sequence-input {
+  font-size: 16px;
+  font-weight: 590;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.cbe-sequence-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.cbe-sequence-chip.correct {
+  background: #34c759;
+  border-color: #34c759;
+  color: #fff;
+}
+
+.cbe-sequence-chip.incorrect {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.cbe-sequence-submit {
+  align-self: flex-start;
+}
+
+/* 6-Chord Road Map — real barre-chord diagrams (MiniChordDiagram.jsx),
+   degree-numbered per this course's own Nashville-number convention, laid
+   out as a wrapping chart so all 6 read at a glance like a page from a
+   chord book, not a row of plain text chips. */
+.cbe-mini-chord-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.cbe-mini-chord {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cbe-mini-chord:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.cbe-mini-chord.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.cbe-mini-chord-degree {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cbe-mini-chord-svg {
+  display: block;
+}
+
+.cbe-mini-chord-text {
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}

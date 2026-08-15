@@ -1,0 +1,377 @@
+.app-shell {
+  display: flex;
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* ---------- Navigation drawer (≥900px) ----------
+   Off-canvas by default (translateX(-100%)) — replaces what used to be a
+   permanently-docked sidebar, so .app-content below no longer reserves
+   --sidebar-width and gets that space back. Opens over the content with a
+   scrim, closes via the hamburger, the × in its header, an outside click/tap
+   (see usePopoverDismiss, wired in AppShell.jsx), or Escape. */
+
+/* Purely a ref anchor for outside-click detection (wraps the trigger AND
+   the drawer, so re-clicking the hamburger to close doesn't also count as
+   an "outside click" and immediately reopen it). Not `display: contents` —
+   its two children are both `position: fixed` regardless, so a plain
+   zero-size wrapper box has no layout effect while staying a normal,
+   unambiguous hit-testing target for both children. */
+.app-drawer-area {
+  display: block;
+}
+
+.app-drawer-trigger {
+  position: fixed;
+  /* calc(...) rather than a plain env() fallback — on a device with no
+     notch env(safe-area-inset-top) resolves to 0 and this collapses back
+     to the original --space-4, but on an iPhone it pushes the button below
+     the notch/status bar instead of sitting underneath it. */
+  top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  /* 20px, not 16 — a few px of extra clearance from the edge so a native
+     scrollbar (which can render on this same left edge in RTL/Hebrew mode)
+     never overlaps the button. The top area above the fretboard scrolls
+     freely behind this button now — no backing bar — so this offset is
+     the only thing keeping it clear of the scrollbar. */
+  left: 20px;
+  z-index: 42;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.app-drawer-trigger:hover {
+  background: var(--border);
+}
+
+.app-drawer-trigger:active {
+  transform: scale(0.94);
+}
+
+.app-drawer-trigger-bar {
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--text);
+}
+
+/* opacity/transform are driven by inline style in AppShell.jsx (from the
+   `drawerOpen` boolean directly), not a `.open` class toggle — a class-based
+   override of a transitioned property here was found to sometimes get stuck
+   at its closed/hidden value (the .open rule never taking visible effect,
+   making the whole drawer's contents unreachable). Inline style always wins
+   the cascade unconditionally, sidestepping that entirely. `transition` still
+   lives here so the state change still animates smoothly. */
+.app-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.32);
+  transition: opacity 0.22s ease;
+}
+
+.app-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: var(--space-6) var(--space-3);
+  gap: var(--space-6);
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0 0 0 var(--space-3);
+}
+
+.app-drawer-close {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.app-drawer-close:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.app-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+}
+
+.app-sidebar-brand-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.app-sidebar-brand-text {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.app-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.app-nav-item {
+  display: flex;
+  align-items: center;
+  /* Same fix as StudiesView.css's .studies-lesson-btn — the global button
+     reset's justify-content:center was silently re-centering this
+     icon+label row instead of leaving it flush against the sidebar's left
+     edge. */
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 10px var(--space-3);
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-nav-item-icon {
+  font-size: 17px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.app-nav-item:hover {
+  background: rgba(120, 120, 128, 0.12);
+}
+
+.app-nav-item.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* Language + Settings (+ the info-tooltips toggle) live at the top of the
+   drawer, below the brand row. */
+.app-sidebar-top-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+}
+
+/* Pushed to the bottom of the column. min-height: 0 + overflow-y: auto is
+   the same "flex child can scroll within whatever space remains" pattern
+   .app-section-content uses — so if the expanded metronome panel (see
+   MetronomeBar.jsx) is ever taller than the space left under the nav items,
+   this slot scrolls internally instead of anything being cut off. */
+.app-sidebar-metronome {
+  margin-top: auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.app-mobile-settings {
+  display: none;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The one and only thing allowed to scroll — an honest fallback for
+   content that doesn't fit a short viewport, not the default. Everything
+   else (drawer, Stage) stays fixed/pinned so the neck is always reachable
+   without scrolling. Top padding clears the fixed hamburger trigger
+   (desktop) / settings icon (mobile), both anchored at the same offset.
+   Left padding is its own explicit value (not the symmetric --space-8 the
+   right side still uses) — the hamburger trigger sits at left:20px, 44px
+   wide (right edge at 64px), and --space-8 alone (32px) left every
+   section's own heading/content starting well underneath it (e.g.
+   Compose's "Compose" h1 and the chord input row). 72px clears that 64px
+   edge with a small, deliberately tight (not overly generous) gap — same
+   content shift applies to every section, since they all render through
+   this one shared wrapper. */
+.app-section-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 60px var(--space-8) var(--space-2) 72px;
+}
+
+/* The Fretboard + MetronomeBar are the app's primary interface, so they're
+   pinned to the bottom of the content column — visible below whichever
+   section is showing above it — rather than living inside any one section.
+   Being the fixed-size last child of a 100svh flex column is what pins it;
+   no position:sticky/fixed needed. */
+.app-stage-anchor {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  /* As little padding as the Fretboard/PianoKeyboard actually need — this
+     pinned area eats into the scrollable section above it on every page,
+     so it stays as short as possible rather than leaving generous
+     breathing room. */
+  padding: var(--space-2) var(--space-8) var(--space-2);
+}
+
+.app-bottom-tabs {
+  display: none;
+}
+
+.app-mobile-metronome {
+  display: none;
+}
+
+/* ---------- Narrow / mobile (<900px): bottom tab bar ---------- */
+
+@media (max-width: 899px) {
+  .app-drawer-trigger,
+  .app-drawer-scrim,
+  .app-drawer {
+    display: none;
+  }
+
+  /* Reserves room for the fixed bottom tab bar AND the fixed mobile
+     metronome bar just above it, within the existing 100svh box
+     (box-sizing: border-box, set globally in index.css) rather than
+     growing past it. */
+  .app-content {
+    padding-bottom: calc(var(--bottom-tabs-height) + var(--mobile-metronome-height));
+  }
+
+  .app-section-content {
+    padding: 60px var(--space-4) var(--space-4);
+  }
+
+  .app-stage-anchor {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .app-mobile-settings {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    position: fixed;
+    top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+    right: var(--space-4);
+    z-index: 6;
+  }
+
+  /* Just above the bottom tab bar — the tabs are "the menu" on mobile, so
+     this keeps the metronome adjacent to nav here too, rather than crowding
+     the already-occupied top-right corner. min-height (not a fixed height)
+     + max-height/overflow-y let it grow upward in place — like a bottom
+     sheet — when MetronomeBar.jsx's expanded panel renders inline below
+     the compact bar, capped so it can't ever cover the whole screen. */
+  .app-mobile-metronome {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--bottom-tabs-height);
+    min-height: var(--mobile-metronome-height);
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 5;
+  }
+
+  .app-mobile-metronome .tuner-bar {
+    max-width: 280px;
+  }
+
+  .app-bottom-tabs {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--bottom-tabs-height);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    z-index: 5;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .app-bottom-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 590;
+    cursor: pointer;
+  }
+
+  .app-bottom-tab-icon {
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .app-bottom-tab.active {
+    color: var(--accent);
+  }
+}

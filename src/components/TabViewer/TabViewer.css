@@ -1,0 +1,56 @@
+.tab-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tab-viewer-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 590;
+  padding: 10px 20px;
+  border-radius: 980px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.tab-viewer-upload input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.tab-viewer-status {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.tab-viewer-error {
+  color: var(--danger);
+}
+
+.tab-viewer-meta {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.tab-viewer-artist {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.tab-viewer-surface {
+  width: 100%;
+  min-height: 200px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}

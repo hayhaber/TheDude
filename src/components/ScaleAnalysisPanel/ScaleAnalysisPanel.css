@@ -1,0 +1,115 @@
+.scale-analysis-panel {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  max-width: 560px;
+}
+
+.scale-analysis-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.scale-analysis-title strong {
+  font-weight: 650;
+}
+
+.scale-analysis-scales {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.scale-analysis-borrowed {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.scale-analysis-borrowed-chord {
+  font-weight: 650;
+}
+
+.scale-analysis-borrowed-chord.usage-borrowed {
+  color: #34c759; /* systemGreen — borrowed, no detected half-step clash: valid */
+}
+
+.scale-analysis-borrowed-chord.usage-clash {
+  color: var(--danger); /* half-step clash against the diatonic chord it replaces */
+}
+
+.scale-analysis-emphasized {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.scale-degree-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.scale-degree-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 34px;
+}
+
+.scale-degree-number {
+  font-size: 10px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.scale-degree-note-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text);
+  border: 2px solid transparent;
+  background: rgba(120, 120, 128, 0.1);
+}
+
+.scale-degree-roman {
+  font-size: 10px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+/* Diatonic degree currently in use — blue, "this is a plain scale tone." */
+.scale-degree-cell.usage-diatonic .scale-degree-note-ring {
+  border-color: #007aff;
+  background: color-mix(in srgb, #007aff 18%, var(--bg));
+  color: #0060df;
+}
+
+/* Borrowed chord in use, no detected half-step clash — green, "different
+   from the scale, but a valid/pleasant-sounding choice" (matches the same
+   systemGreen used for the borrowed-chords legend text above). */
+.scale-degree-cell.usage-borrowed .scale-degree-note-ring {
+  border-color: #34c759;
+  background: color-mix(in srgb, #34c759 18%, var(--bg));
+  color: #248a3d;
+}
+
+/* Borrowed chord whose own altered tone sits a half-step against the
+   diatonic chord it replaces — red, a real harmonic-tension flag. */
+.scale-degree-cell.usage-clash .scale-degree-note-ring {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 18%, var(--bg));
+  color: var(--danger);
+}

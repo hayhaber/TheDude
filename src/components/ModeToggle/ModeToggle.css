@@ -1,0 +1,100 @@
+.mode-toggle {
+  /* inline-GRID with equal-fraction columns, not inline-flex — a flex
+     container's children each size to their OWN content, so "Fingering"
+     (long word) and "Note" (short word) end up visibly different widths
+     even once the container itself stops stretching. A grid container whose
+     own width is intrinsic (shrink-to-fit, via align-self:flex-start below —
+     never given an explicit width) sizes EQUAL 1fr columns to the width the
+     WIDEST cell needs, then gives every column that same width — which is
+     what actually makes every button in the pair/trio the same size,
+     matching a real segmented control (iOS's UISegmentedControl behaves
+     exactly this way) instead of each button hugging its own label. */
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: rgba(120, 120, 128, 0.12);
+  border-radius: 8px;
+  /* No padding — the group's own outer height now equals --control-height
+     exactly (matching a <select> sitting in the same row), rather than
+     being control-height plus this wrapper's own inset. */
+  padding: 0;
+  margin: 0 0 20px;
+  gap: 2px;
+  /* This is used everywhere as a flex/grid item, in BOTH flex-COLUMN fields
+     (SettingsPanel, AudioInputSettings, Compose's own Display Options
+     drawer, ...) and flex-ROW fields (ScalesView, EarTrainingModal,
+     PracticeDrillPanel, ...) sitting next to a labelled select. A
+     flex-column's default align-items:stretch was silently stretching this
+     tinted pill to the full width of whatever row it sat in — with only 2-3
+     small buttons inside, that reads as a long, mostly-empty gray bar
+     instead of a compact toggle. width:max-content stops that stretch by
+     giving the item an intrinsic width the same way align-self:flex-start
+     used to — but unlike align-self (which is CROSS-AXIS-relative and
+     therefore flips meaning between a column parent, where it fixes width,
+     and a row parent, where it instead forces vertical top-alignment,
+     silently overriding that row's own align-items:flex-end/center), width
+     only ever affects the item's own inline-axis size, so it can't fight a
+     row parent's cross-axis alignment. */
+  width: max-content;
+}
+
+.mode-toggle button {
+  /* Explicit height (not left to padding + line-height) so this always
+     matches --control-height exactly — including matching a <select>
+     sitting in the same row — regardless of how a given label's text
+     metrics would otherwise nudge the natural height by a px or two. */
+  height: var(--control-height);
+  box-sizing: border-box;
+  /* A shared min-width (wide enough for the longest label used by any
+     mode-toggle in the app — "Fingering" is the longest today) so every
+     toggle looks the SAME size as every other one, not just internally
+     symmetric within its own pair — e.g. Display Options' Chord/Triad,
+     Note/Fingering, Chord/Function, and On/Off rows all read as one
+     consistent control size stacked vertically, instead of each pill being
+     exactly as wide as its own text happens to need. */
+  min-width: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text);
+  white-space: nowrap;
+  transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.mode-toggle button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+
+/* Modifier for option lists this base grid layout doesn't suit — 4+ options
+   and/or long labels ("Diminished", "Dominant 7th", "Falling Notes"). The
+   base .mode-toggle is an equal-width GRID on purpose (see its own comment)
+   so a pair/trio of short options reads as one real segmented control —
+   but forcing that same "every column as wide as the widest cell" rule
+   across 4+ long labels is exactly what stretches into one long, mostly-
+   empty gray bar instead of separate buttons (same root cause the Studies
+   course-tabs bar had before it got its own dedicated flex-wrap fix).
+   `.wrap` swaps the grid for a flex-wrap row of individually-sized pills —
+   same visual pill language (background/radius/active state, all inherited
+   from the base rules above), no shared-width constraint, wraps onto a 2nd
+   line rather than overflowing or stretching. */
+.mode-toggle.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  width: auto;
+  max-width: 100%;
+}
+
+.mode-toggle.wrap button {
+  min-width: 0;
+  flex: 0 0 auto;
+}

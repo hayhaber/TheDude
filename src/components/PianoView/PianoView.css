@@ -1,0 +1,6 @@
+/* Reuses ChordsByEarView.css's shell (.studies-layout/.cbe-demo/.cbe-drill/
+   .cbe-field/etc.) — same rail+detail shape every Studies course uses, no
+   reason to author a 5th copy of it. */
+.piano-view {
+  max-width: 900px;
+}

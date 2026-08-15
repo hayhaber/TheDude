@@ -1,0 +1,636 @@
+/* No gap here on purpose — the panel and the keybed are meant to read as
+   one continuous physical object (like a real instrument's chassis), not
+   two floating pieces with the app's own background showing through
+   between them. .piano-keyboard-connector below is the actual seam. */
+.piano-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 100%;
+}
+
+/* The control strip, restyled as a real electric piano's front panel —
+   dark brushed-metal gradient, an inset LCD voice readout, and a row of
+   physical-looking buttons with LED indicators — sitting directly above
+   the keys, same spot the old plain button row occupied. Fixed dark tones
+   in both light/dark theme (same reasoning as the black keys/piano body
+   below: a real instrument's panel doesn't change color with the app's
+   theme), with var(--accent) reserved for the one thing that SHOULD react
+   to theme: the lit LED / LCD glow color.
+   The background is layered: a diagonal glossy sheen (the "brushed metal
+   catching light" streak) painted OVER the base vertical brushed-metal
+   gradient, so the panel reads as a lit, faintly reflective metal surface
+   rather than a flat dark rectangle — this is also what keeps it visually
+   distinct from the app's own dark-mode background, per explicit request.
+   Only the top corners are rounded; the bottom is flat so it sits flush
+   against .piano-keyboard-connector below with no gap or radius mismatch. */
+.piano-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.05) 78%, rgba(255, 255, 255, 0) 92%),
+    linear-gradient(180deg, #46464a 0%, #2a2a2d 45%, #1c1c1e 80%, #151516 100%);
+  border: 1px solid #0a0a0b;
+  border-bottom: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -3px 5px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* The physical seam where the control panel meets the keybed — a narrow
+   recessed groove (dark, inset-shadowed) with a thin metallic highlight
+   catching light along its bottom edge, the way an actual instrument's
+   chassis panels meet. This is what replaces the old plain gap (app
+   background showing through) that made the middle-C marker just below it
+   read as a stray floating line instead of part of one connected object. */
+.piano-keyboard-connector {
+  height: 7px;
+  background: linear-gradient(180deg, #0c0c0d 0%, #1a1a1c 45%, #0c0c0d 100%);
+  border-left: 1px solid #0a0a0b;
+  border-right: 1px solid #0a0a0b;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.7), inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.piano-panel-sound {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.piano-panel-metronome {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+/* Volume — an icon + a real slider, no LCD, per explicit request that this
+   one control read its value straight off the handle position rather than
+   through a screen. Styled to match the panel's own physical-button look
+   (dark track, brushed-metal thumb) instead of the browser's default
+   range-input chrome. */
+.piano-panel-volume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The speaker icon is itself a mute toggle — plain button reset (no
+   pill/border chrome like the other panel buttons, just the icon), same
+   dark-panel hover feedback as the chevrons. */
+.piano-panel-volume-icon {
+  appearance: none;
+  -webkit-appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.piano-panel-volume-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.piano-panel-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #111 0%, #000 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+.piano-panel-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #666669 0%, #313133 100%);
+  border: 1px solid #050506;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.piano-panel-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #666669 0%, #313133 100%);
+  border: 1px solid #050506;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* The Play/Pause transport button — same physical-button look as the
+   MIDI/Keyboard/Labels buttons above, but round and icon-only (no label),
+   the way a keyboard's actual transport button reads at a glance. */
+.piano-panel-transport {
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.piano-panel-transport .piano-panel-btn-icon {
+  font-size: 13px;
+}
+
+.piano-panel-chevron {
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 26px;
+  border: 1px solid #050506;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #58585c 0%, #3a3a3d 55%, #29292b 100%);
+  color: #e8e8ea;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 2px 2px rgba(0, 0, 0, 0.4);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.piano-panel-chevron:hover {
+  background: linear-gradient(180deg, #666669 0%, #444447 55%, #313133 100%);
+}
+
+.piano-panel-chevron:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* The "LCD screen" — a dark green-black readout, monospace, with a soft
+   glow, deliberately unlike every other UI text in the app (this is meant
+   to read as a physical display, not a web label). */
+.piano-panel-lcd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 128px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #1a2b1c 0%, #0e1c10 100%);
+  border: 1px solid #060a06;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.piano-panel-lcd-value {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: center;
+  color: #7CFF8C;
+  text-shadow: 0 0 6px rgba(124, 255, 140, 0.55);
+  font-family: 'Courier New', ui-monospace, monospace;
+  white-space: nowrap;
+}
+
+.piano-panel-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* The BPM screen doubles as a click-to-type field — a subtle hover state
+   is the only affordance needed since the cursor + title tooltip already
+   signal it's interactive, matching the panel's overall "real hardware,
+   not obviously a web form" look. */
+.piano-panel-lcd-clickable {
+  cursor: pointer;
+}
+
+.piano-panel-lcd-clickable:hover {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(124, 255, 140, 0.35);
+}
+
+.piano-panel-bpm-input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 52px;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: center;
+  color: #7cff8c;
+  text-shadow: 0 0 6px rgba(124, 255, 140, 0.55);
+  font-family: 'Courier New', ui-monospace, monospace;
+}
+
+.piano-panel-bpm-input::-webkit-inner-spin-button,
+.piano-panel-bpm-input::-webkit-outer-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Physical-looking control buttons — same brushed-metal gradient as the
+   chevrons, an LED dot that lights up (var(--accent), the one
+   theme-reactive color here) when the control is active/connected, and a
+   pressed-in look on click. Every button's actual behavior/state is
+   unchanged from before this redesign — connectMidi, computerKeyboardEnabled,
+   showAllLabels all still work exactly as they did. */
+.piano-panel-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  border: 1px solid #050506;
+  background: linear-gradient(180deg, #4a4a4d 0%, #313133 55%, #232325 100%);
+  color: #e8e8ea;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 2px 2px rgba(0, 0, 0, 0.4);
+  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.piano-panel-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #565659 0%, #3a3a3d 55%, #29292b 100%);
+}
+
+.piano-panel-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+.piano-panel-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.piano-panel-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4a1414;
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Fixed green, not var(--accent) — a real device's "on" LED is always
+   green regardless of the app's own accent color/theme. */
+.piano-panel-btn.active .piano-panel-led {
+  background: #34c759;
+  box-shadow: 0 0 5px 1px #34c759;
+}
+
+.piano-panel-btn.warn .piano-panel-led {
+  background: var(--danger);
+  box-shadow: 0 0 5px 1px var(--danger);
+}
+
+.piano-panel-btn-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.piano-panel-btn-label {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .piano-panel {
+    justify-content: center;
+  }
+  .piano-panel-btn-label {
+    display: none;
+  }
+}
+
+/* Live "currently pressed" feedback for a connected physical MIDI
+   keyboard — a ring, not a fill, so it never fights the key's own
+   chord/quiz/drill highlight color (see keyFill/keyOpacity above); it just
+   adds on top, visible on a plain unhighlighted key too. */
+.piano-key.midi-held {
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+
+.piano-keyboard-viewport {
+  position: relative;
+  max-width: 100%;
+}
+
+/* The scrollable strip itself. Native overflow-x already gives touch swipe
+   + momentum on mobile and trackpad/wheel scrolling everywhere; mouse-drag
+   panning is added in JS (see PianoKeyboard.jsx's onMouseDown handler).
+   scroll-snap-type is 'proximity' rather than 'mandatory' so it settles on
+   a key boundary without fighting an in-progress drag or momentum fling. */
+/* No global `scroll-behavior: smooth` here on purpose — the nav-button and
+   minimap clicks already request smooth scrolling explicitly per call
+   (scrollTo/scrollBy's own `behavior: 'smooth'` option below), which is
+   the only place it should apply. A CSS-level smooth default would also
+   animate the *initial* on-load scroll position (set via a plain
+   `.scrollLeft =` assignment for the default-range requirement), turning
+   an instant "this is where the keyboard starts" into a visible scroll
+   animation on every page load. */
+.piano-keyboard-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  scrollbar-width: thin;
+}
+
+.piano-keyboard-scroll:active {
+  cursor: grabbing;
+}
+
+.piano-keyboard-keys {
+  position: relative;
+  display: flex;
+}
+
+.piano-white-key-col {
+  position: relative;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+.piano-key {
+  /* Without this, browsers render <button> with native OS widget chrome
+     (system button face/border) instead of the authored CSS box — in some
+     browsers that native background wins over `background-color` entirely
+     regardless of specificity, since the button paints as a themed native
+     control unless appearance is reset. Only actually visible as a bug in
+     dark mode: the native chrome happens to be light/white, same as light
+     mode's own --surface, so it looked correct there by coincidence. */
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  font: inherit;
+  transition: background-color 0.12s ease, transform 0.08s ease;
+  user-select: none;
+}
+
+.piano-key.disabled {
+  cursor: default;
+}
+
+.piano-key-white {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Fixed ivory tone in both themes, same reasoning already applied to the
+     black keys below ("real keyboards don't change color with room
+     lighting") — previously this used var(--surface), which flips to a
+     dark color in dark mode, an inconsistency this fixes. */
+  background: #fdfdfb;
+  border: 1px solid #cfcfd2;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+  transition: transform 0.05s cubic-bezier(0.3, 0.9, 0.4, 1), box-shadow 0.05s ease, background-color 0.12s ease;
+}
+
+/* A glossy top-highlight + soft bottom-shadow sheen, layered OVER the key's
+   own background-color (which stays exactly as it was — plain ivory at
+   rest, or a highlighted note's fill color set inline by the caller) via a
+   separate stacked pseudo-element instead of replacing `background` with a
+   gradient outright. That keeps this purely a visual-depth addition with
+   zero risk of washing out the existing chord-tone/quiz highlight colors. */
+.piano-key-white::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0) 18%, rgba(0, 0, 0, 0.02) 88%, rgba(0, 0, 0, 0.08) 100%);
+  transition: background 0.05s ease;
+}
+
+.piano-key-white:hover:not(.disabled) {
+  background: var(--accent-bg);
+}
+
+/* Presses down and inward (translateY, not just a flat squash) with the
+   sheen flipping to a shadow falling from above — the "hinge tilting away
+   from the fallboard" look real keys have, rather than a static squish. */
+.piano-key-white:active:not(.disabled),
+.piano-key-white.active {
+  transform: translateY(2px) scaleY(0.985);
+  transform-origin: bottom;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+}
+
+.piano-key-white:active:not(.disabled)::after,
+.piano-key-white.active::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.14) 0%, rgba(0, 0, 0, 0.02) 45%, rgba(255, 255, 255, 0.12) 100%);
+}
+
+/* Middle C gets its own subtle, always-visible anchor treatment — a small
+   accent dot under its label and a tinted top edge — independent of
+   labelMode, so it stays the one fixed visual reference point no matter
+   where the user has scrolled to. */
+.piano-key-middle-c {
+  border-top: 2px solid var(--accent);
+}
+
+.piano-key-white:focus-visible,
+.piano-key-black:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* A fixed dark tone in both themes, not var(--text) (which flips light in
+   dark mode) — real keyboards don't change color with room lighting. */
+.piano-key-black {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  background: #1c1c1e;
+  border: 1px solid var(--surface);
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  transition: transform 0.05s cubic-bezier(0.3, 0.9, 0.4, 1), box-shadow 0.05s ease, background-color 0.12s ease;
+}
+
+/* Same non-invasive sheen-overlay approach as the white keys — a glossy
+   highlight near the top, independent of the key's own background-color. */
+.piano-key-black::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 25%, rgba(0, 0, 0, 0.25) 100%);
+  transition: background 0.05s ease;
+}
+
+.piano-key-black:hover:not(.disabled) {
+  background: var(--accent);
+}
+
+.piano-key-black:active:not(.disabled),
+.piano-key-black.active {
+  transform: translateY(1.5px) scaleY(0.96);
+  transform-origin: bottom;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.piano-key-black:active:not(.disabled)::after,
+.piano-key-black.active::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+.piano-key-black-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+
+.piano-key-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.piano-key-label-middle-c {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* A colored (chord-tone/quiz-reveal) white key needs its label to stay
+   legible against whatever chordColor/role color is behind it, not the
+   default gray tuned for a plain white key background — same reasoning as
+   the black-key label already being a fixed white regardless of state. */
+.piano-key-white.active .piano-key-label {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* Finger-number badge (Piano course's hand-position/five-finger lessons) —
+   positioned in the upper-middle of the key, independent of the existing
+   note-label content anchored at the bottom via .piano-key-white's own
+   align-items:flex-end, so the two never overlap or fight each other. */
+.piano-key-finger {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  pointer-events: none;
+}
+
+/* Computer-keyboard-as-piano key-letter hint badge — shown only while that
+   input mode is on, positioned top-left so it never collides with the
+   finger-number badge (top-center) or the note label (bottom-center). */
+.piano-key-hint {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: rgba(120, 120, 128, 0.22);
+  color: var(--text-secondary);
+  pointer-events: none;
+  letter-spacing: 0.02em;
+}
+
+.piano-key-white.active .piano-key-hint {
+  background: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+
+.piano-key-hint-black {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.piano-key-c-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+/* Middle C's own dot stays full-strength (its label already gets the bold
+   accent-colored text on top of this) — every other C's dot is a fainter
+   version of the same landmark so Middle C still reads as the one primary
+   anchor at a glance, not just one of many identical dots. */
+.piano-key-label-middle-c .piano-key-c-dot {
+  opacity: 1;
+}
+
+/* Subtle by design (per "subtle visual indicators") — small, semi-
+   transparent until hovered, only rendered at all when there's actually
+   more keyboard in that direction (see canScrollLeft/canScrollRight). */
+.piano-keyboard-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.6;
+  box-shadow: var(--shadow-sm);
+  transition: opacity 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+.piano-keyboard-nav:hover {
+  opacity: 1;
+  background: var(--border);
+}
+
+.piano-keyboard-nav:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.piano-keyboard-nav-left {
+  left: 4px;
+}
+
+.piano-keyboard-nav-right {
+  right: 4px;
+}

@@ -1,0 +1,246 @@
+:root {
+  --text: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-h: #1d1d1f;
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --divider: rgba(0, 0, 0, 0.1);
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-bg: rgba(0, 113, 227, 0.1);
+  --danger: #ff3b30;
+  --scale-root-color: #ff9f0a;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --fretboard-bg: #fbfaf8;
+  --fretboard-line: rgba(0, 0, 0, 0.22);
+  --fretboard-inlay: rgba(0, 0, 0, 0.14);
+
+  /* Neumorphic inset-frame shadow pair (Compose's "Now Playing" chord
+     letter — see InsightsPanel.css) — a dark shadow on one inner edge plus
+     a light highlight on the opposite inner edge reads as "carved into"
+     the surface, using the SAME background color rather than a
+     contrasting card. */
+  --inset-shadow-dark: rgba(0, 0, 0, 0.15);
+  --inset-shadow-light: rgba(255, 255, 255, 0.7);
+
+  /* Spacing scale (4px base) — used by the app shell/section views so
+     padding and gaps stay consistent across the new navigation layer. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-card: 20px;
+
+  /* Shared height for small inline controls (dropdowns, segmented toggle
+     buttons, pill buttons) that commonly sit side by side in the same
+     row — without a shared explicit height, each one's padding+line-height
+     combination produces a *slightly* different natural height (a select's
+     border-box math doesn't match a button's, and even two button groups
+     using the identical class can differ by a couple of px depending on
+     their text), so a row mixing them reads as visually uneven even though
+     nothing is actually "wrong" with any single control on its own. */
+  --control-height: 36px;
+
+  --sidebar-width: 232px;
+  --bottom-tabs-height: 62px;
+  --mobile-metronome-height: 104px;
+  --stage-sticky-top: 0px;
+  /* Approximates the Fretboard/PianoKeyboard Stage's typical rendered
+     height (see Fretboard.jsx's neckHeight) plus .app-stage-anchor's own
+     padding/border — used to cap MetronomeBar's top-anchored drawer so it
+     never grows down far enough to cover the neck. */
+  --stage-reserve-height: 340px;
+
+  /* Fretboard realism palette — a real rosewood/nickel/pearloid instrument
+     doesn't change with light/dark mode, so these stay constant across
+     themes (unlike --fretboard-bg above, which only styled the old flat
+     card and is superseded by these for the neck surface itself). */
+  --fret-wood-dark: #241511;
+  --fret-wood-mid: #3c2418;
+  --fret-wood-light: #5a3823;
+  --fret-binding: #ede3ce;
+  --fret-metal-light: #e8e4dc;
+  --fret-metal-dark: #7a766e;
+  --fret-inlay-pearl: #f4f1e8;
+  --fret-nut: #efe9d8;
+
+  --sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --heading: var(--sans);
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  font: 17px/1.47059 var(--sans);
+  letter-spacing: -0.01em;
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+/* Explicit user choice (via the Settings panel), stamped on <html> by
+   useTheme.js — takes priority over whatever the OS/browser prefers, so
+   Light/Dark here always means what the user picked, not what their system
+   happens to be set to. */
+:root[data-theme='dark'] {
+  --text: #f5f5f7;
+  --text-secondary: #98989d;
+  --text-h: #f5f5f7;
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --border: rgba(255, 255, 255, 0.08);
+  --divider: rgba(255, 255, 255, 0.12);
+  --accent: #0a84ff;
+  --accent-hover: #3395ff;
+  --accent-bg: rgba(10, 132, 255, 0.16);
+  --danger: #ff453a;
+  --scale-root-color: #ff9f0a;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --fretboard-bg: #232325;
+  --fretboard-line: rgba(255, 255, 255, 0.22);
+  --fretboard-inlay: rgba(255, 255, 255, 0.16);
+  /* Dark mode's --bg is near-black, so the "dark" side of the inset shadow
+     needs to lean on true black (not the light-mode's soft gray) to still
+     read as a shadow, and the "light" side is a much fainter lift since
+     there's no bright surface to catch a real highlight off of. */
+  --inset-shadow-dark: rgba(0, 0, 0, 0.6);
+  --inset-shadow-light: rgba(255, 255, 255, 0.07);
+  color-scheme: dark;
+}
+
+html {
+  box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--bg);
+  /* Stops iOS's rubber-band bounce from hijacking a vertical drag that's
+     meant for something else on the page (string-bend drag, fretboard
+     pan) — without this, dragging near the top/bottom of the viewport on
+     an iPhone can trigger the page's own overscroll instead of the
+     gesture the user actually intended. */
+  overscroll-behavior-y: contain;
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 40px;
+  letter-spacing: -0.015em;
+  margin: 0 0 4px;
+  @media (max-width: 1024px) {
+    font-size: 30px;
+  }
+}
+h2 {
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+}
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 6px;
+  color: var(--text-h);
+  font-size: 14px;
+  padding: 3px 7px;
+  background: var(--border);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+/* Dropdowns and segmented toggle buttons (.mode-toggle button) commonly sit
+   side by side in the same control row across the app (quiz mode + difficulty
+   + pace, display mode selectors, etc.) — a shared explicit height keeps
+   that row visually even instead of each control's own padding math landing
+   on a slightly different natural height. */
+select {
+  height: var(--control-height);
+  box-sizing: border-box;
+}
+
+/* Every button's label centered both horizontally and vertically, app-wide
+   — one global rule instead of patching each component's own button CSS.
+   inline-flex (not flex) so buttons keep their normal inline sizing/flow;
+   this only adds alignment, it doesn't change layout direction or width. */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Reusable 44px circular icon-button chrome — shared by any icon-in-circle
+   control meant to sit directly next to another one (e.g. the Settings gear
+   and the info-tooltips toggle in AppShell's drawer) so their size,
+   alignment, and position always match by construction rather than by two
+   components' CSS happening to agree. Add this class alongside a
+   component's own class (for its own specific selectors, e.g. `.active`)
+   rather than replacing it. */
+.icon-circle-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 19px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.15s ease, transform 0.12s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.icon-circle-button:hover {
+  background: var(--border);
+}
+
+.icon-circle-button:active {
+  transform: scale(0.94);
+}
+
+.icon-circle-button.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}

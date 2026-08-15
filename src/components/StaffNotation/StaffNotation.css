@@ -1,0 +1,20 @@
+.staff-notation {
+  display: flex;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
+}
+
+.staff-notation svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.grand-staff {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}

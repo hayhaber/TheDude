@@ -1,0 +1,431 @@
+.song-video-player {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.song-video-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.song-video-label {
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+/* Same look as .song-chord-import-row (reuses its button/hint/file-input
+   classes directly) but no top border — this sits right after the URL
+   field/error, not after a chord list. */
+.song-gp-import-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.song-yt-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.song-yt-suggestion-thumb {
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.song-yt-suggestion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.song-yt-suggestion-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song-yt-suggestion-info span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.song-video-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.song-video-input-group input {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.song-video-input-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.song-video-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* Responsive 16:9 embed — height derived from width via the padding-top
+   trick so the iframe (which YT.Player replaces the container with)
+   resizes correctly at any container width. */
+.song-video-frame-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--shadow-md);
+}
+
+.song-video-frame,
+.song-video-frame-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Video top/left, chord timeline bottom/right — a simple responsive
+   two-column layout above a reasonable width, stacked on narrow screens. */
+.song-video-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .song-video-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.song-chord-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+
+.song-chord-mark-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.song-chord-mark-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.song-chord-mark-row input {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.song-chord-mark-row input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.song-chord-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.song-listen-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.song-listen-btn {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 7px 14px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.song-listen-btn:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.song-listen-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.song-listen-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.song-listen-guess {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text);
+}
+
+.song-listen-use {
+  font-size: 12px;
+  font-weight: 590;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.song-listen-use:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.song-chord-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.song-chord-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  transition: background 0.15s ease;
+}
+
+.song-chord-entry.active {
+  background: var(--accent-bg);
+}
+
+.song-chord-entry-time {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  flex-shrink: 0;
+}
+
+.song-chord-entry-time:hover {
+  color: var(--accent);
+}
+
+.song-chord-entry-chord {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.song-chord-entry.active .song-chord-entry-chord {
+  color: var(--accent);
+}
+
+.song-chord-entry-remove {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.song-chord-entry-remove:hover {
+  background: rgba(120, 120, 128, 0.16);
+  color: var(--danger);
+}
+
+.song-chord-clear {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 590;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--danger);
+  cursor: pointer;
+}
+
+.song-chord-clear:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.song-chord-list-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.song-chord-export {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 590;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.song-chord-export:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.song-chord-import-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.song-chord-file-input {
+  display: none;
+}
+
+.song-chord-import-btn {
+  font-size: 12px;
+  font-weight: 590;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.song-chord-import-btn:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.song-chord-import-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.song-sync-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.song-sync-sequence {
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.song-sync-sequence:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.song-sync-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.song-sync-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.song-sync-field input,
+.song-sync-field select {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 7px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  width: 80px;
+}
+
+.song-sync-field input:focus,
+.song-sync-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}

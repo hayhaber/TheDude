@@ -1,0 +1,49 @@
+.piano-practice-start-card {
+  max-width: 480px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.piano-practice-start-copy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.piano-practice-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.piano-practice-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.piano-practice-title {
+  margin: 0;
+}
+
+.piano-practice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.piano-practice-coming-soon {
+  margin: 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+  font-size: 14px;
+}

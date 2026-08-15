@@ -1,0 +1,66 @@
+.circle-of-fifths-diagram {
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+.circle-segment {
+  fill: var(--surface);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: fill 0.15s ease;
+}
+
+.circle-segment:hover {
+  fill: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+.circle-segment-minor {
+  fill: color-mix(in srgb, var(--text-secondary) 10%, var(--surface));
+}
+
+.circle-segment-minor:hover {
+  fill: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+
+.circle-segment.selected {
+  fill: var(--accent);
+}
+
+.circle-segment.selected.circle-segment-minor {
+  fill: color-mix(in srgb, var(--accent) 55%, var(--surface));
+}
+
+.circle-segment.neighbor-iv,
+.circle-segment.neighbor-v {
+  fill: color-mix(in srgb, var(--accent) 30%, var(--surface));
+}
+
+.circle-label-major {
+  font-size: 15px;
+  font-weight: 650;
+  fill: var(--text);
+  pointer-events: none;
+}
+
+.circle-segment.selected ~ .circle-label-major,
+text.circle-label-major {
+  fill: var(--text);
+}
+
+.circle-label-minor {
+  font-size: 11px;
+  font-weight: 590;
+  fill: var(--text-secondary);
+  pointer-events: none;
+}
+
+.circle-degree-tag {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--accent);
+  pointer-events: none;
+}

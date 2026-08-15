@@ -1,0 +1,47 @@
+.studies-section .subtitle {
+  margin-top: 0;
+  margin-bottom: var(--space-5);
+  color: var(--text-secondary);
+  font-size: 17px;
+}
+
+/* Deliberately its OWN styling, not the shared .mode-toggle segmented-
+   control component — .mode-toggle is an equal-width CSS grid (see its own
+   comment: built for 2-3 short options, e.g. Chord/Triad), which with 6
+   course tabs stretched every button to a shared min-width and refused to
+   wrap (flex-wrap has no effect on a grid container), forcing the whole
+   page into unwanted horizontal scrolling. This is a plain wrapping flex
+   row of individually-sized pill buttons instead — reads as separate
+   buttons, not one long gray bar, and wraps onto a second line rather than
+   ever overflowing. */
+.studies-course-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5);
+}
+
+.studies-course-tabs button {
+  height: var(--control-height);
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.studies-course-tabs button:hover {
+  background: rgba(120, 120, 128, 0.12);
+}
+
+.studies-course-tabs button.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}

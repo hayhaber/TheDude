@@ -1,0 +1,83 @@
+.phrase-builder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.phrase-section {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.phrase-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.phrase-section-title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.phrase-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.phrase-buttons .play-button {
+  font-size: 13px;
+  padding: 7px 14px;
+}
+
+.phrase-bar-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.phrase-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.phrase-bar-label {
+  flex-shrink: 0;
+  font-weight: 590;
+  color: var(--text-secondary);
+  min-width: 170px;
+}
+
+.phrase-note-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.phrase-note {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(120, 120, 128, 0.12);
+  color: var(--text);
+  font-weight: 590;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.phrase-note.playing {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.1);
+}

@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "chord-progression-dev",
+      "runtimeExecutable": "C:\\Users\\Adi\\OneDrive\\Claude\\Hay\\Chord Progression\\.claude\\dev.cmd",
+      "runtimeArgs": [],
+      "port": 5173,
+      "autoPort": true
+    }
+  ]
+}

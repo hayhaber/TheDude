@@ -1,0 +1,115 @@
+.songs-view {
+  max-width: 640px;
+}
+
+.songs-view .subtitle {
+  margin-top: 0;
+  margin-bottom: var(--space-6);
+  color: var(--text-secondary);
+  font-size: 17px;
+}
+
+.songs-view > * + * {
+  margin-top: var(--space-5);
+}
+
+.songs-mode-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.songs-mode-field select {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.songs-mode-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.songs-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.songs-search-field label {
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.songs-search-field input {
+  font-size: 17px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.songs-search-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.songs-destinations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.songs-destinations-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.songs-destination-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  min-height: 44px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 590;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.songs-destination-card:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.songs-destination-card:active {
+  transform: scale(0.99);
+}
+
+.songs-destination-arrow {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.songs-empty-hint {
+  color: var(--text-secondary);
+  font-size: 15px;
+}

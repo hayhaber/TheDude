@@ -1,0 +1,197 @@
+.studies-view {
+  max-width: 900px;
+}
+
+.studies-view .subtitle {
+  margin-top: 0;
+  margin-bottom: var(--space-6);
+  color: var(--text-secondary);
+  font-size: 17px;
+}
+
+.studies-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.studies-rail {
+  flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.studies-progress {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.studies-stage-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.studies-stage-label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.studies-lesson-btn {
+  display: flex;
+  align-items: center;
+  /* Every plain <button> gets justify-content:center from index.css's
+     global reset — harmless for single-label buttons, but it silently
+     re-centers this icon+label ROW (check circle + title), pulling both
+     away from the button's own left edge by a different amount per title's
+     length/line-count, so consecutive rail items look misaligned with each
+     other even though each is individually centered. flex-start restores
+     the intended fixed left-hand check-circle column every title lines up
+     against. */
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 590;
+  text-align: left;
+  cursor: pointer;
+}
+
+.studies-lesson-btn:hover {
+  background: rgba(120, 120, 128, 0.12);
+}
+
+.studies-lesson-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.studies-lesson-check {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.studies-lesson-check.done {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.studies-lesson {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--space-5) var(--space-6);
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.studies-lesson-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.studies-lesson-header h2 {
+  margin: 0;
+}
+
+.studies-complete-btn {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 590;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.studies-complete-btn.done {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.studies-lesson-description {
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.studies-exercise {
+  margin-top: var(--space-4);
+}
+
+.studies-load-exercise-btn {
+  font-size: 14px;
+  font-weight: 590;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.studies-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.studies-nav button {
+  font-size: 14px;
+  font-weight: 590;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.studies-nav button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (max-width: 899px) {
+  .studies-layout {
+    flex-direction: column;
+  }
+
+  .studies-rail {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}

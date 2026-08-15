@@ -1,0 +1,61 @@
+.heat-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin: -10px 0 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.heat-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heat-map-legend-swatch {
+  display: inline-block;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Four tiers, four genuinely distinct hues (green/blue/purple/red) — was
+   var(--text) (black in light mode, unreadable against a dark background)
+   for chord and var(--text-secondary) (plain gray, barely read as "a color"
+   and blended into the fretboard's own muted/unplayed-note gray elsewhere)
+   for passing; both replaced with real, distinct colors. */
+.legend-chord {
+  width: 15px;
+  height: 15px;
+  background: #34c759;
+  opacity: 1;
+}
+
+.legend-scale {
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  opacity: 0.65;
+}
+
+/* systemPurple — clearly its own hue, not a washed-out gray that could be
+   mistaken for an ordinary muted/non-chord-tone dot elsewhere on the neck. */
+.legend-passing {
+  width: 10px;
+  height: 10px;
+  background: #af52de;
+  opacity: 0.75;
+}
+
+/* Deliberately the most emphasized swatch here (full opacity + a glow),
+   not just another muted tier dot — an avoid note is the one thing this
+   legend most needs a player to actually notice. */
+.legend-avoid {
+  width: 11px;
+  height: 11px;
+  background: var(--danger);
+  opacity: 1;
+  filter: drop-shadow(0 0 3px var(--danger));
+}

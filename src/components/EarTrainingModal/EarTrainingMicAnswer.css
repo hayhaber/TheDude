@@ -1,0 +1,56 @@
+.ear-training-mic-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+}
+
+.ear-training-mic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ear-training-mic-label {
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ear-training-mic-toggle {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 7px 14px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+.ear-training-mic-toggle:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.ear-training-mic-toggle:active {
+  transform: scale(0.96);
+}
+
+.ear-training-mic-toggle.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ear-training-mic-status {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}

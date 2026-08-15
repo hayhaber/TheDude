@@ -1,0 +1,54 @@
+.info-tooltip {
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-inline-start: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.info-tooltip-trigger:hover,
+.info-tooltip-trigger:focus-visible {
+  color: var(--accent);
+  background: var(--accent-bg);
+  outline: none;
+}
+
+/* Portaled to document.body (position:fixed, top/left set inline from the
+   trigger's live position — see InfoTooltip.jsx) so a scrollable ancestor's
+   own overflow:hidden can never clip it. */
+.info-tooltip-bubble {
+  position: fixed;
+  z-index: 70;
+  max-width: 240px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #f8f9fa;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.info-tooltip-bubble.visible {
+  opacity: 1;
+}

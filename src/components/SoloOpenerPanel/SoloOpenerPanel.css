@@ -1,0 +1,122 @@
+.solo-opener-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Same flex-start + shared label-row-height alignment convention as
+   ChordRhythmPanel's own control row — see the standing "control-row
+   alignment" rule. */
+.solo-opener-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.solo-opener-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.solo-opener-field-label {
+  display: block;
+  height: 13px;
+  line-height: 13px;
+}
+
+.solo-opener-field select {
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 140px;
+  margin: 0;
+}
+
+.solo-opener-shuffle {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+  justify-content: flex-start;
+}
+
+.solo-opener-shuffle:hover {
+  background: var(--bg);
+}
+
+/* The constraint card — this is what the player has to glance at mid-solo,
+   so it stays big, high-contrast, and glanceable rather than dense text. */
+.solo-opener-card {
+  padding: var(--space-4);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.solo-opener-prompt-lead {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.solo-opener-prompt-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.solo-opener-prompt-list li {
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.solo-opener-prompt-key {
+  display: inline-block;
+  min-width: 84px;
+  margin-inline-end: var(--space-2);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+}
+
+.solo-opener-status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.solo-opener-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}

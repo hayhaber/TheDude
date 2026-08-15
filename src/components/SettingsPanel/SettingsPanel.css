@@ -1,0 +1,247 @@
+/* Sits in-flow now — AppShell places this in the sidebar footer (desktop)
+   or a fixed top-right slot (mobile, see .app-mobile-settings), so the
+   component itself no longer needs to position itself against the page. */
+.settings-panel {
+  position: relative;
+}
+
+/* Box size/shape/color chrome comes from the shared .icon-circle-button
+   class (index.css) — kept in sync with the info-tooltips toggle next to it
+   by construction. Font-size is its own override here, NOT inherited from
+   that shared 19px baseline: the ⚙︎ (gear) glyph draws much smaller within
+   its own em-box than ⓘ's filled circle does at the same font-size, so
+   matching the numeric font-size left the drawn gear looking visibly
+   smaller than the "i" glyph's circle even though the two BUTTONS are an
+   identical 44px. This bumps only the glyph itself larger to compensate —
+   the button's own box size is untouched. */
+.settings-gear {
+  font-size: 27px;
+}
+
+/* ---------- Right-side drawer, top-anchored ----------
+   Same scrim + translateX slide + top-anchored/capped-height recipe as
+   MetronomeBar.css's .metronome-drawer / DisplayOptionsMenu.css's own
+   drawer (see either's comment for the full rationale). z-index above the
+   nav drawer (41) and its scrim (40), and above the Tuner drawer, since this
+   renders directly under <body> alongside them. */
+.settings-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.settings-drawer-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.settings-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 61;
+  width: min(380px, 100vw);
+  max-height: calc(100svh - 160px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-bottom-left-radius: 20px;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  transform: translateX(100%);
+  pointer-events: none;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-drawer.open {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.settings-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-drawer-title {
+  margin: 0;
+}
+
+.settings-drawer-close {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.settings-drawer-close:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.settings-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Settings-list row: label on the left, its control hugging the right edge
+   — same pattern DisplayOptionsMenu.css uses for its own rows, applied here
+   too for one consistent visual language across every drawer in the app.
+   flex-wrap so a field with an attribution hint underneath (Guitar/Piano
+   Sound) can force that hint onto its own full-width line below via
+   flex-basis:100%, instead of the row layout squeezing it in sideways. */
+.settings-drawer-body > .settings-field {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 13px;
+  font-weight: 590;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text);
+}
+
+.settings-drawer-body > .settings-field + .settings-field {
+  margin-top: 0; /* the drawer-body's own flex gap already spaces rows */
+  border-top: 1px solid var(--border);
+}
+
+/* Every row's own control (toggle pill / select) previously started right
+   after its OWN label text, so its horizontal position depended on that
+   label's length — "Language" vs "Appearance" (or the Hebrew equivalents,
+   which happen to be closer in length, hiding the bug there) landed their
+   toggles at visibly different X offsets. A fixed label column, same width
+   for every row regardless of its own text or which language is active,
+   makes every row's control start at the same place — a real 2-column
+   settings form instead of each control hugging its own label. flex-shrink:0
+   keeps it from being squeezed by the wider mode-toggle/select next to it;
+   text is still free to wrap onto a 2nd line for an unusually long label
+   rather than being clipped. */
+.settings-drawer-body > .settings-field > .settings-field-label {
+  flex: 0 0 92px;
+}
+
+.settings-drawer-body > .settings-field select,
+.settings-drawer-body > .settings-field input[type='text'],
+.settings-drawer-body > .settings-field input[type='password'] {
+  width: auto;
+  min-width: 140px;
+  flex: 1 1 140px;
+}
+
+.settings-drawer-body > .settings-field .settings-attribution {
+  flex-basis: 100%;
+}
+
+/* AudioInputSettings' own fields (device picker, input mode + hint, gain
+   slider, level meter + Test Mic button) carry more content per field than
+   a label+control row comfortably fits — kept in the original stacked
+   column layout, same as before. Higher specificity than the row rule
+   above (3 classes vs. 2) so it wins regardless of source order. */
+.settings-drawer-body .audio-input-settings .settings-field {
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 590;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  border-top: none;
+}
+
+.settings-drawer-body .audio-input-settings .settings-field select {
+  width: 100%;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.settings-field + .settings-field {
+  margin-top: 16px;
+}
+
+.settings-field .mode-toggle {
+  margin: 0;
+}
+
+/* Also covers a plain text/password input (e.g. the YouTube API key field,
+   masked so it can't be read off the screen once pasted) — previously
+   every field here was either a select, a toggle-button group, or a range
+   slider, none of which had this rule. */
+.settings-field select,
+.settings-field input[type='text'],
+.settings-field input[type='password'] {
+  width: 100%;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Dot-masks a plain text input's value (Chrome/Safari/Edge only — Firefox
+   has no equivalent property and just shows plain text there, an
+   acceptable trade-off for avoiding a real password field entirely, see
+   YoutubeApiKeySettings.jsx's own comment on why). */
+.youtube-api-key-input {
+  -webkit-text-security: disc;
+}
+
+.settings-drawer-subtitle {
+  margin: 4px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.settings-field select:focus,
+.settings-field input[type='text']:focus,
+.settings-field input[type='password']:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.settings-attribution {
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-secondary);
+  opacity: 0.75;
+  line-height: 1.4;
+}

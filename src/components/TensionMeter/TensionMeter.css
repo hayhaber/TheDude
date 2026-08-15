@@ -1,0 +1,66 @@
+.tension-meter {
+  margin: 0 0 20px;
+  max-width: 320px;
+}
+
+.tension-meter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.tension-meter-title-row {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tension-meter-title {
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tension-meter-label {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.tension-meter-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(120, 120, 128, 0.16);
+  overflow: hidden;
+}
+
+.tension-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.tension-meter-label.resolution,
+.tension-meter-fill.resolution {
+  color: #34c759;
+  background: #34c759;
+}
+
+.tension-meter-label.relaxed,
+.tension-meter-fill.relaxed {
+  color: #30b0c7;
+  background: #30b0c7;
+}
+
+.tension-meter-label.medium,
+.tension-meter-fill.medium {
+  color: #ff9500;
+  background: #ff9500;
+}
+
+.tension-meter-label.high,
+.tension-meter-fill.high {
+  color: #ff3b30;
+  background: #ff3b30;
+}

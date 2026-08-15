@@ -1,0 +1,117 @@
+.practice-drill-panel {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.practice-drill-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.practice-drill-title {
+  margin: 0;
+}
+
+.practice-drill-meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.practice-drill-timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 590;
+  color: var(--text);
+}
+
+.practice-drill-exit {
+  font-size: 12px;
+  font-weight: 590;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--danger);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.practice-drill-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.practice-drill-controls .mode-toggle {
+  margin: 0;
+}
+
+.practice-drill-controls .metronome-toggle {
+  width: auto;
+  margin: 0;
+  padding: 0 20px;
+}
+
+.practice-drill-hear {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 0 14px;
+  height: 33px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.practice-drill-hear:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.practice-drill-hear.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.practice-drill-reset-timer {
+  position: relative;
+  width: 33px;
+  height: 33px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.practice-drill-reset-timer:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.practice-drill-reset-timer:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.practice-drill-reset-timer:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.practice-drill-hint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}

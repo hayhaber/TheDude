@@ -1,0 +1,510 @@
+/* No card chrome (background/border/shadow) — the neck's own wood/binding
+   rendering already gives it presence, it doesn't need a box around it.
+   Side padding is just enough to keep the Prev/Next chevrons off the neck's
+   own edges. */
+.fretboard-scroll {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+  padding: 0 36px;
+}
+
+/* Renders at its natural intrinsic size (the width/height attributes set in
+   Fretboard.jsx from the current window's viewBox) rather than stretching
+   to fill the container — max-width is only a safety net so it can still
+   shrink (both dimensions together, preserving the aspect ratio) on a
+   viewport narrower than that natural size, not a way to force it smaller. */
+.fretboard-svg {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+}
+
+.fretboard-page-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.fretboard-page-btn:hover {
+  background: var(--border);
+}
+
+.fretboard-page-btn:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.fretboard-page-prev {
+  left: 6px;
+}
+
+.fretboard-page-next {
+  right: 6px;
+}
+
+.fretboard-wood {
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+}
+
+.fretboard-binding {
+  fill: var(--fret-binding);
+}
+
+.fretboard-sheen {
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.fret-wire {
+  filter: drop-shadow(0.5px 0 0 rgba(0, 0, 0, 0.35));
+}
+
+.nut-bar {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+/* Shadow is its own dedicated rect layer now (Fretboard.jsx, filter
+   url(#string-shadow)) — softer and independently tunable than a CSS
+   drop-shadow, and drawn once per string rather than recomputed by the
+   browser's filter pipeline on every one of these fill-gradient rects. */
+.string-line {
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 0.5;
+}
+
+/* fill is set per-element (url(#pearl-inlay)) — this class only carries
+   the shared depth treatment. */
+.fret-inlay {
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.4));
+}
+
+.fret-number {
+  font-size: 14.5px;
+  fill: var(--text-secondary);
+  font-weight: 500;
+}
+
+.string-label {
+  font-size: 14.5px;
+  fill: var(--text-secondary);
+  font-weight: 590;
+}
+
+.mute-open-marker {
+  font-size: 18px;
+  fill: var(--danger);
+  font-weight: 700;
+}
+
+/* Same cx/cy(/x/y for the bass-note diamond, which is a <rect> rather than a
+   <circle>) transition Smooth's own voice-leading-dot already uses — applied
+   here too so stepping between chords in NORMAL (non-Smooth) mode also glides
+   each string's dot to its new fret instead of jump-cutting. Only actually
+   visible for a string that stays fretted (non-open, non-muted) across both
+   chords, since it's keyed by string index (see positionsByString.map's
+   key={i}) — React only reuses/animates the same DOM node when the same key
+   persists across the two renders; a string switching to/from open or muted
+   is a genuinely discontinuous change, not something to fake a slide for. */
+.chord-dot {
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+  transition: cx 0.3s ease, cy 0.3s ease, x 0.3s ease, y 0.3s ease, fill 0.2s ease;
+}
+
+.chord-dot-label {
+  font-size: 14.5px;
+  fill: #fff;
+  font-weight: 600;
+  pointer-events: none;
+  transition: x 0.3s ease, y 0.3s ease;
+}
+
+/* Fixed light color rather than var(--text) — the open-string ring now
+   sits on real rosewood (var(--fret-wood-mid)) regardless of app theme, so
+   the label needs to stay legible against dark wood even in light mode. */
+.chord-dot-label-open {
+  fill: var(--fret-inlay-pearl);
+}
+
+.fretboard-capo-bar {
+  fill: url(#capo-rubber);
+  stroke: #1c1c1e;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+}
+
+.fretboard-capo-sheen {
+  fill: #ffffff;
+  opacity: 0.55;
+}
+
+.fretboard-capo-label {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--text-secondary);
+}
+
+/* Compose -> Smooth (triad voice-leading) overlay. cx/cy are animated
+   directly (supported as CSS-transitionable SVG geometry properties in every
+   modern browser) so a note staying on the same string but shifting fret
+   visibly slides to its new position when the chord step changes, rather
+   than jump-cutting like every other overlay's dots do. */
+.voice-leading-dot {
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+  transition: cx 0.35s ease, cy 0.35s ease, fill 0.2s ease;
+}
+
+.voice-leading-dot-label {
+  transition: x 0.35s ease, y 0.35s ease;
+}
+
+.voice-leading-pivot-ring {
+  stroke: var(--voice-leading-pivot-color, #ffd60a);
+  stroke-width: 2;
+  opacity: 0.6;
+  transition: cx 0.35s ease, cy 0.35s ease;
+}
+
+.lick-dot {
+  stroke: rgba(0, 0, 0, 0.2);
+  stroke-width: 1;
+}
+
+.lick-dot-label {
+  font-size: 12px;
+  fill: #fff;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.lick-technique-glyph {
+  font-size: 10px;
+  font-weight: 700;
+  font-style: italic;
+  fill: var(--text-secondary);
+  pointer-events: none;
+}
+
+.playable-note {
+  cursor: pointer;
+}
+
+.playable-note.playing .lick-dot {
+  transform: scale(1.25);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.lick-dot-playing-ring {
+  stroke: var(--lick-marker-color, #a2845e);
+  stroke-width: 2;
+  opacity: 0.55;
+  animation: lick-note-pulse 0.4s ease-out;
+  pointer-events: none;
+}
+
+@keyframes lick-note-pulse {
+  from {
+    r: 14px;
+    opacity: 0.8;
+  }
+  to {
+    r: 22px;
+    opacity: 0;
+  }
+}
+
+.playable-note:hover .chord-dot,
+.playable-note:focus-visible .chord-dot,
+.playable-note:hover .lick-dot,
+.playable-note:focus-visible .lick-dot {
+  transform: scale(1.12);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.playable-note:focus-visible {
+  outline: none;
+}
+
+.playable-note:focus-visible .chord-dot,
+.playable-note:focus-visible .lick-dot {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.landing-note-ring {
+  stroke-width: 2.5;
+  stroke-dasharray: 4 3;
+  opacity: 0.85;
+}
+
+.landing-note-label {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--text-secondary);
+  pointer-events: none;
+}
+
+.playable-note:hover .landing-note-ring,
+.playable-note:focus-visible .landing-note-ring {
+  opacity: 1;
+  stroke-width: 3.5;
+}
+
+.heat-map-dot {
+  pointer-events: none;
+}
+
+.heat-map-scale {
+  fill: var(--accent);
+}
+
+/* systemPurple, not var(--text-secondary) — a plain gray dot was easy to
+   mistake for an ordinary muted/non-chord-tone dot elsewhere on the neck;
+   this reads as its own deliberate tier color, matching HeatMapLegend.css's
+   swatch. */
+.heat-map-passing {
+  fill: #af52de;
+}
+
+/* Glowing, not just filled — this is the one heat-map tier a player most
+   needs to actually notice against the neck, so it gets more visual weight
+   than the scale/passing dots instead of reading as just another faint tier. */
+.heat-map-avoid {
+  fill: var(--danger);
+  filter: drop-shadow(0 0 4px var(--danger));
+}
+
+.roadmap-line {
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+  opacity: 0.6;
+}
+
+/* fill is set per-pin (colorForChord(step.chordText)) — this class only
+   carries the shared stroke treatment. */
+.roadmap-pin {
+  stroke: var(--fretboard-bg);
+  stroke-width: 1.5;
+}
+
+.roadmap-label-connector {
+  stroke: var(--text-secondary);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.roadmap-chord-label {
+  font-size: 17px;
+  font-weight: 700;
+  fill: var(--text);
+  pointer-events: none;
+}
+
+/* Stroked duplicate of the same text, drawn first (via markup order — SVG
+   has no z-index) and behind the fill via paint-order, so each chord label
+   stays readable against the page/other labels even where two roadmap
+   steps sit close enough to visually crowd each other. */
+.roadmap-chord-label-halo {
+  font-size: 17px;
+  font-weight: 700;
+  fill: none;
+  stroke: var(--fretboard-bg, var(--surface));
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  pointer-events: none;
+}
+
+.roadmap-transition-label {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--text-secondary);
+  pointer-events: none;
+}
+
+.roadmap-transition-label-halo {
+  font-size: 13px;
+  font-weight: 600;
+  fill: none;
+  stroke: var(--fretboard-bg, var(--surface));
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  pointer-events: none;
+}
+
+.drill-dot {
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+}
+
+.drill-dot-all,
+.drill-dot-start {
+  fill: var(--accent);
+}
+
+.drill-dot-current {
+  fill: var(--danger);
+}
+
+.drill-dot-next {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}
+
+.drill-dot-past {
+  fill: var(--text-secondary);
+}
+
+.drill-dot-label {
+  font-size: 14px;
+  fill: #fff;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.drill-dot-current-ring {
+  stroke: var(--danger);
+  stroke-width: 2;
+  opacity: 0.55;
+  animation: lick-note-pulse 0.4s ease-out;
+  pointer-events: none;
+}
+
+/* Studies -> Technique & Guitar Masters overlay */
+
+.fretboard-action {
+  transition: opacity 0.2s ease;
+}
+
+.fretboard-action-dot {
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+}
+
+.fretboard-action-arrow {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.fretboard-action-hammeron .fretboard-action-arrow,
+.fretboard-action-pulloff .fretboard-action-arrow {
+  stroke-dasharray: 5 3;
+}
+
+.fretboard-action-target-ring {
+  fill: none;
+  stroke-width: 2.5;
+  opacity: 0.7;
+}
+
+.fretboard-bend-label {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--technique-action-color, #ff2d55);
+  pointer-events: none;
+}
+
+.scale-dot {
+  fill: var(--text-secondary);
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+  opacity: 0.85;
+}
+
+.scale-dot-root {
+  fill: var(--scale-root-color, var(--accent));
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+}
+
+.scale-dot-label {
+  font-size: 11px;
+  fill: #fff;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.quiz-hit-target-dot {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 3;
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+
+.quiz-hit-target:hover .quiz-hit-target-dot,
+.quiz-hit-target:focus-visible .quiz-hit-target-dot {
+  opacity: 0.8;
+  stroke: var(--accent);
+}
+
+.quiz-reveal-dot {
+  fill: var(--accent);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* A submitted answer's true chord/interval/scale — green when the answer
+   was right, gold when it was wrong (still showing what it actually was). */
+.quiz-reveal-dot.correct {
+  fill: #34c759;
+  opacity: 0.75;
+}
+
+.quiz-reveal-dot.incorrect {
+  fill: #ffb020;
+  opacity: 0.85;
+}
+
+.quiz-feedback-correct,
+.quiz-feedback-incorrect {
+  pointer-events: none;
+  fill: none;
+  stroke-width: 4;
+  animation: quiz-feedback-pulse 0.6s ease-out;
+}
+
+.quiz-feedback-correct {
+  stroke: #34c759;
+}
+
+.quiz-feedback-incorrect {
+  stroke: var(--danger);
+}
+
+@keyframes quiz-feedback-pulse {
+  from {
+    r: 12px;
+    opacity: 1;
+  }
+  to {
+    r: 26px;
+    opacity: 0;
+  }
+}

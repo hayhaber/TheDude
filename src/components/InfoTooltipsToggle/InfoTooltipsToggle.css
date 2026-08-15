@@ -1,0 +1,8 @@
+.info-tooltips-toggle-group {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Sizing/shape/color chrome comes from the shared .icon-circle-button class
+   (index.css) — kept in sync with the Settings gear next to it by
+   construction, not by two components' CSS happening to match. */

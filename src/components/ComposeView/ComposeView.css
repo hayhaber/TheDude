@@ -1,0 +1,120 @@
+.compose-view {
+  max-width: 720px;
+}
+
+.compose-view .subtitle {
+  margin-top: 0;
+  margin-bottom: var(--space-6);
+  color: var(--text-secondary);
+  font-size: 17px;
+}
+
+.compose-view > * + * {
+  margin-top: var(--space-5);
+}
+
+.compose-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.compose-sounding-progression {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.compose-transpose {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compose-transpose-button {
+  width: 32px;
+  height: 32px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.compose-transpose-button:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.compose-transpose-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+  background: var(--surface);
+}
+
+.compose-transpose-key {
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  min-width: 84px;
+  text-align: center;
+}
+
+.compose-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.compose-toggle-row .mode-toggle {
+  margin: 0;
+}
+
+.compose-piano-inversion-summary {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.compose-smooth-toggle-row {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Same pill-toggle look as Piano's Labels button (PianoKeyboard.css) —
+   established pattern for a single-word on/off feature toggle. */
+.compose-smooth-toggle {
+  font-size: 12px;
+  font-weight: 590;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.compose-smooth-toggle:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.compose-smooth-toggle.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.compose-smooth-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}

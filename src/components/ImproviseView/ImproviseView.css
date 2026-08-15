@@ -1,0 +1,58 @@
+.improvise-view {
+  max-width: 760px;
+}
+
+.improvise-view .subtitle {
+  margin-top: 0;
+  margin-bottom: var(--space-6);
+  color: var(--text-secondary);
+  font-size: 17px;
+}
+
+.improvise-view > * + * {
+  margin-top: var(--space-5);
+}
+
+.improvise-tabs {
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.improvise-top-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+/* Shared "small labeled dropdown" recipe — used by EmotionSelector and the
+   Artist selector below it, both pinned at the top of every Improvise tab
+   (unlike the Lick tab's own artist FILTER, this is the single artist used
+   by Phrase Builder/Call & Response generation, so it needs to stay visible
+   and settable regardless of which sub-tab is showing). */
+.improvise-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.improvise-field select {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.improvise-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}

@@ -1,0 +1,13 @@
+.guitar-notation {
+  display: flex;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
+}
+
+.guitar-notation svg {
+  max-width: 100%;
+  height: auto;
+}

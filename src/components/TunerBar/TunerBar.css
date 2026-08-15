@@ -1,0 +1,141 @@
+.tuner-bar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 8px;
+  border-radius: 980px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  cursor: pointer;
+  width: 100%;
+}
+
+.tuner-bar-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tuner-bar-label {
+  font-size: 13px;
+  font-weight: 590;
+  flex: 1;
+  text-align: start;
+}
+
+.tuner-bar-chevron {
+  font-size: 15px;
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+}
+
+.tuner-bar:hover .tuner-bar-chevron {
+  transform: translateX(2px);
+}
+
+/* ---------- Right-side drawer, top-anchored ----------
+   Same scrim + translateX slide + top-anchored/capped-height recipe as
+   MetronomeBar.css's .metronome-drawer / SettingsPanel.css's own drawer
+   (see either's comment for the full rationale) — NOT stretched to
+   top:0/bottom:0 like a full-height sidebar, which was wildly oversized for
+   this drawer's actual content (a single small tuner card, nowhere near a
+   full screen's height). Sized to content via width/max-height rather than
+   forcing a fixed viewport-filling box. */
+
+.tuner-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.tuner-drawer-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tuner-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 41;
+  width: min(360px, 100vw);
+  /* A smaller reserve than the shared --stage-reserve-height (340px, sized
+     for taller drawers like the Metronome) — same reasoning as
+     DisplayOptionsMenu's own 160px override: this drawer's content is one
+     short, fixed-size tuner card, not a tall mixer, so it doesn't need
+     nearly as much guaranteed Stage clearance underneath it. On a short
+     viewport (the previous 340px reserve left too little room and forced a
+     scrollbar even after the card's own height was made fully uniform),
+     this is the difference between the whole card fitting without
+     scrolling or not. */
+  max-height: calc(100svh - 160px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-bottom-left-radius: 20px;
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  transform: translateX(100%);
+  pointer-events: none;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tuner-drawer.open {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.tuner-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tuner-drawer-title {
+  margin: 0;
+}
+
+.tuner-drawer-close {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tuner-drawer-close:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.tuner-drawer-body {
+  display: flex;
+  justify-content: center;
+}
+
+/* The GuitarTuner card itself has its own background/border — drop those
+   here so it doesn't render as a box-within-a-box inside the drawer. */
+.tuner-drawer-body .guitar-tuner {
+  background: transparent;
+  border: none;
+  padding: 0;
+  max-width: 100%;
+}

@@ -1,0 +1,96 @@
+/* Reuses StudiesView's rail/lesson-detail shell (.studies-layout,
+   .studies-rail, .studies-lesson, etc.) — same visual shell, different
+   course, same pattern ScalesView.css already establishes. */
+@import '../StudiesView/StudiesView.css';
+
+.circle-of-fifths-view {
+  max-width: 900px;
+}
+
+.circle-difficulty-badge {
+  display: inline-block;
+  width: max-content;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin: 4px 0 0;
+}
+
+.circle-difficulty-badge.beginner {
+  background: color-mix(in srgb, #34c759 16%, var(--bg));
+  color: #248a3d;
+}
+
+.circle-difficulty-badge.intermediate {
+  background: color-mix(in srgb, #ff9500 16%, var(--bg));
+  color: #b06400;
+}
+
+.circle-difficulty-badge.advanced {
+  background: color-mix(in srgb, var(--danger) 16%, var(--bg));
+  color: var(--danger);
+}
+
+.circle-diagram-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+.circle-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 220px;
+  flex: 1 1 220px;
+}
+
+.circle-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.circle-field select {
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.circle-key-summary {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.circle-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.circle-finish-btn {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 590;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}

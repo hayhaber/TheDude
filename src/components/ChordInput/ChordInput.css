@@ -1,0 +1,51 @@
+.chord-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  flex: 1 1 260px;
+}
+
+.chord-input label {
+  font-weight: 590;
+  font-size: 13px;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+}
+
+.chord-input input {
+  /* Same fixed height as CapoInput's field (var(--control-height), the
+     app's standard control height) — previously this field's own generous
+     padding made it visibly taller than the capo field sitting next to it. */
+  height: var(--control-height);
+  box-sizing: border-box;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.chord-input input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.55;
+  font-weight: 400;
+  /* Smaller than the 22px typed-chord size — at the input's narrowest
+     supported width (a 320px-viewport phone) the full placeholder sentence
+     is only ~1px narrower than the box at 22px, close enough that normal
+     font-rendering/hinting variance would clip it. The typed value itself
+     is always short chord symbols, so only the placeholder needs this. */
+  font-size: 15px;
+}
+
+.chord-input input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-bg);
+}

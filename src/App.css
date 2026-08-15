@@ -1,0 +1,9 @@
+/* Top-level layout now lives in AppShell.css and each section view's own
+   CSS (ComposeView/ImproviseView/PracticeView). This file only holds
+   generic rules shared across sections. */
+
+.no-positions {
+  color: var(--danger);
+  font-size: 14px;
+  margin: 8px 0 0;
+}

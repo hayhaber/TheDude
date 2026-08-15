@@ -1,0 +1,15 @@
+/* .stage is a plain wrapper around the Fretboard now — the metronome
+   toolbar that used to sit above it moved to AppShell's metronomeSlot
+   (sidebar / mobile bar next to nav), so there's nothing left to style
+   here beyond the Fretboard's own rules. */
+
+/* Always exactly tall enough for NoteColorLegend's one row, whether it's
+   actually showing or empty right now — see Stage.jsx's own comment for
+   why this can't just grow/shrink with the legend itself (.app-stage-anchor
+   is pinned to the bottom of a fixed-height viewport, so any height change
+   here pushes the Fretboard/PianoKeyboard above it up or down on screen). */
+.stage-legend-reserve {
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+}

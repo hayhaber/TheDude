@@ -1,0 +1,210 @@
+/* Reuses StudiesView's rail/lesson-detail shell (.studies-layout,
+   .studies-rail, .studies-lesson, etc.) — same visual shell, different
+   course, same pattern ScalesView.css/CircleOfFifthsView.css already
+   establish. */
+@import '../StudiesView/StudiesView.css';
+
+.harmony-view {
+  max-width: 900px;
+}
+
+.harmony-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.harmony-demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+/* Row layout here (root select next to a bare .mode-toggle) — the
+   component's own margin-bottom (meant for its original stacked/column
+   usage) would otherwise push it up off this row's shared baseline, same
+   fix as ScalesView.css's .scales-controls .mode-toggle. */
+.harmony-demo-controls .mode-toggle {
+  margin: 0;
+}
+
+.harmony-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.harmony-field select {
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.harmony-chord-readout {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+}
+
+.harmony-demo-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.harmony-diatonic-row,
+.harmony-progression-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.harmony-diatonic-chip,
+.harmony-progression-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 64px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.harmony-diatonic-chip:hover,
+.harmony-progression-chip:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.harmony-diatonic-chip.active,
+.harmony-progression-chip.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.harmony-diatonic-roman {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.harmony-diatonic-fn {
+  font-size: 10px;
+  font-weight: 590;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.harmony-diatonic-chip.fn-tonic .harmony-diatonic-fn {
+  color: #34c759;
+}
+
+.harmony-diatonic-chip.fn-subdominant .harmony-diatonic-fn {
+  color: #ff9500;
+}
+
+.harmony-diatonic-chip.fn-dominant .harmony-diatonic-fn {
+  color: var(--danger);
+}
+
+.harmony-progression-chordtext {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.harmony-quiz {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.harmony-quiz-prompt {
+  font-size: 15px;
+  font-weight: 590;
+  color: var(--text);
+  margin: 0;
+}
+
+.harmony-quiz-notes {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  max-width: 420px;
+}
+
+.harmony-quiz-note {
+  font-size: 13px;
+  font-weight: 650;
+  padding: 10px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.harmony-quiz-note:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.harmony-quiz-note.picked {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.harmony-quiz-note.correct {
+  background: #34c759;
+  border-color: #34c759;
+  color: #fff;
+}
+
+.harmony-quiz-note.incorrect {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.harmony-quiz-note.missed {
+  background: transparent;
+  border-color: #34c759;
+  border-style: dashed;
+  color: #34c759;
+}
+
+.harmony-quiz-submit {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 590;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.harmony-quiz-submit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

@@ -1,0 +1,463 @@
+/* No max-width/flex-basis — this now renders inline in whatever narrow
+   column it's given (sidebar / mobile bar), not a wide floating popover,
+   so it just fills the available width. */
+.metronome {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 16px;
+  margin: 0;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface) 100%);
+  box-shadow: var(--shadow-md);
+}
+
+.metronome-title {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Beats + Tap sit in a column to the left of the big BPM dial; the dial
+   itself stays vertically centered against that whole column via
+   align-items:center on the row. */
+.metronome-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: 10px;
+}
+
+.metronome-top-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.metronome-beats {
+  display: flex;
+  gap: 8px;
+  min-height: 14px;
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+
+.metronome-beat-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(120, 120, 128, 0.18);
+  border: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition: background 0.06s ease, transform 0.06s ease, box-shadow 0.06s ease;
+}
+
+.metronome-beat-dot.accent {
+  background: rgba(120, 120, 128, 0.32);
+}
+
+.metronome-beat-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  transform: scale(1.2);
+}
+
+.metronome-beat-dot.accent.active {
+  background: var(--metronome-accent-beat, #34c759);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--metronome-accent-beat, #34c759) 25%, transparent);
+}
+
+/* Time Signature + Sound, side by side below the top row. */
+.metronome-control-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 6px;
+}
+
+.metronome-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metronome-field input,
+.metronome-field select {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 8px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease;
+}
+
+.metronome-field input:focus,
+.metronome-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.metronome-field input[type='number'] {
+  width: 70px;
+}
+
+/* Master volume — a real slider (bound to setVolume) with the mute-toggle
+   icon as its leading button, the same "icon + fill-bar" layout a system
+   volume control uses. The icon button is a fixed-size circle now (not a
+   grid cell stretched to 100% width), with the same 44x44pt invisible
+   hit-slop technique .metronome-mixer-mute below already uses, since the
+   visible glyph itself is smaller than a real tap target. */
+.metronome-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.metronome-volume-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.metronome-volume-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.metronome-volume-icon:hover {
+  background: var(--border);
+}
+
+.metronome-volume-icon:active {
+  transform: scale(0.96);
+}
+
+.metronome-volume-icon.muted {
+  color: var(--danger);
+}
+
+/* Same filled-track slider recipe as .metronome-mixer-fader below (kept as
+   its own class since this one's a bigger, master-level control, not a
+   per-instrument mixer channel) — --fill is set inline per current value
+   so the accent-colored portion always matches the thumb's position. */
+.metronome-volume-slider[type='range'] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.metronome-volume-slider[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--fill, 70%),
+    var(--border) var(--fill, 70%),
+    var(--border) 100%
+  );
+}
+
+.metronome-volume-slider[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--fill, 70%),
+    var(--border) var(--fill, 70%),
+    var(--border) 100%
+  );
+}
+
+.metronome-volume-slider[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fdfdfd, #d8d8dc);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.metronome-volume-slider[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fdfdfd, #d8d8dc);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.metronome-tap,
+.metronome-toggle {
+  font-size: 13px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  padding: 0 16px;
+  border-radius: 980px;
+  border: 1px solid transparent;
+  background: var(--border);
+  color: var(--text);
+  cursor: pointer;
+  height: 30px;
+  width: 100%;
+  transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.metronome-tap:hover,
+.metronome-toggle:hover {
+  background: rgba(120, 120, 128, 0.22);
+}
+
+.metronome-tap:active,
+.metronome-toggle:active {
+  transform: scale(0.96);
+}
+
+.metronome-toggle {
+  background: var(--accent);
+  color: #fff;
+  margin-top: 6px;
+  width: 100%;
+  height: 28px;
+  font-size: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.metronome-toggle:hover {
+  background: var(--accent-hover);
+}
+
+.metronome-toggle:active {
+  transform: scale(0.98);
+}
+
+.metronome-toggle.running {
+  background: var(--danger);
+}
+
+.metronome-toggle.running:hover {
+  background: var(--danger);
+  opacity: 0.9;
+}
+
+.metronome-drum-section {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metronome-source-switch {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 980px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+
+.metronome-source-pill {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  padding: 0 11px;
+  height: 22px;
+  border-radius: 980px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.metronome-source-pill:hover {
+  color: var(--text);
+}
+
+.metronome-source-pill.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.metronome-style-field {
+  max-width: 220px;
+}
+
+.metronome-mixer {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metronome-mixer-channel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.metronome-mixer-label {
+  font-size: 10px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.metronome-mixer-fader[type='range'] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.metronome-mixer-fader[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--fill, 80%),
+    var(--border) var(--fill, 80%),
+    var(--border) 100%
+  );
+}
+
+.metronome-mixer-fader[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--fill, 80%),
+    var(--border) var(--fill, 80%),
+    var(--border) 100%
+  );
+}
+
+.metronome-mixer-fader[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fdfdfd, #d8d8dc);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.metronome-mixer-fader[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fdfdfd, #d8d8dc);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.metronome-mixer-mute {
+  position: relative;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+/* Visible glyph stays compact (matches the mixer row's tight layout), but
+   the real tap target is a full 44x44pt hit-slop, same technique as
+   MetronomeBar.css's .metronome-bar-toggle/-expand. */
+.metronome-mixer-mute::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.metronome-mixer-mute:hover {
+  opacity: 1;
+  background: var(--border);
+}
+
+.metronome-mixer-mute.muted {
+  opacity: 1;
+}

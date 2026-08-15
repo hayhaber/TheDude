@@ -9,6 +9,12 @@ import { supportsInstrument } from '../../instruments/featureCapabilities';
 import { usePopoverDismiss } from '../../hooks/usePopoverDismiss';
 import './AppShell.css';
 
+// A section's `icon` is either an emoji string (rendered as-is) or a
+// component reference (a custom SVG like MetronomeIcon) — see sections.js.
+function SectionIcon({ icon: Icon }) {
+  return typeof Icon === 'string' ? Icon : <Icon />;
+}
+
 // Persistent navigation chrome. ≥900px: a hamburger-triggered off-canvas
 // drawer (hidden by default, opens over the content with a scrim) instead
 // of a permanently-docked sidebar — the content column gets that width
@@ -106,7 +112,7 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
                 onClick={() => selectSection(s.key)}
               >
                 <span className="app-nav-item-icon" aria-hidden="true">
-                  {s.icon}
+                  <SectionIcon icon={s.icon} />
                 </span>
                 {t(s.labelKey)}
               </button>
@@ -146,7 +152,7 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
             onClick={() => onSectionChange(s.key)}
           >
             <span className="app-bottom-tab-icon" aria-hidden="true">
-              {s.icon}
+              <SectionIcon icon={s.icon} />
             </span>
             {t(s.labelKey)}
           </button>

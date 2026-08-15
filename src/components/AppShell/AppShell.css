@@ -177,7 +177,9 @@
 .app-nav-item-icon {
   font-size: 17px;
   width: 22px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -369,6 +371,9 @@
   .app-bottom-tab-icon {
     font-size: 19px;
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .app-bottom-tab.active {

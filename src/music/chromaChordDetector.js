@@ -68,5 +68,11 @@ export function matchChordFromChroma(chroma) {
   return {
     chord: PITCH_CLASS_NAMES[best.root] + (quality.aliases[0] || ''),
     confidence: Math.min(1, best.confidence),
+    // Structured root/quality alongside the display string — additive, for
+    // callers (Practice -> Guitar Chord Rhythm) that need to compare a
+    // detected chord against a target by root pitch class + quality key
+    // rather than re-parsing the display text back apart.
+    root: best.root,
+    qualityKey: best.key,
   };
 }

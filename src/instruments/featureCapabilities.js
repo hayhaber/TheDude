@@ -16,6 +16,7 @@ export const FEATURE_CAPABILITIES = {
   rhythmGame: ['guitar'], // mic-judged, played on real guitar strings/frets like drills/pitchTrainer
   bendingTraining: ['guitar'], // string-bending technique only makes sense on a fretted string instrument
   soloOpener: ['guitar'], // improvised-solo opening-phrase drill — string/fret language, guitar-specific
+  guitarChordRhythm: ['guitar'], // metronome-timed chord-changing practice, judged via mic chroma chord detection — guitar-only
   pianoPractice: ['piano'], // leveled piano-only exercises (pentascales, inversion drills, ...)
   fallingNotes: ['piano'], // Synthesia-style falling-notes practice, keyboard-only by nature
   pianoCurriculum: ['piano'], // structured beginner-to-advanced piano course (keyboard geography, staff reading, technique) — piano-native, not a reworded guitar course

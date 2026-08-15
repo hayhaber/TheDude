@@ -9,6 +9,7 @@ import { SoloOpenerPanel } from '../SoloOpenerPanel/SoloOpenerPanel';
 import { PianoPracticePanel } from '../PianoPracticePanel/PianoPracticePanel';
 import { FallingNotesPanel } from '../FallingNotesPanel/FallingNotesPanel';
 import { ChordRhythmPanel } from '../ChordRhythmPanel/ChordRhythmPanel';
+import { GuitarChordRhythmPanel } from '../GuitarChordRhythmPanel/GuitarChordRhythmPanel';
 import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -28,6 +29,7 @@ const TABS = [
   { key: 'piano', labelKey: 'practice.tab.piano', feature: 'pianoPractice' },
   { key: 'fallingNotes', labelKey: 'practice.tab.fallingNotes', feature: 'fallingNotes' },
   { key: 'chordRhythm', labelKey: 'practice.tab.chordRhythm', feature: 'chordRhythm' },
+  { key: 'guitarChordRhythm', labelKey: 'practice.tab.guitarChordRhythm', feature: 'guitarChordRhythm' },
 ];
 
 // Skill-building tools. The Metronome used to have its own tab here, but
@@ -45,6 +47,7 @@ export function PracticeView({
   pianoPractice,
   fallingNotes,
   chordRhythm,
+  guitarChordRhythm,
   metronome,
   activeTab,
   onTabChange,
@@ -100,6 +103,8 @@ export function PracticeView({
       {activeTab === 'fallingNotes' && <FallingNotesPanel fallingNotes={fallingNotes} />}
 
       {activeTab === 'chordRhythm' && <ChordRhythmPanel chordRhythm={chordRhythm} metronome={metronome} />}
+
+      {activeTab === 'guitarChordRhythm' && <GuitarChordRhythmPanel guitarChordRhythm={guitarChordRhythm} metronome={metronome} />}
     </div>
   );
 }

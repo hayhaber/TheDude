@@ -1,0 +1,190 @@
+.guitar-chord-rhythm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.guitar-chord-rhythm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.guitar-chord-rhythm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.guitar-chord-rhythm-field-label {
+  display: block;
+  height: 13px;
+  line-height: 13px;
+}
+
+.guitar-chord-rhythm-field .mode-toggle,
+.guitar-chord-rhythm-field .play-button {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.guitar-chord-rhythm-lane {
+  position: relative;
+  height: 200px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.guitar-chord-rhythm-block {
+  position: absolute;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+@keyframes guitar-chord-rhythm-pulse {
+  from {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+  }
+  to {
+    box-shadow: 0 0 0 11px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.guitar-chord-rhythm-block.landed:not(.hit):not(.miss),
+.guitar-chord-rhythm-chip.landed:not(.hit):not(.miss) {
+  animation: guitar-chord-rhythm-pulse 0.55s ease-in-out infinite alternate;
+}
+
+.guitar-chord-rhythm-block.hit,
+.guitar-chord-rhythm-chip.hit {
+  box-shadow: 0 0 0 6px rgba(52, 199, 89, 0.35);
+}
+
+.guitar-chord-rhythm-block.miss,
+.guitar-chord-rhythm-chip.miss {
+  box-shadow: 0 0 0 6px rgba(255, 69, 58, 0.3);
+}
+
+.guitar-chord-rhythm-hit-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 122px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px dashed rgba(255, 255, 255, 0.14);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.guitar-chord-rhythm-hit-zone.active {
+  background: rgba(255, 214, 10, 0.14);
+  border-color: rgba(255, 214, 10, 0.55);
+}
+
+.guitar-chord-rhythm-hitline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 150px;
+  height: 2px;
+  background: var(--text);
+  opacity: 0.4;
+  transition: background-color 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+}
+
+.guitar-chord-rhythm-hitline.active {
+  background: #ffd60a;
+  opacity: 1;
+  box-shadow: 0 0 10px 2px rgba(255, 214, 10, 0.6);
+}
+
+.guitar-chord-rhythm-timeline {
+  position: relative;
+  height: 90px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.guitar-chord-rhythm-hit-zone.timeline {
+  left: calc(50% - 28px);
+  right: auto;
+  top: 0;
+  bottom: 0;
+  height: auto;
+  width: 56px;
+  border-top: none;
+  border-bottom: none;
+  border-left: 1px dashed rgba(255, 255, 255, 0.14);
+  border-right: 1px dashed rgba(255, 255, 255, 0.14);
+}
+
+.guitar-chord-rhythm-playhead {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--text);
+  opacity: 0.4;
+  transition: background-color 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+}
+
+.guitar-chord-rhythm-playhead.active {
+  background: #ffd60a;
+  opacity: 1;
+  box-shadow: 0 0 10px 2px rgba(255, 214, 10, 0.6);
+}
+
+.guitar-chord-rhythm-chip {
+  position: absolute;
+  width: 64px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.guitar-chord-rhythm-mic-status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.guitar-chord-rhythm-score {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.guitar-chord-rhythm-complete {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}

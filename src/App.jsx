@@ -50,6 +50,7 @@ import { useSoloOpener } from './hooks/useSoloOpener';
 import { usePianoPractice } from './hooks/usePianoPractice';
 import { useFallingNotes } from './hooks/useFallingNotes';
 import { useChordRhythm } from './hooks/useChordRhythm';
+import { useGuitarChordRhythm } from './hooks/useGuitarChordRhythm';
 import { useCagedProgress } from './hooks/useCagedProgress';
 import { useScalesProgress } from './hooks/useScalesProgress';
 import { useScalesLesson } from './hooks/useScalesLesson';
@@ -136,6 +137,7 @@ function App() {
       piano: 'pianoPractice',
       fallingNotes: 'fallingNotes',
       chordRhythm: 'chordRhythm',
+      guitarChordRhythm: 'guitarChordRhythm',
     };
     const feature = practiceFeatureByTab[practiceTab];
     if (feature && !supportsInstrument(feature, instrument)) {
@@ -180,6 +182,7 @@ function App() {
   const pianoPractice = usePianoPractice();
   const fallingNotes = useFallingNotes();
   const chordRhythm = useChordRhythm(metronome);
+  const guitarChordRhythm = useGuitarChordRhythm(metronome);
 
   // Every practicable item across Practice -> Drills, Studies -> CAGED
   // workout, and Studies -> Scales practice, tagged the same way loadExercise
@@ -298,6 +301,24 @@ function App() {
   useEffect(() => {
     if (chordRhythm.isPlaying && practiceTab !== 'chordRhythm') {
       chordRhythm.stop();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practiceTab]);
+
+  // Guitar Chord Rhythm also drives the shared metronome (plus the mic) —
+  // same "leaving Practice/switching tabs stops it" rule as Chord Rhythm
+  // above, doubly important here since it also has an open mic stream to
+  // tear down.
+  useEffect(() => {
+    if (guitarChordRhythm.isPlaying && activeSection !== 'practice') {
+      guitarChordRhythm.stop();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (guitarChordRhythm.isPlaying && practiceTab !== 'guitarChordRhythm') {
+      guitarChordRhythm.stop();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceTab]);
@@ -1359,6 +1380,7 @@ function App() {
           pianoPractice={pianoPractice}
           fallingNotes={fallingNotes}
           chordRhythm={chordRhythm}
+          guitarChordRhythm={guitarChordRhythm}
           metronome={metronome}
           activeTab={practiceTab}
           onTabChange={setPracticeTab}

@@ -1,0 +1,210 @@
+import { colorForChord } from '../../styles/colors';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { GUITAR_CHORD_RHYTHM_MODES } from '../../music/guitarChordRhythmContent';
+import { LEAD_TIME_S } from '../../hooks/useGuitarChordRhythm';
+import './GuitarChordRhythmPanel.css';
+
+// Same continuous "position is a pure function of elapsed time" falling-
+// blocks/timeline rendering as the piano ChordRhythmPanel, ported rather
+// than shared (different data shape: rootPitchClass/qualityKey instead of
+// tones/pitchClasses, no PianoKeyboard quiz plumbing to route through) —
+// see that component's own comments for the full reasoning behind the
+// motion math and the in-place hit/miss coloring.
+function clamp01(v) {
+  return Math.min(1, Math.max(0, v));
+}
+
+const LANE_SPAWN_Y = -40;
+const LANE_HIT_Y = 150;
+const LANE_EXIT_Y = 240;
+
+function fallingTop(chord, now) {
+  if (now <= chord.startTime) {
+    const p = clamp01((now - (chord.startTime - LEAD_TIME_S)) / LEAD_TIME_S);
+    return LANE_SPAWN_Y + p * (LANE_HIT_Y - LANE_SPAWN_Y);
+  }
+  const p = clamp01((now - chord.startTime) / (chord.endTime - chord.startTime));
+  return LANE_HIT_Y + p * (LANE_EXIT_Y - LANE_HIT_Y);
+}
+
+const TIMELINE_SPAWN_X = 112;
+const TIMELINE_PLAYHEAD_X = 50;
+const TIMELINE_EXIT_X = -12;
+
+function timelineLeft(chord, now) {
+  if (now <= chord.startTime) {
+    const p = clamp01((now - (chord.startTime - LEAD_TIME_S)) / LEAD_TIME_S);
+    return TIMELINE_SPAWN_X + p * (TIMELINE_PLAYHEAD_X - TIMELINE_SPAWN_X);
+  }
+  const p = clamp01((now - chord.startTime) / (chord.endTime - chord.startTime));
+  return TIMELINE_PLAYHEAD_X + p * (TIMELINE_EXIT_X - TIMELINE_PLAYHEAD_X);
+}
+
+// Falling blocks spread horizontally by root pitch class (0-11 -> across
+// the lane) instead of piano's "spread by keyboard position" — there's no
+// keyboard below to line up with here, but the same "consecutive chords
+// don't all stack in one column" principle still applies and still reads
+// as meaningful (same root always lands in the same column).
+function xPercentForChord(chord) {
+  const ratio = chord.rootPitchClass / 11;
+  return 12 + ratio * 76;
+}
+
+function timelineTop(chord, chipHeight) {
+  const ratio = chord.rootPitchClass / 11;
+  const usableHeight = 90 - chipHeight - 16;
+  return 8 + (1 - ratio) * usableHeight;
+}
+
+export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
+  const { t } = useLanguage();
+  const {
+    mode,
+    setMode,
+    beatsPerChord,
+    viewMode,
+    setViewMode,
+    sequence,
+    now,
+    results,
+    isPlaying,
+    ended,
+    play,
+    restart,
+    stop,
+    score,
+    combo,
+    maxCombo,
+    accuracyPct,
+    micIsListening,
+    micError,
+    micGuess,
+  } = guitarChordRhythm;
+
+  const blockWidth = Math.max(56, 96 - beatsPerChord * 4);
+  const blockHeight = Math.min(70, 22 + beatsPerChord * 4);
+
+  const visible = isPlaying
+    ? sequence
+        .map((chord, i) => ({ chord, i }))
+        .filter(({ chord }) => now >= chord.startTime - LEAD_TIME_S && now <= chord.endTime)
+    : [];
+
+  const anyActive = visible.some(({ chord }) => now >= chord.startTime && now < chord.endTime);
+
+  return (
+    <div className="guitar-chord-rhythm-panel">
+      <div>
+        <h1>{t('guitarChordRhythm.title')}</h1>
+        <p className="subtitle">{t('guitarChordRhythm.subtitle')}</p>
+      </div>
+
+      <div className="guitar-chord-rhythm-controls">
+        <div className="guitar-chord-rhythm-field">
+          <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
+            {t('guitarChordRhythm.mode')}
+          </span>
+          <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.mode')}>
+            {GUITAR_CHORD_RHYTHM_MODES.map((m) => (
+              <button key={m.key} type="button" className={mode === m.key ? 'active' : ''} onClick={() => setMode(m.key)} disabled={isPlaying}>
+                {t(`guitarChordRhythm.mode.${m.key}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="guitar-chord-rhythm-field">
+          <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
+            {t('guitarChordRhythm.view')}
+          </span>
+          <div className="mode-toggle" role="group" aria-label={t('guitarChordRhythm.view')}>
+            <button type="button" className={viewMode === 'falling' ? 'active' : ''} onClick={() => setViewMode('falling')}>
+              {t('chordRhythm.view.falling')}
+            </button>
+            <button type="button" className={viewMode === 'timeline' ? 'active' : ''} onClick={() => setViewMode('timeline')}>
+              {t('chordRhythm.view.timeline')}
+            </button>
+          </div>
+        </div>
+
+        <div className="guitar-chord-rhythm-field">
+          <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
+            &nbsp;
+          </span>
+          <button type="button" className="play-button" onClick={isPlaying ? stop : ended ? restart : play}>
+            {isPlaying ? t('vocal.stop') : ended ? t('chordRhythm.tryAgain') : t('vocal.start')}
+          </button>
+        </div>
+      </div>
+
+      {viewMode === 'falling' ? (
+        <div className="guitar-chord-rhythm-lane">
+          <div className={'guitar-chord-rhythm-hit-zone' + (anyActive ? ' active' : '')} />
+          {visible.map(({ chord, i }) => {
+            const result = results[i];
+            const color = result === 'hit' ? '#34c759' : result === 'miss' ? 'var(--danger)' : colorForChord(chord.chordText);
+            const crossing = now >= chord.startTime && now < chord.endTime;
+            const xPercent = xPercentForChord(chord);
+            const top = fallingTop(chord, now);
+            return (
+              <div
+                key={i}
+                className={'guitar-chord-rhythm-block' + (crossing ? ' landed' : '') + (result ? ` ${result}` : '')}
+                style={{ left: `${xPercent}%`, top, width: blockWidth, height: blockHeight, background: color, borderColor: color }}
+              >
+                {crossing && !result ? '▶ ' : ''}
+                {chord.chordText}
+              </div>
+            );
+          })}
+          <div className={'guitar-chord-rhythm-hitline' + (anyActive ? ' active' : '')} />
+        </div>
+      ) : (
+        <div className="guitar-chord-rhythm-timeline">
+          <div className={'guitar-chord-rhythm-hit-zone timeline' + (anyActive ? ' active' : '')} />
+          <div className={'guitar-chord-rhythm-playhead' + (anyActive ? ' active' : '')} />
+          {visible.map(({ chord, i }) => {
+            const result = results[i];
+            const color = result === 'hit' ? '#34c759' : result === 'miss' ? 'var(--danger)' : colorForChord(chord.chordText);
+            const crossing = now >= chord.startTime && now < chord.endTime;
+            const left = `${timelineLeft(chord, now)}%`;
+            const top = timelineTop(chord, 40);
+            return (
+              <div
+                key={i}
+                className={'guitar-chord-rhythm-chip' + (crossing ? ' landed' : '') + (result ? ` ${result}` : '')}
+                style={{ left, top, background: color, borderColor: color }}
+              >
+                {crossing && !result ? '▶ ' : ''}
+                {chord.chordText}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isPlaying && (
+        <p className="guitar-chord-rhythm-mic-status" dir="auto">
+          {micError
+            ? t('trainer.micError', { message: micError })
+            : micIsListening
+            ? micGuess
+              ? t('guitarChordRhythm.hearing', { chord: micGuess.chord, confidence: Math.round(micGuess.confidence * 100) })
+              : t('guitarChordRhythm.listening')
+            : t('earTraining.mic.permission')}
+        </p>
+      )}
+
+      {(isPlaying || ended) && (
+        <p className="guitar-chord-rhythm-score">
+          {t('chordRhythm.score')}: {score.hits} / {score.hits + score.misses}
+          {accuracyPct != null && ` · ${accuracyPct}%`} · {t('chordRhythm.combo')}: {combo} ({t('chordRhythm.maxCombo')}: {maxCombo})
+          {' · '}
+          {t('rhythmGame.bpm', { bpm: metronome.bpm })}
+        </p>
+      )}
+
+      {ended && <p className="guitar-chord-rhythm-complete">{t('vocal.complete')}</p>}
+    </div>
+  );
+}

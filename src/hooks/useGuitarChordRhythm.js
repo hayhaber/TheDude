@@ -268,8 +268,11 @@ export function useGuitarChordRhythm(metronome) {
     return built;
   }
 
+  // repeats defaults to 1 here, same as loadGroupsFromCompose below — a
+  // fresh group (typed or imported) always starts at "play it once,"
+  // rather than the two sources disagreeing on a default.
   function addGroup() {
-    setGroups((gs) => [...gs, { id: `${Date.now()}-${Math.random()}`, text: '', repeats: 2, chords: null }]);
+    setGroups((gs) => [...gs, { id: `${Date.now()}-${Math.random()}`, text: '', repeats: 1, chords: null }]);
   }
 
   function removeGroup(id) {

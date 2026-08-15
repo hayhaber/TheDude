@@ -201,7 +201,14 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
         {source === 'custom' && (
           <label className="guitar-chord-rhythm-field">
             {t('guitarChordRhythm.customLabel')}
-            <input type="text" value={customText} onChange={(e) => setCustomText(e.target.value)} disabled={isPlaying} placeholder="G D Em C" dir="ltr" />
+            <input
+              type="text"
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              disabled={isPlaying}
+              placeholder={t('guitarChordRhythm.groupPlaceholder')}
+              dir="ltr"
+            />
           </label>
         )}
 
@@ -216,7 +223,7 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
                     value={group.text}
                     onChange={(e) => updateGroupText(group.id, e.target.value)}
                     disabled={isPlaying}
-                    placeholder="G D Em C"
+                    placeholder={t('guitarChordRhythm.groupPlaceholder')}
                     dir="ltr"
                   />
                 </label>

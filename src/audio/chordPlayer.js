@@ -1,5 +1,5 @@
 import { STANDARD_TUNING } from '../music/notes';
-import { getAudioContext } from './audioContext';
+import { getAudioContext, logAudioEvent } from './audioContext';
 import { getSoundfontInstrument } from './instrumentEngine';
 import { resolveGuitarProfile } from './instrumentProfiles';
 import { getCurrentGuitarProfile } from './audioSettingsStore';
@@ -70,10 +70,13 @@ export function playPosition(strings, capoFret = 0) {
   soundingStrings.forEach((note, index) => {
     playNoteAt(note.midi, now + index * STRUM_STAGGER);
   });
+  logAudioEvent(`guitar playPosition notes=${soundingStrings.length} state=${ctx.state} t=${now.toFixed(2)}`);
 }
 
 // Plays a single plucked note — used when a specific dot on the fretboard
 // is clicked, or by any "hear this note" affordance elsewhere in the app.
 export function playNote(midi) {
-  playNoteAt(midi, getAudioContext().currentTime);
+  const ctx = getAudioContext();
+  playNoteAt(midi, ctx.currentTime);
+  logAudioEvent(`guitar NoteClick midi=${midi} state=${ctx.state} t=${ctx.currentTime.toFixed(2)}`);
 }

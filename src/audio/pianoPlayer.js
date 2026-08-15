@@ -1,4 +1,4 @@
-import { getAudioContext } from './audioContext';
+import { getAudioContext, logAudioEvent } from './audioContext';
 import { getSplendidPiano, getSoundfontInstrument } from './instrumentEngine';
 import { getCurrentPianoProfile } from './audioSettingsStore';
 import { resolvePianoProfile } from './instrumentProfiles';
@@ -84,7 +84,9 @@ function playNoteAt(midi, startTime) {
 // Plays a single key — used when a key is clicked, or by any "hear this
 // note" affordance in Piano mode.
 export function playPianoNote(midi) {
-  playNoteAt(midi, getAudioContext().currentTime);
+  const ctx = getAudioContext();
+  playNoteAt(midi, ctx.currentTime);
+  logAudioEvent(`piano NoteClick midi=${midi} state=${ctx.state} t=${ctx.currentTime.toFixed(2)}`);
 }
 
 // Press-and-hold sustain, for input methods that have a real press/release
@@ -103,9 +105,11 @@ export function playPianoNoteOn(midi) {
   if (entry?.isReady && profile.soundfontName) {
     entry.instrument.output?.setVolume?.(pianoVolume);
     entry.instrument.start({ note: midi, time: ctx.currentTime, velocity: VELOCITY });
+    logAudioEvent(`piano NoteOn midi=${midi} sampled state=${ctx.state} t=${ctx.currentTime.toFixed(2)} vol=${pianoVolume}`);
     return;
   }
   playNoteAt(midi, ctx.currentTime);
+  logAudioEvent(`piano NoteOn midi=${midi} fallback(entry.isReady=${entry?.isReady}) state=${ctx.state} t=${ctx.currentTime.toFixed(2)} vol=${pianoVolume}`);
 }
 
 // Releases a note started with playPianoNoteOn — a no-op for

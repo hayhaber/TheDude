@@ -1,5 +1,20 @@
 let audioContext = null;
 
+// TEMPORARY — tiny pub/sub so the on-page DebugPanel (see its own comment)
+// can show real note-play attempts (piano taps, guitar taps), not just its
+// own isolated test button — the fastest way to tell "the tap never even
+// reached the audio layer" apart from "it reached the audio layer but the
+// device produced no sound anyway". Remove alongside DebugPanel.jsx once
+// root-caused.
+const audioEventListeners = new Set();
+export function logAudioEvent(message) {
+  audioEventListeners.forEach((fn) => fn(message));
+}
+export function onAudioEvent(fn) {
+  audioEventListeners.add(fn);
+  return () => audioEventListeners.delete(fn);
+}
+
 // Any state other than 'running' means no sound will actually be heard —
 // crucially this includes WebKit's own 'interrupted' state (not in the
 // base Web Audio spec, only on iOS/Safari), which 'suspended' alone

@@ -44,3 +44,8 @@
 .debug-panel-error-line {
   color: #ff6b6b;
 }
+
+.debug-panel-info-line {
+  color: #6bff8f;
+  word-break: break-all;
+}

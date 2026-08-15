@@ -78,7 +78,15 @@
       "Bash(node scripts/gen-icons.mjs)",
       "Bash(git init *)",
       "Bash(git config *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(grep -iE \"\\\\.env|secret|credential|token|\\\\.pem|\\\\.key$\")",
+      "Bash(git commit -m ' *)",
+      "Bash(git branch *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "WebFetch(domain:the-dude-qxywj8j0e-dude20.vercel.app)",
+      "WebFetch(domain:the-dude.vercel.app)",
+      "Bash(git commit *)"
     ]
   }
 }

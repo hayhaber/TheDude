@@ -5,7 +5,12 @@ const STORAGE_KEY = 'theme';
 function getInitialTheme() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored === 'light' || stored === 'dark') return stored;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // Light, always, on first launch — deliberately NOT following the OS/
+  // browser's own prefers-color-scheme. A first-time visitor whose device
+  // happens to be in Dark Mode (very common by default on iOS) shouldn't
+  // land on a dark app before they've ever made a choice here; Dark stays
+  // one tap away in Settings and is remembered from then on.
+  return 'light';
 }
 
 // Persists the user's explicit Light/Dark choice and stamps it onto <html>

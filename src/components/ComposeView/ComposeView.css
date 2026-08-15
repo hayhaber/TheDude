@@ -90,11 +90,18 @@
 }
 
 /* Same pill-toggle look as Piano's Labels button (PianoKeyboard.css) —
-   established pattern for a single-word on/off feature toggle. */
+   established pattern for a single-word on/off feature toggle. Explicit
+   height (not padding-derived) so it matches --control-height exactly,
+   same reasoning as index.css's own note on mode-toggle/select rows —
+   otherwise this reads visibly shorter than Display/Capo next to it. */
 .compose-smooth-toggle {
+  height: var(--control-height);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
   font-size: 12px;
   font-weight: 590;
-  padding: 6px 14px;
+  padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);

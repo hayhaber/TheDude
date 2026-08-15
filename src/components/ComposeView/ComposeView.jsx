@@ -168,6 +168,13 @@ export function ComposeView({
             <InfoTooltip text={t('compose.smoothTooltip')} label={t('compose.smoothTooltipLabel')} />
           </span>
         )}
+        {/* Sends this progression (with every chord's own chosen fretboard
+            voicing) to Practice -> Chord Changes to practice switching
+            between exactly these shapes. Sits right next to Smart — both
+            are "what to do with this progression" actions. Guitar-only —
+            a "position"/voicing concept has no piano equivalent, same
+            reasoning as Smooth/Capo above. */}
+        {isGuitar && <TrainingHandoff training={training} hasProgression={progression.length > 0} />}
         {/* Piano's equivalent of guitar's Smooth above — same idea (an
             overlay that picks each chord's voicing to minimize movement
             from the previous one), different engine (inversion choice
@@ -193,12 +200,6 @@ export function ComposeView({
           {t('compose.smoothHint')}
         </p>
       )}
-
-      {/* Sends this progression (with every chord's own chosen fretboard
-          voicing) to Practice -> Chord Changes to practice switching between
-          exactly these shapes. Guitar-only — a "position"/voicing concept
-          has no piano equivalent, same reasoning as Smooth/Capo above. */}
-      {isGuitar && <TrainingHandoff training={training} hasProgression={progression.length > 0} />}
 
       {showHeatMap && <HeatMapLegend />}
 

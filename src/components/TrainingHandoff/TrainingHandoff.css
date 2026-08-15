@@ -1,11 +1,19 @@
 .training-handoff {
-  margin: var(--space-3) 0;
+  display: inline-flex;
 }
 
+/* Explicit height, matching Smart/Display/Capo next to it in the same row
+   (see ComposeView.css's own note on .compose-smooth-toggle for why —
+   padding-derived height reads visibly shorter/uneven next to controls
+   that pin to --control-height explicitly). */
 .training-handoff-open {
+  height: var(--control-height);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
   font-size: 13px;
   font-weight: 590;
-  padding: 8px 16px;
+  padding: 0 16px;
   border-radius: 999px;
   border: 1px solid var(--accent);
   background: var(--accent-bg);

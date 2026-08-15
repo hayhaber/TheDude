@@ -1,8 +1,15 @@
 import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { GUITAR_CHORD_RHYTHM_MODES } from '../../music/guitarChordRhythmContent';
+import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels } from '../../music/guitarChordRhythmContent';
 import { LEAD_TIME_S } from '../../hooks/useGuitarChordRhythm';
 import './GuitarChordRhythmPanel.css';
+
+// Once a chord's own judging window has this little time left (real
+// seconds) and it's STILL unanswered, show what notes it's actually made
+// of — a late assist for a chord the player doesn't recognize by name yet,
+// not a giveaway from the start (the name itself is visible the whole
+// time; this only adds the spelled notes once time's nearly up).
+const HINT_WINDOW_S = 1.2;
 
 // Same continuous "position is a pure function of elapsed time" falling-
 // blocks/timeline rendering as the piano ChordRhythmPanel, ported rather
@@ -110,6 +117,13 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
     : [];
 
   const anyActive = visible.some(({ chord }) => now >= chord.startTime && now < chord.endTime);
+
+  // The active-and-still-unanswered chord whose window is about to close —
+  // at most one at a time, since only one chord's window is ever open.
+  const hintEntry = visible.find(
+    ({ chord, i }) => now >= chord.startTime && now < chord.endTime && results[i] == null && chord.endTime - now <= HINT_WINDOW_S
+  );
+  const hintTones = hintEntry ? getChordToneLabels(hintEntry.chord.rootPitchClass, hintEntry.chord.qualityKey) : null;
 
   return (
     <div className="guitar-chord-rhythm-panel">
@@ -294,6 +308,12 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
             );
           })}
         </div>
+      )}
+
+      {isPlaying && hintTones && hintTones.length > 0 && (
+        <p className="guitar-chord-rhythm-hint" dir="auto">
+          {t('guitarChordRhythm.hint', { tones: hintTones.join(' · ') })}
+        </p>
       )}
 
       {isPlaying && (

@@ -168,6 +168,13 @@
   color: #fff;
 }
 
+.guitar-chord-rhythm-hint {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 590;
+  color: #ffd60a;
+}
+
 .guitar-chord-rhythm-mic-status {
   margin: 0;
   font-size: 13px;

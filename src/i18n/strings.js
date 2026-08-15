@@ -213,6 +213,7 @@ export const STRINGS = {
     'guitarChordRhythm.listening': '🎤 Listening…',
     'guitarChordRhythm.hearing': '🎤 Hearing: {chord} ({confidence}%)',
     'guitarChordRhythm.hearingWrong': '🎤 Hearing: {chord} ({confidence}%) — not quite',
+    'guitarChordRhythm.hint': '💡 Notes: {tones}',
 
     'soloOpener.title': 'Solo Opener',
     'soloOpener.subtitle': 'The opening phrase of a solo is the one part with nothing to react to — so it tends to fall back on habit. Loop a short constraint on how you start, and a genuinely different solo follows.',
@@ -1027,6 +1028,7 @@ export const STRINGS = {
     'guitarChordRhythm.listening': '🎤 מקשיב…',
     'guitarChordRhythm.hearing': '🎤 שומע: {chord} ({confidence}%)',
     'guitarChordRhythm.hearingWrong': '🎤 שומע: {chord} ({confidence}%) — לא בדיוק',
+    'guitarChordRhythm.hint': '💡 תווים: {tones}',
 
     'soloOpener.title': 'פתיחת סולו',
     'soloOpener.subtitle': 'המשפט הפותח של סולו הוא החלק היחיד שאין לו על מה להגיב — ולכן הוא נוטה ליפול חזרה על הרגל. חזרו על אילוץ קצר לגבי איך להתחיל, וסולו שונה לגמרי ייצא מזה.',

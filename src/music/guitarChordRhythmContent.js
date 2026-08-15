@@ -9,6 +9,8 @@
 // user before building this.
 import { PROGRESSION_PATTERNS } from './chordRhythmGenerator';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './chordSymbolParser';
+import { CHORD_QUALITIES } from './chordQualities';
+import { spellTone } from './spelling';
 
 const PITCH_CLASS_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -198,4 +200,19 @@ export function parseGuitarChordProgressionText(text) {
       return { rootPitchClass: parsed.root.pitchClass, qualityKey: parsed.qualityKey, chordText: t };
     })
     .filter(Boolean);
+}
+
+// --- Late-window hint: "what notes actually make up this chord" ---------
+// Used by GuitarChordRhythmPanel once a chord's judging window is almost
+// out of time and still unanswered — the block/chip already shows the
+// chord's NAME the whole time, but a player who doesn't yet recognize a
+// name like "F#m7" by ear benefits from seeing its actual spelled notes.
+// Reuses the same real letter-stacking spelling (spellTone, from
+// spelling.js) every other chord display in the app already uses, rather
+// than a simplified/enharmonic-sloppy label.
+export function getChordToneLabels(rootPitchClass, qualityKey) {
+  const quality = CHORD_QUALITIES[qualityKey];
+  if (!quality) return [];
+  const rootLetter = PITCH_CLASS_NAMES[rootPitchClass][0];
+  return quality.tones.map((tone) => spellTone(rootLetter, rootPitchClass, tone.degree, tone.semitones).label);
 }

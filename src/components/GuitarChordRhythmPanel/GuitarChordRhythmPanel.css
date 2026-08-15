@@ -34,6 +34,56 @@
   letter-spacing: normal;
 }
 
+/* Same rounded-field look as Compose's own chord-progression input
+   (ChordInput.css) — same height (var(--control-height), so it lines up
+   exactly with the Repeats <select> and Remove/Add buttons next to it),
+   same border/radius/background/shadow. Previously unstyled, which left
+   it as a plain browser-default rectangle next to fully-styled pill
+   controls. */
+.guitar-chord-rhythm-field input[type='text'] {
+  height: var(--control-height);
+  box-sizing: border-box;
+  min-width: 160px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.guitar-chord-rhythm-field input[type='text']::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+.guitar-chord-rhythm-field input[type='text']:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-bg);
+}
+
+/* Repeats <select> and the remove-group "×" button already pick up
+   var(--control-height) (select globally via index.css, the × button via
+   its own CSS) — give the select the same rounded/bordered treatment as
+   the text field beside it instead of the browser's default select chrome. */
+.guitar-chord-rhythm-field select {
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  font-weight: 590;
+}
+
 .guitar-chord-rhythm-groups {
   display: flex;
   flex-wrap: wrap;

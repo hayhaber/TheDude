@@ -231,6 +231,28 @@ export function PianoKeyboard({
   const computerKeyDownHandlerRef = useRef(null);
   const computerKeyUpHandlerRef = useRef(null);
 
+  // Mouse/touch press-and-hold visual feedback — deliberately its OWN state
+  // (not relying on the browser's native :active pseudo-class the way a
+  // single mouse-held key otherwise could). :active is unreliable across
+  // SIMULTANEOUS multi-touch points on different elements — in practice
+  // this meant playing a chord with 2-3 fingers on a real iPad sounded all
+  // of them correctly (the JS handlers all fired fine) but only ever showed
+  // ONE key visually pressed. Tracked explicitly here instead, exactly the
+  // same reliable pattern midiHeldNotes/computerKeyHeldNotes above already
+  // use for their own input methods.
+  const [pressedNotes, setPressedNotes] = useState(() => new Set());
+  function addPressedNote(midi) {
+    setPressedNotes((prev) => (prev.has(midi) ? prev : new Set(prev).add(midi)));
+  }
+  function removePressedNote(midi) {
+    setPressedNotes((prev) => {
+      if (!prev.has(midi)) return prev;
+      const next = new Set(prev);
+      next.delete(midi);
+      return next;
+    });
+  }
+
   const notesByMidi = useMemo(() => new Map(notes.map((n) => [n.midi, n])), [notes]);
   const quizSet = useMemo(() => new Set((quizKeys ?? []).map((n) => n.midi)), [quizKeys]);
   const revealSet = useMemo(() => new Set(quizRevealKeys.map((n) => n.midi)), [quizRevealKeys]);
@@ -329,6 +351,7 @@ export function PianoKeyboard({
     function onMouseUp() {
       dragRef.current.dragging = false;
       if (mouseHeldMidiRef.current != null) {
+        removePressedNote(mouseHeldMidiRef.current);
         handleReleaseKey(mouseHeldMidiRef.current);
         mouseHeldMidiRef.current = null;
       }
@@ -531,6 +554,7 @@ export function PianoKeyboard({
   function handleTouchStartKey(e, midi) {
     lastTouchTimeRef.current = Date.now();
     Array.from(e.changedTouches).forEach((touch) => activeTouchesRef.current.set(touch.identifier, midi));
+    addPressedNote(midi);
     handlePressKey(midi);
   }
 
@@ -540,6 +564,7 @@ export function PianoKeyboard({
       const midi = activeTouchesRef.current.get(touch.identifier);
       if (midi != null) {
         activeTouchesRef.current.delete(touch.identifier);
+        removePressedNote(midi);
         handleReleaseKey(midi);
       }
     });
@@ -555,6 +580,7 @@ export function PianoKeyboard({
   function handleMouseDownKey(midi) {
     if (Date.now() - lastTouchTimeRef.current < 800) return;
     mouseHeldMidiRef.current = midi;
+    addPressedNote(midi);
     handlePressKey(midi);
   }
 
@@ -898,7 +924,7 @@ export function PianoKeyboard({
                       (fill ? ' active' : '') +
                       (clickable ? '' : ' disabled') +
                       (isMiddleC ? ' piano-key-middle-c' : '') +
-                      (midiHeldNotes.has(w.midi) || computerKeyHeldNotes.has(w.midi) ? ' midi-held' : '')
+                      (midiHeldNotes.has(w.midi) || computerKeyHeldNotes.has(w.midi) || pressedNotes.has(w.midi) ? ' midi-held' : '')
                     }
                     style={fill ? { backgroundColor: fill, opacity: keyOpacity(w.midi) } : undefined}
                     onClick={() => clickable && quizKeys && handleKeyClick(w.midi)}
@@ -945,7 +971,7 @@ export function PianoKeyboard({
                           'piano-key piano-key-black' +
                           (blackFill ? ' active' : '') +
                           (blackClickable ? '' : ' disabled') +
-                          (midiHeldNotes.has(blackMidi) || computerKeyHeldNotes.has(blackMidi) ? ' midi-held' : '')
+                          (midiHeldNotes.has(blackMidi) || computerKeyHeldNotes.has(blackMidi) || pressedNotes.has(blackMidi) ? ' midi-held' : '')
                         }
                         style={{
                           width: blackKeyWidth,

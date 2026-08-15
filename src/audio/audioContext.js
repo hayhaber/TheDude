@@ -1,20 +1,5 @@
 let audioContext = null;
 
-// TEMPORARY — tiny pub/sub so the on-page DebugPanel (see its own comment)
-// can show real note-play attempts (piano taps, guitar taps), not just its
-// own isolated test button — the fastest way to tell "the tap never even
-// reached the audio layer" apart from "it reached the audio layer but the
-// device produced no sound anyway". Remove alongside DebugPanel.jsx once
-// root-caused.
-const audioEventListeners = new Set();
-export function logAudioEvent(message) {
-  audioEventListeners.forEach((fn) => fn(message));
-}
-export function onAudioEvent(fn) {
-  audioEventListeners.add(fn);
-  return () => audioEventListeners.delete(fn);
-}
-
 // A short, silent, looping WAV — its only job is to exist as a real
 // HTMLMediaElement. On iOS/Safari specifically (confirmed via the debug
 // panel: a raw Web Audio oscillator reported ctx.state 'running' and
@@ -72,13 +57,7 @@ function ensureSilentAudioPlaying() {
   // A rejected play() Promise here (autoplay policy, not-yet-a-gesture)
   // is expected and harmless — the real call is the one made from inside
   // unlockAudioContextOnFirstGesture's handler below, which IS a gesture.
-  // Logged either way (TEMPORARY, see DebugPanel.jsx) since whether this
-  // silent element actually plays is itself a live open question, not a
-  // known-working assumption.
-  silentAudioEl
-    .play()
-    .then(() => logAudioEvent(`silent keep-alive <audio> play() resolved OK, paused=${silentAudioEl.paused}`))
-    .catch((e) => logAudioEvent(`silent keep-alive <audio> play() REJECTED: ${e.message}`));
+  silentAudioEl.play().catch(() => {});
 }
 
 // Any state other than 'running' means no sound will actually be heard —

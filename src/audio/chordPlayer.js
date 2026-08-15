@@ -1,5 +1,5 @@
 import { STANDARD_TUNING } from '../music/notes';
-import { getAudioContext, logAudioEvent } from './audioContext';
+import { getAudioContext } from './audioContext';
 import { getSoundfontInstrument } from './instrumentEngine';
 import { resolveGuitarProfile } from './instrumentProfiles';
 import { getCurrentGuitarProfile } from './audioSettingsStore';
@@ -61,8 +61,7 @@ function playNoteAt(midi, startTime) {
 // which frets are drawn/fingered — exactly what a physical capo does — so
 // Play actually sounds the real pitch a capo'd guitar would produce.
 export function playPosition(strings, capoFret = 0) {
-  const ctx = getAudioContext();
-  const now = ctx.currentTime;
+  const now = getAudioContext().currentTime;
   const soundingStrings = strings
     .map((s, i) => (s.fret === null ? null : { midi: STANDARD_TUNING[i].baseMidi + s.fret + capoFret }))
     .filter(Boolean);
@@ -70,13 +69,10 @@ export function playPosition(strings, capoFret = 0) {
   soundingStrings.forEach((note, index) => {
     playNoteAt(note.midi, now + index * STRUM_STAGGER);
   });
-  logAudioEvent(`guitar playPosition notes=${soundingStrings.length} state=${ctx.state} t=${now.toFixed(2)}`);
 }
 
 // Plays a single plucked note — used when a specific dot on the fretboard
 // is clicked, or by any "hear this note" affordance elsewhere in the app.
 export function playNote(midi) {
-  const ctx = getAudioContext();
-  playNoteAt(midi, ctx.currentTime);
-  logAudioEvent(`guitar NoteClick midi=${midi} state=${ctx.state} t=${ctx.currentTime.toFixed(2)}`);
+  playNoteAt(midi, getAudioContext().currentTime);
 }

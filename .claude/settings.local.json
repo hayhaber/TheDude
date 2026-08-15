@@ -86,7 +86,9 @@
       "Bash(git push *)",
       "WebFetch(domain:the-dude-qxywj8j0e-dude20.vercel.app)",
       "WebFetch(domain:the-dude.vercel.app)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(rm -f src/components/DebugPanel/DebugPanel.jsx src/components/DebugPanel/DebugPanel.css)",
+      "Bash(rmdir src/components/DebugPanel)"
     ]
   }
 }

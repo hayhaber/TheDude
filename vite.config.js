@@ -5,13 +5,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Stamped into the bundle so the on-page debug panel (see
-  // src/components/DebugPanel/DebugPanel.jsx) can show which build is
-  // actually running — the fastest way to tell "my fix isn't showing up"
-  // apart from "the device is still serving a stale cached build".
-  define: {
-    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-  },
   // alphaTab (Songs -> Guitar Pro import) offloads rendering/audio work to
   // Web Workers/AudioWorklets and ships its own font+soundfont assets — this
   // plugin wires up the bundling for those and copies the assets to

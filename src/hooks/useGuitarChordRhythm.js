@@ -52,9 +52,15 @@ function buildTimedChords(chordList, startTime, secondsPerBeat, beatsPerChord) {
 //              theory-generated batch as the queue runs low).
 //   'custom' — one typed progression (any chord parseChordSymbol accepts,
 //              not just the four generated pools), optionally looped.
-//   'song'   — two typed progressions (verse/chorus), each with its own
-//              repeat count, chained into one sequence; optionally looped
-//              as a whole once both sections have played through.
+//   'song'   — an arbitrary, player-extendable LIST of progression groups
+//              (verse/chorus/bridge/however many), each with its own repeat
+//              count, chained into one sequence; optionally looped as a
+//              whole once every group has played through. A group can be
+//              typed directly here (plain chord text, judged/shown with a
+//              default fretboard voicing), or arrive already-voiced from
+//              Compose's "Training" handoff (see loadGroupsFromCompose) —
+//              in which case its `chords` carry the EXACT fretboard shape
+//              the player chose there, shown as-is during practice.
 // 'loop' only applies to 'custom'/'song' (a fixed, player-authored
 // sequence repeating itself) — 'auto' mode's own duration selector already
 // covers "keep going," via freshly-varied content rather than a repeat.
@@ -63,10 +69,16 @@ export function useGuitarChordRhythm(metronome) {
   const [mode, setMode] = useState(DEFAULT_MODE);
   const [autoDuration, setAutoDuration] = useState('fixed'); // 'fixed' | 'timer' | 'endless'
   const [customText, setCustomText] = useState('G D Em C');
-  const [verseText, setVerseText] = useState('Em C G D');
-  const [verseRepeats, setVerseRepeats] = useState(2);
-  const [chorusText, setChorusText] = useState('G D Em C');
-  const [chorusRepeats, setChorusRepeats] = useState(2);
+  // Each group: { id, text, repeats, chords }. `chords` is null for a
+  // typed group (re-parsed from `text` at load time via
+  // parseGuitarChordProgressionText, and shown with a default computed
+  // fretboard voicing — see GuitarChordRhythmPanel.jsx); populated with
+  // {chordText, rootPitchClass, qualityKey, voicing, capoFret} entries for
+  // a group that arrived from Compose, carrying its exact chosen voicing.
+  const [groups, setGroups] = useState([
+    { id: 'g1', text: 'Em C G D', repeats: 2, chords: null },
+    { id: 'g2', text: 'G D Em C', repeats: 2, chords: null },
+  ]);
   const [loop, setLoop] = useState(false);
   const [beatsPerChord, setBeatsPerChord] = useState(DEFAULT_BEATS_PER_CHORD);
   const [viewMode, setViewMode] = useState('falling'); // 'falling' | 'timeline'
@@ -228,9 +240,7 @@ export function useGuitarChordRhythm(metronome) {
       bpm = generated.bpmSuggested;
       nextBeatsPerChord = generated.beatsPerChord;
     } else if (source === 'song') {
-      const verseChords = parseGuitarChordProgressionText(verseText);
-      const chorusChords = parseGuitarChordProgressionText(chorusText);
-      chordList = [...repeatList(verseChords, verseRepeats), ...repeatList(chorusChords, chorusRepeats)];
+      chordList = groups.flatMap((g) => repeatList(g.chords ?? parseGuitarChordProgressionText(g.text), g.repeats));
       baseLoopList = chordList;
     } else {
       chordList = parseGuitarChordProgressionText(customText);
@@ -256,6 +266,46 @@ export function useGuitarChordRhythm(metronome) {
     micMatchStatusRef.current = null;
     setMicMatchStatus(null);
     return built;
+  }
+
+  function addGroup() {
+    setGroups((gs) => [...gs, { id: `${Date.now()}-${Math.random()}`, text: '', repeats: 2, chords: null }]);
+  }
+
+  function removeGroup(id) {
+    setGroups((gs) => gs.filter((g) => g.id !== id));
+  }
+
+  // Editing a group's text by hand takes back manual control — any voicing
+  // it arrived with from Compose no longer matches what's typed, so it's
+  // dropped in favor of a plain re-parse + default fretboard voicing (same
+  // as any other typed group).
+  function updateGroupText(id, text) {
+    setGroups((gs) => gs.map((g) => (g.id === id ? { ...g, text, chords: null } : g)));
+  }
+
+  function updateGroupRepeats(id, repeats) {
+    setGroups((gs) => gs.map((g) => (g.id === id ? { ...g, repeats } : g)));
+  }
+
+  // Compose -> Training handoff: replaces the group list wholesale with
+  // whatever Compose captured — each incoming group already carries its
+  // exact per-chord fretboard voicing (App.jsx's buildCurrentTrainingGroup),
+  // which flows straight through buildTimedChords into the sequence, so the
+  // panel can render the SAME shape the player chose in Compose rather than
+  // a default guess. Does not auto-start playback — the player presses
+  // Start themselves (same as arriving at this tab any other way, and keeps
+  // audio playback gated behind an explicit gesture).
+  function loadGroupsFromCompose(composeGroups) {
+    setGroups(
+      composeGroups.map((g, i) => ({
+        id: g.id ?? `${Date.now()}-${i}`,
+        text: g.chordsText,
+        repeats: 1,
+        chords: g.chords.map((c) => ({ ...c, capoFret: g.capoFret })),
+      }))
+    );
+    setSource('song');
   }
 
   async function play() {
@@ -301,14 +351,12 @@ export function useGuitarChordRhythm(metronome) {
     setAutoDuration,
     customText,
     setCustomText,
-    verseText,
-    setVerseText,
-    verseRepeats,
-    setVerseRepeats,
-    chorusText,
-    setChorusText,
-    chorusRepeats,
-    setChorusRepeats,
+    groups,
+    addGroup,
+    removeGroup,
+    updateGroupText,
+    updateGroupRepeats,
+    loadGroupsFromCompose,
     loop,
     setLoop,
     beatsPerChord,

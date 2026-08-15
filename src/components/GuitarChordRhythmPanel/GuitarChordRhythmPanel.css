@@ -34,6 +34,65 @@
   letter-spacing: normal;
 }
 
+.guitar-chord-rhythm-groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.guitar-chord-rhythm-group {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.guitar-chord-rhythm-remove-group {
+  height: var(--control-height);
+  width: var(--control-height);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.guitar-chord-rhythm-remove-group:hover {
+  color: var(--danger);
+}
+
+.guitar-chord-rhythm-add-group {
+  height: var(--control-height);
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 590;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.guitar-chord-rhythm-add-group:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.guitar-chord-rhythm-add-group:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.guitar-chord-rhythm-fretboard {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  padding: var(--space-2);
+}
+
 .guitar-chord-rhythm-lane {
   position: relative;
   height: 200px;

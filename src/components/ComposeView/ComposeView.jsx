@@ -8,6 +8,7 @@ import { HeatMapLegend } from '../HeatMapLegend/HeatMapLegend';
 import { PlaybackControls } from '../PlaybackControls/PlaybackControls';
 import { InsightsPanel } from '../InsightsPanel/InsightsPanel';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { TrainingHandoff } from '../TrainingHandoff/TrainingHandoff';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import './ComposeView.css';
@@ -69,6 +70,7 @@ export function ComposeView({
   soundingProgressionText,
   soundingKey,
   onTranspose,
+  training,
 }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
@@ -191,6 +193,12 @@ export function ComposeView({
           {t('compose.smoothHint')}
         </p>
       )}
+
+      {/* Sends this progression (with every chord's own chosen fretboard
+          voicing) to Practice -> Chord Changes to practice switching between
+          exactly these shapes. Guitar-only — a "position"/voicing concept
+          has no piano equivalent, same reasoning as Smooth/Capo above. */}
+      {isGuitar && <TrainingHandoff training={training} hasProgression={progression.length > 0} />}
 
       {showHeatMap && <HeatMapLegend />}
 

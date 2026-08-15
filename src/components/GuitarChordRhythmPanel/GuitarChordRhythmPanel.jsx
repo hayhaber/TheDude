@@ -1,6 +1,9 @@
 import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels } from '../../music/guitarChordRhythmContent';
+import { computeChordPositions } from '../../music/computeChordPositions';
+import { applyCapoToPosition } from '../../music/capo';
+import { Fretboard } from '../Fretboard/Fretboard';
 import { LEAD_TIME_S } from '../../hooks/useGuitarChordRhythm';
 import './GuitarChordRhythmPanel.css';
 
@@ -76,14 +79,11 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
     setAutoDuration,
     customText,
     setCustomText,
-    verseText,
-    setVerseText,
-    verseRepeats,
-    setVerseRepeats,
-    chorusText,
-    setChorusText,
-    chorusRepeats,
-    setChorusRepeats,
+    groups,
+    addGroup,
+    removeGroup,
+    updateGroupText,
+    updateGroupRepeats,
     loop,
     setLoop,
     beatsPerChord,
@@ -124,6 +124,22 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
     ({ chord, i }) => now >= chord.startTime && now < chord.endTime && results[i] == null && chord.endTime - now <= HINT_WINDOW_S
   );
   const hintTones = hintEntry ? getChordToneLabels(hintEntry.chord.rootPitchClass, hintEntry.chord.qualityKey) : null;
+
+  // Whichever chord is crossing the hit-line right now — shown on a live
+  // Fretboard below the lane. A group imported from Compose carries the
+  // EXACT voicing the player chose there (`chord.voicing`); anything else
+  // (auto-generated, typed) falls back to a sensible default shape via
+  // computeChordPositions. Purely a reference display — the mic judging
+  // above can confirm WHICH chord was played, never which shape, so this
+  // never marks itself right/wrong on its own (see guitarChordRhythmContent.js's
+  // own top comment on that limitation).
+  const activeEntry = visible.find(({ chord }) => now >= chord.startTime && now < chord.endTime);
+  const activeChord = activeEntry?.chord ?? null;
+  const activeVoicing = activeChord
+    ? activeChord.voicing
+      ? applyCapoToPosition(activeChord.voicing, activeChord.capoFret || 0)
+      : computeChordPositions(activeChord.chordText, 'chord').positions[0] ?? null
+    : null;
 
   return (
     <div className="guitar-chord-rhythm-panel">
@@ -190,36 +206,47 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
         )}
 
         {source === 'song' && (
-          <>
-            <label className="guitar-chord-rhythm-field">
-              {t('guitarChordRhythm.verseLabel')}
-              <input type="text" value={verseText} onChange={(e) => setVerseText(e.target.value)} disabled={isPlaying} placeholder="Em C G D" dir="ltr" />
-            </label>
-            <label className="guitar-chord-rhythm-field">
-              {t('guitarChordRhythm.repeats')}
-              <select value={verseRepeats} onChange={(e) => setVerseRepeats(Number(e.target.value))} disabled={isPlaying}>
-                {REPEAT_OPTIONS.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="guitar-chord-rhythm-field">
-              {t('guitarChordRhythm.chorusLabel')}
-              <input type="text" value={chorusText} onChange={(e) => setChorusText(e.target.value)} disabled={isPlaying} placeholder="G D Em C" dir="ltr" />
-            </label>
-            <label className="guitar-chord-rhythm-field">
-              {t('guitarChordRhythm.repeats')}
-              <select value={chorusRepeats} onChange={(e) => setChorusRepeats(Number(e.target.value))} disabled={isPlaying}>
-                {REPEAT_OPTIONS.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </>
+          <div className="guitar-chord-rhythm-groups">
+            {groups.map((group, i) => (
+              <div className="guitar-chord-rhythm-group" key={group.id}>
+                <label className="guitar-chord-rhythm-field">
+                  {t('guitarChordRhythm.groupLabel', { n: i + 1 })}
+                  <input
+                    type="text"
+                    value={group.text}
+                    onChange={(e) => updateGroupText(group.id, e.target.value)}
+                    disabled={isPlaying}
+                    placeholder="G D Em C"
+                    dir="ltr"
+                  />
+                </label>
+                <label className="guitar-chord-rhythm-field">
+                  {t('guitarChordRhythm.repeats')}
+                  <select value={group.repeats} onChange={(e) => updateGroupRepeats(group.id, Number(e.target.value))} disabled={isPlaying}>
+                    {REPEAT_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {groups.length > 1 && (
+                  <button
+                    type="button"
+                    className="guitar-chord-rhythm-remove-group"
+                    onClick={() => removeGroup(group.id)}
+                    disabled={isPlaying}
+                    aria-label={t('guitarChordRhythm.removeGroup')}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            <button type="button" className="guitar-chord-rhythm-add-group" onClick={addGroup} disabled={isPlaying}>
+              + {t('guitarChordRhythm.addGroup')}
+            </button>
+          </div>
         )}
 
         {(source === 'custom' || source === 'song') && (
@@ -307,6 +334,12 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {isPlaying && activeChord && activeVoicing && (
+        <div className="guitar-chord-rhythm-fretboard">
+          <Fretboard position={activeVoicing} chordColor={colorForChord(activeChord.chordText)} capoFret={activeChord.capoFret || 0} />
         </div>
       )}
 

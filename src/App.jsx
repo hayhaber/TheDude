@@ -404,6 +404,15 @@ function App() {
   // the sounding pitch — see music/capo.js's soundingChordText for how the
   // actual sounding chord is derived from this.
   const [capoFret, setCapoFret] = useState(0);
+  // Compose -> Training handoff: captured progression "groups" (each one a
+  // snapshot of progressionText + every chord's resolved fretboard voicing +
+  // the mode/capo that produced it), built up one at a time by re-using the
+  // SAME progression editor already on screen rather than a parallel
+  // per-group editor UI — see buildCurrentTrainingGroup below. Sent as a
+  // whole to Practice -> Chord Changes (useGuitarChordRhythm's
+  // loadGroupsFromCompose) once the player is done adding groups.
+  const [trainingGroups, setTrainingGroups] = useState([]);
+  const [trainingFlowOpen, setTrainingFlowOpen] = useState(false);
   const [clickedNote, setClickedNote] = useState(null);
   // The last note clicked anywhere on the neck — the Voice Leading Assistant's
   // idea of "where the player currently is," since the app has no other
@@ -1240,6 +1249,67 @@ function App() {
     setCapoFret(0);
   }
 
+  // Snapshots the CURRENT Compose progression — every valid chord's own
+  // resolved voicing (whichever position the player actually picked, or
+  // Smooth's own greedily-chosen shape if that's on) — into one "training
+  // group" object. Pure/no side effects; callers decide what to do with the
+  // result (push it onto trainingGroups, or send it straight to Practice).
+  // Raw (capo-unaware) voicings + the capoFret that produced them are kept
+  // together, exactly like Compose's own Fretboard rendering does — see
+  // App.jsx's stageFretboardProps resolver applying applyCapoToPosition at
+  // DISPLAY time, never baked into stored state.
+  function buildCurrentTrainingGroup() {
+    const chords = progression
+      .map((chord, i) => {
+        if (!chord.parsed) return null;
+        const voicing = smoothMode
+          ? voiceLeadingSequence[i]?.position ?? null
+          : chordPositionsList[i]?.positions?.[positionIndexByChord[i] ?? 0] ?? null;
+        return { chordText: chord.text, rootPitchClass: chord.parsed.root.pitchClass, qualityKey: chord.parsed.qualityKey, voicing };
+      })
+      .filter(Boolean);
+    if (chords.length === 0) return null;
+    return { id: `${Date.now()}-${Math.random()}`, chordsText: progressionText, chords, capoFret };
+  }
+
+  function handleOpenTrainingFlow() {
+    setTrainingFlowOpen(true);
+  }
+
+  // "+" — banks the progression on screen as its own group, then clears the
+  // editor so the player builds the NEXT one (e.g. a chorus) with the exact
+  // same controls, instead of a second parallel editor appearing anywhere.
+  function handleAddCurrentTrainingGroup() {
+    const group = buildCurrentTrainingGroup();
+    if (!group) return;
+    setTrainingGroups((groups) => [...groups, group]);
+    setProgressionText('');
+  }
+
+  function handleRemoveTrainingGroup(id) {
+    setTrainingGroups((groups) => groups.filter((g) => g.id !== id));
+  }
+
+  function handleCancelTrainingFlow() {
+    setTrainingGroups([]);
+    setTrainingFlowOpen(false);
+  }
+
+  // Finishes the flow: whatever's still sitting in the editor becomes the
+  // LAST group (so a player who never clicks "+" and just fills in one
+  // progression, then hits Send, gets exactly that one group — no separate
+  // "add another?" prompt needed, the flow's own UI already offers it).
+  function handleSendTrainingGroups() {
+    const current = buildCurrentTrainingGroup();
+    const groups = current ? [...trainingGroups, current] : trainingGroups;
+    if (groups.length === 0) return;
+    guitarChordRhythm.loadGroupsFromCompose(groups);
+    setTrainingGroups([]);
+    setTrainingFlowOpen(false);
+    setPracticeTab('guitarChordRhythm');
+    setActiveSection('practice');
+  }
+
   // The live handler each configurable shortcut actually calls — a plain
   // object, rebuilt every render (cheap: just function references), so it
   // always closes over the current progression/metronome state rather than
@@ -1334,6 +1404,15 @@ function App() {
           soundingProgressionText={soundingProgressionText}
           soundingKey={soundingKey}
           onTranspose={transposeProgression}
+          training={{
+            groups: trainingGroups,
+            flowOpen: trainingFlowOpen,
+            onOpen: handleOpenTrainingFlow,
+            onAddCurrent: handleAddCurrentTrainingGroup,
+            onRemoveGroup: handleRemoveTrainingGroup,
+            onSend: handleSendTrainingGroups,
+            onCancel: handleCancelTrainingFlow,
+          }}
         />
       )}
 

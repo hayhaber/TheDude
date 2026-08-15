@@ -1,0 +1,141 @@
+.training-handoff {
+  margin: var(--space-3) 0;
+}
+
+.training-handoff-open {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.training-handoff-open:hover {
+  filter: brightness(1.08);
+}
+
+.training-handoff-open:disabled {
+  opacity: 0.4;
+  cursor: default;
+  filter: none;
+}
+
+.training-handoff-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--accent-bg);
+}
+
+.training-handoff-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.training-handoff-cancel {
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.training-handoff-cancel:hover {
+  color: var(--text);
+}
+
+.training-handoff-groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.training-handoff-groups li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.training-handoff-groups button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.training-handoff-groups button:hover {
+  color: var(--danger);
+}
+
+.training-handoff-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.training-handoff-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.training-handoff-actions button {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.training-handoff-actions button:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.training-handoff-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.training-handoff-send {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+
+.training-handoff-send:hover {
+  filter: brightness(1.08);
+}
+
+.training-handoff-send:disabled {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { buildPositionExercise, buildLinearExercise, buildTransitionExercise } from '../../music/scalePracticeContent';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { ChevronIcon } from '../ChevronIcon/ChevronIcon';
+import { LabelModeToggle } from '../LabelModeToggle/LabelModeToggle';
 import './ScalePracticePanel.css';
 
 const SCALE_KEYS = ['minorPentatonic', 'majorPentatonic', 'major', 'naturalMinor'];
@@ -16,7 +17,7 @@ const MODES = ['position', 'linear', 'transition'];
 // The exercise regenerates automatically whenever a control changes (not on
 // every keystroke — only real state changes), never mid-session; Play/Stop/
 // score chrome mirrors RhythmGamePanel's own layout for the same feature.
-export function ScalePracticePanel({ scalePractice, metronome }) {
+export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange, metronome }) {
   const { t } = useLanguage();
   const [scaleKey, setScaleKey] = useState('minorPentatonic');
   const [root, setRoot] = useState(9); // A — the classic first pentatonic key taught (Am pentatonic)
@@ -47,7 +48,7 @@ export function ScalePracticePanel({ scalePractice, metronome }) {
         ? buildPositionExercise(scaleKey, root, positionIndex, blueNoteOpts)
         : mode === 'linear'
         ? buildLinearExercise(scaleKey, root, { stringIndex, stringCount, ...blueNoteOpts })
-        : buildTransitionExercise(scaleKey, root, positionIndex, { stringIndex, ...blueNoteOpts });
+        : buildTransitionExercise(scaleKey, root, positionIndex, blueNoteOpts);
     scalePractice.loadExercise(built);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scaleKey, root, mode, positionIndex, stringIndex, stringCount, includeBlueNote, isPlaying]);
@@ -161,6 +162,13 @@ export function ScalePracticePanel({ scalePractice, metronome }) {
             </div>
           </>
         )}
+
+        <div className="scale-practice-field">
+          <span className="scale-practice-field-label" aria-hidden="true">
+            {t('labelModeToggle.label')}
+          </span>
+          <LabelModeToggle labelMode={labelMode} onChange={onLabelModeChange} />
+        </div>
 
         {scaleKey === 'minorPentatonic' && (
           <div className="scale-practice-field">

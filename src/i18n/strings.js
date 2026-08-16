@@ -232,7 +232,7 @@ export const STRINGS = {
     'scalePractice.hint.linear':
       "Play the scale's own note sequence up the neck on a single string (or two) — builds real fretboard-note fluency, not just a memorized shape.",
     'scalePractice.hint.transition':
-      'Connects one position straight into the next along a single string — the standard way to hear that positions overlap instead of being separate boxes.',
+      'A short connecting phrase through the fret span where these two positions overlap, crossing strings as the notes naturally fall — the standard way teachers show that positions overlap instead of being separate boxes.',
 
     'guitarChordRhythm.title': 'Chord Changes',
     'guitarChordRhythm.subtitle': 'Chords come at you on the beat — strum each one on your guitar the instant it lands. Your mic listens and checks both the chord and the timing.',
@@ -1095,7 +1095,7 @@ export const STRINGS = {
     'scalePractice.blueNote': 'תו כחול',
     'scalePractice.hint.position': 'עלו ואז רדו דרך צורת התיבה הזו, צליל אחד לכל פעימה — הדרך הסטנדרטית ללמוד פוזיציית סולם.',
     'scalePractice.hint.linear': 'נגנו את רצף הצלילים של הסולם לאורך הצוואר על מיתר אחד (או שניים) — בונה שליטה אמיתית בתווים על הצוואר, לא רק צורה שמוזכרת בעל פה.',
-    'scalePractice.hint.transition': 'מחבר פוזיציה אחת ישירות לבאה אחריה על אורך מיתר אחד — הדרך הסטנדרטית לשמוע שהפוזיציות חופפות ולא תיבות נפרדות.',
+    'scalePractice.hint.transition': 'פרזה קצרה שמחברת בין שתי הפוזיציות דרך טווח הסריגים המשותף להן, תוך מעבר בין מיתרים בהתאם למיקום הצלילים — כך מורים מדגימים בדרך כלל שהפוזיציות חופפות ולא תיבות נפרדות.',
 
     'guitarChordRhythm.title': 'החלפת אקורדים',
     'guitarChordRhythm.subtitle': 'אקורדים מגיעים בקצב — נגנו כל אחד על הגיטרה ברגע שהוא נוחת. המיקרופון מקשיב ובודק גם את האקורד וגם את התזמון.',

@@ -14,16 +14,19 @@
 //                   classic "single-string scale" / "two-string pattern"
 //                   exercise) — removes the box-shape crutch and builds
 //                   real fretboard-note fluency.
-//   'transition' — connects position N straight into position N+1 by
-//                   playing the scale's own continuous pitch sequence along
-//                   one string across the boundary between them — the
-//                   standard way teachers demonstrate that positions
-//                   overlap rather than being separate, disconnected
-//                   shapes (same linear-run mechanics as 'linear', just
-//                   scoped to the two positions' own fret span).
+//   'transition' — connects position N straight into position N+1 through
+//                   a short DIAGONAL run across whichever 2-3 adjacent
+//                   strings the two shapes' own overlap zone touches — the
+//                   way certified teachers actually demonstrate positions
+//                   overlapping (e.g. Guitar Alliance/JustinGuitar-style
+//                   "connecting the pentatonic boxes" lessons): a brief
+//                   phrase through the shared fret span, crossing strings
+//                   as the scale tones naturally fall, not a slide up one
+//                   string the full distance (that's a different, separate
+//                   technique from 'linear', not what bridges two boxes).
 import { computeScaleNotes, fivePositionWindows } from './scaleShapes';
 import { SCALE_FAMILIES } from './scalesCurriculum';
-import { MAX_FRET } from './notes';
+import { STANDARD_TUNING, MAX_FRET } from './notes';
 
 // The b5 "blue note" — a chromatic passing tone commonly added to the
 // minor pentatonic scale (turning it into a 6-note "blues-flavored"
@@ -68,17 +71,34 @@ function tagBlueNote(notes, scaleKey, includeBlueNote) {
   return notes.map((n) => (n.degreeLabel === 'b5' ? { ...n, isBlueNote: true } : n));
 }
 
+// One-finger-per-fret (OFPF) — the standard system for assigning left-hand
+// fingers within a fixed hand position: whichever fret sits lowest in the
+// box gets the index finger, and each fret above it steps to the next
+// finger (middle, ring, pinky) — matches how certified teachers hand out
+// fingerings for a pentatonic/major-scale box. Only meaningful within a
+// single fixed hand position ('position' and 'transition' modes below) —
+// 'linear' mode deliberately shifts hand position as it runs the neck, so
+// a single fixed OFPF numbering wouldn't describe it and is left out.
+function withFingering(notes) {
+  const fretted = notes.filter((n) => n.fret > 0).map((n) => n.fret);
+  if (fretted.length === 0) return notes;
+  const baseFret = Math.min(...fretted);
+  return notes.map((n) => (n.fret === 0 ? n : { ...n, finger: Math.min(4, n.fret - baseFret + 1) }));
+}
+
 // --- Mode: 'position' — one box shape, standard CAGED-style practice -----
 export function buildPositionExercise(scaleKey, rootPitchClass, positionIndex, { includeBlueNote = false } = {}) {
   const windows = fivePositionWindows(rootPitchClass);
   const window = windows[positionIndex] ?? windows[0];
   const { intervals, degreeLabels } = scaleIntervals(scaleKey, includeBlueNote);
-  const notes = tagBlueNote(
-    computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: window.fretStart, fretEnd: window.fretEnd }).sort(
-      (a, b) => a.string - b.string || a.fret - b.fret
-    ),
-    scaleKey,
-    includeBlueNote
+  const notes = withFingering(
+    tagBlueNote(
+      computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: window.fretStart, fretEnd: window.fretEnd }).sort(
+        (a, b) => a.string - b.string || a.fret - b.fret
+      ),
+      scaleKey,
+      includeBlueNote
+    )
   );
   // shapeNotes: the plain (non-repeated) note set, for a static "study this
   // shape before you start" fretboard preview — see ScalePracticePanel.jsx.
@@ -105,18 +125,54 @@ export function buildLinearExercise(
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes };
 }
 
+// Walks a set of fretboard notes strictly ascending in pitch, crossing
+// strings as needed rather than sliding up just one. At each pitch step
+// (several string/fret spots can share the same pitch), it picks whichever
+// candidate is closest to the previous note — fewest strings crossed first,
+// then fewest frets — the same "least hand motion" principle a real player
+// uses when choosing which adjacent string to move to mid-phrase.
+function diagonalPath(rawNotes) {
+  const byPitch = new Map();
+  rawNotes.forEach((n) => {
+    const pitch = STANDARD_TUNING[n.string].baseMidi + n.fret;
+    if (!byPitch.has(pitch)) byPitch.set(pitch, []);
+    byPitch.get(pitch).push(n);
+  });
+  const pitches = [...byPitch.keys()].sort((a, b) => a - b);
+
+  const path = [];
+  let prev = null;
+  pitches.forEach((pitch) => {
+    const candidates = byPitch.get(pitch);
+    const best = prev
+      ? candidates.reduce((a, b) => {
+          const costA = Math.abs(a.string - prev.string) * 100 + Math.abs(a.fret - prev.fret);
+          const costB = Math.abs(b.string - prev.string) * 100 + Math.abs(b.fret - prev.fret);
+          return costB < costA ? b : a;
+        })
+      : candidates[0];
+    path.push(best);
+    prev = best;
+  });
+  return path;
+}
+
 // --- Mode: 'transition' — bridge position N straight into N+1 ------------
-export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex, { stringIndex = 2, includeBlueNote = false } = {}) {
+export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex, { includeBlueNote = false } = {}) {
   const windows = fivePositionWindows(rootPitchClass);
   const from = windows[positionIndex] ?? windows[0];
   const to = windows[positionIndex + 1] ?? from;
   const { intervals, degreeLabels } = scaleIntervals(scaleKey, includeBlueNote);
-  const notes = tagBlueNote(
-    computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: from.fretStart, fretEnd: to.fretEnd })
-      .filter((n) => n.string === stringIndex)
-      .sort((a, b) => a.fret - b.fret),
-    scaleKey,
-    includeBlueNote
-  );
+
+  // Positions are built with a deliberate overlap (see fivePositionWindows)
+  // — the bridge is exactly that shared span, not the two positions' full
+  // combined range, so the exercise stays a short connecting phrase rather
+  // than replaying both boxes end to end.
+  const bridgeStart = Math.max(0, Math.min(from.fretEnd, to.fretStart));
+  const bridgeEnd = Math.min(MAX_FRET, Math.max(from.fretEnd, to.fretStart));
+
+  const rawNotes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: bridgeStart, fretEnd: bridgeEnd });
+  const notes = withFingering(tagBlueNote(diagonalPath(rawNotes), scaleKey, includeBlueNote));
+
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes, from, to };
 }

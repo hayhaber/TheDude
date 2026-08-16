@@ -986,7 +986,11 @@ export function Fretboard({
                 className={n.isBlueNote ? 'scale-dot-blue' : n.isRoot ? 'scale-dot-root' : 'scale-dot'}
               />
               <text x={cx} y={cy + 4} className="scale-dot-label" textAnchor="middle">
-                {labelMode === 'degree' ? n.degreeLabel : n.noteName}
+                {labelMode === 'degree'
+                  ? n.degreeLabel
+                  : labelMode === 'finger' && n.finger != null
+                  ? n.finger
+                  : n.noteName}
               </text>
             </g>
           );

@@ -386,6 +386,11 @@ function App() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [mode, setMode] = useState('chord');
   const [labelMode, setLabelMode] = useState('note');
+  // Own dedicated label-mode state (not the Compose view's `labelMode`
+  // above) — same reasoning as usePracticeDrill's own noteLabelMode:
+  // switching how Scale Practice's neck labels notes shouldn't also change
+  // what Compose is showing, and vice versa.
+  const [scalePracticeLabelMode, setScalePracticeLabelMode] = useState('note');
   const [autoPlay, setAutoPlay] = useState(false);
   // One position index per progression slot, so each chord remembers its
   // own shape instead of resetting to Open whenever you switch away from it.
@@ -1060,7 +1065,7 @@ function App() {
           ? {
               position: null,
               drillNotes: scalePracticeDrillNotes,
-              labelMode: 'note',
+              labelMode: scalePracticeLabelMode,
               quizFeedbackCell: scalePractice.feedbackCell,
             }
           : // Not playing (including "not started yet") — show the whole
@@ -1068,7 +1073,7 @@ function App() {
             // prop/visual language Studies -> Scales already uses), so the
             // player can see/study it before pressing Start rather than
             // only finding out one note at a time mid-session.
-            { position: null, scaleNotes: scalePractice.exercise?.shapeNotes ?? [], labelMode: 'note' }
+            { position: null, scaleNotes: scalePractice.exercise?.shapeNotes ?? [], labelMode: scalePracticeLabelMode }
         : practiceTab === 'bending'
         ? {
             position: null,
@@ -1513,6 +1518,8 @@ function App() {
           chordRhythm={chordRhythm}
           guitarChordRhythm={guitarChordRhythm}
           scalePractice={scalePractice}
+          scalePracticeLabelMode={scalePracticeLabelMode}
+          onScalePracticeLabelModeChange={setScalePracticeLabelMode}
           metronome={metronome}
           activeTab={practiceTab}
           onTabChange={setPracticeTab}

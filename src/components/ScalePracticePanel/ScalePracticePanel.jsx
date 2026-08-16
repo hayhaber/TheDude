@@ -80,7 +80,7 @@ export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange
           <span className="scale-practice-field-label" aria-hidden="true">
             {t('scalePractice.root')}
           </span>
-          <select value={root} onChange={(e) => setRoot(Number(e.target.value))} disabled={isPlaying}>
+          <select className="scale-practice-select-narrow" value={root} onChange={(e) => setRoot(Number(e.target.value))} disabled={isPlaying}>
             {ROOT_NAMES.map((name, i) => (
               <option key={name} value={i}>
                 {name}

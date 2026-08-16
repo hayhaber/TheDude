@@ -189,6 +189,18 @@
   box-shadow: 0 0 0 4px var(--accent-bg);
 }
 
+/* Root only ever holds a 1-2 character note name — the shared select's
+   120px min-width (sized for "Start string" options like "High E") left
+   it as a wide bar with the letter stranded on the left instead of a
+   compact field with the note centered in it. */
+.scale-practice-field select.scale-practice-select-narrow {
+  min-width: 64px;
+  width: 64px;
+  text-align: center;
+  text-align-last: center;
+  padding: 0 22px 0 8px;
+}
+
 .scale-practice-score {
   margin: 0;
   font-size: 14px;

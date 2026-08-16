@@ -66,7 +66,11 @@ export function buildPositionExercise(scaleKey, rootPitchClass, positionIndex, {
   const notes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: window.fretStart, fretEnd: window.fretEnd }).sort(
     (a, b) => a.string - b.string || a.fret - b.fret
   );
-  return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), window };
+  // shapeNotes: the plain (non-repeated) note set, for a static "study this
+  // shape before you start" fretboard preview — see ScalePracticePanel.jsx.
+  // `sequence` (up-and-down, judged one note at a time) is what actually
+  // drives the metronome/mic engine.
+  return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes, window };
 }
 
 // --- Mode: 'linear' — single/two-string run the length of the neck -------
@@ -80,7 +84,7 @@ export function buildLinearExercise(
   const notes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: 0, fretEnd: Math.min(MAX_FRET, fretEnd) })
     .filter((n) => strings.includes(n.string))
     .sort((a, b) => a.string - b.string || a.fret - b.fret);
-  return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes) };
+  return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes };
 }
 
 // --- Mode: 'transition' — bridge position N straight into N+1 ------------
@@ -92,5 +96,5 @@ export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex,
   const notes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: from.fretStart, fretEnd: to.fretEnd })
     .filter((n) => n.string === stringIndex)
     .sort((a, b) => a.fret - b.fret);
-  return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), from, to };
+  return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes, from, to };
 }

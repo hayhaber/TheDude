@@ -1056,12 +1056,19 @@ function App() {
             quizFeedbackCell: rhythmGame.feedbackCell,
           }
         : practiceTab === 'scalePractice'
-        ? {
-            position: null,
-            drillNotes: scalePracticeDrillNotes,
-            labelMode: 'note',
-            quizFeedbackCell: scalePractice.feedbackCell,
-          }
+        ? scalePractice.isPlaying
+          ? {
+              position: null,
+              drillNotes: scalePracticeDrillNotes,
+              labelMode: 'note',
+              quizFeedbackCell: scalePractice.feedbackCell,
+            }
+          : // Not playing (including "not started yet") — show the whole
+            // shape being practiced as a static overlay (same scaleNotes
+            // prop/visual language Studies -> Scales already uses), so the
+            // player can see/study it before pressing Start rather than
+            // only finding out one note at a time mid-session.
+            { position: null, scaleNotes: scalePractice.exercise?.shapeNotes ?? [], labelMode: 'note' }
         : practiceTab === 'bending'
         ? {
             position: null,

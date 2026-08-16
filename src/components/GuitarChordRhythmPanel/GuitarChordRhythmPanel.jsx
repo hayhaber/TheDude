@@ -1,6 +1,6 @@
 import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels } from '../../music/guitarChordRhythmContent';
+import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels, parseGuitarChordProgressionText } from '../../music/guitarChordRhythmContent';
 import { computeChordPositions } from '../../music/computeChordPositions';
 import { applyCapoToPosition } from '../../music/capo';
 import { Fretboard } from '../Fretboard/Fretboard';
@@ -139,6 +139,23 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
     ? activeChord.voicing
       ? applyCapoToPosition(activeChord.voicing, activeChord.capoFret || 0)
       : computeChordPositions(activeChord.chordText, 'chord').positions[0] ?? null
+    : null;
+
+  // Before pressing Start (or after Stop), preview the FIRST chord of
+  // whatever's actually typed/loaded — 'custom'/'song' content is already
+  // fully known upfront (unlike 'auto', which is only decided once Start
+  // generates it), so there's no reason to make the player wait until
+  // mid-session to see what shape they're about to practice.
+  const previewChord =
+    !isPlaying && source === 'custom'
+      ? parseGuitarChordProgressionText(customText)[0] ?? null
+      : !isPlaying && source === 'song'
+      ? groups[0]?.chords?.[0] ?? parseGuitarChordProgressionText(groups[0]?.text ?? '')[0] ?? null
+      : null;
+  const previewVoicing = previewChord
+    ? previewChord.voicing
+      ? applyCapoToPosition(previewChord.voicing, previewChord.capoFret || 0)
+      : computeChordPositions(previewChord.chordText, 'chord').positions[0] ?? null
     : null;
 
   return (
@@ -347,6 +364,15 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
       {isPlaying && activeChord && activeVoicing && (
         <div className="guitar-chord-rhythm-fretboard">
           <Fretboard position={activeVoicing} chordColor={colorForChord(activeChord.chordText)} capoFret={activeChord.capoFret || 0} />
+        </div>
+      )}
+
+      {previewChord && previewVoicing && (
+        <div className="guitar-chord-rhythm-fretboard">
+          <p className="guitar-chord-rhythm-preview-label" dir="auto">
+            {t('guitarChordRhythm.preview', { chord: previewChord.chordText })}
+          </p>
+          <Fretboard position={previewVoicing} chordColor={colorForChord(previewChord.chordText)} capoFret={previewChord.capoFret || 0} />
         </div>
       )}
 

@@ -143,6 +143,15 @@
   padding: var(--space-2);
 }
 
+.guitar-chord-rhythm-preview-label {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  font-weight: 590;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
 .guitar-chord-rhythm-lane {
   position: relative;
   height: 200px;

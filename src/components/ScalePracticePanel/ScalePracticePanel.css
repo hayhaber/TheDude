@@ -35,6 +35,14 @@
   text-align: center;
 }
 
+/* Scale's own label reads better flush left (per explicit design
+   feedback) — its row wraps to 4 buttons that can grow much wider than
+   the label text itself, where centering left it looking adrift from the
+   "Minor Pentatonic" button it's meant to caption. */
+.scale-practice-field-label.align-start {
+  text-align: left;
+}
+
 .scale-practice-field .mode-toggle,
 .scale-practice-field .play-button,
 .scale-practice-field .scale-practice-stepper,

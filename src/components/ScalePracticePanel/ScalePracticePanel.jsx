@@ -64,7 +64,7 @@ export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange
 
       <div className="scale-practice-controls">
         <div className="scale-practice-field">
-          <span className="scale-practice-field-label" aria-hidden="true">
+          <span className="scale-practice-field-label align-start" aria-hidden="true">
             {t('scalePractice.scale')}
           </span>
           <div className="mode-toggle wrap" role="group" aria-label={t('scalePractice.scale')}>

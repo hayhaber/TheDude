@@ -70,9 +70,18 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
         <button
           type="button"
           className="app-drawer-trigger"
+          // Fixed-positioned and left at the same x/y the open drawer's own
+          // header row sits at (left:20px, 44px wide) — with the drawer
+          // open, this button used to stay visible ON TOP of (higher
+          // z-index than) the drawer's brand icon/logo, visually
+          // overlapping it. The drawer already has its own × close button,
+          // so there's no need for this one to stay interactive/visible
+          // once the drawer is open — just fade it out of the way.
+          style={{ opacity: drawerOpen ? 0 : 1, pointerEvents: drawerOpen ? 'none' : 'auto' }}
           onClick={() => setDrawerOpen((v) => !v)}
           aria-label={drawerOpen ? t('nav.closeMenu') : t('nav.openMenu')}
           aria-expanded={drawerOpen}
+          inert={drawerOpen}
         >
           <span className="app-drawer-trigger-bar" />
           <span className="app-drawer-trigger-bar" />

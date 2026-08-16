@@ -47,7 +47,7 @@
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease;
+  transition: background 0.15s ease, transform 0.12s ease, opacity 0.15s ease;
 }
 
 .app-drawer-trigger:hover {

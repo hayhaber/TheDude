@@ -31,7 +31,7 @@
 .scale-practice-field .mode-toggle,
 .scale-practice-field .play-button,
 .scale-practice-field .scale-practice-stepper,
-.scale-practice-field .scale-practice-checkbox {
+.scale-practice-field .scale-practice-switch {
   text-transform: none;
   letter-spacing: normal;
 }
@@ -85,31 +85,68 @@
   padding: 0 4px;
 }
 
-/* Blue-note toggle — a real checkbox (per explicit design feedback) rather
-   than an on/off segmented control, sized/aligned to sit in the same field
-   row as the selects and stepper beside it. */
-.scale-practice-checkbox {
+/* Blue-note toggle — an iOS-style switch, same visual language as
+   PlaybackControls.css's autoplay-switch (duplicated rather than shared
+   since that CSS is scoped to its own component), sized/aligned to sit in
+   the same field row as the selects and stepper beside it. */
+.scale-practice-switch {
   height: var(--control-height);
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  gap: 10px;
   font-size: 14px;
   font-weight: 590;
   color: var(--text);
   cursor: pointer;
+  user-select: none;
 }
 
-.scale-practice-checkbox input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent);
-  cursor: pointer;
+.scale-practice-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.scale-practice-switch-track {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  background: rgba(120, 120, 128, 0.24);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.scale-practice-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28);
+}
+
+.scale-practice-switch input:checked + .scale-practice-switch-track {
+  background: #34c759;
+}
+
+.scale-practice-switch input:checked + .scale-practice-switch-track .scale-practice-switch-thumb {
+  transform: translateX(18px);
+}
+
+.scale-practice-switch input:focus-visible + .scale-practice-switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.scale-practice-switch input:disabled + .scale-practice-switch-track {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* Same rounded/bordered/shadowed field look as every other properly-styled

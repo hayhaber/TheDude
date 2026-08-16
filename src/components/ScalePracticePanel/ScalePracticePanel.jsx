@@ -137,8 +137,10 @@ export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange
 
         {mode === 'linear' && (
           <>
-            <label className="scale-practice-field">
-              {t('scalePractice.startString')}
+            <div className="scale-practice-field">
+              <span className="scale-practice-field-label" aria-hidden="true">
+                {t('scalePractice.startString')}
+              </span>
               <select value={stringIndex} onChange={(e) => setStringIndex(Number(e.target.value))} disabled={isPlaying}>
                 {STRING_NAMES.slice(0, stringCount === 2 ? 5 : 6).map((key, i) => (
                   <option key={key} value={i}>
@@ -146,7 +148,7 @@ export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange
                   </option>
                 ))}
               </select>
-            </label>
+            </div>
             <div className="scale-practice-field">
               <span className="scale-practice-field-label" aria-hidden="true">
                 {t('scalePractice.strings')}
@@ -175,13 +177,16 @@ export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange
             <span className="scale-practice-field-label" aria-hidden="true">
               &nbsp;
             </span>
-            <label className="scale-practice-checkbox">
+            <label className="scale-practice-switch">
               <input
                 type="checkbox"
                 checked={includeBlueNote}
                 onChange={(e) => setIncludeBlueNote(e.target.checked)}
                 disabled={isPlaying}
               />
+              <span className="scale-practice-switch-track">
+                <span className="scale-practice-switch-thumb" />
+              </span>
               {t('scalePractice.blueNote')}
             </label>
           </div>

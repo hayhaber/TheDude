@@ -59,10 +59,19 @@
 }
 
 .play-button {
+  /* Explicit height (not left to padding + line-height) so this class
+     always matches --control-height exactly wherever it sits next to a
+     select/mode-toggle/switch in the same control row (Scale Practice,
+     Chord Rhythm, Guitar Chord Rhythm, Phrase Builder all reuse this same
+     class) — padding-derived height landed 2px short, which only became
+     visible once every other control in a row was already pinned to the
+     same explicit height. */
+  height: var(--control-height);
+  box-sizing: border-box;
   font-size: 14px;
   font-weight: 590;
   letter-spacing: -0.005em;
-  padding: 9px 20px;
+  padding: 0 20px;
   border-radius: 980px;
   border: none;
   background: var(--accent);

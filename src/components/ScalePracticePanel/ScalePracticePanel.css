@@ -22,10 +22,17 @@
   letter-spacing: 0.02em;
 }
 
+/* Centered (not left-flush) so the label reads as a caption for the whole
+   control beneath it, not just its own leading edge — the label span
+   stretches to the field's own width by default (same flex-column stretch
+   every other field here relies on), so centering it lines it up over
+   whatever's below regardless of that control's shape (single select,
+   multi-button toggle, stepper, switch). */
 .scale-practice-field-label {
   display: block;
   height: 13px;
   line-height: 13px;
+  text-align: center;
 }
 
 .scale-practice-field .mode-toggle,

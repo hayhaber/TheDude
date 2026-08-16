@@ -29,9 +29,87 @@
 }
 
 .scale-practice-field .mode-toggle,
-.scale-practice-field .play-button {
+.scale-practice-field .play-button,
+.scale-practice-field .scale-practice-stepper,
+.scale-practice-field .scale-practice-checkbox {
   text-transform: none;
   letter-spacing: normal;
+}
+
+/* Position stepper — replaces a <select> with explicit prev/next arrows so
+   the user steps through positions one at a time and always sees the
+   current position number, instead of opening a dropdown to pick one. Same
+   rounded/bordered/shadowed field chrome as the app's other selects
+   (ChordInput.css convention) so it reads as the same kind of control. */
+.scale-practice-stepper {
+  height: var(--control-height);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 168px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.scale-practice-stepper-btn {
+  flex: 0 0 auto;
+  width: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.scale-practice-stepper-btn:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.scale-practice-stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.scale-practice-stepper-label {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+/* Blue-note toggle — a real checkbox (per explicit design feedback) rather
+   than an on/off segmented control, sized/aligned to sit in the same field
+   row as the selects and stepper beside it. */
+.scale-practice-checkbox {
+  height: var(--control-height);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.scale-practice-checkbox input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 /* Same rounded/bordered/shadowed field look as every other properly-styled

@@ -979,7 +979,12 @@ export function Fretboard({
                 (e.key === 'Enter' || e.key === ' ') && playNote(STANDARD_TUNING[n.string].baseMidi + n.fret)
               }
             >
-              <circle cx={cx} cy={cy} r={DOT_RADIUS} className={n.isRoot ? 'scale-dot-root' : 'scale-dot'} />
+              <circle
+                cx={cx}
+                cy={cy}
+                r={DOT_RADIUS}
+                className={n.isBlueNote ? 'scale-dot-blue' : n.isRoot ? 'scale-dot-root' : 'scale-dot'}
+              />
               <text x={cx} y={cy + 4} className="scale-dot-label" textAnchor="middle">
                 {labelMode === 'degree' ? n.degreeLabel : n.noteName}
               </text>

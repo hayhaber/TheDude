@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { buildPositionExercise, buildLinearExercise, buildTransitionExercise } from '../../music/scalePracticeContent';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { ChevronIcon } from '../ChevronIcon/ChevronIcon';
 import './ScalePracticePanel.css';
 
 const SCALE_KEYS = ['minorPentatonic', 'majorPentatonic', 'major', 'naturalMinor'];
@@ -27,6 +28,16 @@ export function ScalePracticePanel({ scalePractice, metronome }) {
 
   const { exercise, stepIndex, isPlaying, ended, play, restart, stop, score, combo, maxCombo, accuracyPct, micIsListening, micError } =
     scalePractice;
+
+  // 'transition' only has 4 valid starting positions (each bridges N into
+  // N+1, so there's no position 5 to bridge from) — 'position' has all 5.
+  const maxPositionIndex = mode === 'transition' ? 3 : 4;
+
+  // Switching into 'transition' while sitting on position 5 would otherwise
+  // point at a non-existent pair — pull it back onto the last valid one.
+  useEffect(() => {
+    if (positionIndex > maxPositionIndex) setPositionIndex(maxPositionIndex);
+  }, [maxPositionIndex, positionIndex]);
 
   useEffect(() => {
     if (isPlaying) return;
@@ -64,8 +75,10 @@ export function ScalePracticePanel({ scalePractice, metronome }) {
           </div>
         </div>
 
-        <label className="scale-practice-field">
-          {t('scalePractice.root')}
+        <div className="scale-practice-field">
+          <span className="scale-practice-field-label" aria-hidden="true">
+            {t('scalePractice.root')}
+          </span>
           <select value={root} onChange={(e) => setRoot(Number(e.target.value))} disabled={isPlaying}>
             {ROOT_NAMES.map((name, i) => (
               <option key={name} value={i}>
@@ -73,7 +86,7 @@ export function ScalePracticePanel({ scalePractice, metronome }) {
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
         <div className="scale-practice-field">
           <span className="scale-practice-field-label" aria-hidden="true">
@@ -89,16 +102,36 @@ export function ScalePracticePanel({ scalePractice, metronome }) {
         </div>
 
         {(mode === 'position' || mode === 'transition') && (
-          <label className="scale-practice-field">
-            {mode === 'position' ? t('scalePractice.position') : t('scalePractice.transitionPosition')}
-            <select value={positionIndex} onChange={(e) => setPositionIndex(Number(e.target.value))} disabled={isPlaying}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <option key={i} value={i} disabled={mode === 'transition' && i === 4}>
-                  {mode === 'transition' ? t('scalePractice.positionPairLabel', { n: i + 1, next: i + 2 }) : t('scalePractice.positionLabel', { n: i + 1 })}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="scale-practice-field">
+            <span className="scale-practice-field-label" aria-hidden="true">
+              {mode === 'position' ? t('scalePractice.position') : t('scalePractice.transitionPosition')}
+            </span>
+            <div className="scale-practice-stepper">
+              <button
+                type="button"
+                className="scale-practice-stepper-btn"
+                onClick={() => setPositionIndex((i) => Math.max(0, i - 1))}
+                disabled={isPlaying || positionIndex === 0}
+                aria-label={t('scalePractice.positionPrev')}
+              >
+                <ChevronIcon direction="left" size={15} />
+              </button>
+              <span className="scale-practice-stepper-label" dir="auto">
+                {mode === 'transition'
+                  ? t('scalePractice.positionPairLabel', { n: positionIndex + 1, next: positionIndex + 2 })
+                  : t('scalePractice.positionLabel', { n: positionIndex + 1 })}
+              </span>
+              <button
+                type="button"
+                className="scale-practice-stepper-btn"
+                onClick={() => setPositionIndex((i) => Math.min(maxPositionIndex, i + 1))}
+                disabled={isPlaying || positionIndex === maxPositionIndex}
+                aria-label={t('scalePractice.positionNext')}
+              >
+                <ChevronIcon direction="right" size={15} />
+              </button>
+            </div>
+          </div>
         )}
 
         {mode === 'linear' && (
@@ -132,16 +165,17 @@ export function ScalePracticePanel({ scalePractice, metronome }) {
         {scaleKey === 'minorPentatonic' && (
           <div className="scale-practice-field">
             <span className="scale-practice-field-label" aria-hidden="true">
-              {t('scalePractice.blueNote')}
+              &nbsp;
             </span>
-            <div className="mode-toggle" role="group" aria-label={t('scalePractice.blueNote')}>
-              <button type="button" className={!includeBlueNote ? 'active' : ''} onClick={() => setIncludeBlueNote(false)} disabled={isPlaying}>
-                {t('scalePractice.blueNote.off')}
-              </button>
-              <button type="button" className={includeBlueNote ? 'active' : ''} onClick={() => setIncludeBlueNote(true)} disabled={isPlaying}>
-                {t('scalePractice.blueNote.on')}
-              </button>
-            </div>
+            <label className="scale-practice-checkbox">
+              <input
+                type="checkbox"
+                checked={includeBlueNote}
+                onChange={(e) => setIncludeBlueNote(e.target.checked)}
+                disabled={isPlaying}
+              />
+              {t('scalePractice.blueNote')}
+            </label>
           </div>
         )}
 

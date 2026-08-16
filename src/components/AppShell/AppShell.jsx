@@ -3,6 +3,7 @@ import { SECTIONS } from './sections';
 import { InstrumentToggle } from '../InstrumentToggle/InstrumentToggle';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
+import { AppLogo } from '../AppLogo/AppLogo';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
@@ -87,7 +88,7 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
           <div className="app-drawer-header">
             <div className="app-sidebar-brand">
               <span className="app-sidebar-brand-icon" aria-hidden="true">
-                🎸
+                <AppLogo size={24} />
               </span>
               <span className="app-sidebar-brand-text">{t('app.name')}</span>
             </div>

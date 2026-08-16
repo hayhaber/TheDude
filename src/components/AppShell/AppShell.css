@@ -136,6 +136,9 @@
 .app-sidebar-brand-icon {
   font-size: 22px;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app-sidebar-brand-text {

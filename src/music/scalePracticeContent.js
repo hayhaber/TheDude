@@ -58,13 +58,27 @@ function upAndDown(notesAscending) {
   return [...notesAscending, ...descending];
 }
 
+// The b5 injected by scaleIntervals() is tagged with the literal degree
+// label 'b5' — safe to match on here since scalePracticeContent.js is the
+// only place that ever injects it (SCALE_FAMILIES entries used elsewhere,
+// e.g. the real Blues/Locrian scales, keep their own legitimate 'b5' labels
+// untouched — this tag only ever reaches Fretboard notes built by this file).
+function tagBlueNote(notes, scaleKey, includeBlueNote) {
+  if (scaleKey !== 'minorPentatonic' || !includeBlueNote) return notes;
+  return notes.map((n) => (n.degreeLabel === 'b5' ? { ...n, isBlueNote: true } : n));
+}
+
 // --- Mode: 'position' — one box shape, standard CAGED-style practice -----
 export function buildPositionExercise(scaleKey, rootPitchClass, positionIndex, { includeBlueNote = false } = {}) {
   const windows = fivePositionWindows(rootPitchClass);
   const window = windows[positionIndex] ?? windows[0];
   const { intervals, degreeLabels } = scaleIntervals(scaleKey, includeBlueNote);
-  const notes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: window.fretStart, fretEnd: window.fretEnd }).sort(
-    (a, b) => a.string - b.string || a.fret - b.fret
+  const notes = tagBlueNote(
+    computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: window.fretStart, fretEnd: window.fretEnd }).sort(
+      (a, b) => a.string - b.string || a.fret - b.fret
+    ),
+    scaleKey,
+    includeBlueNote
   );
   // shapeNotes: the plain (non-repeated) note set, for a static "study this
   // shape before you start" fretboard preview — see ScalePracticePanel.jsx.
@@ -81,9 +95,13 @@ export function buildLinearExercise(
 ) {
   const { intervals, degreeLabels } = scaleIntervals(scaleKey, includeBlueNote);
   const strings = stringCount === 2 ? [stringIndex, stringIndex + 1] : [stringIndex];
-  const notes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: 0, fretEnd: Math.min(MAX_FRET, fretEnd) })
-    .filter((n) => strings.includes(n.string))
-    .sort((a, b) => a.string - b.string || a.fret - b.fret);
+  const notes = tagBlueNote(
+    computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: 0, fretEnd: Math.min(MAX_FRET, fretEnd) })
+      .filter((n) => strings.includes(n.string))
+      .sort((a, b) => a.string - b.string || a.fret - b.fret),
+    scaleKey,
+    includeBlueNote
+  );
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes };
 }
 
@@ -93,8 +111,12 @@ export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex,
   const from = windows[positionIndex] ?? windows[0];
   const to = windows[positionIndex + 1] ?? from;
   const { intervals, degreeLabels } = scaleIntervals(scaleKey, includeBlueNote);
-  const notes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: from.fretStart, fretEnd: to.fretEnd })
-    .filter((n) => n.string === stringIndex)
-    .sort((a, b) => a.fret - b.fret);
+  const notes = tagBlueNote(
+    computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: from.fretStart, fretEnd: to.fretEnd })
+      .filter((n) => n.string === stringIndex)
+      .sort((a, b) => a.fret - b.fret),
+    scaleKey,
+    includeBlueNote
+  );
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes, from, to };
 }

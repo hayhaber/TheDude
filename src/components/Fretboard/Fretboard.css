@@ -442,6 +442,16 @@
   stroke-width: 1;
 }
 
+/* The pentatonic "blue note" (b5) — Scale Practice's own injected passing
+   tone (see scalePracticeContent.js's tagBlueNote) — gets its own distinct
+   color on the neck so it visibly stands apart from the scale's regular
+   degrees while studying the shape, not just in its label. */
+.scale-dot-blue {
+  fill: #0a84ff;
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+}
+
 .scale-dot-label {
   font-size: 11px;
   fill: #fff;

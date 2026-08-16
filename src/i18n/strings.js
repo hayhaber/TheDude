@@ -8,7 +8,7 @@
 // LanguageContext.jsx.
 export const STRINGS = {
   en: {
-    'app.name': 'Guitar Solo Composer',
+    'app.name': 'DudeStar',
 
     'instrument.label': 'Instrument',
     'instrument.guitar': 'Guitar',
@@ -214,6 +214,8 @@ export const STRINGS = {
     'scalePractice.positionLabel': 'Position {n}',
     'scalePractice.transitionPosition': 'Positions',
     'scalePractice.positionPairLabel': 'Position {n} → {next}',
+    'scalePractice.positionPrev': 'Previous position',
+    'scalePractice.positionNext': 'Next position',
     'scalePractice.startString': 'Start string',
     'scalePractice.string.lowE': 'Low E',
     'scalePractice.string.a': 'A',
@@ -225,8 +227,6 @@ export const STRINGS = {
     'scalePractice.strings.one': 'One string',
     'scalePractice.strings.two': 'Two strings',
     'scalePractice.blueNote': 'Blue note',
-    'scalePractice.blueNote.off': 'Off',
-    'scalePractice.blueNote.on': 'On',
     'scalePractice.hint.position':
       'Ascend then descend through this box shape, one note per beat — the standard way to learn a scale position.',
     'scalePractice.hint.linear':
@@ -874,7 +874,7 @@ export const STRINGS = {
     'fretboard.pageUp': 'Show frets further up the neck',
   },
   he: {
-    'app.name': 'מלחין הסולואים לגיטרה',
+    'app.name': 'DudeStar',
 
     'instrument.label': 'כלי נגינה',
     'instrument.guitar': 'גיטרה',
@@ -1080,6 +1080,8 @@ export const STRINGS = {
     'scalePractice.positionLabel': 'פוזיציה {n}',
     'scalePractice.transitionPosition': 'פוזיציות',
     'scalePractice.positionPairLabel': 'פוזיציה {n} ← {next}',
+    'scalePractice.positionPrev': 'פוזיציה קודמת',
+    'scalePractice.positionNext': 'פוזיציה הבאה',
     'scalePractice.startString': 'מיתר התחלה',
     'scalePractice.string.lowE': 'מי נמוך',
     'scalePractice.string.a': 'לה',
@@ -1091,8 +1093,6 @@ export const STRINGS = {
     'scalePractice.strings.one': 'מיתר אחד',
     'scalePractice.strings.two': 'שני מיתרים',
     'scalePractice.blueNote': 'תו כחול',
-    'scalePractice.blueNote.off': 'כבוי',
-    'scalePractice.blueNote.on': 'פעיל',
     'scalePractice.hint.position': 'עלו ואז רדו דרך צורת התיבה הזו, צליל אחד לכל פעימה — הדרך הסטנדרטית ללמוד פוזיציית סולם.',
     'scalePractice.hint.linear': 'נגנו את רצף הצלילים של הסולם לאורך הצוואר על מיתר אחד (או שניים) — בונה שליטה אמיתית בתווים על הצוואר, לא רק צורה שמוזכרת בעל פה.',
     'scalePractice.hint.transition': 'מחבר פוזיציה אחת ישירות לבאה אחריה על אורך מיתר אחד — הדרך הסטנדרטית לשמוע שהפוזיציות חופפות ולא תיבות נפרדות.',

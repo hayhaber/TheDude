@@ -44,8 +44,8 @@ export default defineConfig({
         skipWaiting: true,
       },
       manifest: {
-        name: 'Chord Progression',
-        short_name: 'Chords',
+        name: 'DudeStar',
+        short_name: 'DudeStar',
         description: 'Guitar & piano chord progression, ear training, and practice tools.',
         theme_color: '#863bff',
         background_color: '#ede6ff',

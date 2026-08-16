@@ -17,6 +17,7 @@ export const FEATURE_CAPABILITIES = {
   bendingTraining: ['guitar'], // string-bending technique only makes sense on a fretted string instrument
   soloOpener: ['guitar'], // improvised-solo opening-phrase drill — string/fret language, guitar-specific
   guitarChordRhythm: ['guitar'], // metronome-timed chord-changing practice, judged via mic chroma chord detection — guitar-only
+  scalePractice: ['guitar'], // metronome-timed scale-run practice (box position / single-string linear run / position-to-position transition), judged via mic pitch detection — real-fretboard-position pedagogy, guitar-only
   pianoPractice: ['piano'], // leveled piano-only exercises (pentascales, inversion drills, ...)
   fallingNotes: ['piano'], // Synthesia-style falling-notes practice, keyboard-only by nature
   pianoCurriculum: ['piano'], // structured beginner-to-advanced piano course (keyboard geography, staff reading, technique) — piano-native, not a reworded guitar course

@@ -138,6 +138,7 @@ function App() {
       fallingNotes: 'fallingNotes',
       chordRhythm: 'chordRhythm',
       guitarChordRhythm: 'guitarChordRhythm',
+      scalePractice: 'scalePractice',
     };
     const feature = practiceFeatureByTab[practiceTab];
     if (feature && !supportsInstrument(feature, instrument)) {
@@ -177,6 +178,12 @@ function App() {
   const drill = usePracticeDrill(metronome, practiceHistory.logSession);
   const earTraining = useEarTraining();
   const rhythmGame = useRhythmGame(metronome);
+  // Scale Practice reuses the EXACT same generic engine as Rhythm Practice
+  // above (a second independent instance — same reasoning as this app's
+  // other same-hook-twice cases: fully self-contained, no state to share)
+  // fed a different content generator (music/scalePracticeContent.js)
+  // instead of the Exercise Drawer's chord/lick catalog.
+  const scalePractice = useRhythmGame(metronome);
   const bending = useBendingTraining();
   const soloOpener = useSoloOpener(metronome);
   const pianoPractice = usePianoPractice();
@@ -319,6 +326,22 @@ function App() {
   useEffect(() => {
     if (guitarChordRhythm.isPlaying && practiceTab !== 'guitarChordRhythm') {
       guitarChordRhythm.stop();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practiceTab]);
+
+  // Same mic-session safety for Scale Practice as Rhythm Practice above
+  // (its own independent useRhythmGame instance, its own mic stream).
+  useEffect(() => {
+    if (scalePractice.isPlaying && activeSection !== 'practice') {
+      scalePractice.stop();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (scalePractice.isPlaying && practiceTab !== 'scalePractice') {
+      scalePractice.stop();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceTab]);
@@ -945,6 +968,21 @@ function App() {
     return notes;
   }, [rhythmGame.exercise, rhythmGame.stepIndex]);
 
+  // Scale Practice's own current/next/past highlighting — identical shape,
+  // driven by its own independent useRhythmGame instance's stepIndex.
+  const scalePracticeDrillNotes = useMemo(() => {
+    if (!scalePractice.exercise || scalePractice.stepIndex < 0) return [];
+    const { sequence } = scalePractice.exercise;
+    const notes = [];
+    const current = sequence[scalePractice.stepIndex];
+    if (current) notes.push({ ...current, order: scalePractice.stepIndex + 1, tier: 'current' });
+    const nextIndex = scalePractice.stepIndex + 1;
+    if (nextIndex < sequence.length) notes.push({ ...sequence[nextIndex], order: nextIndex + 1, tier: 'next' });
+    const prevIndex = scalePractice.stepIndex - 1;
+    if (prevIndex >= 0) notes.push({ ...sequence[prevIndex], order: prevIndex + 1, tier: 'past' });
+    return notes;
+  }, [scalePractice.exercise, scalePractice.stepIndex]);
+
   // C major reference positions for the Studies -> CAGED course — cheap to
   // recompute per render, same as every other derived value here.
   const cagedPositions = computeChordPositions(CAGED_REFERENCE_CHORD, 'chord').positions;
@@ -1016,6 +1054,13 @@ function App() {
             drillNotes: rhythmGameDrillNotes,
             labelMode: 'note',
             quizFeedbackCell: rhythmGame.feedbackCell,
+          }
+        : practiceTab === 'scalePractice'
+        ? {
+            position: null,
+            drillNotes: scalePracticeDrillNotes,
+            labelMode: 'note',
+            quizFeedbackCell: scalePractice.feedbackCell,
           }
         : practiceTab === 'bending'
         ? {
@@ -1460,6 +1505,7 @@ function App() {
           fallingNotes={fallingNotes}
           chordRhythm={chordRhythm}
           guitarChordRhythm={guitarChordRhythm}
+          scalePractice={scalePractice}
           metronome={metronome}
           activeTab={practiceTab}
           onTabChange={setPracticeTab}

@@ -1,0 +1,87 @@
+.scale-practice-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.scale-practice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.scale-practice-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.scale-practice-field-label {
+  display: block;
+  height: 13px;
+  line-height: 13px;
+}
+
+.scale-practice-field .mode-toggle,
+.scale-practice-field .play-button {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Same rounded/bordered/shadowed field look as every other properly-styled
+   input in the app (ChordInput.css) — a plain <select> needs this explicit
+   treatment too, not just the global height rule (index.css only sets
+   height on <select>, not border/radius/background). */
+.scale-practice-field select {
+  height: var(--control-height);
+  box-sizing: border-box;
+  min-width: 120px;
+  font-size: 14px;
+  font-weight: 590;
+  text-transform: none;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+}
+
+.scale-practice-field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-bg);
+}
+
+.scale-practice-score {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.scale-practice-mic-status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.scale-practice-complete {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.scale-practice-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}

@@ -177,15 +177,29 @@ export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex,
   const to = windows[positionIndex + 1] ?? from;
   const { intervals, degreeLabels } = scaleIntervals(scaleKey, includeBlueNote);
 
-  // Positions are built with a deliberate overlap (see fivePositionWindows)
-  // — the bridge is exactly that shared span, not the two positions' full
-  // combined range, so the exercise stays a short connecting phrase rather
-  // than replaying both boxes end to end.
-  const bridgeStart = Math.max(0, Math.min(from.fretEnd, to.fretStart));
-  const bridgeEnd = Math.min(MAX_FRET, Math.max(from.fretEnd, to.fretStart));
+  // Walk the scale's own continuous pitch sequence across BOTH positions'
+  // combined fret range, not just the narrow strict overlap between their
+  // windows — a pentatonic scale is sparse enough (5 of 12 chromatic
+  // tones) that the strict-overlap window can land on a stretch with real
+  // notes on only one or two frets total, producing two disconnected
+  // fret-columns with a silent gap between them instead of an actual
+  // walking phrase. Building the full diagonal first and then keeping a
+  // short phrase AROUND the boundary (not the whole thing) gets a real
+  // connecting run regardless of how sparse any one narrow slice happens
+  // to be.
+  const rawNotes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: from.fretStart, fretEnd: to.fretEnd });
+  const fullPath = diagonalPath(rawNotes);
 
-  const rawNotes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: bridgeStart, fretEnd: bridgeEnd });
-  const notes = withFingering(tagTransitionSide(tagBlueNote(diagonalPath(rawNotes), scaleKey, includeBlueNote), from, to));
+  const midFret = (from.rootFret + to.rootFret) / 2;
+  const boundaryIndex = fullPath.findIndex((n) => n.fret >= midFret);
+  const splitAt = boundaryIndex === -1 ? fullPath.length : boundaryIndex;
+
+  // A handful of notes leaving position N, a handful arriving at N+1 —
+  // stays a short connecting phrase rather than replaying both full boxes.
+  const PHRASE_HALF = 4;
+  const phrase = fullPath.slice(Math.max(0, splitAt - PHRASE_HALF), Math.min(fullPath.length, splitAt + PHRASE_HALF));
+
+  const notes = withFingering(tagTransitionSide(tagBlueNote(phrase, scaleKey, includeBlueNote), from, to));
 
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes, from, to };
 }

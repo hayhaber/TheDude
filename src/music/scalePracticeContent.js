@@ -157,6 +157,19 @@ function diagonalPath(rawNotes) {
   return path;
 }
 
+// Splits the bridge's notes into "still position N" vs "already position
+// N+1" by comparing each note's fret to the midpoint between the two
+// positions' own root frets — simpler and always well-defined, unlike
+// checking exact window-membership (the bridge sits IN the overlap of
+// both windows by construction, so most notes would test true for both
+// and the split would degenerate to "everything is shared"). A learner
+// reads this the same way regardless: "closer to where I came from" vs
+// "closer to where I'm headed."
+function tagTransitionSide(notes, from, to) {
+  const midFret = (from.rootFret + to.rootFret) / 2;
+  return notes.map((n) => ({ ...n, transitionSide: n.fret < midFret ? 'from' : 'to' }));
+}
+
 // --- Mode: 'transition' — bridge position N straight into N+1 ------------
 export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex, { includeBlueNote = false } = {}) {
   const windows = fivePositionWindows(rootPitchClass);
@@ -172,7 +185,7 @@ export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex,
   const bridgeEnd = Math.min(MAX_FRET, Math.max(from.fretEnd, to.fretStart));
 
   const rawNotes = computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: bridgeStart, fretEnd: bridgeEnd });
-  const notes = withFingering(tagBlueNote(diagonalPath(rawNotes), scaleKey, includeBlueNote));
+  const notes = withFingering(tagTransitionSide(tagBlueNote(diagonalPath(rawNotes), scaleKey, includeBlueNote), from, to));
 
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes, from, to };
 }

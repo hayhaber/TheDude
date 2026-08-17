@@ -459,6 +459,21 @@
   pointer-events: none;
 }
 
+/* Scale Practice's Transition mode — a colored ring layered on top of
+   whichever fill (root/blue-note/regular) a note already has, marking
+   which of the two connected positions it belongs to. Deliberately NOT
+   orange/blue (root/blue-note's own colors) so the two visual languages
+   never compete — purple/green are otherwise unused on this overlay. */
+.scale-dot-side-from {
+  stroke: #a855f7;
+  stroke-width: 2.5;
+}
+
+.scale-dot-side-to {
+  stroke: #34c759;
+  stroke-width: 2.5;
+}
+
 .quiz-hit-target-dot {
   fill: none;
   stroke: var(--text-secondary);

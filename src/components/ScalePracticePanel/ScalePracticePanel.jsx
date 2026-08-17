@@ -221,6 +221,19 @@ export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange
 
       {ended && <p className="scale-practice-complete">{t('vocal.complete')}</p>}
 
+      {mode === 'transition' && (
+        <div className="scale-practice-transition-legend" dir="auto">
+          <span className="scale-practice-legend-item">
+            <span className="scale-practice-legend-swatch scale-practice-legend-swatch-from" aria-hidden="true" />
+            {t('scalePractice.positionLabel', { n: positionIndex + 1 })}
+          </span>
+          <span className="scale-practice-legend-item">
+            <span className="scale-practice-legend-swatch scale-practice-legend-swatch-to" aria-hidden="true" />
+            {t('scalePractice.positionLabel', { n: positionIndex + 2 })}
+          </span>
+        </div>
+      )}
+
       <p className="scale-practice-hint" dir="auto">
         {t(`scalePractice.hint.${mode}`)}
       </p>

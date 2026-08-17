@@ -983,7 +983,16 @@ export function Fretboard({
                 cx={cx}
                 cy={cy}
                 r={DOT_RADIUS}
-                className={n.isBlueNote ? 'scale-dot-blue' : n.isRoot ? 'scale-dot-root' : 'scale-dot'}
+                className={
+                  (n.isBlueNote ? 'scale-dot-blue' : n.isRoot ? 'scale-dot-root' : 'scale-dot') +
+                  // Scale Practice's Transition mode only — an extra colored
+                  // ring (independent of the fill color above, which stays
+                  // reserved for root/blue-note) marking whether this note
+                  // is still "position N" or already "position N+1", so the
+                  // two overlapping shapes read as distinguishable instead
+                  // of one undifferentiated blob of dots.
+                  (n.transitionSide === 'from' ? ' scale-dot-side-from' : n.transitionSide === 'to' ? ' scale-dot-side-to' : '')
+                }
               />
               <text x={cx} y={cy + 4} className="scale-dot-label" textAnchor="middle">
                 {labelMode === 'degree'

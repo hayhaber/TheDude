@@ -147,7 +147,12 @@
 .harmony-quiz-notes {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
+  /* Matches .harmony-quiz's own flex `gap` (var(--space-3), 12px) — the
+     grid's 2 rows (12 pitch-class buttons over 6 columns) used to have a
+     tighter 6px row-gap than the space above/below the whole grid,
+     reading as an inconsistent rhythm between the grid's own rows and its
+     neighbors (prompt text, submit button). */
+  gap: var(--space-3);
   max-width: 420px;
 }
 

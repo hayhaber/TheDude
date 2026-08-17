@@ -17,6 +17,14 @@
   margin: 0;
 }
 
+/* Matches .improvise-top-controls' own gap (var(--space-6), 24px — the
+   space between the Emotion/Artist Style fields) instead of the generic
+   sibling rule's --space-5 (20px), the same "match the block's own
+   internal rhythm" fix already applied to Practice's stats bar. */
+.improvise-top-controls + .improvise-tabs {
+  margin-top: var(--space-6);
+}
+
 .improvise-top-controls {
   display: flex;
   flex-wrap: wrap;

@@ -11,7 +11,7 @@ import { usePopoverDismiss } from '../../hooks/usePopoverDismiss';
 import './AppShell.css';
 
 // A section's `icon` is either an emoji string (rendered as-is) or a
-// component reference (a custom SVG like MetronomeIcon) — see sections.js.
+// component reference (a custom SVG like TrainingIcon) — see sections.js.
 function SectionIcon({ icon: Icon }) {
   return typeof Icon === 'string' ? Icon : <Icon />;
 }

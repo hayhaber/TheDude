@@ -1,18 +1,13 @@
-.emotion-selector {
-  position: relative;
-}
-
+/* Normal flow (not absolutely positioned) — .emotion-selector is a flex
+   column (.improvise-field), so this just becomes its 3rd stacked child
+   and pushes whatever's below it (the mode tabs) down, instead of floating
+   over it with nothing reserving the space it visually occupies. */
 .emotion-description {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 6px;
   font-size: 11px;
   font-weight: 400;
   text-transform: none;
   letter-spacing: normal;
   color: var(--text-secondary);
   white-space: normal;
-  width: max-content;
   max-width: 260px;
 }

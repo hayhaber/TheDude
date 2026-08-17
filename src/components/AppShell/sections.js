@@ -1,4 +1,4 @@
-import { MetronomeIcon } from '../MetronomeIcon/MetronomeIcon';
+import { TrainingIcon } from '../TrainingIcon/TrainingIcon';
 
 // Top-level destinations — see the IA in the redesign plan: Compose (build
 // the progression), Improvise (generate over it), Practice (skill-building,
@@ -10,14 +10,14 @@ import { MetronomeIcon } from '../MetronomeIcon/MetronomeIcon';
 //
 // `icon` is either an emoji string (rendered as-is) or a component
 // reference (rendered as <Icon />) — see AppShell.jsx's two render sites.
-// Practice uses a custom SVG (MetronomeIcon) instead of an emoji: ticking
-// rhythm is the one thread running through everything under it (drills,
-// rhythm game, chord changes, bending, ...), a more distinctive and
-// on-theme mark than a generic 🎯 bullseye.
+// Practice uses a custom SVG (TrainingIcon, a dumbbell) instead of an
+// emoji — a widely-recognized "practice/training" symbol in its own right
+// (same convention Duolingo and most skill-practice apps use), more
+// distinctive and immediately legible than a generic 🎯 bullseye.
 export const SECTIONS = [
   { key: 'compose', labelKey: 'nav.compose', icon: '🎼' },
   { key: 'improvise', labelKey: 'nav.improvise', icon: '🎸' },
-  { key: 'practice', labelKey: 'nav.practice', icon: MetronomeIcon },
+  { key: 'practice', labelKey: 'nav.practice', icon: TrainingIcon },
   { key: 'studies', labelKey: 'nav.studies', icon: '📖' },
   { key: 'songs', labelKey: 'nav.songs', icon: '🔍' },
   { key: 'vocal', labelKey: 'nav.vocal', icon: '🎤' },

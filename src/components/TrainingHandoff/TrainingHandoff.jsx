@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
+import { TrainingIcon } from '../TrainingIcon/TrainingIcon';
 import './TrainingHandoff.css';
 
 // Compose -> Practice handoff: lets the player send the progression they
@@ -16,7 +17,7 @@ export function TrainingHandoff({ training, hasProgression }) {
     return (
       <div className="training-handoff">
         <button type="button" className="training-handoff-open" onClick={onOpen} disabled={!hasProgression}>
-          🎯 {t('compose.training')}
+          <TrainingIcon /> {t('compose.training')}
         </button>
       </div>
     );

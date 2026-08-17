@@ -18,6 +18,17 @@
   margin: 0;
 }
 
+/* The generic `.practice-view > * + *` sibling rule above gives every
+   section 20px (--space-5) of breathing room from whatever's above it —
+   too much directly under the stats bar, where it read as a bigger gap
+   than the 10px row gap the stats grid itself uses between its own two
+   rows (see PracticeStatsBar.css's `gap: 10px`). Matching that 10px here
+   makes the tab row read as part of the same stats block instead of a
+   separate section with extra space before it. */
+.practice-stats-bar + .practice-tabs {
+  margin-top: 10px;
+}
+
 .practice-drills {
   display: flex;
   flex-direction: column;

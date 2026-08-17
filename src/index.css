@@ -219,13 +219,16 @@ button {
    component's own class (for its own specific selectors, e.g. `.active`)
    rather than replacing it. */
 .icon-circle-button {
-  width: 44px;
-  height: 44px;
+  /* 15% smaller than the original 44px/19px (per explicit design
+     feedback) — still comfortably tappable, just less dominant next to
+     the rest of the drawer/mobile-settings chrome around it. */
+  width: 37px;
+  height: 37px;
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
-  font-size: 19px;
+  font-size: 16px;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: background 0.15s ease, transform 0.12s ease, color 0.15s ease, border-color 0.15s ease;

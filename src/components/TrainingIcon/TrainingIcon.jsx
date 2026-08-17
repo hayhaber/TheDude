@@ -1,20 +1,22 @@
-// A small dumbbell glyph for the Practice nav destination — replaces an
-// earlier metronome-shaped attempt (v1-v3) that repeated feedback said
-// still read as unclear/low-quality at nav-icon size. A dumbbell is a
-// widely-recognized "training/practice" symbol in its own right (the same
-// convention Duolingo and most fitness/skill-practice apps use for their
-// own practice hub), and its shape — two solid weight plates joined by a
-// bar — stays legible at 18px without needing to be studied, unlike a
-// multi-part metronome silhouette. Solid plates (not just outlines) read
-// as bolder/more deliberate than the previous stroke-only attempts.
+// A small "practice loop" glyph for the Practice nav destination — a
+// repeat-loop arrow (the core mechanic of practicing: running something
+// again and again) wrapped around an eighth-note (the music-specific
+// anchor), so it reads as "repeat, musically" rather than either symbol
+// alone. Replaces two earlier attempts (a metronome, then a dumbbell)
+// that were both reported as unclear/low-quality — this is the user's
+// own supplied design. Same stroke-based icon style as the rest of this
+// set (fill="none", stroke="currentColor") so it reads as part of the
+// same icon family.
 export function TrainingIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2.5" y="9" width="3" height="6" rx="1" fill="currentColor" stroke="none" />
-      <rect x="6" y="7" width="3" height="10" rx="1" fill="currentColor" stroke="none" />
-      <path d="M9.5 12h5" />
-      <rect x="15" y="7" width="3" height="10" rx="1" fill="currentColor" stroke="none" />
-      <rect x="18.5" y="9" width="3" height="6" rx="1" fill="currentColor" stroke="none" />
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      {/* Open circular repeat arrow */}
+      <path d="M 12 3 A 9 9 0 1 1 3.5 10.5" />
+      <polyline points="7.5 11 3.5 10.5 3 6.5" />
+
+      {/* Eighth note, centered */}
+      <ellipse cx="10" cy="15.5" rx="2" ry="1.5" fill="currentColor" stroke="none" />
+      <path d="M 12 15.5 V 9.5 C 12 9.5 13.5 8.5 15.5 9.5" />
     </svg>
   );
 }

@@ -87,11 +87,11 @@ export function GuitarTuner() {
       </div>
 
       <p className="guitar-tuner-status" dir="auto">
-        {error ? t('trainer.micError', { message: error }) : !isListening ? t('trainer.micPermission') : !currentNote ? t('trainer.silence') : null}
+        {error ? t('trainer.micError', { message: error }) : !isListening ? t('tuner.micPermission') : !currentNote ? t('trainer.silence') : null}
       </p>
 
       <button type="button" className="guitar-tuner-toggle" onClick={isListening ? stopListening : startListening}>
-        {isListening ? t('trainer.stop') : t('trainer.start')}
+        {isListening ? t('trainer.stop') : t('tuner.start')}
       </button>
     </div>
   );

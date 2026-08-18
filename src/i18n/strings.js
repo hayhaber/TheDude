@@ -312,6 +312,9 @@ export const STRINGS = {
     'trainer.micError': 'Microphone error: {message}',
     'trainer.micPermission': 'Click "Start Listening" and allow microphone access to begin.',
 
+    'tuner.start': 'Start Tuning',
+    'tuner.micPermission': 'Click "Start Tuning" and allow microphone access to begin.',
+
     'tunerBar.label': 'Tuner',
     'tunerBar.close': 'Close',
 
@@ -1174,6 +1177,9 @@ export const STRINGS = {
     'trainer.clarity': 'בהירות: {value}%',
     'trainer.micError': 'שגיאת מיקרופון: {message}',
     'trainer.micPermission': 'לחץ על "התחל האזנה" ואשר גישה למיקרופון כדי להתחיל.',
+
+    'tuner.start': 'התחל כיוון',
+    'tuner.micPermission': 'לחץ על "התחל כיוון" ואשר גישה למיקרופון כדי להתחיל.',
 
     'tunerBar.label': 'טיונר',
     'tunerBar.close': 'סגור',

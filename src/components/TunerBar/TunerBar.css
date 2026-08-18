@@ -139,3 +139,26 @@
   padding: 0;
   max-width: 100%;
 }
+
+/* Phone-only — see MetronomeBar.css's own comment (same fix, same
+   reasoning): centered from the top instead of sliding in from the side. */
+@media (max-width: 480px) {
+  .tuner-drawer {
+    right: auto;
+    left: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    max-height: calc(100svh - env(safe-area-inset-top, 0px) - 100px);
+    width: min(340px, calc(100vw - 32px));
+    border-left: none;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    transform: translate(-50%, -16px);
+    opacity: 0;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+  }
+
+  .tuner-drawer.open {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}

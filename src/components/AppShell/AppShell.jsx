@@ -157,6 +157,7 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
           <button
             key={s.key}
             type="button"
+            data-section={s.key}
             className={'app-bottom-tab' + (activeSection === s.key ? ' active' : '')}
             aria-current={activeSection === s.key ? 'page' : undefined}
             onClick={() => onSectionChange(s.key)}

@@ -383,3 +383,59 @@
     color: var(--accent);
   }
 }
+
+/* ---------- Phone-only (<=480px) ----------
+   Deliberately a narrower breakpoint than the <900px block above — the
+   smallest iPad (portrait, 768px) already sits inside that block and gets
+   the same bottom-tab-bar layout as a phone, so a phone-specific fix here
+   needs its OWN, tighter cutoff (safely under any iPad width, comfortably
+   over the widest current iPhone, 430px) or it would leak onto iPad too.
+   Everything in this block is additive/overriding on top of the <900px
+   rules above, never touching desktop's sidebar layout at all. */
+@media (max-width: 480px) {
+  /* Songs is dropped from the phone tab bar specifically (not hidden via
+     supportsInstrument — every other platform keeps it) per explicit
+     request: 6 tabs read as cramped at phone width, and Songs was judged
+     the least essential of the six there. */
+  .app-bottom-tab[data-section='songs'] {
+    display: none;
+  }
+
+  /* 60px (the <900px default) put the section heading (e.g. "Compose")
+     right at the bottom edge of the fixed top-right stack (Guitar/Piano
+     toggle, Settings gear, Info toggle — .app-mobile-settings, a 3-row
+     column at this width) — same line, reads as crowded/overlapping.
+     Phones need clearance past that whole stack's height + its own top
+     offset; iPad has room to spare at 60px already, so this only widens
+     the gap where it's actually needed. */
+  .app-section-content {
+    padding-top: 150px;
+  }
+
+  /* MetronomeBar + TunerBar stacked vertically (the <900px default) into
+     one balanced row instead. Equal-width GRID columns (1fr 1fr), not
+     flex:1 — same lesson ModeToggle.css's own comment already documents:
+     a flex row's children each size against their OWN content first, so
+     two visually different pills (different internal text/buttons) still
+     come out different widths despite equal flex-grow; a grid container's
+     columns are equal by construction regardless of what's inside them.
+     Equal height comes from the explicit height below, since each pill's
+     own padding otherwise lands on a slightly different natural height. */
+  .app-mobile-metronome {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .app-mobile-metronome .metronome-bar-container,
+  .app-mobile-metronome .tuner-bar {
+    min-width: 0;
+  }
+
+  .app-mobile-metronome .metronome-bar,
+  .app-mobile-metronome .tuner-bar {
+    width: 100%;
+    height: 44px;
+    box-sizing: border-box;
+  }
+}

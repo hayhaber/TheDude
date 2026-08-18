@@ -222,3 +222,28 @@
   background: none;
   box-shadow: none;
 }
+
+/* Phone-only (see AppShell.css's own comment on why 480px and not the
+   shared <900px breakpoint): opens centered from the TOP of the screen
+   instead of sliding in from the right edge — a side-anchored drawer
+   reads as a sliver on a narrow phone screen; centered-from-top is the
+   standard "compact utility panel" pattern on iOS. */
+@media (max-width: 480px) {
+  .metronome-drawer {
+    right: auto;
+    left: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    width: min(340px, calc(100vw - 32px));
+    border-left: none;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    transform: translate(-50%, -16px);
+    opacity: 0;
+    transition: transform 0.22s ease, opacity 0.22s ease, max-height 0.2s ease;
+  }
+
+  .metronome-drawer.open {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}

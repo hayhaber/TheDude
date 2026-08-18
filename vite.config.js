@@ -22,7 +22,7 @@ export default defineConfig({
     // that directly, not this manifest's icon list) is set separately.
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
       workbox: {
         // alphaTab's worker/worklet bundles (Songs -> Guitar Pro import,
         // ~2.3MB each) are only ever fetched when that specific feature is

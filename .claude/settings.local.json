@@ -97,7 +97,9 @@
       "Bash(node _tmp_bundle.mjs)",
       "Bash(xargs grep -ln \"useProgression\\\\|ProgressionContext\")",
       "Bash(timeout 60 npx esbuild _tmp_test_scale_practice.mjs --bundle --platform=node --format=esm --outfile=_tmp_bundle_sp.mjs)",
-      "Bash(node _tmp_bundle_sp.mjs)"
+      "Bash(node _tmp_bundle_sp.mjs)",
+      "Bash(node bundle_transition.mjs)",
+      "Bash(node bundle_transition2.mjs)"
     ]
   }
 }

@@ -190,6 +190,32 @@ select {
   font-family: inherit;
 }
 
+/* iOS Safari auto-zooms the entire page when a focused text input's
+   font-size is under 16px — plenty of this app's fields intentionally use
+   a smaller size to match their surrounding UI density, which is fine on
+   desktop, iPad, and every non-Safari mobile browser, but reads as a
+   jarring, unintended zoom specifically on an iPhone. Scoped to phone-
+   width viewports only (iPad's narrowest width is 768px, well outside
+   this) so desktop/iPad stay exactly as they already are. */
+@media (max-width: 480px) {
+  input[type='text'],
+  input[type='number'],
+  input[type='password'],
+  input[type='email'],
+  input[type='search'],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Already comfortably above the zoom threshold at its own 18px — this
+     is a floor for fields that need raising, not a ceiling that should
+     shrink ones already fine. */
+  .chord-input input {
+    font-size: 18px !important;
+  }
+}
+
 /* Dropdowns and segmented toggle buttons (.mode-toggle button) commonly sit
    side by side in the same control row across the app (quiz mode + difficulty
    + pace, display mode selectors, etc.) — a shared explicit height keeps

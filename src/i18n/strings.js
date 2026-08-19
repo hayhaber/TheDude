@@ -604,6 +604,7 @@ export const STRINGS = {
 
     'composeEmpty.hint': 'Type chords separated by spaces — e.g. "Cmaj7 Am7 Dm7 G7" or "C - Am - F - G".',
     'composeEmpty.tryLabel': 'Try:',
+    'composeEmpty.continueLabel': 'Continue where you left off:',
 
     'savedProgressions.label': 'Save & Share',
     'savedProgressions.button': 'Save',
@@ -1494,6 +1495,7 @@ export const STRINGS = {
 
     'composeEmpty.hint': 'הקלידו אקורדים מופרדים ברווחים — לדוגמה "Cmaj7 Am7 Dm7 G7" או "C - Am - F - G".',
     'composeEmpty.tryLabel': 'נסו:',
+    'composeEmpty.continueLabel': 'המשיכו במקום שהפסקתם:',
 
     'savedProgressions.label': 'שמירה ושיתוף',
     'savedProgressions.button': 'שמור',

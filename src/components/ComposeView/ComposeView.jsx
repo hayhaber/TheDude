@@ -114,7 +114,7 @@ export function ComposeView({
       )}
 
       {progression.length === 0 ? (
-        <ComposeEmptyState onPick={setProgressionText} />
+        <ComposeEmptyState onPick={setProgressionText} recent={savedProgressions.recent} />
       ) : (
         <ChordChips
           progression={progression}

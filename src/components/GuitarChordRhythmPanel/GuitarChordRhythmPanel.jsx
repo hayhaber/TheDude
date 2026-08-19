@@ -1,9 +1,6 @@
 import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels, parseGuitarChordProgressionText } from '../../music/guitarChordRhythmContent';
-import { computeChordPositions } from '../../music/computeChordPositions';
-import { applyCapoToPosition } from '../../music/capo';
-import { Fretboard } from '../Fretboard/Fretboard';
 import { LEAD_TIME_S } from '../../hooks/useGuitarChordRhythm';
 import './GuitarChordRhythmPanel.css';
 
@@ -125,38 +122,18 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
   );
   const hintTones = hintEntry ? getChordToneLabels(hintEntry.chord.rootPitchClass, hintEntry.chord.qualityKey) : null;
 
-  // Whichever chord is crossing the hit-line right now — shown on a live
-  // Fretboard below the lane. A group imported from Compose carries the
-  // EXACT voicing the player chose there (`chord.voicing`); anything else
-  // (auto-generated, typed) falls back to a sensible default shape via
-  // computeChordPositions. Purely a reference display — the mic judging
-  // above can confirm WHICH chord was played, never which shape, so this
-  // never marks itself right/wrong on its own (see guitarChordRhythmContent.js's
-  // own top comment on that limitation).
-  const activeEntry = visible.find(({ chord }) => now >= chord.startTime && now < chord.endTime);
-  const activeChord = activeEntry?.chord ?? null;
-  const activeVoicing = activeChord
-    ? activeChord.voicing
-      ? applyCapoToPosition(activeChord.voicing, activeChord.capoFret || 0)
-      : computeChordPositions(activeChord.chordText, 'chord').positions[0] ?? null
-    : null;
-
-  // Before pressing Start (or after Stop), preview the FIRST chord of
-  // whatever's actually typed/loaded — 'custom'/'song' content is already
-  // fully known upfront (unlike 'auto', which is only decided once Start
-  // generates it), so there's no reason to make the player wait until
-  // mid-session to see what shape they're about to practice.
+  // The active/preview chord (whichever is crossing the hit-line right now,
+  // or the first chord of whatever's typed/loaded before Start is pressed)
+  // is shown on the ONE shared Stage Fretboard (App.jsx's stageFretboardProps
+  // resolver, practiceTab === 'guitarChordRhythm') rather than a second,
+  // duplicate neck rendered here — this panel only still needs the chord's
+  // NAME for the preview caption below, not its own Fretboard.
   const previewChord =
     !isPlaying && source === 'custom'
       ? parseGuitarChordProgressionText(customText)[0] ?? null
       : !isPlaying && source === 'song'
       ? groups[0]?.chords?.[0] ?? parseGuitarChordProgressionText(groups[0]?.text ?? '')[0] ?? null
       : null;
-  const previewVoicing = previewChord
-    ? previewChord.voicing
-      ? applyCapoToPosition(previewChord.voicing, previewChord.capoFret || 0)
-      : computeChordPositions(previewChord.chordText, 'chord').positions[0] ?? null
-    : null;
 
   return (
     <div className="guitar-chord-rhythm-panel">
@@ -361,19 +338,10 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
         </div>
       )}
 
-      {isPlaying && activeChord && activeVoicing && (
-        <div className="guitar-chord-rhythm-fretboard">
-          <Fretboard position={activeVoicing} chordColor={colorForChord(activeChord.chordText)} capoFret={activeChord.capoFret || 0} />
-        </div>
-      )}
-
-      {previewChord && previewVoicing && (
-        <div className="guitar-chord-rhythm-fretboard">
-          <p className="guitar-chord-rhythm-preview-label" dir="auto">
-            {t('guitarChordRhythm.preview', { chord: previewChord.chordText })}
-          </p>
-          <Fretboard position={previewVoicing} chordColor={colorForChord(previewChord.chordText)} capoFret={previewChord.capoFret || 0} />
-        </div>
+      {previewChord && (
+        <p className="guitar-chord-rhythm-preview-label" dir="auto">
+          {t('guitarChordRhythm.preview', { chord: previewChord.chordText })}
+        </p>
       )}
 
       {isPlaying && hintTones && hintTones.length > 0 && (

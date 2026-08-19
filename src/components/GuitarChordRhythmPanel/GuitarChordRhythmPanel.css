@@ -136,13 +136,6 @@
   cursor: default;
 }
 
-.guitar-chord-rhythm-fretboard {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg);
-  padding: var(--space-2);
-}
-
 .guitar-chord-rhythm-preview-label {
   margin: 0 0 var(--space-2);
   font-size: 12px;

@@ -12,6 +12,7 @@ import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingV
 import { NoteColorLegend } from './components/NoteColorLegend/NoteColorLegend';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './music/chordSymbolParser';
 import { computeChordPositions } from './music/computeChordPositions';
+import { parseGuitarChordProgressionText } from './music/guitarChordRhythmContent';
 import { findClosestPositionIndex } from './music/matchPosition';
 import { developMotif } from './music/motifDevelopment';
 import { buildPhrase, flattenPhrase, buildCallAndResponse } from './music/phraseBuilder';
@@ -1041,6 +1042,39 @@ function App() {
   const songChordPositions = songActiveChord ? computeChordPositions(songActiveChord, 'chord') : null;
   const songCurrentPosition = songChordPositions?.positions?.[0] ?? null;
 
+  // Practice -> Chord Changes: whichever chord is crossing the hit-line
+  // right now, shown on the one shared Stage Fretboard instead of a second,
+  // duplicate neck rendered inline in the panel (that duplicate was the bug
+  // — GuitarChordRhythmPanel used to import <Fretboard> itself). A group
+  // imported from Compose carries the EXACT voicing the player chose there
+  // (`chord.voicing`); anything else falls back to a sensible default shape
+  // via computeChordPositions.
+  const guitarChordRhythmActiveChord = guitarChordRhythm.isPlaying
+    ? guitarChordRhythm.sequence.find((chord) => guitarChordRhythm.now >= chord.startTime && guitarChordRhythm.now < chord.endTime) ?? null
+    : null;
+  const guitarChordRhythmActiveVoicing = guitarChordRhythmActiveChord
+    ? guitarChordRhythmActiveChord.voicing
+      ? applyCapoToPosition(guitarChordRhythmActiveChord.voicing, guitarChordRhythmActiveChord.capoFret || 0)
+      : computeChordPositions(guitarChordRhythmActiveChord.chordText, 'chord').positions[0] ?? null
+    : null;
+
+  // Before pressing Start (or after Stop), preview the FIRST chord of
+  // whatever's actually typed/loaded — 'custom'/'song' content is already
+  // fully known upfront (unlike 'auto', which is only decided once Start
+  // generates it), so there's no reason to make the player wait until
+  // mid-session to see what shape they're about to practice.
+  const guitarChordRhythmPreviewChord =
+    !guitarChordRhythm.isPlaying && guitarChordRhythm.source === 'custom'
+      ? parseGuitarChordProgressionText(guitarChordRhythm.customText)[0] ?? null
+      : !guitarChordRhythm.isPlaying && guitarChordRhythm.source === 'song'
+      ? guitarChordRhythm.groups[0]?.chords?.[0] ?? parseGuitarChordProgressionText(guitarChordRhythm.groups[0]?.text ?? '')[0] ?? null
+      : null;
+  const guitarChordRhythmPreviewVoicing = guitarChordRhythmPreviewChord
+    ? guitarChordRhythmPreviewChord.voicing
+      ? applyCapoToPosition(guitarChordRhythmPreviewChord.voicing, guitarChordRhythmPreviewChord.capoFret || 0)
+      : computeChordPositions(guitarChordRhythmPreviewChord.chordText, 'chord').positions[0] ?? null
+    : null;
+
   const stageFretboardProps =
     activeSection === 'practice'
       ? practiceTab === 'ear-training'
@@ -1093,6 +1127,20 @@ function App() {
             ],
             activeOverlayStep: null,
           }
+        : practiceTab === 'guitarChordRhythm'
+        ? guitarChordRhythmActiveChord && guitarChordRhythmActiveVoicing
+          ? {
+              position: guitarChordRhythmActiveVoicing,
+              chordColor: colorForChord(guitarChordRhythmActiveChord.chordText),
+              capoFret: guitarChordRhythmActiveChord.capoFret || 0,
+            }
+          : guitarChordRhythmPreviewChord && guitarChordRhythmPreviewVoicing
+          ? {
+              position: guitarChordRhythmPreviewVoicing,
+              chordColor: colorForChord(guitarChordRhythmPreviewChord.chordText),
+              capoFret: guitarChordRhythmPreviewChord.capoFret || 0,
+            }
+          : { position: null }
         : { position: null, drillNotes, labelMode: drill.noteLabelMode }
       : activeSection === 'studies'
       ? studiesCourse === 'scales'

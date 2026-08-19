@@ -355,26 +355,24 @@
     max-width: 280px;
   }
 
-  /* height grows by the home-indicator safe area rather than the fixed
-     --bottom-tabs-height shrinking to fit it — with box-sizing:border-box
-     (global), a padding-bottom here would eat into the 62px content box
-     on any iPhone with a safe-area-inset-bottom (i.e. every current
-     model), squeezing the icon+label content and clipping it at the top
-     edge. No padding-bottom at all (tried first, reverted) — that just
-     turned the safe area into a dead strip stuck below a still-62px-tall
-     content box, all the extra room landing unevenly at the bottom
-     instead of being shared. Leaving it out lets each .app-bottom-tab
-     (flex:1, default align-items:stretch) stretch across the FULL
-     height instead, so its own justify-content:center below centers the
-     icon+label symmetrically within the whole box — equal breathing room
-     above and below, safe area included, no leftover dead zone. */
+  /* The bar itself stays exactly --bottom-tabs-height tall — same 62px
+     box, same centered icon+label spacing as on a viewport with no
+     safe area at all — and FLOATS above the home-indicator safe area
+     via `bottom` instead of growing to cover it. Two earlier attempts
+     both grew the box's own height to absorb the safe area (once via
+     padding-bottom, once via centering within the taller box); both
+     left extra room INSIDE the bar itself, pushing its spacing out of
+     proportion with the original design instead of leaving it alone.
+     Shifting the whole bar up keeps the bar's own spacing untouched;
+     the safe-area strip below it is simply outside the bar, showing
+     the page's own background (which already matches). */
   .app-bottom-tabs {
     display: flex;
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
-    height: calc(var(--bottom-tabs-height) + env(safe-area-inset-bottom, 0px));
+    bottom: env(safe-area-inset-bottom, 0px);
+    height: var(--bottom-tabs-height);
     background: var(--surface);
     border-top: 1px solid var(--border);
     box-shadow: var(--shadow-lg);

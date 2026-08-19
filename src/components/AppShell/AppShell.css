@@ -357,11 +357,17 @@
 
   /* height grows by the home-indicator safe area rather than the fixed
      --bottom-tabs-height shrinking to fit it — with box-sizing:border-box
-     (global), a plain padding-bottom here would eat into the 62px
-     content box on any iPhone with a safe-area-inset-bottom (i.e. every
-     current model), squeezing the icon+label content and clipping it at
-     the top edge. calc() keeps the full 62px of USABLE tab height and
-     adds the safe area on top as extra clearance instead. */
+     (global), a padding-bottom here would eat into the 62px content box
+     on any iPhone with a safe-area-inset-bottom (i.e. every current
+     model), squeezing the icon+label content and clipping it at the top
+     edge. No padding-bottom at all (tried first, reverted) — that just
+     turned the safe area into a dead strip stuck below a still-62px-tall
+     content box, all the extra room landing unevenly at the bottom
+     instead of being shared. Leaving it out lets each .app-bottom-tab
+     (flex:1, default align-items:stretch) stretch across the FULL
+     height instead, so its own justify-content:center below centers the
+     icon+label symmetrically within the whole box — equal breathing room
+     above and below, safe area included, no leftover dead zone. */
   .app-bottom-tabs {
     display: flex;
     position: fixed;
@@ -373,7 +379,6 @@
     border-top: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
     z-index: 5;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .app-bottom-tab {

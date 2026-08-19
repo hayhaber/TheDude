@@ -220,8 +220,19 @@
   gap: var(--space-3);
 }
 
+.app-mobile-brand {
+  display: none;
+}
+
 .app-mobile-settings {
   display: none;
+}
+
+.app-mobile-settings-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .app-content {
@@ -401,13 +412,33 @@
     display: none;
   }
 
-  /* 60px (the <900px default) put the section heading (e.g. "Compose")
-     right at the bottom edge of the fixed top-right stack (Guitar/Piano
-     toggle, Settings gear, Info toggle — .app-mobile-settings, a 3-row
-     column at this width) — same line, reads as crowded/overlapping.
-     Phones need clearance past that whole stack's height + its own top
-     offset; iPad has room to spare at 60px already, so this only widens
-     the gap where it's actually needed. */
+  /* Small brand mark, top-left — mirrors the top-right icon stack's own
+     fixed offset so the two sit on the same visual line. Phone-only: the
+     desktop sidebar already has its own brand (.app-sidebar-brand), and
+     iPad has room that this isn't solving a problem for. */
+  .app-mobile-brand {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+    left: var(--space-4);
+    z-index: 6;
+  }
+
+  /* Settings gear + info toggle turned into their own horizontal row
+     (was a 3rd/4th vertically-stacked item under the Guitar/Piano toggle)
+     — two rows total instead of three, freeing up the vertical space
+     padding-top below compensates for. iPad keeps the original stacked
+     column (see the shared, unscoped .app-mobile-settings-icons rule). */
+  .app-mobile-settings-icons {
+    flex-direction: row;
+  }
+
+  /* 150px clears the shorter 2-row stack (Guitar/Piano toggle + the now-
+     horizontal gear/info row) below the fixed top-right icons, still with
+     a bit of margin to spare — was tuned for the old 3-row stack, kept the
+     same rather than re-shrinking it since a little extra clearance here
+     costs nothing and this is safer than re-measuring to the exact px. */
   .app-section-content {
     padding-top: 150px;
   }
@@ -420,11 +451,24 @@
      come out different widths despite equal flex-grow; a grid container's
      columns are equal by construction regardless of what's inside them.
      Equal height comes from the explicit height below, since each pill's
-     own padding otherwise lands on a slightly different natural height. */
+     own padding otherwise lands on a slightly different natural height.
+     min-height:0 (not the shared --mobile-metronome-height, sized for the
+     OLD stacked layout) lets the row hug the pills' own ~60px instead of
+     leaving ~50px of dead space below them before the tab bar — the
+     drawer this bar expands into is a separate, portaled/top-centered
+     overlay (see MetronomeBar.css/TunerBar.css), so this row itself never
+     needs to grow taller than its compact content. app-content's own
+     padding-bottom is trimmed to match, or the same dead space just
+     reappears above this bar instead of below the pills. */
   .app-mobile-metronome {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    align-items: stretch;
+    align-items: center;
+    min-height: 0;
+  }
+
+  .app-content {
+    padding-bottom: calc(var(--bottom-tabs-height) + 60px);
   }
 
   .app-mobile-metronome .metronome-bar-container,

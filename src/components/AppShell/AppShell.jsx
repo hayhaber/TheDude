@@ -136,10 +136,23 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
         </nav>
       </div>
 
+      {/* Phone-only (hidden by default, see AppShell.css) — the mobile
+          layout otherwise has no brand mark at all, unlike desktop's
+          sidebar (.app-sidebar-brand). */}
+      <div className="app-mobile-brand" aria-hidden="true">
+        <AppLogo size={26} />
+      </div>
+
       <div className="app-mobile-settings">
         <InstrumentToggle />
-        {settingsSlot}
-        <InfoTooltipsToggle />
+        {/* Gear + info grouped so phone-only CSS can turn just this pair
+            into a horizontal row (see .app-mobile-settings-icons) without
+            touching the Guitar/Piano toggle above it or iPad's own
+            3-row-stacked layout, which stays exactly as it was. */}
+        <div className="app-mobile-settings-icons">
+          {settingsSlot}
+          <InfoTooltipsToggle />
+        </div>
       </div>
 
       <main className="app-content">

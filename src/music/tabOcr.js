@@ -45,86 +45,117 @@ async function renderPageToCanvas(page) {
   return canvas;
 }
 
-// Groups OCR words into rows by y-position (clustering by proximity to a
-// row's running average, since OCR word boxes on the same visual line
-// still jitter a few pixels vertically) and reconstructs each row's text
-// with spacing derived from the page's own average character width — an
-// OCR word's bbox gives real pixel width for real recognized characters,
-// which is a better column estimate here than a guessed constant (unlike
-// pdfTextExtractor.js's PDF-point case, OCR render scale can vary run to
-// run).
-function wordsToRows(words) {
-  if (words.length === 0) return [];
-
-  const charWidths = words
-    .filter((w) => w.text.trim().length > 0)
-    .map((w) => (w.bbox.x1 - w.bbox.x0) / w.text.length);
-  const avgCharWidth = charWidths.reduce((sum, w) => sum + w, 0) / charWidths.length || 10;
-
-  const heights = words.map((w) => w.bbox.y1 - w.bbox.y0);
-  const avgHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length || 10;
-  const rowTolerance = avgHeight * 0.6;
-
-  const sorted = [...words].sort((a, b) => (a.bbox.y0 + a.bbox.y1) / 2 - (b.bbox.y0 + b.bbox.y1) / 2);
-  const rowGroups = [];
-  for (const word of sorted) {
-    const yCenter = (word.bbox.y0 + word.bbox.y1) / 2;
-    const lastRow = rowGroups[rowGroups.length - 1];
-    if (lastRow && Math.abs(yCenter - lastRow.yCenter) <= rowTolerance) {
-      lastRow.words.push(word);
-      lastRow.yCenter = (lastRow.yCenter * lastRow.words.length + yCenter) / (lastRow.words.length + 1);
-    } else {
-      rowGroups.push({ yCenter, words: [word] });
+// Finds each horizontal band of dark pixels (one visual text LINE) via a
+// row-darkness profile — classic line-segmentation-by-projection. Doing
+// this ourselves and OCRing each line SEPARATELY (see the caller) beats
+// handing Tesseract the whole page at once: tab notation is almost
+// entirely long runs of "-" with no spaces, and Tesseract's own page-
+// layout analysis tends to misread six of those stacked tightly together
+// as a table/ruled-line graphic rather than six lines of text, badly
+// degrading — sometimes to nothing at all — recognition of the digits
+// actually mixed into those lines. One line at a time has no neighboring
+// lines to get confused with.
+function detectLineBands(canvas) {
+  const ctx = canvas.getContext('2d');
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const darkCountPerRow = new Array(canvas.height).fill(0);
+  for (let y = 0; y < canvas.height; y++) {
+    let dark = 0;
+    for (let x = 0; x < canvas.width; x++) {
+      const i = (y * canvas.width + x) * 4;
+      const luminance = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      if (luminance < 200) dark++;
     }
+    darkCountPerRow[y] = dark;
   }
 
-  return rowGroups.map(({ words: rowWords }) => {
-    const ordered = [...rowWords].sort((a, b) => a.bbox.x0 - b.bbox.x0);
-    let line = '';
-    for (const w of ordered) {
-      const targetCol = Math.max(line.length, Math.round(w.bbox.x0 / avgCharWidth));
-      if (targetCol > line.length) line += ' '.repeat(targetCol - line.length);
-      line += w.text;
+  const bands = [];
+  let inBand = false;
+  let start = 0;
+  for (let y = 0; y < canvas.height; y++) {
+    const isDark = darkCountPerRow[y] > 2;
+    if (isDark && !inBand) {
+      inBand = true;
+      start = y;
+    } else if (!isDark && inBand) {
+      inBand = false;
+      bands.push([start, y]);
     }
-    return line;
-  });
+  }
+  if (inBand) bands.push([start, canvas.height]);
+  return bands;
+}
+
+function cropBand(canvas, [y0, y1], padding = 4) {
+  const top = Math.max(0, y0 - padding);
+  const height = Math.min(canvas.height, y1 + padding) - top;
+  const cropped = document.createElement('canvas');
+  cropped.width = canvas.width;
+  cropped.height = height;
+  cropped.getContext('2d').drawImage(canvas, 0, top, canvas.width, height, 0, 0, canvas.width, height);
+  return cropped;
+}
+
+// Turns a page's detected line-bands into text ROWS with blank-line
+// separators between phrase groups — a big vertical gap between one
+// band's bottom and the next band's top (paragraph spacing) reads as a
+// group boundary, same as an actual blank line would in a real text
+// layer; the tight, near-uniform gaps BETWEEN a phrase's own 6 string-
+// lines don't trigger it. Falls back to no separators (one continuous
+// group) if there's nothing to compare against.
+function insertGroupBreaks(bands, rows) {
+  if (bands.length < 2) return rows;
+  const gaps = [];
+  for (let i = 1; i < bands.length; i++) gaps.push(bands[i][0] - bands[i - 1][1]);
+  const avgGap = gaps.reduce((sum, g) => sum + g, 0) / gaps.length;
+  const breakThreshold = avgGap * 1.8;
+
+  const out = [rows[0]];
+  for (let i = 1; i < rows.length; i++) {
+    if (gaps[i - 1] > breakThreshold) out.push('');
+    out.push(rows[i]);
+  }
+  return out;
 }
 
 // OCR fallback for a PDF with no real text layer (a scanned/rasterized
-// tab image, see App's own top comment on why extractPdfTextRows alone
-// can't handle that case). `onProgress(fraction)` reports 0-1 across all
-// pages combined, since a multi-page tab can take a while — Tesseract's
-// own per-page progress is folded into that overall fraction rather than
-// resetting to 0 each page, so a progress bar reads as continuous.
+// tab image, see pdfTextExtractor.js's own top comment on why
+// extractPdfTextRows alone can't handle that case). `onProgress(fraction)`
+// reports 0-1 across all pages combined, since a multi-page tab can take
+// a while — Tesseract's own per-line progress is folded into that overall
+// fraction rather than resetting per line, so a progress bar reads as
+// continuous.
 export async function ocrPdfToTextRows(file, { onProgress } = {}) {
   const pdf = await loadPdfDocument(file);
-  // Reassigned per-page below so the logger (set up once, fired
-  // repeatedly by Tesseract as it works through EACH page) always folds
-  // its 0-1-per-page progress into that page's own slice of the overall
-  // 0-1 range — otherwise a progress bar would restart at 0% every page.
-  let reportPageProgress = () => {};
-  const worker = await createWorker('eng', 1, {
-    logger: (m) => {
-      if (m.status === 'recognizing text') reportPageProgress(m.progress);
-    },
-  });
+  const worker = await createWorker('eng', 1, {});
   await worker.setParameters({
     tessedit_char_whitelist: TAB_CHAR_WHITELIST,
-    tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+    tessedit_pageseg_mode: PSM.SINGLE_LINE,
   });
 
   const rows = [];
   try {
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const pageStart = (pageNum - 1) / pdf.numPages;
-      const pageSpan = 1 / pdf.numPages;
-      reportPageProgress = (pageFraction) => onProgress?.(pageStart + pageFraction * pageSpan);
-
       const page = await pdf.getPage(pageNum);
       const canvas = await withTimeout(renderPageToCanvas(page), PAGE_TIMEOUT_MS, `Page ${pageNum} took too long to render.`);
-      const { data } = await withTimeout(worker.recognize(canvas), PAGE_TIMEOUT_MS, `Page ${pageNum} took too long to read.`);
-      const pageRows = wordsToRows(data.words ?? []);
-      rows.push(...pageRows, '');
+      const bands = detectLineBands(canvas);
+
+      const pageRows = [];
+      for (let i = 0; i < bands.length; i++) {
+        const lineCanvas = cropBand(canvas, bands[i]);
+        const { data } = await withTimeout(
+          worker.recognize(lineCanvas),
+          PAGE_TIMEOUT_MS,
+          `Page ${pageNum}, line ${i + 1} took too long to read.`
+        );
+        pageRows.push(data.text.replace(/\n/g, '').trimEnd());
+
+        const pageStart = (pageNum - 1) / pdf.numPages;
+        const pageSpan = 1 / pdf.numPages;
+        onProgress?.(pageStart + ((i + 1) / Math.max(bands.length, 1)) * pageSpan);
+      }
+
+      rows.push(...insertGroupBreaks(bands, pageRows), '');
     }
   } finally {
     await worker.terminate();

@@ -300,9 +300,11 @@
   /* Reserves room for the fixed bottom tab bar AND the fixed mobile
      metronome bar just above it, within the existing 100svh box
      (box-sizing: border-box, set globally in index.css) rather than
-     growing past it. */
+     growing past it. Includes the home-indicator safe area (see
+     .app-bottom-tabs's own comment) since that now adds to the tab bar's
+     total height instead of being absorbed inside it. */
   .app-content {
-    padding-bottom: calc(var(--bottom-tabs-height) + var(--mobile-metronome-height));
+    padding-bottom: calc(var(--bottom-tabs-height) + var(--mobile-metronome-height) + env(safe-area-inset-bottom, 0px));
   }
 
   .app-section-content {
@@ -340,7 +342,7 @@
     position: fixed;
     left: 0;
     right: 0;
-    bottom: var(--bottom-tabs-height);
+    bottom: calc(var(--bottom-tabs-height) + env(safe-area-inset-bottom, 0px));
     min-height: var(--mobile-metronome-height);
     max-height: 70vh;
     overflow-y: auto;
@@ -353,18 +355,25 @@
     max-width: 280px;
   }
 
+  /* height grows by the home-indicator safe area rather than the fixed
+     --bottom-tabs-height shrinking to fit it — with box-sizing:border-box
+     (global), a plain padding-bottom here would eat into the 62px
+     content box on any iPhone with a safe-area-inset-bottom (i.e. every
+     current model), squeezing the icon+label content and clipping it at
+     the top edge. calc() keeps the full 62px of USABLE tab height and
+     adds the safe area on top as extra clearance instead. */
   .app-bottom-tabs {
     display: flex;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
-    height: var(--bottom-tabs-height);
+    height: calc(var(--bottom-tabs-height) + env(safe-area-inset-bottom, 0px));
     background: var(--surface);
     border-top: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
     z-index: 5;
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .app-bottom-tab {
@@ -468,7 +477,7 @@
   }
 
   .app-content {
-    padding-bottom: calc(var(--bottom-tabs-height) + 60px);
+    padding-bottom: calc(var(--bottom-tabs-height) + 60px + env(safe-area-inset-bottom, 0px));
   }
 
   .app-mobile-metronome .metronome-bar-container,

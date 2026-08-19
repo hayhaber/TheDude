@@ -1,0 +1,289 @@
+.saved-progressions-menu {
+  display: inline-block;
+}
+
+.saved-progressions-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 980px;
+  border: none;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 590;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.15s ease, transform 0.12s ease;
+}
+
+.saved-progressions-trigger:hover {
+  background-color: var(--border);
+}
+
+.saved-progressions-trigger:active {
+  transform: scale(0.96);
+}
+
+.saved-progressions-trigger.active {
+  background-color: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* ---------- Right-side drawer, top-anchored ----------
+   Same recipe as DisplayOptionsMenu.css's own drawer — see that file's
+   comment for the full containing-block/portal rationale. */
+.saved-progressions-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.saved-progressions-drawer-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.saved-progressions-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 41;
+  width: min(400px, 100vw);
+  max-height: calc(100svh - 120px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-bottom-left-radius: 20px;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  transform: translateX(100%);
+  pointer-events: none;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.saved-progressions-drawer.open {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.saved-progressions-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.saved-progressions-drawer-title {
+  margin: 0;
+}
+
+.saved-progressions-drawer-close {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.saved-progressions-drawer-close:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.saved-progressions-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.saved-progressions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.saved-progressions-section-title {
+  font-size: 12px;
+  font-weight: 590;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.saved-progressions-save-row {
+  display: flex;
+  gap: 8px;
+}
+
+.saved-progressions-save-row input {
+  flex: 1;
+  height: var(--control-height);
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+.saved-progressions-save-row input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.saved-progressions-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.saved-progressions-save-row button,
+.saved-progressions-action-row button {
+  height: var(--control-height);
+  padding: 0 14px;
+  border-radius: 980px;
+  border: none;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 590;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.saved-progressions-save-row button:hover:not(:disabled),
+.saved-progressions-action-row button:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.saved-progressions-save-row button:active:not(:disabled),
+.saved-progressions-action-row button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.saved-progressions-save-row button:disabled,
+.saved-progressions-action-row button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.saved-progressions-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+.saved-progressions-empty {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.saved-progressions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.saved-progressions-list-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.saved-progressions-list-item:hover {
+  background: rgba(120, 120, 128, 0.08);
+}
+
+.saved-progressions-favorite {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #f5a623;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.saved-progressions-favorite:hover {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.saved-progressions-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  border: none;
+  background: transparent;
+  padding: 2px 6px;
+  cursor: pointer;
+  text-align: start;
+}
+
+.saved-progressions-item-name {
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text);
+}
+
+.saved-progressions-item-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.saved-progressions-item-main.recent .saved-progressions-item-text {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.saved-progressions-icon-button {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.saved-progressions-icon-button:hover {
+  background: rgba(120, 120, 128, 0.14);
+  color: var(--text);
+}

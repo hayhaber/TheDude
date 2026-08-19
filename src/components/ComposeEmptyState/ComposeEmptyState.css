@@ -1,0 +1,51 @@
+.compose-empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+
+.compose-empty-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+}
+
+.compose-empty-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.compose-empty-examples-label {
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+}
+
+/* Same pill shape/weight as .chord-chip (ChordChips.css) so an example
+   reads as "a chord chip row you haven't typed yet" rather than a
+   differently-styled control. */
+.compose-empty-example-chip {
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -0.005em;
+  padding: 7px 16px;
+  border-radius: 980px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.compose-empty-example-chip:hover {
+  background: rgba(120, 120, 128, 0.12);
+  border-color: var(--accent);
+}
+
+.compose-empty-example-chip:active {
+  transform: scale(0.96);
+}

@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { ChordInput } from '../ChordInput/ChordInput';
+import { ComposeEmptyState } from '../ComposeEmptyState/ComposeEmptyState';
 import { SparklesIcon } from '../SparklesIcon/SparklesIcon';
 import { CapoInput } from '../CapoInput/CapoInput';
 import { ChordChips } from '../ChordChips/ChordChips';
 import { PositionControls } from '../PositionControls/PositionControls';
 import { PianoInversionControls } from '../PianoInversionControls/PianoInversionControls';
 import { DisplayOptionsMenu } from '../DisplayOptionsMenu/DisplayOptionsMenu';
+import { SavedProgressionsPanel } from '../SavedProgressionsPanel/SavedProgressionsPanel';
 import { HeatMapLegend } from '../HeatMapLegend/HeatMapLegend';
 import { PlaybackControls } from '../PlaybackControls/PlaybackControls';
 import { InsightsPanel } from '../InsightsPanel/InsightsPanel';
@@ -73,6 +75,7 @@ export function ComposeView({
   soundingKey,
   onTranspose,
   training,
+  savedProgressions,
 }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
@@ -110,13 +113,17 @@ export function ComposeView({
         </p>
       )}
 
-      <ChordChips
-        progression={progression}
-        activeIndex={activeIndex}
-        onSelect={setActiveIndex}
-        onPrev={handlePrevChord}
-        onNext={handleNextChord}
-      />
+      {progression.length === 0 ? (
+        <ComposeEmptyState onPick={setProgressionText} />
+      ) : (
+        <ChordChips
+          progression={progression}
+          activeIndex={activeIndex}
+          onSelect={setActiveIndex}
+          onPrev={handlePrevChord}
+          onNext={handleNextChord}
+        />
+      )}
 
       <div className="compose-toggle-row">
         <DisplayOptionsMenu
@@ -130,6 +137,24 @@ export function ComposeView({
           setTwoHandView={setTwoHandView}
           showHeatMap={showHeatMap}
           setShowHeatMap={setShowHeatMap}
+        />
+        {/* Save the current progression, copy a share link, or export it —
+            bundled behind one trigger the same way Display Options bundles
+            several toggles. Works identically for both instruments (a
+            progression is just chord text + capo/mode), only the PNG
+            export button itself is guitar-only (see SavedProgressionsPanel's
+            own comment on why). */}
+        <SavedProgressionsPanel
+          progression={progression}
+          progressionText={progressionText}
+          setProgressionText={setProgressionText}
+          capoFret={capoFret}
+          setCapoFret={setCapoFret}
+          mode={mode}
+          setMode={setMode}
+          soundingKey={(isGuitar ? soundingKey : null) ?? scaleAnalysis?.key ?? null}
+          isGuitar={isGuitar}
+          savedProgressions={savedProgressions}
         />
         {/* Transpose — rewrites the actual typed progression a half step at
             a time (fitting a song to a singer's range), unlike Capo which

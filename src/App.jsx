@@ -44,6 +44,7 @@ import { useMetronome } from './hooks/useMetronome';
 import { useDrumEngine } from './hooks/useDrumEngine';
 import { usePracticeDrill } from './hooks/usePracticeDrill';
 import { usePracticeHistory } from './hooks/usePracticeHistory';
+import { useSavedProgressions } from './hooks/useSavedProgressions';
 import { useEarTraining } from './hooks/useEarTraining';
 import { useRhythmGame } from './hooks/useRhythmGame';
 import { useBendingTraining } from './hooks/useBendingTraining';
@@ -176,6 +177,7 @@ function App() {
     masterVolume: metronome.isMuted ? 0 : metronome.volume / 100,
   });
   const practiceHistory = usePracticeHistory();
+  const savedProgressions = useSavedProgressions();
   const drill = usePracticeDrill(metronome, practiceHistory.logSession);
   const earTraining = useEarTraining();
   const rhythmGame = useRhythmGame(metronome);
@@ -433,6 +435,31 @@ function App() {
   // the sounding pitch — see music/capo.js's soundingChordText for how the
   // actual sounding chord is derived from this.
   const [capoFret, setCapoFret] = useState(0);
+
+  // Load a shared progression from the URL once, on first mount — a link
+  // like ?p=C+G+Am+F&capo=2&mode=triad fully restores what was shared,
+  // the same three fields a manual "Save" snapshot captures (see
+  // useSavedProgressions.js). Runs before the Compose empty-state would
+  // otherwise render, since progressionText starts populated instead of ''.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedText = params.get('p');
+    if (!sharedText) return;
+    setProgressionText(sharedText);
+    const sharedCapo = Number(params.get('capo'));
+    if (Number.isFinite(sharedCapo) && sharedCapo > 0) setCapoFret(sharedCapo);
+    const sharedMode = params.get('mode');
+    if (sharedMode === 'triad' || sharedMode === 'chord') setMode(sharedMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-logs the "recent" trail (useSavedProgressions.js) — debounced
+  // internally so this only records once typing actually pauses.
+  useEffect(() => {
+    savedProgressions.trackRecent({ text: progressionText, capoFret, mode });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressionText, capoFret, mode]);
+
   // Compose -> Training handoff: captured progression "groups" (each one a
   // snapshot of progressionText + every chord's resolved fretboard voicing +
   // the mode/capo that produced it), built up one at a time by re-using the
@@ -1507,6 +1534,7 @@ function App() {
           setCapoFret={setCapoFret}
           onCancelCapo={handleCancelCapo}
           soundingProgressionText={soundingProgressionText}
+          savedProgressions={savedProgressions}
           soundingKey={soundingKey}
           onTranspose={transposeProgression}
           training={{

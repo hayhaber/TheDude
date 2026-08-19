@@ -461,6 +461,11 @@ export const STRINGS = {
     'songs.tabPdf.parsing': 'Reading the tab…',
     'songs.tabPdf.error': "Couldn't read that tab: {message}",
     'songs.tabPdf.noNotesFound': 'No tab notation found in this PDF — it may be a scanned image rather than text.',
+    'songs.tabPdf.ocrRunning': "This PDF has no real text layer, so it's being read with on-device text recognition (OCR) instead — this can take a little while, especially for a multi-page file.",
+    'songs.tabPdf.ocrNote':
+      'This was read with OCR, not a real text layer — dense tab notation is never 100% reliable to recognize. Check the text below against the original before playing, and fix anything that looks wrong.',
+    'songs.tabPdf.reviewLabel': 'Recognized tab text — review and fix before playing:',
+    'songs.tabPdf.parseButton': 'Parse & Preview',
     'songs.tabPdf.noteCount': '{count} notes found',
     'songs.tabPdf.speed': 'Speed',
     'songs.tabPdf.speed.slow': 'Slow',
@@ -1368,6 +1373,11 @@ export const STRINGS = {
     'songs.tabPdf.parsing': 'קורא את הטאב…',
     'songs.tabPdf.error': 'לא ניתן היה לקרוא את הטאב: {message}',
     'songs.tabPdf.noNotesFound': 'לא נמצא סימון טאב בקובץ זה — ייתכן שמדובר בסריקה (תמונה) ולא בטקסט.',
+    'songs.tabPdf.ocrRunning': 'לקובץ זה אין שכבת טקסט אמיתית, אז הוא נקרא באמצעות זיהוי טקסט (OCR) במכשיר עצמו — זה עשוי לקחת קצת זמן, בעיקר בקובץ עם כמה עמודים.',
+    'songs.tabPdf.ocrNote':
+      'הטקסט הזה נקרא באמצעות OCR ולא משכבת טקסט אמיתית — סימון טאב צפוף לעולם לא מזוהה ב-100% אמינות. בדקו את הטקסט למטה מול המקור לפני הניגון, ותקנו כל דבר שנראה לא נכון.',
+    'songs.tabPdf.reviewLabel': 'טקסט הטאב שזוהה — בדקו ותקנו לפני הניגון:',
+    'songs.tabPdf.parseButton': 'פרסור ותצוגה מקדימה',
     'songs.tabPdf.noteCount': 'נמצאו {count} תווים',
     'songs.tabPdf.speed': 'מהירות',
     'songs.tabPdf.speed.slow': 'איטי',

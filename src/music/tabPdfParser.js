@@ -24,8 +24,17 @@ import { midiToNoteName } from './pitchUtils';
 //   long bar onto its own row) before a blank line ends the phrase — all
 //   of a phrase's line-groups are concatenated per string, in order,
 //   before parsing fret numbers out.
+// Technique symbols recognized between/after fret numbers, mapped to the
+// exact `technique` values Fretboard.jsx's TECHNIQUE_GLYPH and
+// audio/lickPlayer.js already handle (bend/vibrato get real audio
+// treatment there; hammer/pull/slide render their own glyph with plain
+// audio) — reusing generateLick.js's own vocabulary rather than inventing
+// a second one.
+const HAMMER_PULL_RE = /[hHpP]/;
+const SLIDE_RE = /[/\\]/;
+const BEND_RE = /[bB]/;
 const STRING_LINE_RE = /^\s*([A-Ga-g])([#b]?)\s*\|(.*)$/;
-const CONTINUATION_LINE_RE = /^\s*([-|\d]+)\s*$/;
+const CONTINUATION_LINE_RE = /^\s*([-|\dhHpPbB/\\~]+)\s*$/;
 
 function isBlank(line) {
   return line.trim() === '';
@@ -80,25 +89,91 @@ function concatenateGroup(lines) {
   return streams;
 }
 
-// Walks a phrase's 6 concatenated streams column by column, reading out
-// each run of digits (a fret number, 1 or 2 digits) as one note event —
-// order across simultaneous columns is top-string-first, matching how a
-// player's eye reads a chord voicing on a real tab.
-function parsePhraseNotes(streams) {
+// Reads one digit run (1-2 digits, matching a real fret number range)
+// starting at `i`, returning [value, nextIndex] — or null if `i` isn't on
+// a digit.
+function readFretNumber(stream, i) {
+  if (!/\d/.test(stream[i] ?? '')) return null;
+  let numStr = stream[i];
+  let next = i + 1;
+  if (/\d/.test(stream[next] ?? '')) {
+    numStr += stream[next];
+    next += 1;
+  }
+  return [Number(numStr), next];
+}
+
+// Sequentially scans ONE string's concatenated character stream, reading
+// fret numbers and the articulation symbol immediately following them
+// (no gap — that's the real tab convention: "5h7" is one hammer-on, "5--h7"
+// with dashes between isn't a valid articulation and is read as two
+// separate, unlinked events instead). hammer-on/pull-off/slide each imply
+// a SECOND note (the target fret); bend/vibrato just tag the note already
+// read. Returns events tagged with their starting column, for merging
+// across all 6 strings afterward.
+function parseStringStream(stream) {
   const events = [];
-  const maxLen = Math.max(...streams.map((s) => s.length));
-  for (let col = 0; col < maxLen; col++) {
-    for (let stringLine = 0; stringLine < 6; stringLine++) {
-      const ch = streams[stringLine][col];
-      if (ch === undefined || !/\d/.test(ch)) continue;
-      const prevCh = streams[stringLine][col - 1];
-      if (prevCh !== undefined && /\d/.test(prevCh)) continue; // mid-number, already captured
-      let numStr = ch;
-      let next = streams[stringLine][col + 1];
-      if (next !== undefined && /\d/.test(next)) numStr += next;
-      events.push({ stringLine, fret: Number(numStr), col });
+  let i = 0;
+  while (i < stream.length) {
+    const read = readFretNumber(stream, i);
+    if (!read) {
+      i += 1;
+      continue;
+    }
+    const [fret, afterFret] = read;
+    const noteEvent = { col: i, fret, technique: undefined };
+    events.push(noteEvent);
+    i = afterFret;
+
+    const artCh = stream[i];
+    if (artCh && HAMMER_PULL_RE.test(artCh)) {
+      const target = readFretNumber(stream, i + 1);
+      if (target) {
+        const [targetFret, afterTarget] = target;
+        events.push({ col: i + 1, fret: targetFret, technique: artCh.toLowerCase() === 'h' ? 'hammer' : 'pull' });
+        i = afterTarget;
+        continue;
+      }
+    } else if (artCh && SLIDE_RE.test(artCh)) {
+      const target = readFretNumber(stream, i + 1);
+      if (target) {
+        const [targetFret, afterTarget] = target;
+        events.push({ col: i + 1, fret: targetFret, technique: 'slide' });
+        i = afterTarget;
+        continue;
+      }
+    } else if (artCh && BEND_RE.test(artCh)) {
+      // "5b7" (bend up to fret 7's pitch) and bare "5b" both just tag the
+      // ORIGINAL note as a bend — this app's bend playback is a fixed
+      // interval (see lickPlayer.js's BEND_SEMITONES), not modeled per a
+      // specific target pitch, so a trailing target-fret digit run (if
+      // present) is consumed but not turned into its own note.
+      noteEvent.technique = 'bend';
+      i += 1;
+      const target = readFretNumber(stream, i);
+      if (target) i = target[1];
+      continue;
+    }
+    if (stream[i] === '~') {
+      noteEvent.technique = noteEvent.technique ?? 'vibrato';
+      while (stream[i] === '~') i += 1;
     }
   }
+  return events;
+}
+
+// Walks all 6 of a phrase's concatenated streams, then merges every
+// string's own ordered event list into one timeline sorted by column
+// (ties — a chord voicing struck together — ordered top-string-first,
+// matching how a player's eye reads a tab).
+function parsePhraseNotes(streams) {
+  const events = [];
+  for (let stringLine = 0; stringLine < 6; stringLine++) {
+    for (const e of parseStringStream(streams[stringLine])) {
+      events.push({ ...e, stringLine });
+    }
+  }
+  events.sort((a, b) => (a.col === b.col ? a.stringLine - b.stringLine : a.col - b.col));
   return events;
 }
 
@@ -131,13 +206,13 @@ export function parseAsciiTab(rows, { durationMultiplier = 1 } = {}) {
     }
 
     const events = parsePhraseNotes(streams);
-    for (const { stringLine, fret } of events) {
+    for (const { stringLine, fret, technique } of events) {
       if (fret > MAX_FRET) continue;
       const arrayIndex = 5 - stringLine; // top line (0) = highest string = STANDARD_TUNING[5]
       const tuning = STANDARD_TUNING[arrayIndex];
       const midi = tuning.baseMidi + fret;
       const label = midiToNoteName(midi).replace(/\d+$/, '');
-      notes.push({ order: order++, string: arrayIndex, fret, label, durationMultiplier });
+      notes.push({ order: order++, string: arrayIndex, fret, label, technique, durationMultiplier });
     }
   }
 

@@ -6,6 +6,15 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
+// Shared PDF document loader — both this file's text extraction and
+// tabOcr.js's page-image rendering (for the scanned/image-PDF fallback)
+// need the same pdf.js document object, so this is the one place that
+// configures the worker and opens the file.
+export async function loadPdfDocument(file) {
+  const buffer = await file.arrayBuffer();
+  return pdfjsLib.getDocument({ data: buffer }).promise;
+}
+
 // A typical monospace character's width, in PDF points, at the font sizes
 // these tab exports use (~10-11pt monospace) — used only to convert an x
 // position into an approximate character column so two text runs on the
@@ -25,8 +34,7 @@ const APPROX_CHAR_WIDTH_PT = 5.3;
 // intact well enough for the tab parser to read fret numbers back out in
 // the right relative position.
 export async function extractPdfTextRows(file) {
-  const buffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  const pdf = await loadPdfDocument(file);
   const rows = [];
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {

@@ -1079,10 +1079,18 @@ function App() {
   const guitarChordRhythmActiveChord = guitarChordRhythm.isPlaying
     ? guitarChordRhythm.sequence.find((chord) => guitarChordRhythm.now >= chord.startTime && guitarChordRhythm.now < chord.endTime) ?? null
     : null;
+  // The 'triads' auto mode names the same major/minor chords as 'openBarre'
+  // (judging is pitch-class based and genuinely can't tell a triad shape
+  // from a full barre shape apart — see this file's own top comment in
+  // guitarChordRhythmContent.js), but the SHAPE shown on the neck still
+  // needs to actually be a 3-note triad, not silently fall back to a full
+  // chord/barre shape — this was reported as showing barre chords even
+  // with Triads selected.
+  const guitarChordRhythmVoicingMode = guitarChordRhythm.source === 'auto' && guitarChordRhythm.mode === 'triads' ? 'triad' : 'chord';
   const guitarChordRhythmActiveVoicing = guitarChordRhythmActiveChord
     ? guitarChordRhythmActiveChord.voicing
       ? applyCapoToPosition(guitarChordRhythmActiveChord.voicing, guitarChordRhythmActiveChord.capoFret || 0)
-      : computeChordPositions(guitarChordRhythmActiveChord.chordText, 'chord').positions[0] ?? null
+      : computeChordPositions(guitarChordRhythmActiveChord.chordText, guitarChordRhythmVoicingMode).positions[0] ?? null
     : null;
 
   // Before pressing Start (or after Stop), preview the FIRST chord of

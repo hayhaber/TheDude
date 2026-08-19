@@ -1,10 +1,20 @@
 import * as pdfjsLib from 'pdfjs-dist';
-// Vite-friendly way to point pdf.js at its own worker script — bundles the
-// worker as a separate asset and gives us a real URL to it, instead of
-// pdf.js's default (which assumes a CDN or a specific public/ path).
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
+// Vite's `?worker` suffix gives back a real Worker constructor (handled
+// natively by Vite's own bundling in both dev and prod), which we hand to
+// pdf.js as an already-constructed `workerPort` instead of a `workerSrc`
+// URL string. `workerSrc` (tried first, reverted) makes pdf.js construct
+// the Worker itself from that URL at runtime — reliable in a production
+// build, but in Vite DEV specifically, a mid-session dependency
+// re-optimization (e.g. from installing another package later, like
+// tesseract.js for tabOcr.js) can invalidate that URL for an already-open
+// tab. pdf.js then falls back to its own "fake worker" (running on the
+// main thread instead), and THAT fallback's own dynamic import can fail
+// too ("Failed to fetch dynamically imported module …pdf.worker.mjs
+// ?import") — a real error a user hit locally. Providing the worker
+// directly sidesteps both the URL-construction step and its fallback.
+import PdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?worker';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker();
 
 // Shared PDF document loader — both this file's text extraction and
 // tabOcr.js's page-image rendering (for the scanned/image-PDF fallback)

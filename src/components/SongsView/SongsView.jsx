@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { useInstrument } from '../../instruments/useInstrument';
 import { SongVideoPlayer } from '../SongVideoPlayer/SongVideoPlayer';
 import { TabViewer } from '../TabViewer/TabViewer';
+import { TabPdfImporter } from '../TabPdfImporter/TabPdfImporter';
 import './SongsView.css';
 
 // Query-builder only — this app can't legitimately host chord charts, lyrics,
@@ -68,10 +70,11 @@ const SEARCH_MODE_TEXT = {
   gpFiles: { fieldLabelKey: 'songs.gpFilesFieldLabel', placeholderKey: 'songs.gpFilesPlaceholder', emptyHintKey: 'songs.emptyHintGpFiles' },
 };
 
-export function SongsView({ onSongActiveChordChange }) {
+export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSongTabPlayingOrderChange }) {
   const [mode, setMode] = useState('song');
   const [query, setQuery] = useState('');
   const { t } = useLanguage();
+  const { instrument } = useInstrument();
 
   const trimmed = query.trim();
   const destinations = DESTINATIONS[mode];
@@ -94,6 +97,11 @@ export function SongsView({ onSongActiveChordChange }) {
           <option value="solo">{t('songs.mode.solo')}</option>
           <option value="video">{t('songs.mode.video')}</option>
           <option value="tab">{t('songs.mode.tab')}</option>
+          {/* Reads fret positions off a plain-text TAB and plays them back
+              on the neck — a fretboard-specific concept with no piano
+              equivalent, same reasoning as CAGED/Scale Practice being
+              guitar-only elsewhere in the app. */}
+          {instrument === 'guitar' && <option value="tabPdf">{t('songs.mode.tabPdf')}</option>}
           <option value="gpFiles">{t('songs.mode.gpFiles')}</option>
         </select>
       </label>
@@ -102,6 +110,8 @@ export function SongsView({ onSongActiveChordChange }) {
         <SongVideoPlayer onActiveChordChange={onSongActiveChordChange} />
       ) : mode === 'tab' ? (
         <TabViewer onActiveChordChange={onSongActiveChordChange} />
+      ) : mode === 'tabPdf' && instrument === 'guitar' ? (
+        <TabPdfImporter onLickChange={onSongTabLickChange} onPlayingOrderChange={onSongTabPlayingOrderChange} />
       ) : (
         <>
           <div className="songs-search-field">

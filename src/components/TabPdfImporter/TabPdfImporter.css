@@ -1,0 +1,105 @@
+.tab-pdf-importer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tab-pdf-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.tab-pdf-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tab-pdf-file-input {
+  display: none;
+}
+
+.tab-pdf-upload-btn,
+.tab-pdf-play-btn {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tab-pdf-upload-btn:hover,
+.tab-pdf-play-btn:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.14);
+}
+
+.tab-pdf-play-btn {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tab-pdf-play-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.tab-pdf-filename {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.tab-pdf-status {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.tab-pdf-error {
+  font-size: 13px;
+  color: var(--danger);
+  margin: 0;
+}
+
+.tab-pdf-ready {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.tab-pdf-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tab-pdf-speed-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.tab-pdf-speed-field select {
+  height: var(--control-height);
+}
+
+.tab-pdf-tuning-note {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+}

@@ -91,6 +91,13 @@ function App() {
   // practiceTab is, so the shared Stage Fretboard/piano below can highlight
   // its voicing live while a play-along video plays.
   const [songActiveChord, setSongActiveChord] = useState(null);
+  // Songs -> PDF Tab import: a parsed lick ({notes: [...]})  and which note
+  // is currently playing, same shape/role as Improvise -> Licks' own
+  // fretboardLick/fretboardPlayingOrder — set null->null when nothing's
+  // been uploaded yet, so the plain chord-position branch below still
+  // takes over for Songs -> Video same as before.
+  const [songTabLick, setSongTabLick] = useState(null);
+  const [songTabPlayingOrder, setSongTabPlayingOrder] = useState(null);
   // Lifted out of PracticeView (rather than owned as local state there) so
   // the shared Stage's fretboard-content resolver below knows whether
   // Practice is currently showing Drills or Ear Training.
@@ -1209,11 +1216,13 @@ function App() {
         ? { position: null, drillNotes, labelMode: drill.noteLabelMode }
         : resolveCagedStageProps(activeCagedLesson, cagedPositions)
       : activeSection === 'songs'
-      ? {
-          position: songCurrentPosition,
-          chordColor: songActiveChord ? colorForChord(songActiveChord) : undefined,
-          labelMode: 'note',
-        }
+      ? songTabLick
+        ? { position: null, lick: songTabLick, playingNoteOrder: songTabPlayingOrder }
+        : {
+            position: songCurrentPosition,
+            chordColor: songActiveChord ? colorForChord(songActiveChord) : undefined,
+            labelMode: 'note',
+          }
       : {
           // Smooth replaces the normal chord-tone dots with its own overlay
           // (below) rather than layering both — showing the same notes
@@ -1643,7 +1652,13 @@ function App() {
         />
       )}
 
-      {activeSection === 'songs' && <SongsView onSongActiveChordChange={setSongActiveChord} />}
+      {activeSection === 'songs' && (
+        <SongsView
+          onSongActiveChordChange={setSongActiveChord}
+          onSongTabLickChange={setSongTabLick}
+          onSongTabPlayingOrderChange={setSongTabPlayingOrder}
+        />
+      )}
 
       {activeSection === 'vocal' && <VocalTrainingView />}
     </AppShell>

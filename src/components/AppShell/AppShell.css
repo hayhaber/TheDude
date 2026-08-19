@@ -355,24 +355,25 @@
     max-width: 280px;
   }
 
-  /* The bar itself stays exactly --bottom-tabs-height tall — same 62px
-     box, same centered icon+label spacing as on a viewport with no
-     safe area at all — and FLOATS above the home-indicator safe area
-     via `bottom` instead of growing to cover it. Two earlier attempts
-     both grew the box's own height to absorb the safe area (once via
-     padding-bottom, once via centering within the taller box); both
-     left extra room INSIDE the bar itself, pushing its spacing out of
-     proportion with the original design instead of leaving it alone.
-     Shifting the whole bar up keeps the bar's own spacing untouched;
-     the safe-area strip below it is simply outside the bar, showing
-     the page's own background (which already matches). */
+  /* Floating the bar above the safe area (an earlier attempt) left the
+     safe-area strip as a bare, disconnected rectangle of plain page
+     background below the bar — worse than the original "too much space"
+     complaint, since it now reads as an obviously wasted, unstyled gap
+     rather than part of the nav chrome. Back to growing the bar's own
+     height so its background/border/shadow extend seamlessly all the
+     way to the true bottom edge (no separate box) — but this time the
+     icon+label content is pinned near the TOP of the bar with a small
+     fixed offset (matching the original ~14px gap) via flex-start
+     instead of centered, so the safe area only adds its own real size
+     as extra footer below, instead of also stacking a second helping of
+     center-driven margin on top of it. */
   .app-bottom-tabs {
     display: flex;
     position: fixed;
     left: 0;
     right: 0;
-    bottom: env(safe-area-inset-bottom, 0px);
-    height: var(--bottom-tabs-height);
+    bottom: 0;
+    height: calc(var(--bottom-tabs-height) + env(safe-area-inset-bottom, 0px));
     background: var(--surface);
     border-top: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
@@ -384,7 +385,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: 14px;
     gap: 2px;
     border: none;
     background: transparent;

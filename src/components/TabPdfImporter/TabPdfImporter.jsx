@@ -73,7 +73,13 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
       setStatus('ocr');
       setUsedOcr(true);
       const ocrRows = await ocrPdfToTextRows(file, { onProgress: setOcrProgress });
-      if (parseAsciiTab(ocrRows).length === 0) throw new Error(t('songs.tabPdf.noNotesFound'));
+      // Always show what OCR actually recognized, even if it doesn't
+      // parse cleanly as-is — that's the whole point of the review step
+      // (OCR on dense tab notation is never fully reliable): the player
+      // gets to see and fix it via "Parse & Preview" (handleParse already
+      // surfaces its own error there) instead of the raw text being
+      // silently discarded the one time it's most likely to need a fix.
+      if (ocrRows.every((r) => r.trim() === '')) throw new Error(t('songs.tabPdf.noNotesFound'));
       setRowsText(ocrRows.join('\n'));
       setStatus('review');
     } catch (err) {

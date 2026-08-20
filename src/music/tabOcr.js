@@ -159,51 +159,79 @@ function cropBand(canvas, [y0, y1], padding = 4) {
   return cropped;
 }
 
-// A mostly-blank tab line (all filler dashes, one or two lonely fret
-// numbers far apart) reads completely differently to Tesseract than a
-// busy one: SPARSE_TEXT mode's own layout analysis treats the isolated
-// digit groups as separate disconnected text regions rather than one
-// line, so its plain `text` output comes back fragmented — verified
-// directly against real content. Reassembling it from each region's own
-// word-level bounding box position gets the digits back in roughly the
-// right column; anything below `minConfidence` is discarded rather than
-// kept as noise, since a low-confidence guess on what's overwhelmingly
-// likely to just be another "-" is worse than assuming "-".
-function reconstructFromWords(words, minConfidence = 50) {
-  const good = words.filter((w) => w.confidence >= minConfidence && w.text.trim());
-  if (good.length === 0) return '';
-  const widthSamples = good.filter((w) => w.text.length >= 2).map((w) => (w.bbox.x1 - w.bbox.x0) / w.text.length);
-  const charWidth = widthSamples.length ? median(widthSamples) : 10;
-  const maxX1 = Math.max(...good.map((w) => w.bbox.x1));
-  const totalCols = Math.ceil(maxX1 / charWidth) + 2;
-  const chars = new Array(totalCols).fill('-');
-  for (const w of good) {
-    const startCol = Math.round(w.bbox.x0 / charWidth);
-    for (let i = 0; i < w.text.length; i++) {
-      const c = startCol + i;
-      if (c >= 0 && c < chars.length) chars[c] = w.text[i];
-    }
-  }
-  // Trailing dashes are legitimate (real filler); a LEADING dash is
-  // always a reconstruction rounding artifact (a real tab line always
-  // starts at its string-label letter, never a dash before it) and
-  // would otherwise stop tabPdfParser.js's own line-format regex from
-  // recognizing this as a valid string line at all.
-  return chars.join('').replace(/^-+/, '');
+// Recognizes one already-cropped, single-string-line image and returns
+// its raw recognized WORDS (bbox + text + confidence) — NOT yet turned
+// into a text string. `cropBand` only trims the canvas vertically, so a
+// word's own x0/x1 here is already the same absolute pixel coordinate
+// every other string-line in the same block was measured in; that
+// shared coordinate space is what reconstructBlockRows below depends on
+// to keep two strings' notes correctly aligned to the same moment in
+// time, not just correctly aligned within each string's own line.
+async function recognizeLineWords(worker, lineCanvas) {
+  const { data } = await worker.recognize(lineCanvas, {}, { blocks: true });
+  return (data.blocks ?? []).flatMap((b) => b.paragraphs.flatMap((p) => p.lines.flatMap((l) => l.words)));
 }
 
-// Recognizes one already-cropped, single-string-line image. A busy line
-// (lots of digits/symbols close together) stays as one coherent run in
-// Tesseract's own plain-text output — used as-is, since it's already
-// reliable. A quiet line doesn't (see reconstructFromWords's own
-// comment) — detected by the plain text coming back as more than one
-// line, and rebuilt from word positions instead.
-async function recognizeLine(worker, lineCanvas) {
-  const { data } = await worker.recognize(lineCanvas, {}, { blocks: true });
-  const plain = data.text.trim();
-  if (plain.length > 0 && !plain.includes('\n')) return plain;
-  const words = (data.blocks ?? []).flatMap((b) => b.paragraphs.flatMap((p) => p.lines.flatMap((l) => l.words)));
-  return reconstructFromWords(words);
+// Tesseract's own per-word confidence score is only meaningful for
+// SHORT words — verified directly: a long, character-for-character
+// CORRECT run (a busy tab line read as one ~60-character word) still
+// scored a confidence of 10, apparently because a few visually-ambiguous
+// characters inside a long word drag its aggregate score down even when
+// every character was actually read right. A short (1-2 char) low-
+// confidence word, on the other hand, really is likely noise (a
+// misread fragment of a mostly-dash line) — worth discarding rather
+// than trusting. So length alone decides whether confidence is
+// consulted at all, not a blanket threshold.
+const LONG_WORD_CHARS = 6;
+function isTrustworthyWord(w, minConfidence) {
+  return w.text.trim() && (w.text.length >= LONG_WORD_CHARS || w.confidence >= minConfidence);
+}
+
+// A real tab reads top-to-bottom as much as left-to-right: two fret
+// numbers stacked directly on top of each other (same horizontal
+// position, different strings) are struck TOGETHER, not one after the
+// other — a single column position by itself doesn't carry a note's
+// timing correctly unless it's measured in the SAME coordinate space
+// every other string in that block used. Rebuilding each of the 6 lines
+// independently (this function's earlier version) let each one's own
+// estimated character width drift slightly from its neighbors', which
+// is exactly what breaks that vertical alignment — a note ends up a
+// column or two off from where the SAME moment landed on another
+// string. Estimating ONE shared character width from every recognized
+// word across the whole block fixes that: same width, same origin
+// (x=0), for all 6 lines, so a column index means the same physical x
+// position — and therefore the same instant — on every string.
+function reconstructBlockRows(perLineWords, minConfidence = 50) {
+  const allGoodWords = perLineWords
+    .flat()
+    .filter((w) => isTrustworthyWord(w, minConfidence))
+    // A single stray character (misread noise from a mostly-dash line)
+    // is a bad width sample; multi-character words (a real fret number,
+    // or the string's own "X|" label) are reliable ones.
+    .filter((w) => w.text.length >= 2);
+  const widthSamples = allGoodWords.map((w) => (w.bbox.x1 - w.bbox.x0) / w.text.length);
+  const charWidth = widthSamples.length ? median(widthSamples) : 10;
+
+  return perLineWords.map((words) => {
+    const good = words.filter((w) => isTrustworthyWord(w, minConfidence));
+    if (good.length === 0) return '';
+    const maxX1 = Math.max(...good.map((w) => w.bbox.x1));
+    const totalCols = Math.ceil(maxX1 / charWidth) + 2;
+    const chars = new Array(totalCols).fill('-');
+    for (const w of good) {
+      const startCol = Math.round(w.bbox.x0 / charWidth);
+      for (let i = 0; i < w.text.length; i++) {
+        const c = startCol + i;
+        if (c >= 0 && c < chars.length) chars[c] = w.text[i];
+      }
+    }
+    // Trailing dashes are legitimate (real filler); a LEADING dash is
+    // always a reconstruction rounding artifact (a real tab line always
+    // starts at its string-label letter, never a dash before it) and
+    // would otherwise stop tabPdfParser.js's own line-format regex from
+    // recognizing this as a valid string line at all.
+    return chars.join('').replace(/^-+/, '');
+  });
 }
 
 // OCR fallback for a PDF with no real text layer (a scanned/rasterized
@@ -218,11 +246,11 @@ export async function ocrPdfToTextRows(file, { onProgress } = {}) {
   const worker = await createWorker('eng', 1, {});
   await worker.setParameters({
     tessedit_char_whitelist: TAB_CHAR_WHITELIST,
-    // SPARSE_TEXT (not SINGLE_LINE) — the case this is actually tuned
-    // for (a busy line staying one coherent run vs. a quiet line
-    // fragmenting into separate regions) only shows up under SPARSE_TEXT;
-    // SINGLE_LINE forces everything into one guess either way, at the
-    // cost of exactly the sparse-line accuracy recognizeLine() recovers.
+    // SPARSE_TEXT (not SINGLE_LINE) — a quiet line's isolated digit
+    // groups need to come back as separate word-level regions (each
+    // with its own bounding box) for reconstructBlockRows to place
+    // correctly; SINGLE_LINE instead forces the whole line into one
+    // guess, which is exactly what a mostly-blank line reads badly as.
     tessedit_pageseg_mode: PSM.SPARSE_TEXT,
   });
 
@@ -233,31 +261,41 @@ export async function ocrPdfToTextRows(file, { onProgress } = {}) {
       const canvas = await withTimeout(renderPageToCanvas(page), PAGE_TIMEOUT_MS, `Page ${pageNum} took too long to render.`);
       const bands = detectLineBands(canvas);
 
-      for (let i = 0; i < bands.length; i++) {
-        // A fresh blank row every STRINGS_PER_BLOCK lines — bands are
-        // already grouped into fixed 6-line blocks by detectLineBands,
-        // so the block boundary is just "every 6th band," no separate
-        // gap-based inference needed here.
-        if (i > 0 && i % STRINGS_PER_BLOCK === 0) rows.push('');
+      // Recognized a full BLOCK (STRINGS_PER_BLOCK bands) at a time —
+      // reconstructBlockRows needs every string's words up front to
+      // measure one shared character width/origin across all of them
+      // (see its own comment on why that's what keeps two strings'
+      // notes correctly aligned to the same moment, not just correctly
+      // ordered within each string on its own).
+      for (let blockStart = 0; blockStart < bands.length; blockStart += STRINGS_PER_BLOCK) {
+        const blockBands = bands.slice(blockStart, blockStart + STRINGS_PER_BLOCK);
+        const perLineWords = [];
+        for (let i = 0; i < blockBands.length; i++) {
+          const lineCanvas = cropBand(canvas, blockBands[i]);
+          const words = await withTimeout(
+            recognizeLineWords(worker, lineCanvas),
+            PAGE_TIMEOUT_MS,
+            `Page ${pageNum}, line ${blockStart + i + 1} took too long to read.`
+          );
+          perLineWords.push(words);
 
-        const lineCanvas = cropBand(canvas, bands[i]);
-        const line = await withTimeout(
-          recognizeLine(worker, lineCanvas),
-          PAGE_TIMEOUT_MS,
-          `Page ${pageNum}, line ${i + 1} took too long to read.`
-        );
-        // An entirely blank string-line (nothing recognized at all — a
-        // genuinely legitimate, common result: most strings in a lead
-        // riff just aren't played) still needs to occupy its OWN row, not
-        // an actually-empty one — tabPdfParser.js's groupRows() uses a
-        // truly blank row to mean "end of this 6-line block," so pushing
-        // '' here would make a quiet string look like a phrase break and
-        // silently drop the rest of the block along with it.
-        rows.push(line.trim() === '' ? '-' : line);
+          const pageStart = (pageNum - 1) / pdf.numPages;
+          const pageSpan = 1 / pdf.numPages;
+          onProgress?.(pageStart + ((blockStart + i + 1) / Math.max(bands.length, 1)) * pageSpan);
+        }
 
-        const pageStart = (pageNum - 1) / pdf.numPages;
-        const pageSpan = 1 / pdf.numPages;
-        onProgress?.(pageStart + ((i + 1) / Math.max(bands.length, 1)) * pageSpan);
+        if (blockStart > 0) rows.push('');
+        for (const line of reconstructBlockRows(perLineWords)) {
+          // An entirely blank string-line (nothing recognized at all —
+          // a genuinely legitimate, common result: most strings in a
+          // lead riff just aren't played) still needs to occupy its OWN
+          // row, not an actually-empty one — tabPdfParser.js's
+          // groupRows() uses a truly blank row to mean "end of this
+          // 6-line block," so pushing '' here would make a quiet string
+          // look like a phrase break and silently drop the rest of the
+          // block along with it.
+          rows.push(line.trim() === '' ? '-' : line);
+        }
       }
 
       rows.push('');

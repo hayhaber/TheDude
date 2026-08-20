@@ -55,34 +55,116 @@ async function renderPageToCanvas(page) {
 // degrading — sometimes to nothing at all — recognition of the digits
 // actually mixed into those lines. One line at a time has no neighboring
 // lines to get confused with.
-function detectLineBands(canvas) {
+function median(numbers) {
+  const sorted = [...numbers].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// Raw pass: any row with at least one dark pixel counts as "inside a
+// line" — a "-" character is thin and a mostly-unplayed string line (a
+// long run of dashes, no digits) has far less ink than a line full of
+// fret numbers, so a stricter per-row pixel-count threshold reliably
+// finds the busy lines but silently loses the quiet ones entirely
+// (verified against a real tab: the one digit-heavy line came through
+// perfectly, the other five collapsed into a single blob). A gap only
+// ends a band after 2 consecutive all-white rows, so a single stray
+// anti-aliasing pixel-row doesn't fracture one real line into two.
+function detectRawBands(canvas) {
   const ctx = canvas.getContext('2d');
   const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const darkCountPerRow = new Array(canvas.height).fill(0);
+  const hasDarkPixel = new Array(canvas.height).fill(false);
   for (let y = 0; y < canvas.height; y++) {
-    let dark = 0;
     for (let x = 0; x < canvas.width; x++) {
       const i = (y * canvas.width + x) * 4;
       const luminance = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-      if (luminance < 200) dark++;
+      if (luminance < 220) {
+        hasDarkPixel[y] = true;
+        break;
+      }
     }
-    darkCountPerRow[y] = dark;
   }
 
   const bands = [];
   let inBand = false;
   let start = 0;
+  let blankRun = 0;
   for (let y = 0; y < canvas.height; y++) {
-    const isDark = darkCountPerRow[y] > 2;
-    if (isDark && !inBand) {
-      inBand = true;
-      start = y;
-    } else if (!isDark && inBand) {
-      inBand = false;
-      bands.push([start, y]);
+    if (hasDarkPixel[y]) {
+      blankRun = 0;
+      if (!inBand) {
+        inBand = true;
+        start = y;
+      }
+    } else if (inBand) {
+      blankRun += 1;
+      if (blankRun >= 2) {
+        inBand = false;
+        bands.push([start, y - blankRun + 1]);
+      }
     }
   }
   if (inBand) bands.push([start, canvas.height]);
+  return bands;
+}
+
+// Real tab notation is a rigid grid — every string-line in a block is the
+// SAME height, at the SAME fixed pitch, monospace font — so once the
+// raw pass above finds a handful of reliably-detected (busy) lines to
+// measure that pitch from, any band or gap that's a multiple of it too
+// TALL almost certainly swallowed one or more quiet lines the raw pass
+// couldn't see on their own, rather than genuinely being one unusually
+// tall line or one unusually large gap. Splitting/filling those evenly
+// recovers the lines the pixel-darkness pass alone silently drops.
+function detectLineBands(canvas) {
+  const rawBands = detectRawBands(canvas);
+  if (rawBands.length < 3) return rawBands;
+
+  // The reference "one line" height comes from the SMALLEST bands, not
+  // the median of all of them — a band that's actually several merged
+  // lines is always taller than a real single line, so including it
+  // would drag the "typical" height up and mask exactly the anomaly
+  // this is meant to catch (verified: with only a couple of bands, a
+  // plain median gets skewed enough by one merged band that it no
+  // longer looks anomalous relative to itself).
+  const heights = rawBands.map(([y0, y1]) => y1 - y0);
+  const gaps = [];
+  for (let i = 1; i < rawBands.length; i++) gaps.push(rawBands[i][0] - rawBands[i - 1][1]);
+  const smallestHalf = [...heights].sort((a, b) => a - b).slice(0, Math.max(1, Math.ceil(heights.length / 2)));
+  const medianHeight = median(smallestHalf);
+  const medianGap = median(gaps.filter((g) => g > 0)) || medianHeight;
+  const linePitch = medianHeight + medianGap;
+  if (linePitch <= 0) return rawBands;
+
+  const bands = [];
+  for (let i = 0; i < rawBands.length; i++) {
+    const [y0, y1] = rawBands[i];
+    const height = y1 - y0;
+    const extraLines = Math.round(height / linePitch) - 1;
+    if (extraLines > 0 && extraLines <= 8) {
+      // This one band is actually N lines merged together — slice it
+      // into N evenly-sized pieces instead of one oversized crop.
+      const sliceHeight = height / (extraLines + 1);
+      for (let s = 0; s <= extraLines; s++) bands.push([Math.round(y0 + s * sliceHeight), Math.round(y0 + (s + 1) * sliceHeight)]);
+    } else {
+      bands.push([y0, y1]);
+    }
+
+    if (i < rawBands.length - 1) {
+      const gap = rawBands[i + 1][0] - y1;
+      const missingLines = Math.round(gap / linePitch) - 1;
+      if (missingLines > 0 && missingLines <= 8) {
+        // A suspiciously large GAP instead — one or more quiet lines
+        // that never crossed the darkness threshold at all, estimated
+        // into place at the same fixed pitch.
+        const sliceHeight = gap / (missingLines + 1);
+        for (let s = 1; s <= missingLines; s++) {
+          const estStart = Math.round(y1 + s * sliceHeight - medianHeight / 2);
+          bands.push([Math.max(0, estStart), estStart + Math.round(medianHeight)]);
+        }
+      }
+    }
+  }
   return bands;
 }
 

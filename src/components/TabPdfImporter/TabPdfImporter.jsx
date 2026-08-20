@@ -12,6 +12,22 @@ const SPEED_OPTIONS = [
   { key: 'fast', multiplier: 0.6 },
 ];
 
+// A full tab is easily 50-100+ notes — Fretboard.jsx's lick overlay draws
+// every one of a lick's notes as its own numbered dot at once (exactly
+// right for a short 5-10 note Improvise lick, the only thing it was built
+// to show), so handing it the WHOLE parsed tab turns the neck into an
+// unreadable pile of overlapping numbers. Only ever hand it a small
+// window CENTERED ON the current playback position instead — reads like
+// following along one short phrase at a time, the same way the source
+// chart itself is laid out in short bar-by-bar units, not shown as one
+// giant chart across the whole page.
+const WINDOW_BEFORE = 1;
+const WINDOW_AFTER = 4;
+
+function windowAroundOrder(notes, order) {
+  return notes.filter((n) => n.order >= order - WINDOW_BEFORE && n.order <= order + WINDOW_AFTER);
+}
+
 // Upload a guitar TAB PDF and play it back note-by-note on the shared
 // Stage Fretboard, reusing the EXACT same lick-playback overlay
 // Improvise -> Licks already has (`onLickChange`/`onPlayingOrderChange`
@@ -98,7 +114,10 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
     setError(null);
     setNotes(parsed);
     setStatus('ready');
-    onLickChange?.({ notes: parsed });
+    // A small preview window starting at the first note — NOT the whole
+    // tab (see windowAroundOrder's own comment) — updated to follow along
+    // as playback advances (onNoteStart below).
+    onLickChange?.({ notes: windowAroundOrder(parsed, parsed[0].order) });
   }
 
   function handlePlay() {
@@ -107,7 +126,10 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
     const scaled = notes.map((n) => ({ ...n, durationMultiplier: (n.durationMultiplier ?? 1) * multiplier }));
     setIsPlaying(true);
     playbackRef.current = playLick(scaled, {
-      onNoteStart: (note) => onPlayingOrderChange?.(note.order),
+      onNoteStart: (note) => {
+        onPlayingOrderChange?.(note.order);
+        onLickChange?.({ notes: windowAroundOrder(notes, note.order) });
+      },
       onDone: () => {
         setIsPlaying(false);
         playbackRef.current = null;
@@ -121,6 +143,7 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
     playbackRef.current = null;
     setIsPlaying(false);
     onPlayingOrderChange?.(null);
+    if (notes.length > 0) onLickChange?.({ notes: windowAroundOrder(notes, notes[0].order) });
   }
 
   return (

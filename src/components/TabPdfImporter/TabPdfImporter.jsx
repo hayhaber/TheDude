@@ -42,6 +42,7 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
   const [speed, setSpeed] = useState('normal');
   const [isPlaying, setIsPlaying] = useState(false);
   const fileInputRef = useRef(null);
+  const playbackRef = useRef(null);
 
   function resetForNewFile() {
     setError(null);
@@ -105,13 +106,21 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
     const multiplier = SPEED_OPTIONS.find((s) => s.key === speed).multiplier;
     const scaled = notes.map((n) => ({ ...n, durationMultiplier: (n.durationMultiplier ?? 1) * multiplier }));
     setIsPlaying(true);
-    playLick(scaled, {
+    playbackRef.current = playLick(scaled, {
       onNoteStart: (note) => onPlayingOrderChange?.(note.order),
       onDone: () => {
         setIsPlaying(false);
+        playbackRef.current = null;
         onPlayingOrderChange?.(null);
       },
     });
+  }
+
+  function handleStop() {
+    playbackRef.current?.stop();
+    playbackRef.current = null;
+    setIsPlaying(false);
+    onPlayingOrderChange?.(null);
   }
 
   return (
@@ -203,6 +212,9 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
             </label>
             <button type="button" className="tab-pdf-play-btn" onClick={handlePlay} disabled={isPlaying}>
               {isPlaying ? t('songs.tabPdf.playing') : `▶ ${t('songs.tabPdf.play')}`}
+            </button>
+            <button type="button" className="tab-pdf-stop-btn" onClick={handleStop} disabled={!isPlaying}>
+              ■ {t('songs.tabPdf.stop')}
             </button>
           </div>
 

@@ -473,6 +473,7 @@ export const STRINGS = {
     'songs.tabPdf.speed.fast': 'Fast',
     'songs.tabPdf.play': 'Play',
     'songs.tabPdf.playing': 'Playing…',
+    'songs.tabPdf.stop': 'Stop',
     'songs.tabPdf.tuningNote':
       "Fret positions are read straight from the tab, so they're correct regardless of tuning — only the note names shown assume standard tuning. If the file specifies an alternate tuning, tune down/up to match before playing along.",
     'songs.tab.upload': 'Upload Tab',
@@ -1385,6 +1386,7 @@ export const STRINGS = {
     'songs.tabPdf.speed.fast': 'מהיר',
     'songs.tabPdf.play': 'נגן',
     'songs.tabPdf.playing': 'מנגן…',
+    'songs.tabPdf.stop': 'עצור',
     'songs.tabPdf.tuningNote':
       'פוזיציית הפרט נקראת ישירות מהטאב, כך שהיא נכונה בלי קשר לכוונון — רק שמות התווים המוצגים מניחים כוונון סטנדרטי. אם הקובץ מציין כוונון חלופי, כוונו בהתאם לפני הנגינה.',
     'songs.tab.upload': 'העלאת טאב',

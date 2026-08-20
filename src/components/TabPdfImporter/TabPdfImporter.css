@@ -21,7 +21,8 @@
 }
 
 .tab-pdf-upload-btn,
-.tab-pdf-play-btn {
+.tab-pdf-play-btn,
+.tab-pdf-stop-btn {
   font-size: 13px;
   font-weight: 590;
   padding: 8px 16px;
@@ -34,7 +35,8 @@
 }
 
 .tab-pdf-upload-btn:hover,
-.tab-pdf-play-btn:hover:not(:disabled) {
+.tab-pdf-play-btn:hover:not(:disabled),
+.tab-pdf-stop-btn:hover:not(:disabled) {
   background: rgba(120, 120, 128, 0.14);
 }
 
@@ -44,7 +46,14 @@
   color: var(--accent);
 }
 
-.tab-pdf-play-btn:disabled {
+.tab-pdf-stop-btn {
+  background: rgba(255, 59, 48, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.tab-pdf-play-btn:disabled,
+.tab-pdf-stop-btn:disabled {
   opacity: 0.6;
   cursor: default;
 }

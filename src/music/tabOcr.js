@@ -225,12 +225,22 @@ function reconstructBlockRows(perLineWords, minConfidence = 50) {
         if (c >= 0 && c < chars.length) chars[c] = w.text[i];
       }
     }
-    // Trailing dashes are legitimate (real filler); a LEADING dash is
-    // always a reconstruction rounding artifact (a real tab line always
-    // starts at its string-label letter, never a dash before it) and
-    // would otherwise stop tabPdfParser.js's own line-format regex from
-    // recognizing this as a valid string line at all.
-    return chars.join('').replace(/^-+/, '');
+    // Trailing dashes are legitimate (real filler); so are LEADING ones
+    // on a line with no label of its own — its content can genuinely
+    // start many real columns in (a note appearing well into an
+    // otherwise-quiet string), and that offset IS its correct position
+    // relative to every other string in the block, not noise to erase.
+    // Only strip a leading dash when a label immediately follows it — a
+    // real rounding artifact from that specific case (verified directly:
+    // "B|" landing one column short of the block's shared origin), NOT a
+    // general rule. Stripping unconditionally was itself a bug: it also
+    // erased genuine positional dashes ahead of unlabeled content,
+    // making that content look like it happened at the very start of
+    // the block instead of wherever it actually falls — verified this
+    // directly against a real OCR read where it produced exactly that:
+    // a later note reordered ahead of the block's true first note.
+    const withoutRoundingArtifact = chars.join('').replace(/^-+(?=[A-Ga-g][#b]?\|)/, '');
+    return withoutRoundingArtifact;
   });
 }
 

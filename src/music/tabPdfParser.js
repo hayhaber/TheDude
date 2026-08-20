@@ -34,7 +34,21 @@ const HAMMER_PULL_RE = /[hHpP]/;
 const SLIDE_RE = /[/\\]/;
 const BEND_RE = /[bB]/;
 const STRING_LINE_RE = /^\s*([A-Ga-g])([#b]?)\s*\|(.*)$/;
-const CONTINUATION_LINE_RE = /^\s*([-|\dhHpPbB/\\~]+)\s*$/;
+// Whitespace is allowed ANYWHERE, not just at the two ends — OCR output
+// for an unlabeled continuation line sometimes has a stray internal space
+// (e.g. before a recognized trailing "|"), which used to make the whole
+// line fail to match at all and get silently dropped (verified against a
+// real file: this is exactly what happened to an otherwise near-perfect
+// reading of the busiest, most important line in a block).
+const CONTINUATION_LINE_RE = /^[-|\dhHpPbB/\\~\s]+$/;
+// No real fret number is 3+ digits (guitar tops out well under 100 frets
+// in practice) — a run of 3+ consecutive digits in an unlabeled line is
+// unambiguously OCR noise (verified against a real file: page furniture
+// like a misread bar/measure counter), never a genuine note, so it's
+// safe to reject outright rather than risk it becoming a bogus phantom
+// line that throws off which physical string every REAL line after it
+// in the same block maps to.
+const GARBAGE_DIGIT_RUN_RE = /\d{3,}/;
 
 function isBlank(line) {
   return line.trim() === '';
@@ -42,16 +56,21 @@ function isBlank(line) {
 
 // A "labeled" line's tab content is everything after the first `|`; a bare
 // continuation line's content is the whole line. Either way, strip the
-// remaining `|` bar separators — they only mattered for finding the line in
-// the first place, not for column position within the concatenated stream.
+// remaining `|` bar separators and any stray whitespace — neither carries
+// real column position (this app's own reconstruction always fills gaps
+// with "-", never a space) and leaving whitespace in would shift every
+// character after it by one column, breaking exactly the cross-string
+// alignment tabOcr.js's reconstructBlockRows works to preserve.
 function tabContent(line) {
   const labeled = line.match(STRING_LINE_RE);
   const raw = labeled ? labeled[3] : line;
-  return raw.replace(/\|/g, '');
+  return raw.replace(/[|\s]/g, '');
 }
 
 function looksLikeStringLine(line) {
-  return STRING_LINE_RE.test(line) || CONTINUATION_LINE_RE.test(line);
+  if (STRING_LINE_RE.test(line)) return true;
+  if (!CONTINUATION_LINE_RE.test(line)) return false;
+  return !GARBAGE_DIGIT_RUN_RE.test(line);
 }
 
 // Splits the full row list into phrase groups (separated by blank rows),

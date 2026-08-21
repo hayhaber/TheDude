@@ -31,6 +31,9 @@ import { colorForChord, colorForNextChord } from './styles/colors';
 import { playPosition } from './audio/chordPlayer';
 import { playLick } from './audio/lickPlayer';
 import { playPianoNote, playPianoChord } from './audio/pianoPlayer';
+import { playBassNote } from './audio/bassPlayer';
+import { computeBassRootPosition, bassPositionToMidi } from './music/bassPositions';
+import { BASS_TUNING } from './music/notes';
 import { computePianoChordTones } from './music/pianoChordTones';
 import { computePianoScaleTones } from './music/pianoScaleTones';
 import { CHORD_INVERSIONS, DEFAULT_INVERSION, applyInversion, inversionSummary } from './music/pianoInversions';
@@ -694,6 +697,17 @@ function App() {
   // otherwise a single-chord best guess (see scaleAnalyzer.js).
   const activeParsed = progression[activeIndex]?.parsed ?? null;
 
+  // Compose -> Bass: a single root-note dot per chord (not a full 4-string
+  // shape — see music/bassPositions.js's own comment), recomputed only when
+  // Bass is actually selected, so Guitar/Piano mode never pay for this.
+  const bassRootPosition = useMemo(
+    () => (instrument === 'bass' ? computeBassRootPosition(activeParsed?.root ?? null) : null),
+    [instrument, activeParsed]
+  );
+  const bassFretKey = bassRootPosition
+    ? bassRootPosition.strings.map((s) => (s.fret === null ? 'x' : s.fret)).join('-')
+    : null;
+
   // Compose -> Smooth (piano): one greedily-chosen inversion per chord,
   // each picked to minimize how far the chord tones move versus the
   // previous chord's own chosen voicing (see music/pianoVoiceLeading.js —
@@ -771,9 +785,13 @@ function App() {
       if (activeParsed) playPianoChord(pianoChordTones.map((n) => n.midi));
       return;
     }
+    if (instrument === 'bass') {
+      if (bassRootPosition) playBassNote(bassPositionToMidi(bassRootPosition));
+      return;
+    }
     if (currentPosition) playPosition(currentPosition.strings, capoFret);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fretKey, autoPlay, instrument, pianoChordTones, capoFret]);
+  }, [fretKey, bassFretKey, autoPlay, instrument, pianoChordTones, capoFret]);
 
   // A lick is anchored to the currently shown shape (via position.baseFret) —
   // once that shape changes, the old lick's markers would no longer line up
@@ -808,6 +826,10 @@ function App() {
   function handlePlay() {
     if (instrument === 'piano') {
       if (activeParsed) playPianoChord(pianoChordTones.map((n) => n.midi));
+      return;
+    }
+    if (instrument === 'bass') {
+      if (bassRootPosition) playBassNote(bassPositionToMidi(bassRootPosition));
       return;
     }
     if (currentPosition) playPosition(currentPosition.strings, capoFret);
@@ -1223,6 +1245,23 @@ function App() {
             chordColor: songActiveChord ? colorForChord(songActiveChord) : undefined,
             labelMode: 'note',
           }
+      : instrument === 'bass'
+      ? // Compose -> Bass: a single root-note dot, drawn on the 4-string
+        // BASS_TUNING neck instead of the guitar's 6-string one. No Capo/
+        // Smooth/position-navigation concept here (see ComposeView.jsx —
+        // those controls only render in Guitar mode), so this deliberately
+        // omits capoFret/roadmap/landingNotes/voiceLeadingNotes wiring:
+        // roadmap/landingNotes/tension in InsightsPanel are computed
+        // independently of `instrument` already (they describe chord-tone
+        // note NAMES, not fretboard shapes) and keep working unchanged.
+        {
+          tuning: BASS_TUNING,
+          position: bassRootPosition,
+          chordColor,
+          labelMode: 'note',
+          onNoteClick: handleNoteClick,
+          capoFret: 0,
+        }
       : {
           // Smooth replaces the normal chord-tone dots with its own overlay
           // (below) rather than layering both — showing the same notes

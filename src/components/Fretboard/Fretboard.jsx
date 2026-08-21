@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { STANDARD_TUNING, MAX_FRET, FRET_MARKERS, DOUBLE_DOT_FRETS } from '../../music/notes';
 import { MUTED_DOT_COLOR, LICK_MARKER_COLOR, NOTE_FUNCTION_COLORS, TECHNIQUE_ACTION_COLOR, VOICE_LEADING_PIVOT_COLOR, VOICE_LEADING_MOVING_COLOR, DEFAULT_CHORD_COLOR, colorForChord } from '../../styles/colors';
 import { assignFingers } from '../../music/fingering';
@@ -101,8 +101,13 @@ function bendStepLabel(step) {
 // 3..5 (G/B/high-E) are plain, matching a standard electric set (plain G).
 // Pre-NECK_SCALE px; multiplied by NECK_SCALE at render time like every
 // other dimension on this neck.
-const STRING_GAUGE = [4.6, 3.8, 3.0, 2.2, 1.6, 1.2];
-const WOUND_STRING_COUNT = 3;
+const GUITAR_STRING_GAUGE = [4.6, 3.8, 3.0, 2.2, 1.6, 1.2];
+const GUITAR_WOUND_STRING_COUNT = 3;
+// Bass strings are noticeably thicker overall than guitar strings, and a
+// standard 4-string set is wound on all 4 (no plain/unwound strings the way
+// a guitar's G/B/high-E are).
+const BASS_STRING_GAUGE = [7.4, 6.2, 5.0, 4.0];
+const BASS_WOUND_STRING_COUNT = 4;
 
 // Heat Map note-importance tiers — chord tones already get the full-size
 // dots elsewhere, so this only covers what's layered underneath them.
@@ -198,13 +203,22 @@ export function Fretboard({
   // music/capo.js's soundingChordText; this just draws the bar so the neck
   // matches what Compose says.
   capoFret = 0,
+  // Which strings/tuning to draw — defaults to the guitar's own
+  // STANDARD_TUNING so every existing caller (which never passes this) is
+  // completely unaffected. Compose -> Bass passes BASS_TUNING (4 strings)
+  // instead; every layout calc below already derives from `tuning.length`
+  // rather than a hardcoded 6, so a shorter array just draws a shorter neck.
+  tuning = STANDARD_TUNING,
 }) {
   const { t } = useLanguage();
   const WINDOW_FRETS = useWindowFrets();
   const WINDOW_STEP = WINDOW_FRETS - 1; // one fret of overlap when paging, for context
-  const neckHeight = NECK_TOP + STRING_GAP * (STANDARD_TUNING.length - 1) + 60;
+  const neckHeight = NECK_TOP + STRING_GAP * (tuning.length - 1) + 60;
+  const isBassTuning = tuning.length !== STANDARD_TUNING.length;
+  const stringGauge = isBassTuning ? BASS_STRING_GAUGE : GUITAR_STRING_GAUGE;
+  const woundStringCount = isBassTuning ? BASS_WOUND_STRING_COUNT : GUITAR_WOUND_STRING_COUNT;
 
-  const stringY = (stringIndex) => NECK_TOP + (STANDARD_TUNING.length - 1 - stringIndex) * STRING_GAP;
+  const stringY = (stringIndex) => NECK_TOP + (tuning.length - 1 - stringIndex) * STRING_GAP;
   const fretX = (fretNumber) => NECK_LEFT + FRET_WIDTH * fretNumber;
 
   // The wood/binding surface's bounds — a real Les Paul fretboard extends a
@@ -212,7 +226,7 @@ export function Fretboard({
   // last fret, so this is intentionally slightly larger than the
   // string1-to-string6 / nut-to-last-fret box everything else is measured
   // against.
-  const surfaceTop = stringY(STANDARD_TUNING.length - 1) - SURFACE_MARGIN;
+  const surfaceTop = stringY(tuning.length - 1) - SURFACE_MARGIN;
   const surfaceBottom = stringY(0) + SURFACE_MARGIN;
   const surfaceLeft = fretX(0) - 4;
   const surfaceRight = fretX(MAX_FRET) + SURFACE_MARGIN * 0.6;
@@ -227,7 +241,7 @@ export function Fretboard({
   const fingers = useMemo(() => (position ? assignFingers(position) : null), [position]);
 
   function playStringNote(stringIndex, fret, info) {
-    playNote(STANDARD_TUNING[stringIndex].baseMidi + fret);
+    playNote(tuning[stringIndex].baseMidi + fret);
     if (onNoteClick && info) onNoteClick({ string: stringIndex, fret, ...info });
   }
 
@@ -572,7 +586,7 @@ export function Fretboard({
         {FRET_MARKERS.map((fret) => {
           const x = fretX(fret) - FRET_WIDTH / 2;
           const isDouble = DOUBLE_DOT_FRETS.includes(fret);
-          const midY = NECK_TOP + (STRING_GAP * (STANDARD_TUNING.length - 1)) / 2;
+          const midY = NECK_TOP + (STRING_GAP * (tuning.length - 1)) / 2;
           if (isDouble) {
             return (
               <g key={fret}>
@@ -627,8 +641,8 @@ export function Fretboard({
             Now <rect>s (real height) rather than <line>s (zero-height
             bounding box) specifically so these gradients/pattern actually
             render — see STRING_GAUGE's comment for the thickness ratio. */}
-        {STANDARD_TUNING.map((string, i) => {
-          const gauge = STRING_GAUGE[i] * NECK_SCALE;
+        {tuning.map((string, i) => {
+          const gauge = stringGauge[i] * NECK_SCALE;
           const y = stringY(i) - gauge / 2;
           return (
             <rect
@@ -642,9 +656,9 @@ export function Fretboard({
             />
           );
         })}
-        {STANDARD_TUNING.map((string, i) => {
-          const gauge = STRING_GAUGE[i] * NECK_SCALE;
-          const isWound = i < WOUND_STRING_COUNT;
+        {tuning.map((string, i) => {
+          const gauge = stringGauge[i] * NECK_SCALE;
+          const isWound = i < woundStringCount;
           const y = stringY(i) - gauge / 2;
           return (
             <g key={string.stringNumber}>
@@ -689,7 +703,7 @@ export function Fretboard({
         )}
 
         {/* open-string labels at the nut */}
-        {STANDARD_TUNING.map((string, i) => (
+        {tuning.map((string, i) => (
           <text key={string.stringNumber} x={NECK_LEFT - 45 * NECK_SCALE} y={stringY(i) + 5} className="string-label" textAnchor="middle">
             {string.openNote}
           </text>
@@ -941,9 +955,9 @@ export function Fretboard({
               role="button"
               tabIndex={0}
               aria-label={t('fretboard.playNote', { note: n.noteName })}
-              onClick={() => playNote(STANDARD_TUNING[n.string].baseMidi + n.fret)}
+              onClick={() => playNote(tuning[n.string].baseMidi + n.fret)}
               onKeyDown={(e) =>
-                (e.key === 'Enter' || e.key === ' ') && playNote(STANDARD_TUNING[n.string].baseMidi + n.fret)
+                (e.key === 'Enter' || e.key === ' ') && playNote(tuning[n.string].baseMidi + n.fret)
               }
             >
               {n.tier === 'current' && (
@@ -974,9 +988,9 @@ export function Fretboard({
               role="button"
               tabIndex={0}
               aria-label={t('fretboard.playNote', { note: n.noteName })}
-              onClick={() => playNote(STANDARD_TUNING[n.string].baseMidi + n.fret)}
+              onClick={() => playNote(tuning[n.string].baseMidi + n.fret)}
               onKeyDown={(e) =>
-                (e.key === 'Enter' || e.key === ' ') && playNote(STANDARD_TUNING[n.string].baseMidi + n.fret)
+                (e.key === 'Enter' || e.key === ' ') && playNote(tuning[n.string].baseMidi + n.fret)
               }
             >
               <circle

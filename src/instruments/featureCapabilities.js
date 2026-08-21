@@ -4,7 +4,22 @@
 // docs/PIANO_MODE_ARCHITECTURE.md's feature-mapping table when adding a new
 // feature or a new instrument.
 export const FEATURE_CAPABILITIES = {
-  compose: ['guitar', 'piano'],
+  // Bass only supports Compose for now (root-note-per-chord display) — every
+  // other feature key below intentionally does NOT list 'bass', so it stays
+  // hidden from nav in Bass mode via AppShell.jsx's existing
+  // supportsInstrument()-based filtering (same mechanism that already hides
+  // guitar-only features from Piano mode).
+  compose: ['guitar', 'piano', 'bass'],
+  // Top-level section entries — without these, AppShell.jsx's nav filter
+  // falls through to "unlisted = supported everywhere" and would show these
+  // whole sections (with their default guitar-flavored content) under Bass,
+  // even though every one of their own sub-tabs below is guitar/piano-only
+  // and Bass has nothing real to show there. `songs` already had this exact
+  // entry; `practice`/`studies` were missing it (a real gap, found live:
+  // switching to Bass and opening Practice showed full guitar picking
+  // drills unfiltered instead of disappearing from nav like Improvise does).
+  practice: ['guitar', 'piano'],
+  studies: ['guitar', 'piano'],
   scales: ['guitar', 'piano'],
   earTraining: ['guitar', 'piano'],
   songs: ['guitar', 'piano'],

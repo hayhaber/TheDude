@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { INSTRUMENTS, DEFAULT_INSTRUMENT } from './instrumentRegistry';
 import { getSplendidPiano } from '../audio/instrumentEngine';
+import { preloadBassSamples } from '../audio/bassPlayer';
 import { InstrumentContext } from './instrumentContextInstance';
 
 const STORAGE_KEY = 'instrument';
@@ -30,6 +31,8 @@ export function InstrumentProvider({ children }) {
     // useAudioSettings.js's guitar profile), so the Stage's first chord/
     // scale display isn't the one paying the full download latency.
     if (instrument === 'piano') getSplendidPiano();
+    // Same preload-on-selection pattern for Bass's sampled instrument.
+    if (instrument === 'bass') preloadBassSamples();
   }, [instrument]);
 
   return <InstrumentContext.Provider value={{ instrument, setInstrument }}>{children}</InstrumentContext.Provider>;

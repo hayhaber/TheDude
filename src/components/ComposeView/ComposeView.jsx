@@ -80,6 +80,10 @@ export function ComposeView({
   const { t } = useLanguage();
   const { instrument } = useInstrument();
   const isGuitar = instrument === 'guitar';
+  // Explicit, not `!isGuitar` — with Bass as a 3rd instrument value,
+  // `!isGuitar` is also true for Bass, which would incorrectly show piano's
+  // inversion controls/chord-tone summary in Bass mode.
+  const isPiano = instrument === 'piano';
   const activeChordText = progression[activeIndex]?.text ?? '';
 
   // Banking a group (Training's own "+") clears progressionText so the
@@ -220,7 +224,7 @@ export function ComposeView({
             from the previous one), different engine (inversion choice
             instead of fretboard shape). Doesn't erase any chord's manually
             set inversion underneath — see App.jsx's activePianoInversion. */}
-        {!isGuitar && (
+        {isPiano && (
           <span className="compose-smooth-toggle-row">
             <button
               type="button"
@@ -248,7 +252,7 @@ export function ComposeView({
           picker's spec asked for — guitar has no equivalent concept (a
           fretboard shape doesn't reorder which tone is lowest the way a
           keyboard voicing does). */}
-      {!isGuitar && pianoChordToneSummary && <p className="compose-piano-inversion-summary">{pianoChordToneSummary}</p>}
+      {isPiano && pianoChordToneSummary && <p className="compose-piano-inversion-summary">{pianoChordToneSummary}</p>}
 
       <PlaybackControls autoPlay={autoPlay} onToggleAutoPlay={setAutoPlay} onPlay={handlePlay} disabled={!currentPosition} />
 
@@ -272,7 +276,7 @@ export function ComposeView({
           activePianoInversion); the manual per-chord pick underneath still
           takes effect immediately if Smooth is turned back off, and chord 0's
           own pick is what Smooth anchors its whole sequence to. */}
-      {!isGuitar && isValid && (
+      {isPiano && isValid && (
         <PianoInversionControls
           inversion={activePianoInversion}
           setInversion={(key) => selectChordInversion(activeIndex, key)}

@@ -13,6 +13,7 @@ export const STRINGS = {
     'instrument.label': 'Instrument',
     'instrument.guitar': 'Guitar',
     'instrument.piano': 'Piano',
+    'instrument.bass': 'Bass',
     'instrument.guitarOnly': 'This feature is only available in Guitar Mode.',
 
     'piano.prevOctaves': 'Show lower octaves',
@@ -931,6 +932,7 @@ export const STRINGS = {
     'instrument.label': 'כלי נגינה',
     'instrument.guitar': 'גיטרה',
     'instrument.piano': 'פסנתר',
+    'instrument.bass': 'בס',
     'instrument.guitarOnly': 'התכונה הזו זמינה רק במצב גיטרה.',
 
     'piano.prevOctaves': 'הצג אוקטבות נמוכות יותר',

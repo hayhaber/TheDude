@@ -12,6 +12,16 @@ export const STANDARD_TUNING = [
   { stringNumber: 1, openNote: 'E', pitchClass: 4, baseMidi: 64 },
 ];
 
+// 4-string bass, standard tuning, low string (4) to high string (1) — exactly
+// one octave below the guitar's own low E-A-D-G (STANDARD_TUNING's indices
+// 0-3, baseMidi 40/45/50/55), matching real bass tuning (E1/A1/D2/G2).
+export const BASS_TUNING = [
+  { stringNumber: 4, openNote: 'E', pitchClass: 4, baseMidi: 28 },
+  { stringNumber: 3, openNote: 'A', pitchClass: 9, baseMidi: 33 },
+  { stringNumber: 2, openNote: 'D', pitchClass: 2, baseMidi: 38 },
+  { stringNumber: 1, openNote: 'G', pitchClass: 7, baseMidi: 43 },
+];
+
 export const MAX_FRET = 24;
 export const FRET_MARKERS = [3, 5, 7, 9, 12, 15, 17, 19, 21];
 export const DOUBLE_DOT_FRETS = [12, 24];

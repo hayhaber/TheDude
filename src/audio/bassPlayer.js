@@ -1,15 +1,10 @@
 import { getAudioContext } from './audioContext';
 import { getSoundfontInstrument } from './instrumentEngine';
+import { resolveBassProfile } from './instrumentProfiles';
+import { getCurrentBassProfile } from './audioSettingsStore';
 
 const NOTE_DURATION = 1.6; // seconds a plucked bass note rings out
 const VELOCITY = 100; // smplr's 0-127 MIDI-style velocity
-
-// One fixed sound for this first pass — no Settings picker yet (Compose-only,
-// root-note-only MVP scope), unlike guitar/piano's multi-option profiles in
-// instrumentProfiles.js. Verified present in the installed smplr package's
-// own instrument list (node_modules/smplr/dist/index.mjs), same standard
-// every other soundfontName in this app is held to.
-const SOUNDFONT_NAME = 'electric_bass_finger';
 
 function playOscillatorNote(ctx, midi, startTime) {
   const freq = 440 * Math.pow(2, (midi - 69) / 12);
@@ -29,15 +24,25 @@ function playOscillatorNote(ctx, midi, startTime) {
   osc.stop(stopTime + 0.05);
 }
 
+// Resolves the currently-selected bass sound profile to a ready-to-play
+// smplr entry — mirrors chordPlayer.js's getReadySampledInstrument /
+// pianoPlayer.js's getCurrentPianoEntry exactly, just for the bass profile
+// family (see audio/instrumentProfiles.js's BASS_SOUND_PROFILES).
+function getCurrentBassEntry() {
+  const profile = resolveBassProfile(getCurrentBassProfile());
+  return profile.soundfontName ? getSoundfontInstrument(profile.soundfontName) : null;
+}
+
 // Mirrors pianoPlayer.js/chordPlayer.js exactly: a synchronous isReady check
 // (not an awaited Promise — see instrumentEngine.js's own comment for why),
 // falling back to a plain oscillator pluck if the sample hasn't finished
-// loading yet rather than staying silent.
+// loading yet (or the selected profile is 'synth', which has no
+// soundfontName at all) rather than staying silent.
 export function playBassNote(midi) {
   if (midi === null || midi === undefined) return;
   const ctx = getAudioContext();
   const now = ctx.currentTime;
-  const entry = getSoundfontInstrument(SOUNDFONT_NAME);
+  const entry = getCurrentBassEntry();
   if (entry?.isReady) {
     entry.instrument.start({ note: midi, time: now, velocity: VELOCITY, duration: NOTE_DURATION });
     return;
@@ -45,9 +50,12 @@ export function playBassNote(midi) {
   playOscillatorNote(ctx, midi, now);
 }
 
-// Kicks off a background sample preload — called once when Bass is first
-// selected (InstrumentContext.jsx), same "preload on selection" pattern
-// already used for the piano's SplendidGrandPiano samples.
+// Kicks off a background sample preload for whichever bass profile is
+// currently selected — called when Bass is first selected
+// (InstrumentContext.jsx) and whenever the profile changes
+// (useAudioSettings.js), same "preload on selection" pattern already used
+// for guitar/piano.
 export function preloadBassSamples() {
-  getSoundfontInstrument(SOUNDFONT_NAME);
+  const profile = resolveBassProfile(getCurrentBassProfile());
+  if (profile.soundfontName) getSoundfontInstrument(profile.soundfontName);
 }

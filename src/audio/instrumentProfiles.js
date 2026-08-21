@@ -52,6 +52,24 @@ export function resolvePianoProfile(key) {
   return PIANO_SOUND_PROFILES.find((p) => p.key === key) ?? PIANO_SOUND_PROFILES.find((p) => p.key === DEFAULT_PIANO_PROFILE);
 }
 
+// Every soundfontName here is verified against the actually-installed smplr
+// package's own instrument list (node_modules/smplr/dist/index.mjs), same
+// standard the guitar/piano profiles above are held to.
+export const BASS_SOUND_PROFILES = [
+  { key: 'acoustic', labelKey: 'audioSettings.bass.acoustic', soundfontName: 'acoustic_bass' },
+  { key: 'electricFinger', labelKey: 'audioSettings.bass.electricFinger', soundfontName: 'electric_bass_finger' },
+  { key: 'electricPick', labelKey: 'audioSettings.bass.electricPick', soundfontName: 'electric_bass_pick' },
+  { key: 'fretless', labelKey: 'audioSettings.bass.fretless', soundfontName: 'fretless_bass' },
+  { key: 'slap', labelKey: 'audioSettings.bass.slap', soundfontName: 'slap_bass_1' },
+  { key: 'synth', labelKey: 'audioSettings.bass.synth', soundfontName: null },
+];
+
+export const DEFAULT_BASS_PROFILE = 'electricFinger';
+
+export function resolveBassProfile(key) {
+  return BASS_SOUND_PROFILES.find((p) => p.key === key) ?? BASS_SOUND_PROFILES.find((p) => p.key === DEFAULT_BASS_PROFILE);
+}
+
 // Metronome percussion options, each backed by a specific sample in a
 // specific smplr DrumMachine kit (verified against the kits' actual sample
 // manifests — see docs/AUDIO_ENGINE.md). `click`/`beep`/`tick` stay

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { LanguageToggle } from '../LanguageToggle/LanguageToggle';
-import { GUITAR_SOUND_PROFILES, PIANO_SOUND_PROFILES } from '../../audio/instrumentProfiles';
+import { GUITAR_SOUND_PROFILES, PIANO_SOUND_PROFILES, BASS_SOUND_PROFILES } from '../../audio/instrumentProfiles';
 import { AudioInputSettings } from '../AudioInputSettings/AudioInputSettings';
 import { YoutubeApiKeySettings } from '../YoutubeApiKeySettings/YoutubeApiKeySettings';
 import { KeyboardShortcutsSettings } from '../KeyboardShortcutsSettings/KeyboardShortcutsSettings';
@@ -21,7 +21,17 @@ import './SettingsPanel.css';
 // This component is rendered TWICE by AppShell (once inside the off-canvas
 // nav drawer, once in the mobile top bar) — portaling to document.body means
 // both instances behave identically regardless of which triggered it.
-export function SettingsPanel({ theme, onThemeChange, guitarProfile, onGuitarProfileChange, pianoProfile, onPianoProfileChange, shortcuts }) {
+export function SettingsPanel({
+  theme,
+  onThemeChange,
+  guitarProfile,
+  onGuitarProfileChange,
+  pianoProfile,
+  onPianoProfileChange,
+  bassProfile,
+  onBassProfileChange,
+  shortcuts,
+}) {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
   const { instrument } = useInstrument();
@@ -91,7 +101,10 @@ export function SettingsPanel({ theme, onThemeChange, guitarProfile, onGuitarPro
               {/* Instrument-aware, per docs/PIANO_MODE_ARCHITECTURE.md's roadmap —
                   one sound-profile field, showing whichever instrument's own
                   profile list applies, rather than always showing Guitar Sound
-                  even while in Piano mode. */}
+                  even while in Piano mode. Explicit per-instrument branches
+                  (not an `else` catch-all) — with Bass as a 3rd instrument
+                  value, an `else` here would have silently shown Guitar's
+                  own profile list/setter while in Bass mode. */}
               {instrument === 'piano' ? (
                 <label className="settings-field">
                   <span className="settings-field-label">{t('settings.pianoSound')}</span>
@@ -103,6 +116,18 @@ export function SettingsPanel({ theme, onThemeChange, guitarProfile, onGuitarPro
                     ))}
                   </select>
                   <span className="settings-attribution">{t('settings.pianoAudioAttribution')}</span>
+                </label>
+              ) : instrument === 'bass' ? (
+                <label className="settings-field">
+                  <span className="settings-field-label">{t('settings.bassSound')}</span>
+                  <select value={bassProfile} onChange={(e) => onBassProfileChange(e.target.value)}>
+                    {BASS_SOUND_PROFILES.map((p) => (
+                      <option key={p.key} value={p.key}>
+                        {t(p.labelKey)}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="settings-attribution">{t('settings.audioAttribution')}</span>
                 </label>
               ) : (
                 <label className="settings-field">

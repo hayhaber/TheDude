@@ -84,7 +84,16 @@ import './App.css';
 
 function App() {
   const { theme, setTheme } = useTheme();
-  const { guitarProfile, setGuitarProfile, pianoProfile, setPianoProfile, pianoVolume, setPianoVolume } = useAudioSettings();
+  const {
+    guitarProfile,
+    setGuitarProfile,
+    pianoProfile,
+    setPianoProfile,
+    bassProfile,
+    setBassProfile,
+    pianoVolume,
+    setPianoVolume,
+  } = useAudioSettings();
   const { instrument } = useInstrument();
   // The 3 top-level destinations (Compose/Improvise/Practice) — see
   // components/AppShell for the nav shell that drives this.
@@ -1528,6 +1537,8 @@ function App() {
           onGuitarProfileChange={setGuitarProfile}
           pianoProfile={pianoProfile}
           onPianoProfileChange={setPianoProfile}
+          bassProfile={bassProfile}
+          onBassProfileChange={setBassProfile}
           shortcuts={shortcuts}
         />
       }

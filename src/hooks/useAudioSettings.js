@@ -6,13 +6,17 @@ import {
   PIANO_SOUND_PROFILES,
   DEFAULT_PIANO_PROFILE,
   resolvePianoProfile,
+  BASS_SOUND_PROFILES,
+  DEFAULT_BASS_PROFILE,
+  resolveBassProfile,
 } from '../audio/instrumentProfiles';
 import { preloadSoundfontInstrument } from '../audio/instrumentEngine';
-import { setCurrentGuitarProfile, setCurrentPianoProfile } from '../audio/audioSettingsStore';
+import { setCurrentGuitarProfile, setCurrentPianoProfile, setCurrentBassProfile } from '../audio/audioSettingsStore';
 import { setPianoVolume as setPianoPlayerVolume } from '../audio/pianoPlayer';
 
 const STORAGE_KEY = 'audio-settings';
 const PIANO_STORAGE_KEY = 'piano-audio-settings';
+const BASS_STORAGE_KEY = 'bass-audio-settings';
 const PIANO_VOLUME_STORAGE_KEY = 'piano-volume';
 const DEFAULT_PIANO_VOLUME = 100;
 
@@ -36,6 +40,11 @@ function getInitialPianoProfile() {
   return PIANO_SOUND_PROFILES.some((p) => p.key === stored) ? stored : DEFAULT_PIANO_PROFILE;
 }
 
+function getInitialBassProfile() {
+  const stored = localStorage.getItem(BASS_STORAGE_KEY);
+  return BASS_SOUND_PROFILES.some((p) => p.key === stored) ? stored : DEFAULT_BASS_PROFILE;
+}
+
 // Persists the user's chosen guitar/piano sound profile (same localStorage
 // pattern as useTheme.js) and kicks off a background sample preload the
 // moment a sampled profile is selected, so the first note played
@@ -43,6 +52,7 @@ function getInitialPianoProfile() {
 export function useAudioSettings() {
   const [guitarProfile, setGuitarProfile] = useState(getInitialProfile);
   const [pianoProfile, setPianoProfile] = useState(getInitialPianoProfile);
+  const [bassProfile, setBassProfile] = useState(getInitialBassProfile);
   // Master volume for piano note playback (0-100) — the on-keyboard
   // panel's Volume control. Persisted the same way as the sound profiles;
   // actually applied via pianoPlayer.js's own module-level setter (see its
@@ -64,9 +74,25 @@ export function useAudioSettings() {
   }, [pianoProfile]);
 
   useEffect(() => {
+    localStorage.setItem(BASS_STORAGE_KEY, bassProfile);
+    setCurrentBassProfile(bassProfile);
+    const profile = resolveBassProfile(bassProfile);
+    if (profile.soundfontName) preloadSoundfontInstrument(profile.soundfontName);
+  }, [bassProfile]);
+
+  useEffect(() => {
     localStorage.setItem(PIANO_VOLUME_STORAGE_KEY, String(pianoVolume));
     setPianoPlayerVolume(pianoVolume);
   }, [pianoVolume]);
 
-  return { guitarProfile, setGuitarProfile, pianoProfile, setPianoProfile, pianoVolume, setPianoVolume };
+  return {
+    guitarProfile,
+    setGuitarProfile,
+    pianoProfile,
+    setPianoProfile,
+    bassProfile,
+    setBassProfile,
+    pianoVolume,
+    setPianoVolume,
+  };
 }

@@ -1,5 +1,13 @@
 .instrument-toggle {
   margin: 0;
+  /* The base .mode-toggle is `width: max-content` with no cap — fine for 2
+     short buttons, but with Bass added as a 3rd option the row no longer
+     reliably fits the narrow sidebar/mobile-settings drawer this renders
+     in, and with no cap it overflows past the drawer's own edge instead of
+     shrinking (reported live: Bass's pill rendered detached, past the
+     drawer boundary). Capped to the drawer's own width so the grid's equal-
+     fraction columns divide within it instead. */
+  max-width: 100%;
 }
 
 .instrument-toggle button {
@@ -10,4 +18,10 @@
   font-size: 12px;
   font-weight: 590;
   white-space: nowrap;
+  /* Overrides the base .mode-toggle button's 96px floor — that width was
+     sized for 2-button rows with longer labels elsewhere in the app; with 3
+     short icon+label buttons here, 96px each is more than enough to force
+     an overflow on narrow screens even after the container itself is
+     capped above. */
+  min-width: 0;
 }

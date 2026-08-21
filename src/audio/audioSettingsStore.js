@@ -1,4 +1,4 @@
-import { DEFAULT_GUITAR_PROFILE, DEFAULT_PIANO_PROFILE } from './instrumentProfiles';
+import { DEFAULT_GUITAR_PROFILE, DEFAULT_PIANO_PROFILE, DEFAULT_BASS_PROFILE } from './instrumentProfiles';
 
 // A tiny module-level mirror of the user's current guitar/piano sound
 // profile choice (kept in sync by useAudioSettings.js, the source of truth /
@@ -10,6 +10,7 @@ import { DEFAULT_GUITAR_PROFILE, DEFAULT_PIANO_PROFILE } from './instrumentProfi
 // were before this feature.
 let currentGuitarProfile = DEFAULT_GUITAR_PROFILE;
 let currentPianoProfile = DEFAULT_PIANO_PROFILE;
+let currentBassProfile = DEFAULT_BASS_PROFILE;
 
 export function setCurrentGuitarProfile(key) {
   currentGuitarProfile = key;
@@ -25,4 +26,12 @@ export function setCurrentPianoProfile(key) {
 
 export function getCurrentPianoProfile() {
   return currentPianoProfile;
+}
+
+export function setCurrentBassProfile(key) {
+  currentBassProfile = key;
+}
+
+export function getCurrentBassProfile() {
+  return currentBassProfile;
 }

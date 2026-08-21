@@ -25,7 +25,14 @@
 .songs-mode-field select {
   font-size: 15px;
   font-weight: 500;
-  padding: 10px 12px;
+  /* Vertical padding trimmed from 10px — the global `select { height:
+     var(--control-height) }` rule (index.css) fixes this field at 36px
+     total regardless of padding, so 10px top+bottom (20px) only left a
+     14px-tall content box, too short for a 15px line to fit without its
+     own descenders (the tail of a "g", "y", …) getting clipped by the
+     box's bottom edge — confirmed exactly this: "Song" rendering as
+     "Sona"-looking with the g's tail cut off. */
+  padding: 6px 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface);

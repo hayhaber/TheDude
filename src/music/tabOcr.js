@@ -5,10 +5,13 @@ import { loadPdfDocument } from './pdfTextExtractor';
 // character set away from full English prose meaningfully improves
 // accuracy on dense, tiny monospace digits (its language model otherwise
 // keeps trying to "correct" e.g. "15" into a real word). The technique
-// letters (h/p/b) are intentionally lowercase-only: uppercase H/P/B are
-// visually closer to other digits/symbols at this size and full tab
-// convention already uses lowercase for these anyway.
-const TAB_CHAR_WHITELIST = '0123456789ABDEGabdeghpx#|-/\\~ \n';
+// letters (h/p/b/r) are intentionally lowercase-only: uppercase H/P/B/R
+// are visually closer to other digits/symbols at this size and full tab
+// convention already uses lowercase for these anyway. "r" and "()" cover
+// a second tab-site convention (parenthesized bend/release targets, e.g.
+// "8b(10)r(8)" — see tabPdfParser.js's own comment) alongside the plainer
+// "8b10" style the rest of this whitelist was originally built around.
+const TAB_CHAR_WHITELIST = '0123456789ABDEGabdeghprx#|()-/\\~ \n';
 
 // A render scale high enough to give OCR real pixels-per-character to
 // work with, but capped by MAX_CANVAS_DIMENSION regardless of the page's

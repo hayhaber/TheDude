@@ -33,14 +33,33 @@ import { midiToNoteName } from './pitchUtils';
 const HAMMER_PULL_RE = /[hHpP]/;
 const SLIDE_RE = /[/\\]/;
 const BEND_RE = /[bB]/;
+// "r" (release — a bend coming back down to a real pitch, always written
+// with its own target in parens: "r(8)") — a second tab-site convention
+// alongside h/p/b/~, seen for the first time in a file using PARENTHESIZED
+// bend/release targets ("8b(10)r(8)") instead of the bare-digit style
+// ("8b10") the rest of this parser was built against. Both styles are
+// handled (see readParenTarget below); this doesn't change how the
+// bare-digit style parses at all.
+const RELEASE_RE = /[rR]/;
+// A trailing "x2" / "x3," repeat-count marker (a THIRD convention from
+// that same file, "play this section N times") sitting at the end of an
+// otherwise-real content line — stripped before the fret-digit scanner
+// ever sees it, since an unstripped "2" or "3" there would otherwise be
+// misread as one more fret number.
+const REPEAT_SUFFIX_RE = /\s*x\d+,?\s*$/i;
 const STRING_LINE_RE = /^\s*([A-Ga-g])([#b]?)\s*\|(.*)$/;
 // Whitespace is allowed ANYWHERE, not just at the two ends — OCR output
 // for an unlabeled continuation line sometimes has a stray internal space
 // (e.g. before a recognized trailing "|"), which used to make the whole
 // line fail to match at all and get silently dropped (verified against a
 // real file: this is exactly what happened to an otherwise near-perfect
-// reading of the busiest, most important line in a block).
-const CONTINUATION_LINE_RE = /^[-|\dhHpPbB/\\~\s]+$/;
+// reading of the busiest, most important line in a block). "rR()x" added
+// for the release/repeat-marker conventions above — an UNLABELED line
+// carrying either (no "X|" prefix to fall back on STRING_LINE_RE's own
+// unrestricted tail) would otherwise fail this check entirely and get
+// silently dropped, same failure mode as the earlier missing-whitespace
+// bug.
+const CONTINUATION_LINE_RE = /^[-|\dhHpPbBrRxX/\\~()\s]+$/;
 // No real fret number is 3+ digits (guitar tops out well under 100 frets
 // in practice) — a run of 3+ consecutive digits in an unlabeled line is
 // unambiguously OCR noise (verified against a real file: page furniture
@@ -64,7 +83,7 @@ function isBlank(line) {
 function tabContent(line) {
   const labeled = line.match(STRING_LINE_RE);
   const raw = labeled ? labeled[3] : line;
-  return raw.replace(/[|\s]/g, '');
+  return raw.replace(REPEAT_SUFFIX_RE, '').replace(/[|\s]/g, '');
 }
 
 function looksLikeStringLine(line) {
@@ -122,6 +141,23 @@ function readFretNumber(stream, i) {
   return [Number(numStr), next];
 }
 
+// Reads a PARENTHESIZED fret number — "(10)" — starting exactly at `i`
+// (must be the opening paren itself), returning [value, nextIndex] or
+// null if there's no well-formed "(<digits>)" there. This is the OTHER
+// bend/release target notation this parser supports, alongside the
+// bare-digit style ("5b7") readFretNumber's own callers already handle.
+function readParenTarget(stream, i) {
+  if (stream[i] !== '(') return null;
+  let j = i + 1;
+  let numStr = '';
+  while (/\d/.test(stream[j] ?? '')) {
+    numStr += stream[j];
+    j += 1;
+  }
+  if (numStr === '' || stream[j] !== ')') return null;
+  return [Number(numStr), j + 1];
+}
+
 // Sequentially scans ONE string's concatenated character stream, reading
 // fret numbers and the articulation symbol immediately following them
 // (no gap — that's the real tab convention: "5h7" is one hammer-on, "5--h7"
@@ -162,16 +198,53 @@ function parseStringStream(stream) {
         continue;
       }
     } else if (artCh && BEND_RE.test(artCh)) {
-      // "5b7" (bend up to fret 7's pitch) and bare "5b" both just tag the
-      // ORIGINAL note as a bend — this app's bend playback is a fixed
-      // interval (see lickPlayer.js's BEND_SEMITONES), not modeled per a
-      // specific target pitch, so a trailing target-fret digit run (if
-      // present) is consumed but not turned into its own note.
+      // Either target style just tags the ORIGINAL note as a bend, never
+      // adds a second note — bending doesn't change which fret is
+      // physically held, only the pitch it rings at. "5b(7)" (parens)
+      // gives an EXACT interval to bend by (fret difference = semitones,
+      // one fret is one semitone), overriding this app's generic fixed
+      // bend width (lickPlayer.js's BEND_SEMITONES) with the real target
+      // pitch; bare "5b7" or plain "5b" fall back to that generic width,
+      // same as before.
       noteEvent.technique = 'bend';
       i += 1;
-      const target = readFretNumber(stream, i);
-      if (target) i = target[1];
+      const parenTarget = readParenTarget(stream, i);
+      if (parenTarget) {
+        const [targetFret, afterParen] = parenTarget;
+        noteEvent.bendSemitones = targetFret - fret;
+        i = afterParen;
+      } else {
+        const target = readFretNumber(stream, i);
+        if (target) i = target[1];
+      }
+      // A release ("r(8)") is written immediately after ITS bend's own
+      // target, not after a fresh fret number — checking for it here,
+      // right where the bend left off, is the only place it can actually
+      // be found; the main loop only ever looks for an articulation
+      // character right after reading a NEW digit run, which this isn't.
+      if (RELEASE_RE.test(stream[i] ?? '')) {
+        const releaseTarget = readParenTarget(stream, i + 1);
+        if (releaseTarget) {
+          const [targetFret, afterParen] = releaseTarget;
+          events.push({ col: i + 1, fret: targetFret, technique: 'release' });
+          i = afterParen;
+        }
+      }
       continue;
+    } else if (artCh && RELEASE_RE.test(artCh)) {
+      // "r(8)" directly after a plain note, with no bend in between —
+      // less common, but handled the same way for consistency. Only
+      // recognized with an explicit paren target — this tab-site
+      // convention always writes one; a bare "r" with nothing bracketed
+      // after it is far more likely a stray letter than a real release
+      // marker, so it's left alone rather than guessed at.
+      const parenTarget = readParenTarget(stream, i + 1);
+      if (parenTarget) {
+        const [targetFret, afterParen] = parenTarget;
+        events.push({ col: i + 1, fret: targetFret, technique: 'release' });
+        i = afterParen;
+        continue;
+      }
     }
     if (stream[i] === '~') {
       noteEvent.technique = noteEvent.technique ?? 'vibrato';
@@ -225,13 +298,15 @@ export function parseAsciiTab(rows, { durationMultiplier = 1 } = {}) {
     }
 
     const events = parsePhraseNotes(streams);
-    for (const { stringLine, fret, technique } of events) {
+    for (const { stringLine, fret, technique, bendSemitones } of events) {
       if (fret > MAX_FRET) continue;
       const arrayIndex = 5 - stringLine; // top line (0) = highest string = STANDARD_TUNING[5]
       const tuning = STANDARD_TUNING[arrayIndex];
       const midi = tuning.baseMidi + fret;
       const label = midiToNoteName(midi).replace(/\d+$/, '');
-      notes.push({ order: order++, string: arrayIndex, fret, label, technique, durationMultiplier });
+      const note = { order: order++, string: arrayIndex, fret, label, technique, durationMultiplier };
+      if (bendSemitones !== undefined) note.bendSemitones = bendSemitones;
+      notes.push(note);
     }
   }
 

@@ -24,7 +24,7 @@ import './TabViewer.css';
 // playing on the shared Stage Fretboard, same as Video mode, but driven by
 // alphaTab's own playback clock (playerPositionChanged) instead of a
 // YouTube player's.
-export function TabViewer({ onActiveChordChange }) {
+export function TabViewer({ onActiveChordChange, externalFile, hideUpload }) {
   const { t } = useLanguage();
   const containerRef = useRef(null);
   const apiRef = useRef(null);
@@ -94,12 +94,7 @@ export function TabViewer({ onActiveChordChange }) {
   // Clear the fretboard highlight when leaving this tab/unmounting.
   useEffect(() => () => onActiveChordChange?.(null), [onActiveChordChange]);
 
-  async function handleFile(e) {
-    const file = e.target.files?.[0];
-    // Reset immediately (not after the async read below) so re-selecting
-    // the exact same file still fires onChange — same pattern
-    // SongVideoPlayer's own file import already uses.
-    e.target.value = '';
+  async function loadFile(file) {
     if (!file || !apiRef.current) return;
 
     setIsLoading(true);
@@ -115,12 +110,35 @@ export function TabViewer({ onActiveChordChange }) {
     }
   }
 
+  function handleFile(e) {
+    const file = e.target.files?.[0];
+    // Reset immediately (not after the async read below) so re-selecting
+    // the exact same file still fires onChange — same pattern
+    // SongVideoPlayer's own file import already uses.
+    e.target.value = '';
+    loadFile(file);
+  }
+
+  // Driven by TabUploadPanel's single shared file input (see that
+  // component) instead of this one's own — only relevant when hideUpload
+  // is set. Guarded against re-loading the exact same File on every
+  // parent re-render.
+  const lastExternalFileRef = useRef(null);
+  useEffect(() => {
+    if (!externalFile || externalFile === lastExternalFileRef.current) return;
+    lastExternalFileRef.current = externalFile;
+    loadFile(externalFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalFile]);
+
   return (
     <div className="tab-viewer">
-      <label className="tab-viewer-upload">
-        {t('songs.tab.upload')}
-        <input type="file" accept=".gp3,.gp4,.gp5,.gpx,.gp" onChange={handleFile} />
-      </label>
+      {!hideUpload && (
+        <label className="tab-viewer-upload">
+          {t('songs.tab.upload')}
+          <input type="file" accept=".gp3,.gp4,.gp5,.gpx,.gp" onChange={handleFile} />
+        </label>
+      )}
 
       {isLoading && <p className="tab-viewer-status">{t('songs.tab.loading')}</p>}
       {error && (

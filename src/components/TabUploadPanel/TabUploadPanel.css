@@ -1,0 +1,33 @@
+.tab-upload-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tab-upload-panel-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 590;
+  padding: 10px 20px;
+  border-radius: 980px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.tab-upload-panel-upload input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.tab-upload-panel-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--danger);
+}

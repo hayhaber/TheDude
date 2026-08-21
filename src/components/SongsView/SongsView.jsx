@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { SongVideoPlayer } from '../SongVideoPlayer/SongVideoPlayer';
-import { TabViewer } from '../TabViewer/TabViewer';
-import { TabPdfImporter } from '../TabPdfImporter/TabPdfImporter';
+import { TabUploadPanel } from '../TabUploadPanel/TabUploadPanel';
 import './SongsView.css';
 
 // Query-builder only — this app can't legitimately host chord charts, lyrics,
@@ -87,31 +86,33 @@ export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSong
         <p className="subtitle">{t('songs.subtitle')}</p>
       </div>
 
-      {/* 5 options (Song / Solo / Video / Tab / GP Files) — a dropdown
+      {/* 4 options (Song / Solo / Video / Tab / GP Files) — a dropdown
           rather than a segmented toggle, per this app's own convention that
-          a control with more than 2 choices is a <select>. */}
+          a control with more than 2 choices is a <select>. "Tab" is a
+          single upload point covering BOTH Guitar Pro files and TAB PDFs
+          (previously two separate options) — TabUploadPanel tells them
+          apart by file extension, so the player just uploads the file
+          they have without needing to know which engine reads it. */}
       <label className="songs-mode-field">
         {t('songs.modeLabel')}
         <select value={mode} onChange={(e) => setMode(e.target.value)}>
           <option value="song">{t('songs.mode.song')}</option>
           <option value="solo">{t('songs.mode.solo')}</option>
           <option value="video">{t('songs.mode.video')}</option>
-          <option value="tab">{t('songs.mode.tab')}</option>
-          {/* Reads fret positions off a plain-text TAB and plays them back
-              on the neck — a fretboard-specific concept with no piano
-              equivalent, same reasoning as CAGED/Scale Practice being
-              guitar-only elsewhere in the app. */}
-          {instrument === 'guitar' && <option value="tabPdf">{t('songs.mode.tabPdf')}</option>}
+          <option value="tabUpload">{t('songs.mode.tabUpload')}</option>
           <option value="gpFiles">{t('songs.mode.gpFiles')}</option>
         </select>
       </label>
 
       {mode === 'video' ? (
         <SongVideoPlayer onActiveChordChange={onSongActiveChordChange} />
-      ) : mode === 'tab' ? (
-        <TabViewer onActiveChordChange={onSongActiveChordChange} />
-      ) : mode === 'tabPdf' && instrument === 'guitar' ? (
-        <TabPdfImporter onLickChange={onSongTabLickChange} onPlayingOrderChange={onSongTabPlayingOrderChange} />
+      ) : mode === 'tabUpload' ? (
+        <TabUploadPanel
+          onActiveChordChange={onSongActiveChordChange}
+          onLickChange={onSongTabLickChange}
+          onPlayingOrderChange={onSongTabPlayingOrderChange}
+          instrument={instrument}
+        />
       ) : (
         <>
           <div className="songs-search-field">

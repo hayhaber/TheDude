@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { extractPdfTextRows } from '../../music/pdfTextExtractor';
 import { ocrPdfToTextRows } from '../../music/tabOcr';
 import { parseAsciiTab } from '../../music/tabPdfParser';
@@ -53,7 +53,7 @@ function windowAroundOrder(notes, order) {
 //    parsing — the player reviews/fixes the recognized text, THEN parses
 //    it into playable notes, rather than risking wrong frets going
 //    straight to playback silently.
-export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
+export function TabPdfImporter({ onLickChange, onPlayingOrderChange, externalFile, hideUpload }) {
   const { t } = useLanguage();
   const [status, setStatus] = useState('idle'); // idle | extracting | ocr | review | ready | error
   const [ocrProgress, setOcrProgress] = useState(0);
@@ -76,9 +76,7 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
     onLickChange?.(null);
   }
 
-  async function handleFile(e) {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-selecting the same file later
+  async function loadFile(file) {
     if (!file) return;
     resetForNewFile();
     setFileName(file.name);
@@ -111,6 +109,24 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
       setError(err.message || String(err));
     }
   }
+
+  function handleFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    loadFile(file);
+  }
+
+  // Driven by TabUploadPanel's single shared file input (see that
+  // component) instead of this one's own — only relevant when hideUpload
+  // is set. Guarded against re-loading the exact same File on every
+  // parent re-render.
+  const lastExternalFileRef = useRef(null);
+  useEffect(() => {
+    if (!externalFile || externalFile === lastExternalFileRef.current) return;
+    lastExternalFileRef.current = externalFile;
+    loadFile(externalFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalFile]);
 
   function handleParse() {
     const parsed = parseAsciiTab(rowsText.split('\n'));
@@ -159,17 +175,24 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
         {t('songs.tabPdf.hint')}
       </p>
 
-      <div className="tab-pdf-upload-row">
-        <input ref={fileInputRef} type="file" accept=".pdf" className="tab-pdf-file-input" onChange={handleFile} />
-        <button type="button" className="tab-pdf-upload-btn" onClick={() => fileInputRef.current?.click()}>
-          {t('songs.tabPdf.upload')}
-        </button>
-        {fileName && (
-          <span className="tab-pdf-filename" dir="auto">
-            {fileName}
-          </span>
-        )}
-      </div>
+      {!hideUpload && (
+        <div className="tab-pdf-upload-row">
+          <input ref={fileInputRef} type="file" accept=".pdf" className="tab-pdf-file-input" onChange={handleFile} />
+          <button type="button" className="tab-pdf-upload-btn" onClick={() => fileInputRef.current?.click()}>
+            {t('songs.tabPdf.upload')}
+          </button>
+          {fileName && (
+            <span className="tab-pdf-filename" dir="auto">
+              {fileName}
+            </span>
+          )}
+        </div>
+      )}
+      {hideUpload && fileName && (
+        <span className="tab-pdf-filename" dir="auto">
+          {fileName}
+        </span>
+      )}
 
       {status === 'extracting' && <p className="tab-pdf-status">{t('songs.tabPdf.parsing')}</p>}
 

@@ -39,10 +39,14 @@
    itself renders wider than ■ in the actual UI font, so "▶ Play" still
    grew past a shared floor while "■ Stop" stayed at it) — an explicit
    fixed width forces both to the exact same box regardless of how wide
-   either one's own icon+label content naturally wants to be. */
+   either one's own icon+label content naturally wants to be. Height is
+   likewise pinned to --control-height (not left to padding) so both
+   buttons line up exactly with the Speed <select> next to them, which
+   gets that same fixed height from index.css's global `select` rule. */
 .tab-pdf-play-btn,
 .tab-pdf-stop-btn {
   width: 110px;
+  height: var(--control-height);
   white-space: nowrap;
 }
 

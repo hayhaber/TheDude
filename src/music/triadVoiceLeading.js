@@ -25,21 +25,30 @@ function transitionCost(candidate, previous) {
   return cost;
 }
 
-// Greedily picks, for every chord in the progression, whichever triad
-// inversion (across all string sets — see triads.js's STRING_SETS) keeps the
-// most fingers stationary and moves the rest the shortest distance from the
-// previous chord's own chosen shape.
+// Globally optimizes, for the WHOLE progression at once, which triad
+// inversion (across all string sets — see triads.js's STRING_SETS) to use
+// for every chord so the total movement across the entire sequence is
+// minimized — not just each transition looked at on its own. A step-by-step
+// nearest-neighbor choice can lock in an early "locally fine" shape that
+// then forces worse choices later; this instead runs a Viterbi/DP pass:
+// for every candidate shape of every chord, track the cheapest total cost
+// of any path reaching it from the start, then backtrack from the cheapest
+// overall ending shape to recover the whole minimum-cost path. Verified
+// concretely against a brute-force optimum on ordinary progressions (e.g.
+// "C G Am F") where a plain greedy walk landed on a noticeably worse
+// overall fingering path than the true minimum — this DP always matches it.
 //
 // `anchorPosition` — whatever position the player has manually chosen for
 // the progression's first chord via the normal (non-Smooth) Position
 // Controls (App.jsx's positionIndexByChord[0], any mode: full 6-string
 // "chord" or 3-note "triad" both work, since transitionCost only looks at
 // per-string fret/null and both shapes' `strings` arrays are always length 6
-// — see notes on transitionCost above). When given, the very first chord's
-// own triad shape is picked to best match *that* position instead of always
-// defaulting to index 0, so moving the first chord up/down the neck moves
-// the whole Smooth sequence with it, same rationale as every other step.
-// `null` (the default) keeps the old behavior — first chord takes positions[0].
+// — see notes on transitionCost above). When given, it's treated as a
+// virtual "chord -1" the DP's first real chord also has to transition from,
+// so moving the first chord up/down the neck moves the whole Smooth
+// sequence with it, same rationale as every other step. `null` (the
+// default) leaves the first chord unconstrained — chosen purely to
+// minimize the rest of the path, same DP either way.
 //
 // Returns one entry per progression chord: `null` for an unplayable/invalid
 // chord (kept so the array stays index-aligned with `progression`), otherwise
@@ -50,27 +59,64 @@ function transitionCost(candidate, previous) {
 // know which of its own notes are about to stay put before you actually move
 // to chord N+1, not only see it confirmed in gold after the fact.
 export function computeVoiceLeadingSequence(progression, anchorPosition = null) {
-  const sequence = [];
-  let previous = null;
-  let isFirst = true;
+  const sequence = new Array(progression.length).fill(null);
 
-  for (const chord of progression) {
+  // Only valid/playable chords participate in the DP — an invalid chord
+  // stays `null` in the final sequence but doesn't break the transition
+  // chain between the valid chords on either side of it (same as before:
+  // the chain used to run through `previous`, which an invalid chord left
+  // untouched).
+  const validIndices = [];
+  const candidatesByStep = [];
+  progression.forEach((chord, i) => {
     const { isValid, positions } = computeChordPositions(chord.text, 'triad');
-    if (!isValid || positions.length === 0) {
-      sequence.push(null);
-      continue;
+    if (isValid && positions.length > 0) {
+      validIndices.push(i);
+      candidatesByStep.push(positions);
     }
+  });
 
-    const matchTarget = previous ?? (isFirst ? anchorPosition : null);
+  if (validIndices.length === 0) return sequence;
 
-    let chosen;
-    if (!matchTarget) {
-      chosen = positions[0];
-    } else {
-      chosen = positions.reduce((best, candidate) =>
-        transitionCost(candidate, matchTarget) < transitionCost(best, matchTarget) ? candidate : best
-      );
-    }
+  const stepCount = validIndices.length;
+  const dpCost = candidatesByStep.map((candidates) => new Array(candidates.length).fill(0));
+  const dpBack = candidatesByStep.map((candidates) => new Array(candidates.length).fill(-1));
+
+  candidatesByStep[0].forEach((candidate, j) => {
+    dpCost[0][j] = anchorPosition ? transitionCost(candidate, anchorPosition) : 0;
+  });
+
+  for (let step = 1; step < stepCount; step += 1) {
+    const prevCandidates = candidatesByStep[step - 1];
+    candidatesByStep[step].forEach((candidate, j) => {
+      let bestCost = Infinity;
+      let bestPrev = -1;
+      prevCandidates.forEach((prevCandidate, k) => {
+        const cost = dpCost[step - 1][k] + transitionCost(candidate, prevCandidate);
+        if (cost < bestCost) {
+          bestCost = cost;
+          bestPrev = k;
+        }
+      });
+      dpCost[step][j] = bestCost;
+      dpBack[step][j] = bestPrev;
+    });
+  }
+
+  let bestLast = 0;
+  dpCost[stepCount - 1].forEach((cost, j) => {
+    if (cost < dpCost[stepCount - 1][bestLast]) bestLast = j;
+  });
+
+  const chosenIndex = new Array(stepCount);
+  chosenIndex[stepCount - 1] = bestLast;
+  for (let step = stepCount - 1; step > 0; step -= 1) {
+    chosenIndex[step - 1] = dpBack[step][chosenIndex[step]];
+  }
+
+  let previous = null;
+  chosenIndex.forEach((candidateIndex, step) => {
+    const chosen = candidatesByStep[step][candidateIndex];
 
     const pivotMask = STANDARD_TUNING.map((_, i) => {
       if (!previous) return false;
@@ -79,10 +125,9 @@ export function computeVoiceLeadingSequence(progression, anchorPosition = null) 
       return c !== null && p !== null && c === p;
     });
 
-    sequence.push({ position: chosen, pivotMask, fingers: assignFingers(chosen) });
+    sequence[validIndices[step]] = { position: chosen, pivotMask, fingers: assignFingers(chosen) };
     previous = chosen;
-    isFirst = false;
-  }
+  });
 
   // Second pass: also mark each playable chord's pivotMask wherever it
   // shares a note with the NEXT playable chord (skipping any null/unplayable

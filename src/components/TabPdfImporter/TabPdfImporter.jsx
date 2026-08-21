@@ -21,8 +21,13 @@ const SPEED_OPTIONS = [
 // following along one short phrase at a time, the same way the source
 // chart itself is laid out in short bar-by-bar units, not shown as one
 // giant chart across the whole page.
-const WINDOW_BEFORE = 1;
-const WINDOW_AFTER = 4;
+// Narrow — a real solo often repeats the same fret several times in a
+// row (verified directly: a real tab's own first five notes are only
+// two distinct frets), so even a modest window's dots land right on top
+// of each other, and only the last-drawn one's order number stays
+// legible. Just current + next keeps that overlap to at most two dots.
+const WINDOW_BEFORE = 0;
+const WINDOW_AFTER = 1;
 
 function windowAroundOrder(notes, order) {
   return notes.filter((n) => n.order >= order - WINDOW_BEFORE && n.order <= order + WINDOW_AFTER);

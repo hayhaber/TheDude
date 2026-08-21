@@ -32,18 +32,27 @@ function getReadySampledInstrument() {
 // A note's `durationMultiplier` (from Motif Development's "Rhythmic
 // variation") stretches/shrinks just that note instead of every note
 // getting the same fixed length — timing is cumulative to support that.
-// `onNoteStart(note)`/`onDone()` are optional UI hooks fired via setTimeout
-// on the same schedule as the audio — plain timers are precise enough for a
-// visual "now playing" indicator, unlike the metronome's lookahead
-// scheduler which needs sample-accurate click timing.
 //
-// Returns `{ stop }` — every note/timer this call scheduled is tracked so a
-// caller can cut a still-playing lick short (e.g. a Stop button) instead of
-// only ever being able to wait it out. Existing call sites that don't need
-// this just ignore the return value, same as before.
+// Every note's actual audio trigger — not just the onNoteStart/onDone UI
+// callbacks — is scheduled via setTimeout firing in real time, rather than
+// handed to the audio engine all at once with a future absolute
+// AudioContext time (the more "precise" approach, tried first). That
+// matters for stop(): a note already told to start at some future audio-
+// clock time has nothing for stop() to cancel on the sampled-instrument
+// path specifically — smplr's own stop(midi) can only silence a voice
+// that has already started sounding, not prevent one that hasn't been
+// triggered yet — so a still-playing lick's LATER notes kept firing
+// regardless of stop() being called, verified directly against a real
+// multi-note lick. Triggering each note's audio from its own setTimeout
+// means clearTimeout genuinely prevents a not-yet-started note from ever
+// sounding, on both the sampled and synthesized paths alike — the same
+// timing precision the UI callbacks already accepted as good enough.
+//
+// Returns `{ stop }` — cancels every note that hasn't started yet and
+// silences whatever's currently sounding; existing call sites that don't
+// need this just ignore the return value, same as before.
 export function playLick(notes, { onNoteStart, onDone } = {}) {
   const ctx = getAudioContext();
-  const now = ctx.currentTime;
   const instrument = getReadySampledInstrument();
 
   let cursor = 0;
@@ -56,26 +65,16 @@ export function playLick(notes, { onNoteStart, onDone } = {}) {
   const totalMs = cursor * 1000;
 
   const timers = [];
-  const synthVoices = []; // { osc, gain, lfo? } — the oscillator-synth path
-  const sampledMidiNotes = new Set(); // MIDI numbers started on the sampled-instrument path
+  const activeVoices = []; // { osc, gain, lfo? } (synth path) or { midi } (sampled path) — only CURRENTLY SOUNDING notes
 
-  if (onNoteStart) {
-    schedule.forEach(({ note, offset }) => {
-      timers.push(setTimeout(() => onNoteStart(note), offset * 1000));
-    });
-  }
-  if (onDone) {
-    timers.push(setTimeout(onDone, totalMs));
-  }
-
-  schedule.forEach(({ note, offset, duration }) => {
+  function triggerNote(note, duration) {
     const midi = STANDARD_TUNING[note.string].baseMidi + note.fret;
-    const startTime = now + offset;
+    const startTime = ctx.currentTime;
     const stopTime = startTime + duration;
 
     if (instrument) {
       instrument.start({ note: midi, time: startTime, velocity: SAMPLE_VELOCITY, duration });
-      sampledMidiNotes.add(midi);
+      activeVoices.push({ midi });
       return;
     }
 
@@ -113,25 +112,51 @@ export function playLick(notes, { onNoteStart, onDone } = {}) {
     osc.connect(gain).connect(ctx.destination);
     osc.start(startTime);
     osc.stop(stopTime + 0.05);
-    synthVoices.push({ osc, gain, lfo });
+    const voice = { osc, gain, lfo };
+    activeVoices.push(voice);
+    // Once this note's own natural ring-out is done, it's no longer
+    // "currently sounding" — drop it so stop() (if called much later,
+    // after this note already finished) doesn't try to re-stop it.
+    timers.push(
+      setTimeout(() => {
+        const i = activeVoices.indexOf(voice);
+        if (i !== -1) activeVoices.splice(i, 1);
+      }, (stopTime - ctx.currentTime + 0.1) * 1000)
+    );
+  }
+
+  schedule.forEach(({ note, offset, duration }) => {
+    timers.push(
+      setTimeout(() => {
+        onNoteStart?.(note);
+        triggerNote(note, duration);
+      }, offset * 1000)
+    );
   });
+  if (onDone) {
+    timers.push(setTimeout(onDone, totalMs));
+  }
 
   function stop() {
     timers.forEach(clearTimeout);
     const cutoff = ctx.currentTime;
-    synthVoices.forEach(({ osc, gain, lfo }) => {
+    activeVoices.forEach((voice) => {
+      if (voice.midi !== undefined) {
+        instrument?.stop(voice.midi);
+        return;
+      }
       try {
-        gain.gain.cancelScheduledValues(cutoff);
-        gain.gain.setValueAtTime(gain.gain.value, cutoff);
-        gain.gain.exponentialRampToValueAtTime(0.0001, cutoff + 0.03);
-        osc.stop(cutoff + 0.04);
-        lfo?.stop(cutoff);
+        voice.gain.gain.cancelScheduledValues(cutoff);
+        voice.gain.gain.setValueAtTime(voice.gain.gain.value, cutoff);
+        voice.gain.gain.exponentialRampToValueAtTime(0.0001, cutoff + 0.03);
+        voice.osc.stop(cutoff + 0.04);
+        voice.lfo?.stop(cutoff);
       } catch {
         // Already stopped (its own scheduled stopTime already passed) —
         // nothing left to cut short.
       }
     });
-    sampledMidiNotes.forEach((midi) => instrument?.stop(midi));
+    activeVoices.length = 0;
   }
 
   return { stop };

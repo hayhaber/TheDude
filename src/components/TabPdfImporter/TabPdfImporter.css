@@ -34,6 +34,15 @@
   flex-shrink: 0;
 }
 
+/* Play/Stop sit side by side and need to read as one matched pair —
+   without an explicit shared width, "▶ Play" and "■ Stop" land at
+   different natural widths since the glyph+label content itself isn't
+   the same length, even with identical padding. */
+.tab-pdf-play-btn,
+.tab-pdf-stop-btn {
+  min-width: 100px;
+}
+
 .tab-pdf-upload-btn:hover,
 .tab-pdf-play-btn:hover:not(:disabled),
 .tab-pdf-stop-btn:hover:not(:disabled) {

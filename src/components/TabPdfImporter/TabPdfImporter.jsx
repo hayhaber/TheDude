@@ -6,11 +6,13 @@ import { playLick } from '../../audio/lickPlayer';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './TabPdfImporter.css';
 
-const SPEED_OPTIONS = [
-  { key: 'slow', multiplier: 2 },
-  { key: 'normal', multiplier: 1 },
-  { key: 'fast', multiplier: 0.6 },
-];
+// Plain playback-speed multipliers (1 = normal, 2 = twice as fast, 0.5 =
+// half speed) instead of vague "Slow/Normal/Fast" labels, per explicit
+// request — a number says exactly what it does. Internally this still
+// scales each note's durationMultiplier, which runs the OPPOSITE
+// direction (bigger = LONGER = slower), so applying it is 1/speed, not
+// speed directly.
+const SPEED_VALUES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
 // A full tab is easily 50-100+ notes — Fretboard.jsx's lick overlay draws
 // every one of a lick's notes as its own numbered dot at once (exactly
@@ -60,7 +62,7 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
   const [rowsText, setRowsText] = useState('');
   const [usedOcr, setUsedOcr] = useState(false);
   const [notes, setNotes] = useState([]);
-  const [speed, setSpeed] = useState('normal');
+  const [speed, setSpeed] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
   const fileInputRef = useRef(null);
   const playbackRef = useRef(null);
@@ -127,8 +129,8 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
 
   function handlePlay() {
     if (notes.length === 0) return;
-    const multiplier = SPEED_OPTIONS.find((s) => s.key === speed).multiplier;
-    const scaled = notes.map((n) => ({ ...n, durationMultiplier: (n.durationMultiplier ?? 1) * multiplier }));
+    const durationMultiplier = 1 / speed; // speed=2 (twice as fast) -> half-length notes
+    const scaled = notes.map((n) => ({ ...n, durationMultiplier: (n.durationMultiplier ?? 1) * durationMultiplier }));
     setIsPlaying(true);
     playbackRef.current = playLick(scaled, {
       onNoteStart: (note) => {
@@ -230,10 +232,10 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange }) {
           <div className="tab-pdf-controls">
             <label className="tab-pdf-speed-field">
               {t('songs.tabPdf.speed')}
-              <select value={speed} onChange={(e) => setSpeed(e.target.value)} disabled={isPlaying}>
-                {SPEED_OPTIONS.map((s) => (
-                  <option key={s.key} value={s.key}>
-                    {t(`songs.tabPdf.speed.${s.key}`)}
+              <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} disabled={isPlaying}>
+                {SPEED_VALUES.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
                   </option>
                 ))}
               </select>

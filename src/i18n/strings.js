@@ -787,6 +787,8 @@ export const STRINGS = {
     'metronome.style.funk': 'Funk',
     'metronome.style.metal': 'Metal / Hard Rock',
     'metronome.style.jazz': 'Jazz / Swing',
+    'metronome.style.reggae': 'Reggae',
+    'metronome.style.electro': 'Electro (Four on the Floor)',
 
     'metronomeBar.start': 'Start metronome',
     'metronomeBar.stop': 'Stop metronome',
@@ -1699,6 +1701,8 @@ export const STRINGS = {
     'metronome.style.funk': 'פאנק',
     'metronome.style.metal': 'מטאל / הארד רוק',
     'metronome.style.jazz': 'ג\'אז / סווינג',
+    'metronome.style.reggae': 'רגאיי',
+    'metronome.style.electro': 'אלקטרו (Four on the Floor)',
 
     'metronomeBar.start': 'התחל מטרונום',
     'metronomeBar.stop': 'עצור מטרונום',

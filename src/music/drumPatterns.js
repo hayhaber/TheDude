@@ -62,6 +62,31 @@ export const DRUM_STYLES = {
       [{ hihatClosed: 0.9 }, {}, { snare: 0.3, hihatClosed: 0.5 }],
     ],
   },
+  reggae: {
+    label: 'Reggae',
+    stepsPerBeat: 2, // straight 8ths, hi-hat accenting the off-beat "skank"
+    // Classic "one drop": no kick/snare on beat 1 at all — kick and snare
+    // land together on beat 3 (the "drop"), leaving beats 1-2 to breathe.
+    cell: [
+      [{ hihatClosed: 0.5 }, { hihatClosed: 0.75 }],
+      [{ hihatClosed: 0.5 }, { hihatClosed: 0.75 }],
+      [{ kick: 1, snare: 1, hihatClosed: 0.6 }, { hihatClosed: 0.75 }],
+      [{ hihatClosed: 0.5 }, { hihatClosed: 0.75 }],
+    ],
+  },
+  electro: {
+    label: 'Electro (Four on the Floor)',
+    stepsPerBeat: 2, // straight 8ths
+    // Kick on every beat (the "four on the floor"), snare/clap backbeat on
+    // 2 & 4, open hi-hat accenting the off-beat of 1 & 3 for the classic
+    // house/electro lift.
+    cell: [
+      [{ kick: 1, hihatClosed: 0.7 }, { hihatOpen: 0.4 }],
+      [{ kick: 1, snare: 1, hihatClosed: 0.7 }, { hihatClosed: 0.4 }],
+      [{ kick: 1, hihatClosed: 0.7 }, { hihatOpen: 0.4 }],
+      [{ kick: 1, snare: 1, hihatClosed: 0.7 }, { hihatClosed: 0.4 }],
+    ],
+  },
 };
 
 export const DRUM_STYLE_OPTIONS = Object.entries(DRUM_STYLES).map(([key, style]) => ({

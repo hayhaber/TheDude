@@ -336,6 +336,63 @@
   max-width: 220px;
 }
 
+/* Same recipe as PlaybackControls.css's .autoplay-switch — a small pill
+   toggle, kept local to this component's own CSS rather than shared, per
+   this app's plain-CSS-per-component convention. */
+.metronome-fill-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+}
+
+.metronome-fill-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.metronome-fill-track {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  background: rgba(120, 120, 128, 0.24);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.metronome-fill-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28);
+}
+
+.metronome-fill-toggle input:checked + .metronome-fill-track {
+  background: #34c759;
+}
+
+.metronome-fill-toggle input:checked + .metronome-fill-track .metronome-fill-thumb {
+  transform: translateX(14px);
+}
+
+.metronome-fill-toggle input:focus-visible + .metronome-fill-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .metronome-mixer {
   display: flex;
   flex-direction: column;

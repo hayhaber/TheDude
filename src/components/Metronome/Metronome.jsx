@@ -171,6 +171,18 @@ export function Metronome({
                 </select>
               </label>
 
+              <label className="metronome-fill-toggle">
+                <input
+                  type="checkbox"
+                  checked={drums.fillsEnabled}
+                  onChange={(e) => drums.setFillsEnabled(e.target.checked)}
+                />
+                <span className="metronome-fill-track">
+                  <span className="metronome-fill-thumb" />
+                </span>
+                {t('metronome.fills')}
+              </label>
+
               <div className="metronome-mixer">
                 {MIXER_CHANNELS.map((ch) => (
                   <div className="metronome-mixer-channel" key={ch.key}>

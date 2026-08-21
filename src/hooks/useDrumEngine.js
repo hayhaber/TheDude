@@ -13,6 +13,9 @@ export function useDrumEngine({ bpm, beatsPerMeasure, isRunning, masterVolume = 
   const [styleKey, setStyleKey] = useState(DRUM_STYLE_OPTIONS[0].key);
   const [mix, setMix] = useState({ kick: 80, snare: 80, hihat: 80 });
   const [mutes, setMutes] = useState({ kick: false, snare: false, hihat: false });
+  // Off by default — opt-in variety on top of the groove, not a change to
+  // what anyone already using the drum machine currently hears.
+  const [fillsEnabled, setFillsEnabled] = useState(false);
 
   const engineRef = useRef(null);
   // Read live by the scheduler on every step, same reasoning as
@@ -41,6 +44,7 @@ export function useDrumEngine({ bpm, beatsPerMeasure, isRunning, masterVolume = 
       beatsPerMeasure,
       styleKey,
       getMix: () => mixRef.current,
+      fillsEnabled,
     });
 
     return () => {
@@ -48,7 +52,7 @@ export function useDrumEngine({ bpm, beatsPerMeasure, isRunning, masterVolume = 
       engineRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning, drumsActive, bpm, beatsPerMeasure, styleKey]);
+  }, [isRunning, drumsActive, bpm, beatsPerMeasure, styleKey, fillsEnabled]);
 
   function setMixValue(instrument, value) {
     const n = Math.round(Number(value));
@@ -73,5 +77,7 @@ export function useDrumEngine({ bpm, beatsPerMeasure, isRunning, masterVolume = 
     toggleInstrumentMute,
     drumsActive,
     clickSilenced,
+    fillsEnabled,
+    setFillsEnabled,
   };
 }

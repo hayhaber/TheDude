@@ -11,6 +11,17 @@
 // beats 1-2-3-4-1-2 — not authentic to every genre in every meter, but keeps
 // every groove musically sensible (kick/backbeat roles stay put) without a
 // bespoke pattern per time signature.
+//
+// `fill` (optional) — an alternate set of hits for just the LAST beat of a
+// measure, swapped in for that one beat every FILL_INTERVAL_BARS measures
+// (see drumEngine.js) when fills are turned on. Shaped as one beat-role's
+// worth of steps (same `stepsPerBeat` as the style itself), not a whole
+// extra cell — the groove for every other beat in that measure plays
+// completely unchanged, only the last beat becomes a short pickup/roll
+// leading back into beat 1. Only kick/snare/hi-hat exist as sounds (see
+// drumSounds.js — no toms/crash), so every fill below is built as a
+// snare-roll pickup or a kick+snare buildup hit, whichever reads as a
+// genuine fill for that genre within that constraint.
 export const DRUM_STYLES = {
   rock: {
     label: 'Rock / Pop',
@@ -21,6 +32,8 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.85 }, { hihatClosed: 0.5 }],
       [{ snare: 1, hihatClosed: 0.85 }, { hihatOpen: 0.55 }],
     ],
+    // Two-eighth snare pickup — the standard rock "let's go" fill into beat 1.
+    fill: [{ snare: 0.85 }, { snare: 1 }],
   },
   blues: {
     label: 'Blues / Shuffle',
@@ -31,6 +44,9 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.85 }, {}, { kick: 0.5, hihatClosed: 0.5 }],
       [{ snare: 1, hihatClosed: 0.85 }, {}, { hihatClosed: 0.5 }],
     ],
+    // Triplet snare roll, filling in the middle triplet the groove normally
+    // leaves silent — a classic shuffle turnaround.
+    fill: [{ snare: 0.7 }, { snare: 0.85 }, { snare: 1 }],
   },
   funk: {
     label: 'Funk',
@@ -41,6 +57,9 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.75 }, { snare: 0.2, hihatClosed: 0.3 }, { hihatClosed: 0.45 }, { hihatClosed: 0.3 }],
       [{ snare: 1, hihatClosed: 0.75 }, { kick: 0.55, hihatClosed: 0.3 }, { hihatClosed: 0.45 }, { snare: 0.25, hihatOpen: 0.4 }],
     ],
+    // 16th-note snare crescendo, ghost-note-to-full-hit — the syncopated
+    // funk equivalent of a pickup fill.
+    fill: [{ snare: 0.5 }, { snare: 0.65 }, { snare: 0.8 }, { snare: 1 }],
   },
   metal: {
     label: 'Metal / Hard Rock',
@@ -51,6 +70,9 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.9 }, { kick: 0.85 }, { kick: 0.95 }, { kick: 0.85 }],
       [{ kick: 1, snare: 1, hihatClosed: 0.9 }, { kick: 0.85 }, { kick: 0.95 }, { kick: 0.85 }],
     ],
+    // Keeps the driving double-kick going (dropping it would read as a
+    // breakdown, not a fill) and stacks a snare accent crescendo on top.
+    fill: [{ kick: 1, snare: 0.7 }, { kick: 1 }, { kick: 1, snare: 0.85 }, { kick: 1, snare: 1 }],
   },
   jazz: {
     label: 'Jazz / Swing',
@@ -61,6 +83,9 @@ export const DRUM_STYLES = {
       [{ kick: 0.4, hihatClosed: 0.8 }, {}, { hihatClosed: 0.5 }],
       [{ hihatClosed: 0.9 }, {}, { snare: 0.3, hihatClosed: 0.5 }],
     ],
+    // Soft triplet snare roll under a thinned-out hi-hat — a brushed-snare
+    // turnaround, not a loud accent, matching the style's own dynamics.
+    fill: [{ snare: 0.55, hihatClosed: 0.3 }, { snare: 0.75 }, { snare: 0.95 }],
   },
   reggae: {
     label: 'Reggae',
@@ -73,6 +98,10 @@ export const DRUM_STYLES = {
       [{ kick: 1, snare: 1, hihatClosed: 0.6 }, { hihatClosed: 0.75 }],
       [{ hihatClosed: 0.5 }, { hihatClosed: 0.75 }],
     ],
+    // Stays laid-back on purpose — a small snare pickup landing on a
+    // one-drop-style kick+snare hit, not a busy roll, since a loud fill
+    // would fight the genre's own restraint.
+    fill: [{ snare: 0.7 }, { kick: 1, snare: 0.95 }],
   },
   electro: {
     label: 'Electro (Four on the Floor)',
@@ -86,6 +115,10 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.7 }, { hihatOpen: 0.4 }],
       [{ kick: 1, snare: 1, hihatClosed: 0.7 }, { hihatClosed: 0.4 }],
     ],
+    // A four-on-the-floor track's "fill" is a buildup hit, not a snare
+    // roll — kick+snare together on both 8ths, opening the hi-hat on the
+    // second for lift into the next downbeat.
+    fill: [{ kick: 1, snare: 1, hihatClosed: 0.6 }, { kick: 1, snare: 1, hihatOpen: 0.7 }],
   },
 };
 

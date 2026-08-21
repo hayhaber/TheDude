@@ -445,10 +445,48 @@ export function Fretboard({
             </feMerge>
           </filter>
 
+          {/* Same procedural-grain recipe as wood-grain above, just a
+              lighter warm-brown flood color and lower opacity — maple's
+              actual grain reads as faint tan streaking, not rosewood's
+              near-black lines, so reusing the dark flood color here would
+              have painted a maple-colored base with a rosewood-dark grain
+              on top, undercutting the whole point of a visually distinct
+              bass neck. */}
+          <filter id="wood-grain-bass" x="-10%" y="-20%" width="120%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.011 0.09" numOctaves="4" seed="7" result="noise" />
+            <feColorMatrix
+              in="noise"
+              type="matrix"
+              values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.33 0.33 0.33 0 0"
+              result="noiseAlpha"
+            />
+            <feComponentTransfer in="noiseAlpha" result="grainMask">
+              <feFuncA type="linear" slope="0.4" intercept="0" />
+            </feComponentTransfer>
+            <feFlood floodColor="#8a6a3c" floodOpacity="0.35" result="grainColor" />
+            <feComposite in="grainColor" in2="grainMask" operator="in" result="grainLayer" />
+            <feMerge>
+              <feMergeNode in="SourceGraphic" />
+              <feMergeNode in="grainLayer" />
+            </feMerge>
+          </filter>
+
           <linearGradient id="wood-base" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--fret-wood-light)" />
             <stop offset="45%" stopColor="var(--fret-wood-mid)" />
             <stop offset="100%" stopColor="var(--fret-wood-dark)" />
+          </linearGradient>
+
+          {/* Bass gets a visually distinct neck — a pale maple fretboard
+              (the classic alternative to a guitar's rosewood, and a real,
+              common choice on actual bass guitars) rather than reusing the
+              guitar's own dark reddish-brown wood tones, so the two
+              instruments read as different necks at a glance, not just a
+              shorter version of the same one. */}
+          <linearGradient id="wood-base-bass" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--fret-wood-bass-light)" />
+            <stop offset="45%" stopColor="var(--fret-wood-bass-mid)" />
+            <stop offset="100%" stopColor="var(--fret-wood-bass-dark)" />
           </linearGradient>
 
           {/* Soft overhead sheen suggesting the fretboard's radiused camber. */}
@@ -541,9 +579,10 @@ export function Fretboard({
           </filter>
         </defs>
 
-        {/* Rosewood fretboard surface, cream binding, and a soft overhead
-            sheen — purely visual, drawn first so every existing overlay
-            (frets/strings/dots/lick markers/etc.) layers on top unchanged. */}
+        {/* Rosewood fretboard surface (maple for Bass — see wood-base-bass's
+            own comment), cream binding, and a soft overhead sheen — purely
+            visual, drawn first so every existing overlay (frets/strings/
+            dots/lick markers/etc.) layers on top unchanged. */}
         <rect
           x={surfaceLeft}
           y={surfaceTop}
@@ -551,8 +590,8 @@ export function Fretboard({
           height={surfaceBottom - surfaceTop}
           rx={6}
           className="fretboard-wood"
-          fill="url(#wood-base)"
-          filter="url(#wood-grain)"
+          fill={isBassTuning ? 'url(#wood-base-bass)' : 'url(#wood-base)'}
+          filter={isBassTuning ? 'url(#wood-grain-bass)' : 'url(#wood-grain)'}
         />
         {/* Flush with the true top/bottom edge of the wood, not inset from
             it — they were previously drawn a bindingWidth in from the edge,

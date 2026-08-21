@@ -64,6 +64,12 @@
   --fret-wood-dark: #241511;
   --fret-wood-mid: #3c2418;
   --fret-wood-light: #5a3823;
+  /* Bass's own fretboard palette — a pale maple neck instead of the
+     guitar's rosewood, so the two instruments read as visually distinct
+     necks (see Fretboard.jsx's wood-base-bass gradient). */
+  --fret-wood-bass-dark: #7a5527;
+  --fret-wood-bass-mid: #b3893f;
+  --fret-wood-bass-light: #d9b46a;
   --fret-binding: #ede3ce;
   --fret-metal-light: #e8e4dc;
   --fret-metal-dark: #7a766e;

@@ -34,13 +34,16 @@
   flex-shrink: 0;
 }
 
-/* Play/Stop sit side by side and need to read as one matched pair —
-   without an explicit shared width, "▶ Play" and "■ Stop" land at
-   different natural widths since the glyph+label content itself isn't
-   the same length, even with identical padding. */
+/* Play/Stop sit side by side and need to read as one matched pair — a
+   min-width wasn't enough (still visibly mismatched live: the ▶ glyph
+   itself renders wider than ■ in the actual UI font, so "▶ Play" still
+   grew past a shared floor while "■ Stop" stayed at it) — an explicit
+   fixed width forces both to the exact same box regardless of how wide
+   either one's own icon+label content naturally wants to be. */
 .tab-pdf-play-btn,
 .tab-pdf-stop-btn {
-  min-width: 100px;
+  width: 110px;
+  white-space: nowrap;
 }
 
 .tab-pdf-upload-btn:hover,

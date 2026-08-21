@@ -59,6 +59,42 @@ function playSnare(ctx, time, velocity) {
   body.stop(time + 0.12);
 }
 
+// One shared shape for all three toms — just a different base pitch each
+// (high/mid/low) — same pitched-sine-with-downward-sweep recipe as the kick,
+// just shorter and higher so it reads as a drum voice, not another kick.
+function playTom(ctx, time, velocity, basePitch) {
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(basePitch * 1.4, time);
+  osc.frequency.exponentialRampToValueAtTime(basePitch * 0.65, time + 0.16);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.9 * velocity, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.32);
+
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time + 0.34);
+}
+
+function playCrash(ctx, time, velocity) {
+  const buffer = getNoiseBuffer(ctx);
+  const duration = 1.1; // long, slow-decaying wash — distinct from the hi-hat's short flick
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 4000;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.6 * velocity, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+  noise.connect(filter).connect(gain).connect(ctx.destination);
+
+  const offset = Math.random() * Math.max(0, buffer.duration - duration - 0.05);
+  noise.start(time, offset, duration + 0.02);
+}
+
 function playHiHat(ctx, time, velocity, open) {
   const buffer = getNoiseBuffer(ctx);
   const duration = open ? 0.3 : 0.045;
@@ -77,13 +113,18 @@ function playHiHat(ctx, time, velocity, open) {
   noise.start(time, offset, duration + 0.02);
 }
 
-// `instrument` is one of: 'kick' | 'snare' | 'hihatClosed' | 'hihatOpen'.
-// `velocity` is 0-1 and already folds in both the pattern's own accent
-// weighting and the mixer's per-instrument volume/mute.
+// `instrument` is one of: 'kick' | 'snare' | 'hihatClosed' | 'hihatOpen' |
+// 'tomHigh' | 'tomMid' | 'tomLow' | 'crash'. `velocity` is 0-1 and already
+// folds in both the pattern's own accent weighting and the mixer's
+// per-instrument volume/mute.
 export function playDrumHit(ctx, instrument, time, velocity) {
   if (!velocity || velocity <= 0) return;
   if (instrument === 'kick') playKick(ctx, time, velocity);
   else if (instrument === 'snare') playSnare(ctx, time, velocity);
   else if (instrument === 'hihatClosed') playHiHat(ctx, time, velocity, false);
   else if (instrument === 'hihatOpen') playHiHat(ctx, time, velocity, true);
+  else if (instrument === 'tomHigh') playTom(ctx, time, velocity, 220);
+  else if (instrument === 'tomMid') playTom(ctx, time, velocity, 150);
+  else if (instrument === 'tomLow') playTom(ctx, time, velocity, 100);
+  else if (instrument === 'crash') playCrash(ctx, time, velocity);
 }

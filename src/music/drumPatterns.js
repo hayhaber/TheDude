@@ -18,10 +18,18 @@
 // worth of steps (same `stepsPerBeat` as the style itself), not a whole
 // extra cell — the groove for every other beat in that measure plays
 // completely unchanged, only the last beat becomes a short pickup/roll
-// leading back into beat 1. Only kick/snare/hi-hat exist as sounds (see
-// drumSounds.js — no toms/crash), so every fill below is built as a
-// snare-roll pickup or a kick+snare buildup hit, whichever reads as a
-// genuine fill for that genre within that constraint.
+// leading back into beat 1. Available instrument keys: kick, snare,
+// hihatClosed, hihatOpen, tomHigh, tomMid, tomLow, crash (see
+// drumSounds.js) — toms give fills real drum-fill character (descending
+// tom runs), crash is reserved for `fillCrashVelocity` below, not used
+// inside `fill` itself.
+//
+// `fillCrashVelocity` (optional) — when set, a crash cymbal lands exactly
+// on beat 1 of the measure right after a fill, layered on top of that
+// beat's normal groove hit (not replacing it) — the classic "crash on the
+// one" landing after a fill. Left unset for styles where a loud crash
+// would fight the genre's own dynamics (jazz's brushed turnaround, reggae's
+// deliberate restraint).
 export const DRUM_STYLES = {
   rock: {
     label: 'Rock / Pop',
@@ -32,8 +40,10 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.85 }, { hihatClosed: 0.5 }],
       [{ snare: 1, hihatClosed: 0.85 }, { hihatOpen: 0.55 }],
     ],
-    // Two-eighth snare pickup — the standard rock "let's go" fill into beat 1.
-    fill: [{ snare: 0.85 }, { snare: 1 }],
+    // Quick high-to-low tom pickup (with a snare layered on the landing
+    // note for punch) — the standard rock "let's go" fill into beat 1.
+    fill: [{ tomHigh: 0.85 }, { tomLow: 0.95, snare: 0.5 }],
+    fillCrashVelocity: 0.9,
   },
   blues: {
     label: 'Blues / Shuffle',
@@ -44,9 +54,10 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.85 }, {}, { kick: 0.5, hihatClosed: 0.5 }],
       [{ snare: 1, hihatClosed: 0.85 }, {}, { hihatClosed: 0.5 }],
     ],
-    // Triplet snare roll, filling in the middle triplet the groove normally
-    // leaves silent — a classic shuffle turnaround.
-    fill: [{ snare: 0.7 }, { snare: 0.85 }, { snare: 1 }],
+    // Descending tom triplet — a classic shuffle turnaround, filling in the
+    // middle triplet the groove normally leaves silent.
+    fill: [{ tomHigh: 0.7 }, { tomMid: 0.85 }, { tomLow: 1 }],
+    fillCrashVelocity: 0.55,
   },
   funk: {
     label: 'Funk',
@@ -57,9 +68,10 @@ export const DRUM_STYLES = {
       [{ kick: 1, hihatClosed: 0.75 }, { snare: 0.2, hihatClosed: 0.3 }, { hihatClosed: 0.45 }, { hihatClosed: 0.3 }],
       [{ snare: 1, hihatClosed: 0.75 }, { kick: 0.55, hihatClosed: 0.3 }, { hihatClosed: 0.45 }, { snare: 0.25, hihatOpen: 0.4 }],
     ],
-    // 16th-note snare crescendo, ghost-note-to-full-hit — the syncopated
-    // funk equivalent of a pickup fill.
-    fill: [{ snare: 0.5 }, { snare: 0.65 }, { snare: 0.8 }, { snare: 1 }],
+    // Descending 16th-note tom run landing on a full snare hit — the
+    // syncopated funk equivalent of a pickup fill.
+    fill: [{ tomHigh: 0.6 }, { tomMid: 0.75 }, { tomLow: 0.9 }, { snare: 1 }],
+    fillCrashVelocity: 0.5,
   },
   metal: {
     label: 'Metal / Hard Rock',
@@ -71,8 +83,10 @@ export const DRUM_STYLES = {
       [{ kick: 1, snare: 1, hihatClosed: 0.9 }, { kick: 0.85 }, { kick: 0.95 }, { kick: 0.85 }],
     ],
     // Keeps the driving double-kick going (dropping it would read as a
-    // breakdown, not a fill) and stacks a snare accent crescendo on top.
-    fill: [{ kick: 1, snare: 0.7 }, { kick: 1 }, { kick: 1, snare: 0.85 }, { kick: 1, snare: 1 }],
+    // breakdown, not a fill) and stacks a descending tom run on top,
+    // landing on a full snare hit.
+    fill: [{ kick: 1, tomHigh: 0.7 }, { kick: 1, tomMid: 0.8 }, { kick: 1, tomLow: 0.9 }, { kick: 1, snare: 1 }],
+    fillCrashVelocity: 1,
   },
   jazz: {
     label: 'Jazz / Swing',
@@ -119,6 +133,8 @@ export const DRUM_STYLES = {
     // roll — kick+snare together on both 8ths, opening the hi-hat on the
     // second for lift into the next downbeat.
     fill: [{ kick: 1, snare: 1, hihatClosed: 0.6 }, { kick: 1, snare: 1, hihatOpen: 0.7 }],
+    // The big crash-on-the-drop moment — very characteristic of the genre.
+    fillCrashVelocity: 0.85,
   },
 };
 

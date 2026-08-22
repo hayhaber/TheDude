@@ -471,6 +471,35 @@ export function Fretboard({
             </feMerge>
           </filter>
 
+          {/* A real maple bass neck's grain reads as distinct, fairly tight
+              linear streaks running the length of the neck (the X axis
+              here), not rosewood's coarser, blotchier dark patches — a
+              lower X baseFrequency than wood-grain-bass above stretches
+              each streak out longer/thinner, and a higher octave count with
+              a straight (non-turbulence) fractalNoise keeps them looking
+              like combed lines rather than noise blobs. Used for Bass
+              specifically (see the isBassTuning-picked filter below);
+              wood-grain-bass above is no longer used but left in place in
+              case a blotchier alternate wood is wanted later. */}
+          <filter id="maple-grain" x="-10%" y="-20%" width="120%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.004 0.22" numOctaves="5" seed="11" result="noise" />
+            <feColorMatrix
+              in="noise"
+              type="matrix"
+              values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.5 0.5 0.5 0 -0.15"
+              result="noiseAlpha"
+            />
+            <feComponentTransfer in="noiseAlpha" result="grainMask">
+              <feFuncA type="linear" slope="0.9" intercept="0" />
+            </feComponentTransfer>
+            <feFlood floodColor="#7a5a2e" floodOpacity="0.32" result="grainColor" />
+            <feComposite in="grainColor" in2="grainMask" operator="in" result="grainLayer" />
+            <feMerge>
+              <feMergeNode in="SourceGraphic" />
+              <feMergeNode in="grainLayer" />
+            </feMerge>
+          </filter>
+
           <linearGradient id="wood-base" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--fret-wood-light)" />
             <stop offset="45%" stopColor="var(--fret-wood-mid)" />
@@ -513,6 +542,16 @@ export function Fretboard({
             <stop offset="55%" stopColor="var(--fret-inlay-pearl)" />
             <stop offset="100%" stopColor="#cfc6ac" />
           </linearGradient>
+
+          {/* Bass position markers — a real maple Fender-style neck uses
+              plain black dots pressed into the wood, not the pearloid
+              inlay guitar boards typically have; a bright pearl dot would
+              also barely read against the pale maple base the way it does
+              against guitar's dark rosewood. */}
+          <radialGradient id="black-inlay" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stopColor="#3a3a3a" />
+            <stop offset="100%" stopColor="#050505" />
+          </radialGradient>
 
           {/* Arrowhead for Technique & Guitar Masters overlay arrows (Slide/
               HammerOn/PullOff/Bend) — orient="auto-start-reverse" points it
@@ -591,25 +630,26 @@ export function Fretboard({
           rx={6}
           className="fretboard-wood"
           fill={isBassTuning ? 'url(#wood-base-bass)' : 'url(#wood-base)'}
-          filter={isBassTuning ? 'url(#wood-grain-bass)' : 'url(#wood-grain)'}
+          filter={isBassTuning ? 'url(#maple-grain)' : 'url(#wood-grain)'}
         />
         {/* Flush with the true top/bottom edge of the wood, not inset from
             it — they were previously drawn a bindingWidth in from the edge,
-            which read as sitting too close to the outer strings. */}
-        <rect
-          x={surfaceLeft}
-          y={surfaceTop}
-          width={surfaceRight - surfaceLeft}
-          height={bindingWidth}
-          className="fretboard-binding"
-        />
-        <rect
-          x={surfaceLeft}
-          y={surfaceBottom - bindingWidth}
-          width={surfaceRight - surfaceLeft}
-          height={bindingWidth}
-          className="fretboard-binding"
-        />
+            which read as sitting too close to the outer strings.
+            Guitar-only: a real maple bass neck's edge is bare wood (no
+            cream binding strip), so drawing this for Bass would fight the
+            maple-neck look rather than support it. */}
+        {!isBassTuning && (
+          <>
+            <rect x={surfaceLeft} y={surfaceTop} width={surfaceRight - surfaceLeft} height={bindingWidth} className="fretboard-binding" />
+            <rect
+              x={surfaceLeft}
+              y={surfaceBottom - bindingWidth}
+              width={surfaceRight - surfaceLeft}
+              height={bindingWidth}
+              className="fretboard-binding"
+            />
+          </>
+        )}
         <rect
           x={surfaceLeft}
           y={surfaceTop}
@@ -620,21 +660,23 @@ export function Fretboard({
           className="fretboard-sheen"
         />
 
-        {/* pearloid dot position markers, at the same FRET_MARKERS/
-            DOUBLE_DOT_FRETS positions/logic as before. */}
+        {/* Position markers, at the same FRET_MARKERS/DOUBLE_DOT_FRETS
+            positions/logic as before — pearloid for guitar, plain black
+            dots for Bass's maple neck (see black-inlay's own comment). */}
         {FRET_MARKERS.map((fret) => {
           const x = fretX(fret) - FRET_WIDTH / 2;
           const isDouble = DOUBLE_DOT_FRETS.includes(fret);
           const midY = NECK_TOP + (STRING_GAP * (tuning.length - 1)) / 2;
+          const inlayFill = isBassTuning ? 'url(#black-inlay)' : 'url(#pearl-inlay)';
           if (isDouble) {
             return (
               <g key={fret}>
-                <circle cx={x} cy={midY - STRING_GAP} r={5 * NECK_SCALE} className="fret-inlay" fill="url(#pearl-inlay)" />
-                <circle cx={x} cy={midY + STRING_GAP} r={5 * NECK_SCALE} className="fret-inlay" fill="url(#pearl-inlay)" />
+                <circle cx={x} cy={midY - STRING_GAP} r={5 * NECK_SCALE} className="fret-inlay" fill={inlayFill} />
+                <circle cx={x} cy={midY + STRING_GAP} r={5 * NECK_SCALE} className="fret-inlay" fill={inlayFill} />
               </g>
             );
           }
-          return <circle key={fret} cx={x} cy={midY} r={5 * NECK_SCALE} className="fret-inlay" fill="url(#pearl-inlay)" />;
+          return <circle key={fret} cx={x} cy={midY} r={5 * NECK_SCALE} className="fret-inlay" fill={inlayFill} />;
         })}
 
         {/* frets — metal wire rects spanning the full binding-to-binding

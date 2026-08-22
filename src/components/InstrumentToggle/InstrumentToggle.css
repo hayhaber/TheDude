@@ -1,129 +1,41 @@
-/* A compact button + small anchored menu — replaces the old 2/3-pill
-   segmented toggle, which stopped fitting this narrow sidebar/mobile-
-   settings drawer once Bass became a 3rd option (its pill rendered
-   detached past the drawer's own edge). One button showing just the
-   current instrument takes far less width than 3 pills ever could, and
-   per this app's own >2-options-gets-a-dropdown rule, that's the right
-   call now that there are 3. */
-.instrument-dropdown {
-  display: inline-block;
+.instrument-toggle {
+  margin: 0;
+  /* The base .mode-toggle is `width: max-content` with no cap — fine for 2
+     short buttons, but with Bass added as a 3rd option the row no longer
+     reliably fits the narrow sidebar/mobile-settings drawer this renders
+     in, and with no cap it overflows past the drawer's own edge instead of
+     shrinking (reported live: Bass's pill rendered detached, past the
+     drawer boundary). Capped to the drawer's own width so the grid's equal-
+     fraction columns divide within it instead. */
+  max-width: 100%;
 }
 
-.instrument-dropdown-trigger {
-  display: inline-flex;
+.instrument-toggle button {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  height: var(--control-height);
-  box-sizing: border-box;
-  padding: 0 10px 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 13px;
+  gap: 4px;
+  padding: 7px 11px;
+  font-size: 12px;
   font-weight: 590;
-  letter-spacing: -0.005em;
   white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  /* Overrides the base .mode-toggle button's 96px floor — that width was
+     sized for 2-button rows with longer labels elsewhere in the app; with 3
+     short icon+label buttons here, 96px each is more than enough to force
+     an overflow on narrow screens even after the container itself is
+     capped above. */
+  min-width: 0;
 }
 
-.instrument-dropdown-trigger:hover {
-  background: rgba(120, 120, 128, 0.12);
-}
-
-.instrument-dropdown-trigger.open {
-  border-color: var(--accent);
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-
-.instrument-dropdown-icon {
+.instrument-toggle-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.instrument-dropdown-icon svg {
+.instrument-toggle-icon svg,
+.instrument-toggle-icon img {
   display: block;
-}
-
-.instrument-dropdown-chevron {
-  flex-shrink: 0;
-  margin-inline-start: 2px;
-  color: var(--text-secondary);
-  transition: transform 0.15s ease;
-}
-
-.instrument-dropdown-trigger.open .instrument-dropdown-chevron {
-  color: var(--accent);
-  transform: rotate(180deg);
-}
-
-/* Portaled to document.body (see InstrumentToggle.jsx) — positioned via
-   inline top/left computed from the trigger's own bounding rect, same
-   reasoning as every other portaled panel in this app (escapes any
-   overflow-clipping ancestor). z-index above both drawer patterns this
-   trigger can be opened from rest inside (nav drawer and the Settings
-   drawer, which itself sits at 60/61 — see SettingsPanel.css). */
-.instrument-dropdown-menu {
-  position: fixed;
-  z-index: 70;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  box-shadow: var(--shadow-md);
-}
-
-.instrument-dropdown-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border: none;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 550;
-  text-align: start;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-
-.instrument-dropdown-option:hover {
-  background: rgba(120, 120, 128, 0.12);
-}
-
-.instrument-dropdown-option.active {
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-weight: 650;
-}
-
-.instrument-dropdown-option-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 20px;
-}
-
-.instrument-dropdown-option-icon svg {
-  display: block;
-}
-
-.instrument-dropdown-option-label {
-  flex: 1;
-}
-
-.instrument-dropdown-check {
-  flex-shrink: 0;
-  color: var(--accent);
+  width: 16px;
+  height: 16px;
 }

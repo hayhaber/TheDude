@@ -1,3 +1,4 @@
+import { GuitarIcon } from '../components/GuitarIcon/GuitarIcon';
 import { BassGuitarIcon } from '../components/BassGuitarIcon/BassGuitarIcon';
 
 // The declarative list of instruments the app knows about — same shape as
@@ -9,7 +10,10 @@ import { BassGuitarIcon } from '../components/BassGuitarIcon/BassGuitarIcon';
 // audio profile (see audio/pianoPlayer.js for the pattern) — nothing else in
 // the app needs to change to recognize a new instrument exists.
 export const INSTRUMENTS = [
-  { key: 'guitar', labelKey: 'instrument.guitar', icon: '🎸' },
+  // Real illustrated artwork (user-supplied) instead of the plain 🎸 emoji —
+  // see GuitarIcon's own comment; also used for Improvise's nav icon and
+  // InstrumentGate's fallback message, for consistent guitar branding.
+  { key: 'guitar', labelKey: 'instrument.guitar', icon: GuitarIcon },
   { key: 'piano', labelKey: 'instrument.piano', icon: '🎹' },
   // No dedicated bass-guitar emoji exists in Unicode, and reusing the
   // guitar emoji made the two indistinguishable at a glance — a custom

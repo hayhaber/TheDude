@@ -1,0 +1,12 @@
+/* Sized relative to the surrounding font-size by default (1em), same
+   convention every emoji-based icon it replaces already followed — so it
+   drops into each of its 3 consumer contexts (instrument toggle, nav
+   icons, InstrumentGate's empty state) at a sensible size automatically.
+   Consumers with a fixed-px icon size (InstrumentToggle.css's
+   `.instrument-toggle-icon img`) override this with a more specific
+   selector, same as any other CSS. */
+.instrument-icon-image {
+  width: 1em;
+  height: 1em;
+  display: block;
+}

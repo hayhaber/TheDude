@@ -1,4 +1,5 @@
 import { TrainingIcon } from '../TrainingIcon/TrainingIcon';
+import { GuitarIcon } from '../GuitarIcon/GuitarIcon';
 
 // Top-level destinations — see the IA in the redesign plan: Compose (build
 // the progression), Improvise (generate over it), Practice (skill-building,
@@ -16,7 +17,7 @@ import { TrainingIcon } from '../TrainingIcon/TrainingIcon';
 // distinctive and immediately legible than a generic 🎯 bullseye.
 export const SECTIONS = [
   { key: 'compose', labelKey: 'nav.compose', icon: '🎼' },
-  { key: 'improvise', labelKey: 'nav.improvise', icon: '🎸' },
+  { key: 'improvise', labelKey: 'nav.improvise', icon: GuitarIcon },
   { key: 'practice', labelKey: 'nav.practice', icon: TrainingIcon },
   { key: 'studies', labelKey: 'nav.studies', icon: '📖' },
   { key: 'songs', labelKey: 'nav.songs', icon: '🔍' },

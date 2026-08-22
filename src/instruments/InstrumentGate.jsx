@@ -1,6 +1,7 @@
 import { useInstrument } from './useInstrument';
 import { supportsInstrument } from './featureCapabilities';
 import { useLanguage } from '../i18n/LanguageContext';
+import { GuitarIcon } from '../components/GuitarIcon/GuitarIcon';
 import './InstrumentGate.css';
 
 // Wraps a guitar-specific (or, in the future, piano-specific) feature —
@@ -16,7 +17,7 @@ export function InstrumentGate({ feature, children }) {
   return (
     <div className="instrument-gate">
       <span className="instrument-gate-icon" aria-hidden="true">
-        🎸
+        <GuitarIcon />
       </span>
       <p>{t('instrument.guitarOnly')}</p>
     </div>

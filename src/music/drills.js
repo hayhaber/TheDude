@@ -37,6 +37,42 @@ export const DRILLS = [
     ],
   },
   {
+    id: 'spider-walk-1324',
+    title: { en: 'Spider Walk — Broken Order (1-3-2-4)', he: 'הליכת העכביש — סדר שבור (1-3-2-4)' },
+    category: 'warmup',
+    source: 'Finger-independence variation on the classic Spider Walk',
+    description: {
+      en: 'Same 4 frets, one finger per fret, as the basic Spider Walk — but fretted out of order (1, then 3, then 2, then 4) instead of straight up. Forces real independence between non-adjacent finger pairs (1-3, 2-4) instead of the ordered crawl your hand can do on autopilot.',
+      he: 'אותם 4 שריגים, אצבע אחת לכל שריג, כמו הליכת העכביש הבסיסית — אך בסדר לא-רציף (1, ואז 3, ואז 2, ואז 4) במקום ישר במעלה. מכריח עצמאות אמיתית בין זוגות אצבעות לא-סמוכים (1-3, 2-4) במקום זחילה מסודרת שהיד עושה על טייס אוטומטי.',
+    },
+    difficulty: 'Intermediate',
+    bpmSuggested: 75,
+    noteValue: 'quarter',
+    sequence: [
+      step(0, 1, 1, 'F'), step(0, 3, 3, 'G'), step(0, 2, 2, 'F#'), step(0, 4, 4, 'G#'),
+      step(1, 1, 1, 'A#'), step(1, 3, 3, 'C'), step(1, 2, 2, 'B'), step(1, 4, 4, 'C#'),
+      step(2, 1, 1, 'D#'), step(2, 3, 3, 'F'), step(2, 2, 2, 'E'), step(2, 4, 4, 'F#'),
+    ],
+  },
+  {
+    id: 'spider-walk-1423',
+    title: { en: 'Spider Walk — Broken Order (1-4-2-3)', he: 'הליכת העכביש — סדר שבור (1-4-2-3)' },
+    category: 'warmup',
+    source: 'Finger-independence variation on the classic Spider Walk',
+    description: {
+      en: 'The other standard broken-order Spider Walk pattern — 1, then 4, then 2, then 3. The big 1-4 stretch right at the start is the real test here; keep it relaxed rather than lunging for the 4th finger.',
+      he: 'תבנית ה"סדר שבור" הסטנדרטית השנייה של הליכת העכביש — 1, ואז 4, ואז 2, ואז 3. המתיחה הגדולה בין 1 ל-4 כבר בהתחלה היא המבחן האמיתי כאן — שמרו על רגיעה במקום לזנק אל האצבע הרביעית.',
+    },
+    difficulty: 'Intermediate',
+    bpmSuggested: 75,
+    noteValue: 'quarter',
+    sequence: [
+      step(0, 1, 1, 'F'), step(0, 4, 4, 'G#'), step(0, 2, 2, 'F#'), step(0, 3, 3, 'G'),
+      step(1, 1, 1, 'A#'), step(1, 4, 4, 'C#'), step(1, 2, 2, 'B'), step(1, 3, 3, 'C'),
+      step(2, 1, 1, 'D#'), step(2, 4, 4, 'F#'), step(2, 2, 2, 'E'), step(2, 3, 3, 'F'),
+    ],
+  },
+  {
     id: 'chromatic-string-skip',
     title: { en: 'Chromatic String-Skipping Basics', he: 'יסודות דילוג מיתרים כרומטי' },
     category: 'warmup',

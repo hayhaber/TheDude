@@ -11,9 +11,7 @@ function promptFor(t, question) {
   if (question.kind === 'chord') return t(question.needsRoot ? 'earTraining.prompt.chordRootQuality' : 'earTraining.prompt.chord');
   if (question.kind === 'interval') return t('earTraining.prompt.interval');
   if (question.kind === 'callresponse') return t('earTraining.prompt.callresponse', { length: question.targetMidiSequence.length });
-  if (question.kind === 'triad') {
-    return t('earTraining.prompt.triad', { inversion: t(`earTraining.inversion.${question.inversionLabel}`) });
-  }
+  if (question.kind === 'triad') return t('earTraining.prompt.triad');
   if (question.kind === 'scaleid') return t('earTraining.prompt.scaleid');
   return question.prompt;
 }
@@ -192,6 +190,22 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
             <p className={'ear-training-prompt' + (feedback ? feedback.correct ? ' correct' : ' incorrect' : '')} dir="auto">
               {promptFor(t, question)}
             </p>
+
+            {/* Names the actual answer in text once answered — previously
+                the only confirmation was which choice button turned green,
+                with no written "that was: X" anywhere despite the fretboard
+                already revealing the notes. Triad questions also get their
+                inversion here, its genuinely useful place (after the
+                quality is known) rather than leaked in the prompt before
+                anything is visible to correlate it against. */}
+            {isChoiceQuestion && answeredChoiceKey && (
+              <p className="ear-training-reveal" dir="auto">
+                {t('earTraining.reveal', {
+                  answer: choiceLabel(t, question, question.choices.find((c) => c.key === question.correctChoiceKey)),
+                })}
+                {question.kind === 'triad' && ` (${t(`earTraining.inversion.${question.inversionLabel}`)})`}
+              </p>
+            )}
 
             <div className="ear-training-actions">
               <button type="button" className="play-button" onClick={replay}>

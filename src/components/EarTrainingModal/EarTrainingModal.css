@@ -185,6 +185,17 @@
   border-color: var(--danger);
 }
 
+/* Names the correct answer in text once a choice question is answered —
+   sits right under the prompt bar, quieter (no border/background) since the
+   prompt bar itself already carries the correct/incorrect color signal. */
+.ear-training-reveal {
+  margin: -4px 0 0;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
 .ear-training-actions {
   display: flex;
   align-items: center;

@@ -125,6 +125,13 @@ export function useEarTraining() {
     setFeedback(null);
     setAnsweredChoiceKey(null);
     setAnswered(false);
+    // Auto-play the instant a question loads — every reference ear-training
+    // app (EarMaster, Tenuto, ...) does this; the player shouldn't have to
+    // remember to press Play just to hear the first attempt. The Replay
+    // button (below) still exists for repeats. Safe re: autoplay policy —
+    // this only ever runs after the "Start Quiz" tap has already unlocked
+    // the AudioContext (see EarTrainingModal.jsx's own comment on that).
+    playQuestionAudio(q);
   }
 
   // Covers both the initial question on start() and regenerating one

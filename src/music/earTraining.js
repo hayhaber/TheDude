@@ -44,6 +44,10 @@ export function pianoQuizKeys(difficulty) {
 export const EAR_TRAINING_MODES = [
   { key: 'pitch', labelKey: 'earTraining.mode.pitch' },
   { key: 'chord', labelKey: 'earTraining.mode.chord' },
+  // Split out from 'interval' — that mode used to coin-flip between plain
+  // intervals and triad-quality questions on every question, so a player
+  // wanting to isolate one or the other couldn't. Now each is its own mode.
+  { key: 'triad', labelKey: 'earTraining.mode.triad' },
   { key: 'interval', labelKey: 'earTraining.mode.interval' },
   { key: 'callresponse', labelKey: 'earTraining.mode.callresponse' },
   { key: 'scaleid', labelKey: 'earTraining.mode.scaleid' },
@@ -213,7 +217,10 @@ function generateTriadQuestion(difficulty) {
 
   return {
     kind: 'triad',
-    prompt: `Listen to the triad — what quality is it? (shape shown is the ${inversionLabel})`,
+    // No inversion mentioned here — nothing is visible to correlate it
+    // against until after answering (see EarTrainingModal.jsx's post-answer
+    // reveal line, where inversionLabel below is actually used).
+    prompt: 'Listen to the triad — what quality is it?',
     // Exposed separately (not just baked into `prompt`) so the UI can
     // translate the sentence around it without parsing the English string.
     inversionLabel,
@@ -372,7 +379,8 @@ function generateScaleIdQuestion(difficulty) {
 export function generateQuestion(modeKey, difficulty) {
   if (modeKey === 'pitch') return generatePitchQuestion(difficulty);
   if (modeKey === 'chord') return generateChordQuestion(difficulty);
-  if (modeKey === 'interval') return (Math.random() < 0.5 ? generateTriadQuestion : generateIntervalQuestion)(difficulty);
+  if (modeKey === 'triad') return generateTriadQuestion(difficulty);
+  if (modeKey === 'interval') return generateIntervalQuestion(difficulty);
   if (modeKey === 'scaleid') return generateScaleIdQuestion(difficulty);
   return generateCallResponseQuestion(difficulty);
 }

@@ -475,7 +475,16 @@
 }
 
 .quiz-hit-target-dot {
-  fill: none;
+  /* `fill: none` (the previous value) left the whole disc interior
+     unpainted — SVG's default pointer-events (`visiblePainted`) only
+     hit-tests painted areas, so only a pixel-precise click on the ~1.5px
+     dashed ring itself registered, not the dot's much bigger visible
+     interior a player naturally taps. `fill: transparent` is still
+     invisible but counts as "painted," restoring a real click target the
+     same size as every other clickable dot on this neck (chord tones,
+     lick markers, drill/scale notes, ...), all of which use a real
+     (opaque) fill for exactly this reason. */
+  fill: transparent;
   stroke: var(--text-secondary);
   stroke-width: 1.5;
   stroke-dasharray: 2 3;

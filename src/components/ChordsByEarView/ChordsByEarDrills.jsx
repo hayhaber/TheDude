@@ -135,6 +135,15 @@ export function QualityDrill({ progress, lessonId, onPreviewChord }) {
         correctChoiceKey={question.correctChoiceKey}
         onChoose={choose}
       />
+      {/* Only the quality LABEL is ever shown as a button (e.g. "Minor") —
+          the actual chord symbol (e.g. "Dm") is never named anywhere, so
+          this is genuinely new information, same reasoning as
+          ProgressionDrill's own reveal below. */}
+      {answered && (
+        <p className="cbe-hint" dir="ltr">
+          {t('chordsByEar.reveal', { answer: question.chordText })}
+        </p>
+      )}
     </div>
   );
 }
@@ -194,6 +203,17 @@ export function FunctionalDrill({ progress, lessonId, allowedDegrees, onPreviewC
         correctChoiceKey={question.correctChoiceKey}
         onChoose={choose}
       />
+      {/* The target chord's own symbol (e.g. "F") is never shown anywhere —
+          only its degree button (e.g. "IV") — so this names the real chord
+          behind the roman numeral, the same "what did I actually hear"
+          confirmation ProgressionDrill's reveal already gives below. */}
+      {answered && (
+        <p className="cbe-hint" dir="ltr">
+          {t('chordsByEar.reveal', {
+            answer: `${question.choices.find((c) => c.key === question.correctChoiceKey)?.roman} — ${question.targetChordText}`,
+          })}
+        </p>
+      )}
     </div>
   );
 }
@@ -315,6 +335,13 @@ export function ChangeDrill({ progress, lessonId, onPreviewChord }) {
         correctChoiceKey={question.correctChoiceKey}
         onChoose={choose}
       />
+      {/* Neither chord's name is ever shown — only the beat-count choices —
+          so this names the actual chords the change happened between. */}
+      {answered && (
+        <p className="cbe-hint" dir="ltr">
+          {t('chordsByEar.reveal', { answer: `${question.chordA.chordText} → ${question.chordB.chordText}` })}
+        </p>
+      )}
     </div>
   );
 }
@@ -373,6 +400,13 @@ export function BassMotionDrill({ progress, lessonId, onPreviewChord }) {
         correctChoiceKey={question.correctChoiceKey}
         onChoose={choose}
       />
+      {/* Same reasoning as ChangeDrill's reveal above — the actual chords
+          behind the "up/down" answer are never named otherwise. */}
+      {answered && (
+        <p className="cbe-hint" dir="ltr">
+          {t('chordsByEar.reveal', { answer: `${question.chordA.chordText} → ${question.chordB.chordText}` })}
+        </p>
+      )}
     </div>
   );
 }

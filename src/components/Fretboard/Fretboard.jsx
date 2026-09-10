@@ -211,7 +211,21 @@ export function Fretboard({
   tuning = STANDARD_TUNING,
 }) {
   const { t } = useLanguage();
-  const WINDOW_FRETS = useWindowFrets();
+  const baseWindowFrets = useWindowFrets();
+  // Ear-training quiz: the allowed answer cells are often a handful of
+  // adjacent frets on one string (beginner = frets 0-3). Drawn inside the
+  // normal 11/17-fret camera they end up as tiny dots ~17px apart —
+  // basically impossible to tap accurately on a phone/tablet. When a quiz
+  // is active, zoom the camera right down to just the answerable region
+  // (+ a little context) so every cell becomes a big, well-separated
+  // target. No effect on any other caller (none of them pass quizCells).
+  const quizFretSpan =
+    quizCells.length > 0
+      ? Math.max(...quizCells.map((c) => c.fret)) - Math.min(...quizCells.map((c) => c.fret))
+      : 0;
+  const WINDOW_FRETS =
+    quizCells.length > 0 ? Math.max(4, Math.min(baseWindowFrets, quizFretSpan + 1)) : baseWindowFrets;
+  const isQuizMode = quizCells.length > 0;
   const WINDOW_STEP = WINDOW_FRETS - 1; // one fret of overlap when paging, for context
   const neckHeight = NECK_TOP + STRING_GAP * (tuning.length - 1) + 60;
   const isBassTuning = tuning.length !== STANDARD_TUNING.length;
@@ -402,13 +416,13 @@ export function Fretboard({
   }, [roadmap]);
 
   return (
-    <div className="fretboard-scroll">
-      {windowStart > 0 && (
+    <div className={`fretboard-scroll${isQuizMode ? ' fretboard-scroll-quiz' : ''}`}>
+      {!isQuizMode && windowStart > 0 && (
         <button type="button" className="fretboard-page-btn fretboard-page-prev" onClick={() => pageWindow(-1)} aria-label={t('fretboard.pageDown')}>
           ‹
         </button>
       )}
-      {windowEndFret < MAX_FRET && (
+      {!isQuizMode && windowEndFret < MAX_FRET && (
         <button type="button" className="fretboard-page-btn fretboard-page-next" onClick={() => pageWindow(1)} aria-label={t('fretboard.pageUp')}>
           ›
         </button>
@@ -1230,31 +1244,47 @@ export function Fretboard({
           );
         })}
 
-        {/* Ear Training Quiz — clickable hit-targets for the current
-            difficulty's allowed cells (mostly invisible; a faint ring so the
-            playable area is discoverable without giving away the answer). */}
-        {quizCells.map((cell) => {
-          const cx = cell.fret === 0 ? fretX(0) : fretX(cell.fret) - FRET_WIDTH / 2;
-          const cy = stringY(cell.stringIndex);
-          return (
-            <g
-              key={`quiz-${cell.stringIndex}-${cell.fret}`}
-              className="playable-note quiz-hit-target"
-              role="button"
-              tabIndex={0}
-              style={{ touchAction: 'manipulation' }}
-              aria-label={t('fretboard.answerCell', { string: cell.stringIndex, fret: cell.fret })}
-              onPointerUp={() => onQuizCellClick?.(cell.stringIndex, cell.fret)}
-              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onQuizCellClick?.(cell.stringIndex, cell.fret)}
-            >
-              {/* Large invisible finger-sized touch target (~52px), separate
-                  from the small visible dashed ring, so a natural tap on
-                  iPhone/iPad lands even when it's a few px off the dot. */}
-              <circle cx={cx} cy={cy} r={Math.max(DOT_RADIUS * 1.9, 26)} fill="transparent" className="quiz-hit-target-touch" />
-              <circle cx={cx} cy={cy} r={DOT_RADIUS} className="quiz-hit-target-dot" />
-            </g>
-          );
-        })}
+        {/* Ear Training Quiz — clickable answer cells for the current
+            difficulty's allowed positions. Drawn as clearly visible, evenly
+            sized tap targets (all identical, so showing them doesn't reveal
+            which one is the answer). The hit target is as large as it can be
+            without overlapping its neighbour, so taps land reliably on a
+            phone/tablet touch screen. */}
+        {(() => {
+          const quizGeom = quizCells.map((cell) => ({
+            cell,
+            cx: cell.fret === 0 ? fretX(0) : fretX(cell.fret) - FRET_WIDTH / 2,
+            cy: stringY(cell.stringIndex),
+          }));
+          return quizGeom.map(({ cell, cx, cy }) => {
+            // Largest radius that still leaves a gap to the nearest other
+            // cell — so adjacent-fret targets never overlap and steal each
+            // other's taps.
+            let nearest = Infinity;
+            for (const other of quizGeom) {
+              if (other.cell === cell) continue;
+              nearest = Math.min(nearest, Math.hypot(other.cx - cx, other.cy - cy));
+            }
+            const hitR = Math.max(DOT_RADIUS, Math.min(DOT_RADIUS * 2.2, nearest * 0.46));
+            return (
+              <g
+                key={`quiz-${cell.stringIndex}-${cell.fret}`}
+                className="playable-note quiz-hit-target"
+                role="button"
+                tabIndex={0}
+                style={{ touchAction: 'manipulation' }}
+                aria-label={t('fretboard.answerCell', { string: cell.stringIndex, fret: cell.fret })}
+                onPointerUp={() => onQuizCellClick?.(cell.stringIndex, cell.fret)}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onQuizCellClick?.(cell.stringIndex, cell.fret)}
+              >
+                {/* Invisible finger-sized hit area (capped so it can't reach
+                    a neighbour), then the visible target on top. */}
+                <circle cx={cx} cy={cy} r={hitR} fill="transparent" className="quiz-hit-target-touch" />
+                <circle cx={cx} cy={cy} r={Math.min(DOT_RADIUS, hitR * 0.82)} className="quiz-hit-target-dot" />
+              </g>
+            );
+          });
+        })()}
 
         {/* Non-interactive reveal markers — call & response notes already
             answered correctly, or a choice question's actual chord/interval/

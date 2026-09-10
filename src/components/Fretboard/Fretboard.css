@@ -10,6 +10,15 @@
   padding: 0 36px;
 }
 
+/* Ear-training quiz: only a few adjacent frets are answerable, so give the
+   neck all the width it can get — the paging arrows aren't shown in this
+   mode (the camera already frames exactly the answerable region), so the
+   side padding that reserves room for them is just wasted space that
+   shrinks the tap targets. */
+.fretboard-scroll-quiz {
+  padding: 0 4px;
+}
+
 /* Renders at its natural intrinsic size (the width/height attributes set in
    Fretboard.jsx from the current window's viewBox) rather than stretching
    to fill the container — max-width is only a safety net so it can still
@@ -490,27 +499,24 @@
 }
 
 .quiz-hit-target-dot {
-  /* `fill: none` (the previous value) left the whole disc interior
-     unpainted — SVG's default pointer-events (`visiblePainted`) only
-     hit-tests painted areas, so only a pixel-precise click on the ~1.5px
-     dashed ring itself registered, not the dot's much bigger visible
-     interior a player naturally taps. `fill: transparent` is still
-     invisible but counts as "painted," restoring a real click target the
-     same size as every other clickable dot on this neck (chord tones,
-     lick markers, drill/scale notes, ...), all of which use a real
-     (opaque) fill for exactly this reason. */
-  fill: transparent;
-  stroke: var(--text-secondary);
-  stroke-width: 1.5;
-  stroke-dasharray: 2 3;
-  opacity: 0.35;
-  transition: opacity 0.15s ease;
+  /* A clearly visible, evenly sized target the player can actually aim a
+     finger at. All quiz cells look identical, so making them obvious
+     doesn't reveal which one is the answer. `fill` is a solid (painted)
+     colour, not `none`, so the whole disc — not just its outline — is a
+     real tap target. */
+  fill: var(--accent);
+  fill-opacity: 0.16;
+  stroke: var(--accent);
+  stroke-width: 2;
+  opacity: 0.9;
+  transition: fill-opacity 0.15s ease, opacity 0.15s ease;
 }
 
 .quiz-hit-target:hover .quiz-hit-target-dot,
-.quiz-hit-target:focus-visible .quiz-hit-target-dot {
-  opacity: 0.8;
-  stroke: var(--accent);
+.quiz-hit-target:focus-visible .quiz-hit-target-dot,
+.quiz-hit-target:active .quiz-hit-target-dot {
+  fill-opacity: 0.34;
+  opacity: 1;
 }
 
 .quiz-reveal-dot {

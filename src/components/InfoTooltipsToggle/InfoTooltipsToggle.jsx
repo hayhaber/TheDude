@@ -29,7 +29,24 @@ export function InfoTooltipsToggle() {
         aria-describedby={open ? tooltipId : undefined}
         {...hoverHandlers}
       >
-        ⓘ
+        {/* Inline glyph (not the ⓘ emoji) so the active state can tint just
+            the small circle + "i" blue via `color`, leaving the button's
+            own background/border neutral. */}
+        <svg
+          className="info-tooltips-toggle-glyph"
+          viewBox="0 0 24 24"
+          width="17"
+          height="17"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11 V16" />
+          <path d="M12 7.75 V7.85" />
+        </svg>
       </button>
       {renderBubble(t('infoTooltips.toggleExplanation'))}
     </span>

@@ -441,15 +441,19 @@ export function Fretboard({
     window.addEventListener('pointercancel', onUp);
   }
 
-  // Kill the pointerup/click that ends a pan so it doesn't also fire a note
-  // tap. Runs in capture phase on the SVG, before any inner note handler.
+  // Kill the click that ends a pan so it doesn't also fire a note tap.
+  // Runs in capture phase on the SVG, before any inner note's onClick.
+  // (Only `click` — NOT `pointerup`: the pan's own end-of-drag listener
+  // lives on `window`, and stopping the pointerup in capture here would
+  // prevent it from ever reaching that listener, leaving the drag stuck
+  // "on" after the button is released. Non-quiz notes are all onClick;
+  // the only onPointerUp is the quiz cell, and panning is off in quiz
+  // mode.)
   function suppressTapAfterPan(e) {
     if (!dragRef.current.moved) return;
     e.stopPropagation();
-    if (e.type === 'click') {
-      e.preventDefault();
-      dragRef.current.moved = false;
-    }
+    e.preventDefault();
+    dragRef.current.moved = false;
   }
 
   // Position Roadmap labels: several consecutive chords commonly share the
@@ -495,7 +499,6 @@ export function Fretboard({
         role="img"
         aria-label={t('fretboard.aria')}
         onPointerDown={handlePanPointerDown}
-        onPointerUpCapture={suppressTapAfterPan}
         onClickCapture={suppressTapAfterPan}
       >
         <defs>

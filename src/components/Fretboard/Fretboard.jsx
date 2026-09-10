@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { STANDARD_TUNING, MAX_FRET, FRET_MARKERS, DOUBLE_DOT_FRETS } from '../../music/notes';
 import { MUTED_DOT_COLOR, LICK_MARKER_COLOR, NOTE_FUNCTION_COLORS, TECHNIQUE_ACTION_COLOR, VOICE_LEADING_PIVOT_COLOR, VOICE_LEADING_MOVING_COLOR, DEFAULT_CHORD_COLOR, colorForChord } from '../../styles/colors';
 import { assignFingers } from '../../music/fingering';
@@ -397,6 +397,61 @@ export function Fretboard({
   const viewBoxX1 = fretX(Math.min(windowEndFret, MAX_FRET)) + SURFACE_MARGIN * 0.6 + 14;
   const viewBoxWidth = viewBoxX1 - viewBoxX0;
 
+  // Drag / swipe to pan the neck — same "grab the surface and slide it"
+  // gesture the PianoKeyboard uses, translated to this component's viewBox
+  // "camera" (windowStart) instead of a native scroll box. During the drag
+  // the viewBox attribute is updated directly on the SVG (no React re-render
+  // of this large tree per pointermove); the final position is committed to
+  // state on release. Paging arrows still work and are untouched.
+  const svgRef = useRef(null);
+  const dragRef = useRef({ dragging: false, moved: false, startX: 0, startWindow: 0, current: 0, pxPerFret: 0 });
+  const panEnabled = !isQuizMode && maxWindowStart > 0;
+  const VIEWBOX_H = neckHeight + VIEWBOX_TOP_MARGIN;
+  const viewBoxStringFor = (ws) => `${fretX(ws) - NECK_LEFT} ${-VIEWBOX_TOP_MARGIN} ${viewBoxWidth} ${VIEWBOX_H}`;
+
+  function handlePanPointerDown(e) {
+    if (!panEnabled || e.button > 0 || !e.isPrimary) return;
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const pxPerFret = (rect.width / viewBoxWidth) * FRET_WIDTH;
+    if (!(pxPerFret > 0)) return;
+    dragRef.current = { dragging: true, moved: false, startX: e.clientX, startWindow: windowStart, current: windowStart, pxPerFret };
+
+    const onMove = (ev) => {
+      const s = dragRef.current;
+      if (!s.dragging) return;
+      const dxPx = ev.clientX - s.startX;
+      if (Math.abs(dxPx) > 4) s.moved = true;
+      // Drag right → reveal earlier (lower) frets, like sliding the neck.
+      const next = Math.max(0, Math.min(maxWindowStart, s.startWindow - dxPx / s.pxPerFret));
+      s.current = next;
+      svgRef.current?.setAttribute('viewBox', viewBoxStringFor(next));
+    };
+    const onUp = () => {
+      const s = dragRef.current;
+      s.dragging = false;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      if (s.moved && Math.abs(s.current - windowStart) > 1e-4) setWindowStart(s.current);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }
+
+  // Kill the pointerup/click that ends a pan so it doesn't also fire a note
+  // tap. Runs in capture phase on the SVG, before any inner note handler.
+  function suppressTapAfterPan(e) {
+    if (!dragRef.current.moved) return;
+    e.stopPropagation();
+    if (e.type === 'click') {
+      e.preventDefault();
+      dragRef.current.moved = false;
+    }
+  }
+
   // Position Roadmap labels: several consecutive chords commonly share the
   // same baseFret (e.g. a run of open-position chords), which puts their
   // pins at the exact same cx — with plain center-anchored text that means
@@ -432,12 +487,16 @@ export function Fretboard({
         </button>
       )}
       <svg
-        className="fretboard-svg"
+        ref={svgRef}
+        className={`fretboard-svg${panEnabled ? ' fretboard-svg-pannable' : ''}`}
         viewBox={`${viewBoxX0} ${-VIEWBOX_TOP_MARGIN} ${viewBoxWidth} ${neckHeight + VIEWBOX_TOP_MARGIN}`}
         width={viewBoxWidth}
         height={neckHeight + VIEWBOX_TOP_MARGIN}
         role="img"
         aria-label={t('fretboard.aria')}
+        onPointerDown={handlePanPointerDown}
+        onPointerUpCapture={suppressTapAfterPan}
+        onClickCapture={suppressTapAfterPan}
       >
         <defs>
           {/* Procedural rosewood grain: fractal noise reshaped into a dark,

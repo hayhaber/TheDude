@@ -31,6 +31,20 @@
   max-width: 100%;
 }
 
+/* Drag / swipe to pan the neck (see Fretboard.jsx's handlePanPointerDown).
+   `touch-action: pan-y` lets a horizontal drag reach our pointer handlers
+   while a vertical swipe still scrolls the page normally. `cursor: grab`
+   only on the bare neck — `.playable-note` keeps its own `cursor: pointer`
+   for the dots. Not applied in quiz mode (camera is locked there). */
+.fretboard-svg-pannable {
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.fretboard-svg-pannable:active {
+  cursor: grabbing;
+}
+
 .fretboard-page-btn {
   position: absolute;
   top: 50%;

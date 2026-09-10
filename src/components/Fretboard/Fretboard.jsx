@@ -1242,10 +1242,15 @@ export function Fretboard({
               className="playable-note quiz-hit-target"
               role="button"
               tabIndex={0}
+              style={{ touchAction: 'manipulation' }}
               aria-label={t('fretboard.answerCell', { string: cell.stringIndex, fret: cell.fret })}
-              onClick={() => onQuizCellClick?.(cell.stringIndex, cell.fret)}
+              onPointerUp={() => onQuizCellClick?.(cell.stringIndex, cell.fret)}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onQuizCellClick?.(cell.stringIndex, cell.fret)}
             >
+              {/* Large invisible finger-sized touch target (~52px), separate
+                  from the small visible dashed ring, so a natural tap on
+                  iPhone/iPad lands even when it's a few px off the dot. */}
+              <circle cx={cx} cy={cy} r={Math.max(DOT_RADIUS * 1.9, 26)} fill="transparent" className="quiz-hit-target-touch" />
               <circle cx={cx} cy={cy} r={DOT_RADIUS} className="quiz-hit-target-dot" />
             </g>
           );

@@ -474,6 +474,21 @@
   stroke-width: 2.5;
 }
 
+.quiz-hit-target {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Finger-sized invisible touch target — a real tap on iPhone/iPad is
+   never pixel-precise, so the hittable area is much larger than the
+   small visible dashed ring. `fill: transparent` counts as painted for
+   SVG hit-testing; `pointer-events: all` makes sure it hits even if a
+   future style sets `fill: none`. */
+.quiz-hit-target-touch {
+  fill: transparent;
+  pointer-events: all;
+}
+
 .quiz-hit-target-dot {
   /* `fill: none` (the previous value) left the whole disc interior
      unpainted — SVG's default pointer-events (`visiblePainted`) only

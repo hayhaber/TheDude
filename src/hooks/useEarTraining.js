@@ -39,6 +39,10 @@ export function useEarTraining() {
   const [mistakeMade, setMistakeMade] = useState(false);
   const [feedback, setFeedback] = useState(null); // { correct, cell? } | null
   const [answeredChoiceKey, setAnsweredChoiceKey] = useState(null);
+  // Set when the player hits "Play again" after answering a fret question —
+  // cancels the auto-advance so they can re-listen / study the reveal for
+  // as long as they want, and a Next button appears to move on manually.
+  const [autoAdvancePaused, setAutoAdvancePaused] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
@@ -131,6 +135,7 @@ export function useEarTraining() {
     setFeedback(null);
     setAnsweredChoiceKey(null);
     setAnswered(false);
+    setAutoAdvancePaused(false);
     // Auto-play the instant a question loads — every reference ear-training
     // app (EarMaster, Tenuto, ...) does this; the player shouldn't have to
     // remember to press Play just to hear the first attempt. The Replay
@@ -268,6 +273,13 @@ export function useEarTraining() {
   function replay() {
     playQuestionAudio(question);
     ensureTimerRunning();
+    // Asking to hear it again after answering means "don't rush me" — stop
+    // the pending auto-advance and hand control back via the Next button.
+    if (answered && feedbackHoldTimeoutRef.current) {
+      clearTimeout(feedbackHoldTimeoutRef.current);
+      feedbackHoldTimeoutRef.current = null;
+      setAutoAdvancePaused(true);
+    }
   }
 
   function registerResult(wasCorrect) {
@@ -455,6 +467,7 @@ export function useEarTraining() {
     timedDurationS: TIMED_CHALLENGE_DURATION_S,
     isTimedOver,
     answered,
+    autoAdvancePaused,
     next,
     replay,
     handleFretClick,

@@ -1,4 +1,5 @@
 import { usePitchDetection } from '../../hooks/usePitchDetection';
+import { useInfoTooltipsEnabled } from '../../hooks/useInfoTooltipsEnabled';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './GuitarTuner.css';
 
@@ -30,6 +31,7 @@ function tuningZone(cents) {
 // actually being heard right now, the same way a real clip-on tuner works.
 export function GuitarTuner() {
   const { t } = useLanguage();
+  const { enabled: infoTooltipsEnabled } = useInfoTooltipsEnabled();
   const { isListening, startListening, stopListening, currentNote, frequency, error } = usePitchDetection();
 
   const cents = currentNote?.centsOff ?? 0;
@@ -87,7 +89,18 @@ export function GuitarTuner() {
       </div>
 
       <p className="guitar-tuner-status" dir="auto">
-        {error ? t('trainer.micError', { message: error }) : !isListening ? t('tuner.micPermission') : !currentNote ? t('trainer.silence') : null}
+        {/* The "press Start / allow the mic" line is just a hint — only
+            shown while the ⓘ info-tooltips switch is on. Real states
+            (mic error, listening-but-silent) always show. */}
+        {error
+          ? t('trainer.micError', { message: error })
+          : !isListening
+            ? infoTooltipsEnabled
+              ? t('tuner.micPermission')
+              : null
+            : !currentNote
+              ? t('trainer.silence')
+              : null}
       </p>
 
       <button type="button" className="guitar-tuner-toggle" onClick={isListening ? stopListening : startListening}>

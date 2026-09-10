@@ -351,14 +351,21 @@ export function useEarTraining() {
   // questions, nothing for choice questions (those are answered via
   // buttons, not the neck). Single source of truth — consumed by both the
   // shared Stage Fretboard (App.jsx) and EarTrainingModal's own UI.
-  const quizCells = isFretQuestion
-    ? difficulty.stringIndices.flatMap((stringIndex) =>
-        Array.from({ length: difficulty.fretMax - difficulty.fretMin + 1 }, (_, i) => ({
-          stringIndex,
-          fret: difficulty.fretMin + i,
-        }))
-      )
-    : [];
+  const quizCells = !isFretQuestion
+    ? []
+    : // Pitch questions carry their own answer grid (see generatePitchQuestion):
+      // the string(s) offered depend on the difficulty AND, at the easier
+      // tiers, on which string this particular note was played on.
+      question.kind === 'pitch'
+      ? question.answerStringIndices.flatMap((stringIndex) =>
+          Array.from({ length: question.answerFretMax + 1 }, (_, fret) => ({ stringIndex, fret }))
+        )
+      : difficulty.stringIndices.flatMap((stringIndex) =>
+          Array.from({ length: difficulty.fretMax - difficulty.fretMin + 1 }, (_, i) => ({
+            stringIndex,
+            fret: difficulty.fretMin + i,
+          }))
+        );
 
   // Call & response: show already-correct notes as reveal markers so the
   // player can see how far through the phrase they are (each one only ever
@@ -373,14 +380,27 @@ export function useEarTraining() {
       ? progress.map((p) => ({ ...p, correct: true }))
       : isChoiceQuestion && answeredChoiceKey
         ? question.notesToPlay.map((n) => ({ stringIndex: n.stringIndex, fret: n.fret, correct: feedback?.correct }))
-        : [];
+        : // Pitch: on a wrong answer, reveal where the note actually was
+          // (gold) so the player can see what they missed.
+          question?.kind === 'pitch' && feedback && !feedback.correct
+          ? question.notesToPlay.map((n) => ({ stringIndex: n.stringIndex, fret: n.fret, correct: false }))
+          : [];
 
   // Piano-mode equivalents of quizCells/quizRevealCells above — same
   // question/progress state, just expressed as MIDI keys instead of
   // fretboard cells (see pianoQuizKeys's comment for why the pool is
   // derived from the difficulty's guitar ranges rather than a separate
   // piano-specific range).
-  const quizPianoKeys = isFretQuestion ? pianoQuizKeys(difficulty) : [];
+  // Piano's click pool mirrors the guitar quizCells exactly — for pitch
+  // that means the MIDI notes of whatever string(s)/frets the answer grid
+  // is currently offering, not the difficulty's static guitar ranges.
+  const quizPianoKeys = !isFretQuestion
+    ? []
+    : question.kind === 'pitch'
+      ? Array.from(new Set(quizCells.map((c) => midiForCell(c.stringIndex, c.fret))))
+          .sort((a, b) => a - b)
+          .map((midi) => ({ midi }))
+      : pianoQuizKeys(difficulty);
   const quizRevealPianoKeys =
     question?.kind === 'callresponse'
       ? progress.map((p) => ({ midi: p.midi }))

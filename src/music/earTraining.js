@@ -74,6 +74,21 @@ export const EAR_TRAINING_DIFFICULTIES = [
   { key: 'advanced', label: 'Advanced', stringIndices: [0, 1, 2, 3, 4, 5], fretMin: 0, fretMax: MAX_FRET },
 ];
 
+// Pitch / Fret Location has its own difficulty shape, separate from the
+// shared string/fret ranges above (which still drive interval / chord /
+// call-&-response). The note is played on a random string drawn from the
+// whole neck at every tier; what changes is the fret stretch and whether
+// the answer cells are limited to the string it was played on:
+//   beginner / intermediate — you're *told* the string (cells sit only on
+//     it), so the task is purely "which fret", over 0–5 then 0–9.
+//   advanced — cells on every string across 0–9; find any position that
+//     sounds the pitch (every cell with the right pitch is accepted).
+const PITCH_DIFFICULTY = {
+  beginner: { strings: [0, 1, 2, 3, 4, 5], fretMax: 5, sameStringOnly: true },
+  intermediate: { strings: [0, 1, 2, 3, 4, 5], fretMax: 9, sameStringOnly: true },
+  advanced: { strings: [0, 1, 2, 3, 4, 5], fretMax: 9, sameStringOnly: false },
+};
+
 const INTERVALS_BY_DIFFICULTY = {
   beginner: [
     { semitones: 3, label: 'Minor 3rd' },
@@ -164,13 +179,19 @@ function findCellForMidi(midi) {
 }
 
 function generatePitchQuestion(difficulty) {
-  const { stringIndex, fret } = randomCell(difficulty);
+  const p = PITCH_DIFFICULTY[difficulty.key] ?? PITCH_DIFFICULTY.beginner;
+  const stringIndex = pick(p.strings);
+  const fret = randomInt(0, p.fretMax);
   const midi = midiForCell(stringIndex, fret);
   return {
     kind: 'pitch',
     prompt: `Click the fret that matches the pitch you hear.`,
     notesToPlay: [{ stringIndex, fret, midi }],
     targetMidiSet: [midi],
+    // Which cells the answer overlay offers: just the string it was played
+    // on, or every string in `p.strings`. Frets 0..answerFretMax either way.
+    answerStringIndices: p.sameStringOnly ? [stringIndex] : p.strings,
+    answerFretMax: p.fretMax,
     ordered: false,
     choices: null,
     correctChoiceKey: null,

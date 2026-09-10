@@ -223,8 +223,12 @@ export function Fretboard({
     quizCells.length > 0
       ? Math.max(...quizCells.map((c) => c.fret)) - Math.min(...quizCells.map((c) => c.fret))
       : 0;
+  // Quiz mode has no paging arrows (see below), so the camera must show
+  // every answer cell at once — allow it to grow past the normal
+  // phone/desktop window (up to a sane cap) rather than clamping to it and
+  // leaving far cells unreachable.
   const WINDOW_FRETS =
-    quizCells.length > 0 ? Math.max(4, Math.min(baseWindowFrets, quizFretSpan + 1)) : baseWindowFrets;
+    quizCells.length > 0 ? Math.max(4, Math.min(13, quizFretSpan + 1)) : baseWindowFrets;
   const isQuizMode = quizCells.length > 0;
   const WINDOW_STEP = WINDOW_FRETS - 1; // one fret of overlap when paging, for context
   const neckHeight = NECK_TOP + STRING_GAP * (tuning.length - 1) + 60;

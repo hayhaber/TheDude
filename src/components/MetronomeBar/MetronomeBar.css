@@ -1,121 +1,62 @@
-.metronome-bar-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+/* Compact single button — same pill shape/size as .tuner-bar so the two
+   sit as an even pair. Opens the full metronome drawer. */
 .metronome-bar {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 8px 6px 6px;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 5px 8px 5px 9px;
   border-radius: 980px;
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-}
-
-.metronome-bar-toggle {
-  position: relative;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  font-size: 12px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--text);
   cursor: pointer;
+}
+
+.metronome-bar-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-secondary);
   flex-shrink: 0;
-  transition: background 0.15s ease, transform 0.12s ease;
 }
 
-/* Visible circle stays compact (this pill is deliberately minimal-chrome),
-   but the real tap target is still a full 44x44pt — an invisible hit-slop
-   extension, same technique used below for .metronome-bar-expand. */
-.metronome-bar-toggle::before,
-.metronome-bar-expand::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 44px;
-  height: 44px;
-  transform: translate(-50%, -50%);
+.metronome-bar.running {
+  border-color: var(--accent);
 }
 
-.metronome-bar-toggle:hover {
-  background: var(--accent-hover);
-}
-
-.metronome-bar-toggle:active {
-  transform: scale(0.92);
-}
-
-.metronome-bar-toggle.running {
-  background: var(--danger);
-}
-
-.metronome-bar-pulse {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(120, 120, 128, 0.3);
-  flex-shrink: 0;
-  transition: background 0.06s ease, transform 0.06s ease;
-}
-
-.metronome-bar-pulse.live {
-  background: var(--accent);
-}
-
-.metronome-bar-pulse.accent {
-  background: #34c759;
-  transform: scale(1.3);
+.metronome-bar.running .metronome-bar-icon {
+  color: var(--accent);
 }
 
 .metronome-bar-bpm {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
   color: var(--text);
   letter-spacing: -0.01em;
   white-space: nowrap;
+  flex: 1;
+  text-align: start;
 }
 
 .metronome-bar-bpm-unit {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 590;
   color: var(--text-secondary);
   text-transform: uppercase;
 }
 
-.metronome-bar-expand {
-  position: relative;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
+.metronome-bar-chevron {
+  font-size: 14px;
   color: var(--text-secondary);
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: transform 0.15s ease;
 }
 
-.metronome-bar-expand:hover {
-  background: rgba(120, 120, 128, 0.14);
-}
-
-.metronome-bar-expand.active {
-  color: var(--accent);
+.metronome-bar:hover .metronome-bar-chevron {
+  transform: translateX(2px);
 }
 
 /* ---------- Right-side drawer, top-anchored ----------

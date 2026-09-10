@@ -2,8 +2,8 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px 6px 8px;
+  gap: 6px;
+  padding: 5px 8px 5px 9px;
   border-radius: 980px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -11,23 +11,29 @@
   color: var(--text);
   cursor: pointer;
   width: 100%;
+  min-width: 0;
 }
 
 .tuner-bar-icon {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .tuner-bar-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 590;
   flex: 1;
   text-align: start;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tuner-bar-chevron {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-secondary);
+  flex-shrink: 0;
   transition: transform 0.15s ease;
 }
 

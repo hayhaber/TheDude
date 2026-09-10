@@ -49,7 +49,9 @@
 
   --sidebar-width: 232px;
   --bottom-tabs-height: 62px;
-  --mobile-metronome-height: 104px;
+  /* One compact row of MetronomeBar + TunerBar pills side by side (was a
+     ~104px two-pill vertical stack). */
+  --mobile-metronome-height: 60px;
   --stage-sticky-top: 0px;
   /* Approximates the Fretboard/PianoKeyboard Stage's typical rendered
      height (see Fretboard.jsx's neckHeight) plus .app-stage-anchor's own

@@ -18,7 +18,7 @@ import './MetronomeBar.css';
 // hijack this drawer's fixed positioning (see TunerBar.jsx's comment).
 export function MetronomeBar({ metronome, drums }) {
   const [open, setOpen] = useState(false);
-  const { isRunning, currentBeat, bpm, toggle } = metronome;
+  const { isRunning, bpm } = metronome;
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -36,34 +36,31 @@ export function MetronomeBar({ metronome, drums }) {
   }, [open]);
 
   return (
-    <div className="metronome-bar-container">
-      <div className="metronome-bar">
-        <button
-          type="button"
-          className={'metronome-bar-toggle' + (isRunning ? ' running' : '')}
-          onClick={toggle}
-          aria-label={isRunning ? t('metronomeBar.stop') : t('metronomeBar.start')}
-        >
-          {isRunning ? '■' : '▶'}
-        </button>
-
-        <span className={'metronome-bar-pulse' + (isRunning && currentBeat === 0 ? ' accent' : '') + (isRunning ? ' live' : '')} aria-hidden="true" />
-
+    <>
+      {/* One compact button — opens the full metronome drawer, mirroring
+          TunerBar's pill. The in-bar Play/Stop moved into the drawer so
+          the two nav pills can sit side by side. */}
+      <button
+        type="button"
+        className={'metronome-bar' + (isRunning ? ' running' : '')}
+        onClick={() => setOpen(true)}
+        aria-label={t('metronome.title')}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+      >
+        <span className="metronome-bar-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6.3 18.3 L9.8 4 L14.2 4 L17.7 18.3 Z" />
+            <path d="M4.6 20.7 H19.4" />
+            <path d="M12 5 L9.5 14.8" />
+            <circle cx="10.5" cy="10.8" r="1.35" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
         <span className="metronome-bar-bpm">
           {bpm} <span className="metronome-bar-bpm-unit">BPM</span>
         </span>
-
-        <button
-          type="button"
-          className={'metronome-bar-expand' + (open ? ' active' : '')}
-          onClick={() => setOpen(true)}
-          aria-label={open ? t('metronomeBar.hide') : t('metronomeBar.show')}
-          aria-haspopup="dialog"
-          aria-expanded={open}
-        >
-          ›
-        </button>
-      </div>
+        <span className="metronome-bar-chevron" aria-hidden="true">›</span>
+      </button>
 
       {createPortal(
         <>
@@ -86,6 +83,6 @@ export function MetronomeBar({ metronome, drums }) {
         </>,
         document.body
       )}
-    </div>
+    </>
   );
 }

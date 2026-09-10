@@ -14,6 +14,17 @@
   box-shadow: var(--shadow-sm);
   color: var(--text);
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Same hover feedback as every other button in the app
+   (.app-nav-item, .mode-toggle button, …). */
+.metronome-bar:hover {
+  background: rgba(120, 120, 128, 0.12);
+}
+
+.metronome-bar:active {
+  background: rgba(120, 120, 128, 0.18);
 }
 
 .metronome-bar-icon {

@@ -12,6 +12,16 @@
   cursor: pointer;
   width: 100%;
   min-width: 0;
+  transition: background 0.15s ease;
+}
+
+/* Same hover feedback as every other button in the app. */
+.tuner-bar:hover {
+  background: rgba(120, 120, 128, 0.12);
+}
+
+.tuner-bar:active {
+  background: rgba(120, 120, 128, 0.18);
 }
 
 .tuner-bar-icon {

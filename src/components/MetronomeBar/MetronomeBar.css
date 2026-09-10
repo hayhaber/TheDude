@@ -87,11 +87,12 @@
 /* Sized to its own content by default (no max-height/scroll at all) — the
    compact controls (beats/tap/dial/time-sig/sound/start/volume) are a
    small, fixed set that never needs capping, so this stays exactly as
-   tall as it needs to be and no taller. Only once the Drum Machine mixer
-   joins the content (.expanded, toggled from Metronome.jsx's own
-   drums.drumsActive) does a max-height + scroll fallback kick in — "expand
-   downward for the extra controls," per explicit request, not "always
-   pre-reserve room for content that usually isn't even showing." */
+   tall as it needs to be and no taller. Once the Drum Machine mixer joins
+   the content (.expanded, toggled from Metronome.jsx's drums.drumsActive)
+   the drawer grows downward with it — capped only just shy of the full
+   viewport so it can still scroll on a very short screen, NOT clamped
+   back to a small window (that made the whole panel look like it shrank
+   the moment Drum Machine was picked). */
 .metronome-drawer {
   position: fixed;
   top: 0;
@@ -113,7 +114,7 @@
 }
 
 .metronome-drawer.expanded {
-  max-height: calc(100svh - var(--stage-reserve-height, 340px));
+  max-height: calc(100svh - 64px);
   overflow-y: auto;
 }
 

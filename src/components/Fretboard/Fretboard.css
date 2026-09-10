@@ -29,6 +29,12 @@
   width: auto;
   height: auto;
   max-width: 100%;
+  /* A pan drag (and any stray tap) must never text-select the fret-number
+     labels / note letters drawn on the neck — nothing here is meant to be
+     selectable. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* Drag / swipe to pan the neck (see Fretboard.jsx's handlePanPointerDown).

@@ -123,6 +123,15 @@
   pointer-events: auto;
 }
 
+/* Keep every row at its natural size once the drawer is a capped scroll
+   box (.expanded) — without this, flex-shrink squeezes the dial and the
+   spacing smaller to try to fit, which is what made the panel look like
+   it shrank when Drum Machine was picked. Now the content stays put and
+   the drawer just scrolls. */
+.metronome-drawer > * {
+  flex-shrink: 0;
+}
+
 .metronome-drawer-header {
   display: flex;
   align-items: center;

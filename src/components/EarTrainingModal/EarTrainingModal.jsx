@@ -262,15 +262,10 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                 </span>
               )}
               <div className="ear-training-trailing">
-                {/* Fret questions flow on their own — the hint says it's
-                    moving on and that a tap jumps ahead. Pressing "Play
-                    again" after answering pauses that and brings back a
-                    Next button so you can re-listen as long as you want. */}
-                {answered && isFretQuestion && !autoAdvancePaused && (
-                  <span className="ear-training-autonext" dir="auto">
-                    {t(feedback?.correct ? 'earTraining.autoNext.correct' : 'earTraining.autoNext.wrong')}
-                  </span>
-                )}
+                {/* Fret questions flow on their own (a tap on the neck
+                    jumps ahead). Pressing "Play again" after answering
+                    pauses that and brings back a Next button so you can
+                    re-listen as long as you want. */}
                 {answered && ((isFretQuestion && autoAdvancePaused) || (!isTimed && !isFretQuestion)) && (
                   <button type="button" className="ear-training-next" onClick={next}>
                     {t('earTraining.next')}

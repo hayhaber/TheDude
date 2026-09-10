@@ -359,12 +359,3 @@
 .ear-training-mic-disclosure[open] > summary {
   margin-bottom: 6px;
 }
-
-/* Auto-advance hint shown where the Next button used to be for fret
-   questions (which now flow on their own). */
-.ear-training-autonext {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  align-self: center;
-  white-space: nowrap;
-}

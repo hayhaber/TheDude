@@ -10,7 +10,7 @@ import {
   loadBestStreak,
   saveBestStreak,
 } from '../music/earTraining';
-import { playQuestionAudio } from '../audio/earTrainingPlayer';
+import { playQuestionAudio, playAnswerFeedbackAudio } from '../audio/earTrainingPlayer';
 
 const MISTAKE_FLASH_MS = 700;
 // How long Timed mode holds the just-answered question's feedback on screen
@@ -18,6 +18,12 @@ const MISTAKE_FLASH_MS = 700;
 // the instant an answer comes in (registerResult runs synchronously before
 // this), so only the visible question/fretboard swap is delayed.
 const FEEDBACK_HOLD_MS = 2000;
+// Fret questions (pitch / call-&-response) auto-advance in every mode — no
+// "Next" button to press. A right answer just needs a beat to register; a
+// wrong one holds longer so the reveal marker and the picked-note → correct-
+// note playback both land before the next question wipes them.
+const AUTO_ADVANCE_CORRECT_MS = 1100;
+const AUTO_ADVANCE_WRONG_MS = 2600;
 
 // Owns the whole quiz session (mode/difficulty, current question, click/
 // choice progress, feedback flashes, score/streak). Talks to the Fretboard
@@ -216,15 +222,24 @@ export function useEarTraining() {
   // are already updated by this point, by the caller) before swapping in
   // the next question, so the player actually sees the result of a fast
   // answer instead of it flashing away instantly.
-  function advance() {
+  function advance(wasCorrect) {
     setAnswered(true);
-    if (practiceMode === 'timed') {
-      if (feedbackHoldTimeoutRef.current) clearTimeout(feedbackHoldTimeoutRef.current);
-      feedbackHoldTimeoutRef.current = setTimeout(() => {
-        feedbackHoldTimeoutRef.current = null;
-        newQuestion();
-      }, FEEDBACK_HOLD_MS);
-    }
+    // Fret questions (pitch / call-&-response) flow on their own in every
+    // mode — the player never presses Next. Choice questions still wait for
+    // Next in Standard mode (so the revealed chord/interval can be studied),
+    // and auto-advance only under the Timed clock.
+    const isFret = question?.kind === 'pitch' || question?.kind === 'callresponse';
+    if (!isFret && practiceMode !== 'timed') return;
+    const holdMs = isFret
+      ? wasCorrect
+        ? AUTO_ADVANCE_CORRECT_MS
+        : AUTO_ADVANCE_WRONG_MS
+      : FEEDBACK_HOLD_MS;
+    if (feedbackHoldTimeoutRef.current) clearTimeout(feedbackHoldTimeoutRef.current);
+    feedbackHoldTimeoutRef.current = setTimeout(() => {
+      feedbackHoldTimeoutRef.current = null;
+      newQuestion();
+    }, holdMs);
   }
 
   function next() {
@@ -275,7 +290,8 @@ export function useEarTraining() {
   function handleAnsweredMidi(midi, cellForFeedback) {
     if (!question || isTimedOver) return;
     if (answered) {
-      if (practiceMode === 'timed') skipAheadFromHold();
+      // A tap during the post-answer hold means "I've seen it, move on".
+      if (feedbackHoldTimeoutRef.current) skipAheadFromHold();
       return;
     }
     ensureTimerRunning();
@@ -284,7 +300,10 @@ export function useEarTraining() {
       const correct = question.targetMidiSet.includes(midi);
       setFeedback({ correct, cell: cellForFeedback });
       registerResult(correct);
-      advance();
+      // Sound the note they picked — and on a miss, the correct note right
+      // after it, so the ear hears the gap it got wrong.
+      playAnswerFeedbackAudio(midi, correct ? null : question.notesToPlay[0].midi);
+      advance(correct);
       return;
     }
 
@@ -292,13 +311,14 @@ export function useEarTraining() {
       const expectedMidi = question.targetMidiSequence[progress.length];
       const correct = midi === expectedMidi;
       setFeedback({ correct, cell: cellForFeedback });
+      playAnswerFeedbackAudio(midi, correct ? null : expectedMidi);
 
       if (correct) {
         const nextProgress = [...progress, { ...cellForFeedback, midi }];
         setProgress(nextProgress);
         if (nextProgress.length === question.targetMidiSequence.length) {
           registerResult(!mistakeMade);
-          advance();
+          advance(!mistakeMade);
         }
       } else {
         setMistakeMade(true);
@@ -330,7 +350,7 @@ export function useEarTraining() {
   function handleChoice(choiceKey) {
     if (!question || !question.choices || isTimedOver) return;
     if (answeredChoiceKey) {
-      if (practiceMode === 'timed') skipAheadFromHold();
+      if (feedbackHoldTimeoutRef.current) skipAheadFromHold();
       return;
     }
     ensureTimerRunning();
@@ -338,7 +358,7 @@ export function useEarTraining() {
     setAnsweredChoiceKey(choiceKey);
     setFeedback({ correct });
     registerResult(correct);
-    advance();
+    advance(correct);
   }
 
   const accuracyPct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : null;

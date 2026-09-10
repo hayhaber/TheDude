@@ -11,10 +11,8 @@ import { GuitarIcon } from '../GuitarIcon/GuitarIcon';
 //
 // `icon` is either an emoji string (rendered as-is) or a component
 // reference (rendered as <Icon />) — see AppShell.jsx's two render sites.
-// Practice uses a custom SVG (TrainingIcon, a dumbbell) instead of an
-// emoji — a widely-recognized "practice/training" symbol in its own right
-// (same convention Duolingo and most skill-practice apps use), more
-// distinctive and immediately legible than a generic 🎯 bullseye.
+// Practice uses a custom SVG (TrainingIcon, a metronome) — the universal
+// music-practice symbol, and distinctive against the emoji icons around it.
 export const SECTIONS = [
   { key: 'compose', labelKey: 'nav.compose', icon: '🎼' },
   { key: 'improvise', labelKey: 'nav.improvise', icon: GuitarIcon },

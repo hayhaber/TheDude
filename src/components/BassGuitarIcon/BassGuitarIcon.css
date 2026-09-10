@@ -1,0 +1,10 @@
+/* Mirrors GuitarIcon.css — sized to the surrounding font-size by default so
+   it drops into the instrument toggle / nav / gate contexts at a sensible
+   size, with fixed-px consumers (InstrumentToggle.css) overriding via a
+   more specific selector. */
+.bass-icon-image {
+  width: 1em;
+  height: 1em;
+  display: block;
+  object-fit: contain;
+}

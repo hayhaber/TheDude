@@ -157,7 +157,7 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
 
       <main className="app-content">
         <div className="app-section-content">{children}</div>
-        <div className="app-stage-anchor">{stage}</div>
+        {stage && <div className="app-stage-anchor">{stage}</div>}
       </main>
 
       <div className="app-mobile-metronome">

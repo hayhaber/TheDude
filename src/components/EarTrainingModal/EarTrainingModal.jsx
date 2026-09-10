@@ -1,4 +1,7 @@
 import { useLanguage } from '../../i18n/LanguageContext';
+import { useInstrument } from '../../instruments/useInstrument';
+import { Fretboard } from '../Fretboard/Fretboard';
+import { PianoKeyboard } from '../PianoKeyboard/PianoKeyboard';
 import { EarTrainingMicAnswer } from './EarTrainingMicAnswer';
 import './EarTrainingModal.css';
 
@@ -42,6 +45,7 @@ function choiceLabel(t, question, choice) {
 export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
   const isInline = variant === 'inline';
   const { t } = useLanguage();
+  const { instrument } = useInstrument();
 
   if (!earTraining.open) {
     if (!isInline) return null;
@@ -83,10 +87,48 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     replay,
     handleChoice,
     skip,
+    isFretQuestion,
+    quizCells,
+    quizRevealCells,
+    quizPianoKeys,
+    quizRevealPianoKeys,
+    handleFretClick,
+    handlePianoKeyClick,
   } = earTraining;
 
   const isChoiceQuestion = !!question?.choices;
   const isTimed = practiceMode === 'timed';
+
+  // For pitch / call-&-response questions the instrument IS the answer
+  // input, so it's rendered right here in the card (App.jsx drops the
+  // pinned Stage instrument while such a question is active — see
+  // `earTrainingOwnsInstrument` there). Hearing the note, finding it on the
+  // neck, tapping it, and seeing the green/red result all happen in one
+  // place instead of the neck being pinned far away at the bottom.
+  const showInlineInstrument = isFretQuestion && !!question;
+  const inlineInstrument = !showInlineInstrument ? null : instrument === 'piano' ? (
+    <div className="ear-training-instrument">
+      <PianoKeyboard
+        notes={[]}
+        quizKeys={quizPianoKeys}
+        quizRevealKeys={quizRevealPianoKeys}
+        quizFeedbackKey={
+          feedback?.cell?.midi != null ? { midi: feedback.cell.midi, correct: feedback.correct } : null
+        }
+        onQuizKeyClick={handlePianoKeyClick}
+      />
+    </div>
+  ) : (
+    <div className="ear-training-instrument">
+      <Fretboard
+        position={null}
+        quizCells={quizCells}
+        quizRevealCells={quizRevealCells}
+        quizFeedbackCell={feedback?.cell ? feedback : null}
+        onQuizCellClick={handleFretClick}
+      />
+    </div>
+  );
 
   if (isTimed && isTimedOver) {
     return (
@@ -207,6 +249,8 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
               </p>
             )}
 
+            {inlineInstrument}
+
             <div className="ear-training-actions">
               <button type="button" className="play-button" onClick={replay}>
                 {t('earTraining.replay')}
@@ -238,7 +282,16 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
               </div>
             )}
 
-            {!isChoiceQuestion && <EarTrainingMicAnswer earTraining={earTraining} />}
+            {/* Answering by playing the note on a real guitar is a
+                secondary path — tucked into a collapsed disclosure so it
+                doesn't crowd out the neck (which is the primary way to
+                answer) or push it down the page. */}
+            {!isChoiceQuestion && (
+              <details className="ear-training-mic-disclosure">
+                <summary>{t('earTraining.mic.label')}</summary>
+                <EarTrainingMicAnswer earTraining={earTraining} />
+              </details>
+            )}
 
             {isChoiceQuestion && (
               <div className="ear-training-choices">

@@ -330,3 +330,32 @@
   border-color: var(--danger);
   color: #fff;
 }
+
+/* The instrument shown right inside the question card for pitch /
+   call-&-response questions — the note you hear, the neck you tap, and the
+   green/red result all sit together instead of the neck being pinned at
+   the bottom of the page, disconnected from the prompt. */
+.ear-training-instrument {
+  margin: 4px 0 12px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Answer-by-microphone: a secondary path, collapsed by default so it
+   never crowds the neck out. */
+.ear-training-mic-disclosure {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.ear-training-mic-disclosure > summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  list-style: revert;
+}
+
+.ear-training-mic-disclosure[open] > summary {
+  margin-bottom: 6px;
+}

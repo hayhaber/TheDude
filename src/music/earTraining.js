@@ -7,7 +7,7 @@ import { CHORD_QUALITIES } from './chordQualities';
 import { enumerateTriadPositions } from './triads';
 import { SCALE_FAMILIES } from './scalesCurriculum';
 import { computeScaleNotes } from './scaleShapes';
-import { computeChordPositions } from './computeChordPositions';
+import { computeChordPositions, nearestFretForPitch } from './computeChordPositions';
 
 const PITCH_CLASS_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -48,11 +48,24 @@ export const EAR_TRAINING_MODES = [
   // intervals and triad-quality questions on every question, so a player
   // wanting to isolate one or the other couldn't. Now each is its own mode.
   { key: 'triad', labelKey: 'earTraining.mode.triad' },
-  // The most basic relative-pitch skill there is — "did the pitch go up or
-  // down?" — placed right before full Interval recognition since it's the
-  // natural prerequisite step (several reference ear-training apps ship it
-  // as their own beginner-tier drill for exactly this reason).
+  // Direction -> Scale Degree -> Interval is a deliberate teaching sequence,
+  // not just alphabetical order (checked against how reference ear-training
+  // apps/method books stage this):
+  //   1. Direction — the most basic relative-pitch skill there is, "did the
+  //      pitch go up or down?".
+  //   2. Scale Degree — tonal/functional hearing: a cadence plants a key in
+  //      your ear, then you name a note by its role IN that key (movable-do
+  //      style). This is the real skill behind figuring out a melody by
+  //      ear, and it leans on the tonal "gravity" most listeners already
+  //      feel intuitively rather than on counting semitones — the natural
+  //      bridge toward Studies -> Chords by Ear's own functional/Roman-
+  //      numeral hearing.
+  //   3. Interval — quantifying the exact distance between two notes, a
+  //      more analytical skill layered on top of that tonal foundation
+  //      (and the one that generalizes to chromatic, out-of-key content
+  //      Scale Degree deliberately doesn't touch).
   { key: 'direction', labelKey: 'earTraining.mode.direction' },
+  { key: 'scaledegree', labelKey: 'earTraining.mode.scaledegree' },
   { key: 'interval', labelKey: 'earTraining.mode.interval' },
   { key: 'callresponse', labelKey: 'earTraining.mode.callresponse' },
   { key: 'scaleid', labelKey: 'earTraining.mode.scaleid' },
@@ -297,6 +310,82 @@ function generateDirectionQuestion(difficulty) {
   };
 }
 
+// Scale Degree — functional/tonal hearing: a short I-IV-V-I cadence first
+// plants a key in the ear (the same "movable-do" priming the reference
+// Functional Ear Trainer app centers its entire method on, and its most-
+// praised feature by far), then a single melody note is played in that key
+// and the player names its scale degree (1-7) rather than its absolute
+// pitch or an interval distance. Degree buttons are the pool itself, in
+// fixed numeric order — no distractor-shuffling needed (or wanted; see
+// generateChordQuestion's own "never shuffle a small fixed choice set"
+// lesson) since every degree in the pool is always shown.
+//   beginner     — only the tonic triad's own tones (1, 3, 5): the three
+//                  most stable degrees, and the natural starting point
+//                  every movable-do method teaches first.
+//   intermediate — the full major-scale set, 1-7.
+//   advanced     — the full set, 1-7, but the key itself is randomly major
+//                  or minor — the same degree numbers, a different "feel"
+//                  to each one.
+const SCALE_DEGREE_POOLS = {
+  beginner: [1, 3, 5],
+  intermediate: [1, 2, 3, 4, 5, 6, 7],
+  advanced: [1, 2, 3, 4, 5, 6, 7],
+};
+const MAJOR_SCALE_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
+const NATURAL_MINOR_SCALE_SEMITONES = [0, 2, 3, 5, 7, 8, 10];
+// A comfortable, fixed low-mid register for the priming cadence, independent
+// of the fretboard — this is just a "plant the key" audio cue, not a
+// fretted position (unlike the single target note below, which needs a
+// real string/fret so it can reveal on the neck like every other quiz cell).
+const CADENCE_BASE_MIDI = 48;
+
+function generateScaleDegreeQuestion(difficulty) {
+  const keyRootPitchClass = randomInt(0, 11);
+  // Only Advanced ever asks in a minor key — Beginner/Intermediate stay
+  // major so the tonal "home base" being taught is never ambiguous.
+  const isMinor = difficulty.key === 'advanced' && Math.random() < 0.5;
+  const scaleSemitones = isMinor ? NATURAL_MINOR_SCALE_SEMITONES : MAJOR_SCALE_SEMITONES;
+  const keyMode = isMinor ? 'Minor' : 'Major';
+
+  const pool = SCALE_DEGREE_POOLS[difficulty.key] ?? SCALE_DEGREE_POOLS.advanced;
+  const degree = pick(pool);
+  const targetPitchClass = mod(keyRootPitchClass + scaleSemitones[degree - 1], 12);
+
+  // Land the target note on a real fretboard position (so it reveals on the
+  // neck like every other quiz cell) — nearest to a random anchor fret
+  // within the difficulty's own range, same technique Compose's slash-chord
+  // bass placement already uses (see computeChordPositions.js).
+  const stringIndex = pick(difficulty.stringIndices);
+  const anchorFret = randomInt(difficulty.fretMin, difficulty.fretMax);
+  const { fret } = nearestFretForPitch(targetPitchClass, stringIndex, anchorFret);
+  const midi = midiForCell(stringIndex, Math.min(fret, MAX_FRET));
+
+  // I - IV - V - I, root-position triads (V is always major — the dominant's
+  // leading tone pulls to the tonic in a minor key too, the standard
+  // "harmonic" cadence every functional-ear-training method uses). Plain
+  // MIDI chord tones at a fixed register, not tied to any fretboard shape —
+  // this is only ever heard, never shown.
+  const triad = (rootMidi, major) => [rootMidi, rootMidi + (major ? 4 : 3), rootMidi + 7];
+  const cadenceRootMidi = CADENCE_BASE_MIDI + keyRootPitchClass;
+  const cadenceChords = [
+    triad(cadenceRootMidi, !isMinor),
+    triad(cadenceRootMidi + 5, !isMinor),
+    triad(cadenceRootMidi + 7, true),
+    triad(cadenceRootMidi, !isMinor),
+  ];
+
+  return {
+    kind: 'scaledegree',
+    prompt: 'A cadence sets the key — then listen to the note. Which scale degree is it?',
+    cadenceChords,
+    keyRootLetter: PITCH_CLASS_NAMES[keyRootPitchClass],
+    keyMode,
+    notesToPlay: [{ stringIndex, fret: Math.min(fret, MAX_FRET), midi }],
+    choices: pool.map((d) => ({ key: String(d), label: String(d) })),
+    correctChoiceKey: String(degree),
+  };
+}
+
 function generateTriadQuestion(difficulty) {
   const rootPitchClass = randomInt(0, 11);
   const qualityKey = pick(TRIAD_QUALITY_KEYS);
@@ -501,6 +590,7 @@ export function generateQuestion(modeKey, difficulty) {
   if (modeKey === 'chord') return generateChordQuestion(difficulty);
   if (modeKey === 'triad') return generateTriadQuestion(difficulty);
   if (modeKey === 'direction') return generateDirectionQuestion(difficulty);
+  if (modeKey === 'scaledegree') return generateScaleDegreeQuestion(difficulty);
   if (modeKey === 'interval') return generateIntervalQuestion(difficulty);
   if (modeKey === 'scaleid') return generateScaleIdQuestion(difficulty);
   return generateCallResponseQuestion(difficulty);

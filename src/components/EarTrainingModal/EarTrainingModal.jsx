@@ -1,5 +1,6 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
+import { noteNameForMidi } from '../../music/earTraining';
 import { Fretboard } from '../Fretboard/Fretboard';
 import { PianoKeyboard } from '../PianoKeyboard/PianoKeyboard';
 import { EarTrainingMicAnswer } from './EarTrainingMicAnswer';
@@ -13,6 +14,7 @@ function promptFor(t, question) {
   if (question.kind === 'pitch') return t('earTraining.prompt.pitch');
   if (question.kind === 'chord') return t(question.needsRoot ? 'earTraining.prompt.chordRootQuality' : 'earTraining.prompt.chord');
   if (question.kind === 'direction') return t('earTraining.prompt.direction');
+  if (question.kind === 'scaledegree') return t('earTraining.prompt.scaledegree');
   if (question.kind === 'interval') return t('earTraining.prompt.interval');
   if (question.kind === 'callresponse') return t('earTraining.prompt.callresponse', { length: question.targetMidiSequence.length });
   if (question.kind === 'triad') return t('earTraining.prompt.triad');
@@ -292,6 +294,11 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                   ` (${t(question.descending ? 'earTraining.interval.descending' : 'earTraining.interval.ascending')} — ${t(
                     question.harmonic ? 'earTraining.interval.harmonic' : 'earTraining.interval.melodic'
                   )})`}
+                {/* Names the actual note too — "That was: 3" alone doesn't
+                    mean much; "3 (E — C Major)" ties the abstract degree
+                    back to a real, nameable pitch. */}
+                {question.kind === 'scaledegree' &&
+                  ` (${noteNameForMidi(question.notesToPlay[0].midi)} — ${question.keyRootLetter} ${t(`quality.${question.keyMode}`)})`}
               </p>
             )}
 

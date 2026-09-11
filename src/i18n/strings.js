@@ -844,6 +844,7 @@ export const STRINGS = {
     'earTraining.mode.chord': 'Chord Recognition',
     'earTraining.mode.triad': 'Triad Quality Recognition',
     'earTraining.mode.direction': 'Pitch Direction (Higher/Lower)',
+    'earTraining.mode.scaledegree': 'Scale Degree (in a Key)',
     'earTraining.mode.interval': 'Interval Recognition',
     'earTraining.mode.callresponse': 'Call & Response',
     'earTraining.mode.scaleid': 'Scale Recognition',
@@ -851,6 +852,7 @@ export const STRINGS = {
     'earTraining.prompt.chord': 'Listen to the chord — what quality is it?',
     'earTraining.prompt.chordRootQuality': 'Listen to the chord — what is its root note and quality?',
     'earTraining.prompt.direction': 'Listen — did the second note go higher or lower than the first?',
+    'earTraining.prompt.scaledegree': 'A cadence sets the key — then listen to the note. Which scale degree is it?',
     'earTraining.prompt.interval': 'Listen to the interval — which one is it?',
     'earTraining.prompt.triad': 'Listen to the triad — what quality is it?',
     'earTraining.prompt.callresponse': 'Listen, then reproduce the {length}-note phrase in order.',
@@ -873,7 +875,9 @@ export const STRINGS = {
     'earTraining.explain.triad':
       "Like Chord Recognition, but with two more qualities to tell apart: Diminished (the 3rd AND the 5th both lowered — tense, unstable, e.g. C–E♭–G♭) and Augmented (the 5th raised — floaty, unresolved, e.g. C–E–G♯), alongside the familiar Major (C–E–G) and Minor (C–E♭–G).",
     'earTraining.explain.direction':
-      "You'll hear two notes, one after the other. Just decide which way the pitch moved: did the second note sound higher or lower than the first? Example: E then G is higher (the pitch rose); E then C is lower (the pitch dropped). This is the most basic ear-training skill — the natural first step before full Interval Recognition.",
+      "You'll hear two notes, one after the other. Just decide which way the pitch moved: did the second note sound higher or lower than the first? Example: E then G is higher (the pitch rose); E then C is lower (the pitch dropped). This is the most basic ear-training skill — the natural first step before Scale Degree and full Interval Recognition.",
+    'earTraining.explain.scaledegree':
+      "You'll first hear a short cadence (a few chords) that plants a key in your ear — just let it settle in. Then you'll hear one melody note in that same key, and your job is to name its scale degree: 1 is the tonic (\"home\", the most stable note), 3 and 5 are the other two notes of the tonic chord, and so on up to 7. Example: after a cadence in C Major, hearing a G means degree 5 — the note that feels most stable right after the tonic itself. This is the real skill behind figuring out a melody by ear: you're recognizing each note's ROLE in the key, not measuring an exact distance.",
     'earTraining.explain.interval':
       "An interval is the distance in pitch between two notes, measured in semitones (one semitone = one fret on the guitar). Examples: C to E♭ is a Minor 3rd (3 semitones, a darker sound); C to E is a Major 3rd (4 semitones, brighter); C to G is a Perfect 5th (7 semitones — the strong, stable interval that opens \"Twinkle Twinkle Little Star\"); C up to the next C is an Octave (12 semitones) — the same note, doubled in pitch.",
     'earTraining.explain.callresponse':
@@ -1793,6 +1797,7 @@ export const STRINGS = {
     'earTraining.mode.chord': 'זיהוי אקורדים',
     'earTraining.mode.triad': 'זיהוי איכות שלישיות (טריאדות)',
     'earTraining.mode.direction': 'כיוון הצליל (גבוה/נמוך)',
+    'earTraining.mode.scaledegree': 'דרגת סולם (בתוך מפתח)',
     'earTraining.mode.interval': 'זיהוי אינטרוולים',
     'earTraining.mode.callresponse': 'קריאה ותשובה',
     'earTraining.mode.scaleid': 'זיהוי סולמות',
@@ -1800,6 +1805,7 @@ export const STRINGS = {
     'earTraining.prompt.chord': 'הקשב לאקורד — מהי איכותו?',
     'earTraining.prompt.chordRootQuality': 'הקשב לאקורד — מהו התו הבסיס ומהי האיכות?',
     'earTraining.prompt.direction': 'הקשב — האם הצליל השני היה גבוה יותר או נמוך יותר מהראשון?',
+    'earTraining.prompt.scaledegree': 'קדנצה קובעת את המפתח — ואז הקשב לצליל. איזו דרגת סולם זו?',
     'earTraining.prompt.interval': 'הקשב לאינטרוול — איזה אינטרוול זהו?',
     'earTraining.prompt.triad': 'הקשב לטריאדה — מהי איכותה?',
     'earTraining.prompt.callresponse': 'הקשב, ואז שחזר את הפראזה בת {length} התווים לפי הסדר.',
@@ -1822,7 +1828,9 @@ export const STRINGS = {
     'earTraining.explain.triad':
       'כמו זיהוי אקורדים, אך עם שתי איכויות נוספות להבחין ביניהן: דימיניש (גם השלישית וגם החמישית מונמכות — מתוח ולא יציב, למשל דו–מי♭–סול♭) ואוגמנטד (החמישית מוגבהת — מרחף, לא פתור, למשל דו–מי–סול♯), לצד מאג\'ור (דו–מי–סול) ומינור (דו–מי♭–סול) המוכרים.',
     'earTraining.explain.direction':
-      'תשמע שני צלילים, בזה אחר זה. פשוט תחליט לאיזה כיוון הצליל זז: האם הצליל השני נשמע גבוה יותר או נמוך יותר מהראשון? לדוגמה: מי ואז סול — גבוה יותר (הצליל עלה); מי ואז דו — נמוך יותר (הצליל ירד). זהו כישור השמיעה הבסיסי ביותר — הצעד הראשון הטבעי לפני זיהוי אינטרוולים מלא.',
+      'תשמע שני צלילים, בזה אחר זה. פשוט תחליט לאיזה כיוון הצליל זז: האם הצליל השני נשמע גבוה יותר או נמוך יותר מהראשון? לדוגמה: מי ואז סול — גבוה יותר (הצליל עלה); מי ואז דו — נמוך יותר (הצליל ירד). זהו כישור השמיעה הבסיסי ביותר — הצעד הראשון הטבעי לפני דרגת סולם וזיהוי אינטרוולים מלא.',
+    'earTraining.explain.scaledegree':
+      'תחילה תשמע קדנצה קצרה (כמה אקורדים) שנוטעת מפתח באוזן שלך — פשוט תן לזה "להיכנס". אחר כך תשמע צליל מלודי אחד באותו מפתח, ועליך לזהות את דרגת הסולם שלו: 1 היא התו הבסיס ("הבית", התו היציב ביותר), 3 ו-5 הם שני התווים הנוספים של אקורד היסוד, וכך הלאה עד 7. לדוגמה: אחרי קדנצה בדו מאג\'ור, שמיעת סול משמעה דרגה 5 — התו שמרגיש הכי יציב מיד אחרי התו הבסיס עצמו. זהו הכישור האמיתי שמאחורי גילוי מלודיה לפי שמיעה: אתה מזהה את התפקיד של כל תו במפתח, לא מודד מרחק מדויק.',
     'earTraining.explain.interval':
       'אינטרוול הוא המרחק בגובה הצליל בין שני תווים, נמדד בחצאי-טונים (חצי טון אחד = שריג אחד בגיטרה). דוגמאות: דו עד מי-במול הוא שלישית מינורית (3 חצאי-טונים, צליל כהה יותר); דו עד מי הוא שלישית מז\'ורית (4 חצאי-טונים, בהיר יותר); דו עד סול הוא חמישית טהורה (7 חצאי-טונים — האינטרוול החזק והיציב שפותח את "טוויקל טוויקל ליטל סטאר"); דו עד הדו הבא הוא אוקטבה (12 חצאי-טונים) — אותו תו, בגובה כפול.',
     'earTraining.explain.callresponse':

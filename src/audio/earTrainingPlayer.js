@@ -26,6 +26,18 @@ export function playQuestionAudio(question) {
     notes.forEach((n, i) => setTimeout(() => playNote(n.midi), i * 90));
     return;
   }
+  if (question.kind === 'scaledegree') {
+    // I-IV-V-I cadence first (light strum-like stagger per chord, same
+    // technique the chord/triad kinds above use), THEN — after a clear gap
+    // so the ear has actually settled into the key — the single target
+    // note on its own, unambiguous.
+    question.cadenceChords.forEach((chord, ci) => {
+      chord.forEach((midi, ni) => setTimeout(() => playNote(midi), ci * 500 + ni * 25));
+    });
+    const targetDelay = question.cadenceChords.length * 500 + 350;
+    setTimeout(() => playNote(notes[0].midi), targetDelay);
+    return;
+  }
   if (question.kind === 'direction') {
     // Always melodic/sequential — direction is inherently a "which came
     // second, and was it higher or lower" percept, so playing both notes

@@ -28,7 +28,16 @@ const FEEDBACK_HOLD_MS = 2000;
 // Recognition got this treatment first, then Interval/Triad/Scale ID
 // (identical "listen, pick a button, see the reveal" shape) were brought in
 // line with it too.
-const AUTO_ADVANCE_QUESTION_KINDS = new Set(['pitch', 'callresponse', 'chord', 'triad', 'direction', 'interval', 'scaleid']);
+const AUTO_ADVANCE_QUESTION_KINDS = new Set([
+  'pitch',
+  'callresponse',
+  'chord',
+  'triad',
+  'direction',
+  'scaledegree',
+  'interval',
+  'scaleid',
+]);
 const AUTO_ADVANCE_CORRECT_MS = 1100;
 const AUTO_ADVANCE_WRONG_MS = 2600;
 

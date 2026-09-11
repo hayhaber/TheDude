@@ -27,8 +27,15 @@ export function playQuestionAudio(question) {
     return;
   }
   if (question.kind === 'interval') {
+    // Harmonic (played together) vs melodic (one after another) — see
+    // generateIntervalQuestion's own comment for why this varies per
+    // question rather than being one fixed style.
     playNote(notes[0].midi);
-    setTimeout(() => playNote(notes[1].midi), 650);
+    if (question.harmonic) {
+      playNote(notes[1].midi);
+    } else {
+      setTimeout(() => playNote(notes[1].midi), 650);
+    }
     return;
   }
   if (question.kind === 'callresponse') {

@@ -9,6 +9,8 @@ import {
   pianoQuizKeys,
   loadBestStreak,
   saveBestStreak,
+  loadLifetimeStats,
+  saveLifetimeStats,
 } from '../music/earTraining';
 import { playQuestionAudio, playAnswerFeedbackAudio } from '../audio/earTrainingPlayer';
 
@@ -51,6 +53,11 @@ export function useEarTraining() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  // Cross-session accuracy per mode — unlike score/streak above (which
+  // reset to 0 every time a session starts), this accumulates forever, so
+  // there's an actual answer to "am I getting better at this over time?".
+  const [lifetimeStats, setLifetimeStats] = useState({ correct: 0, total: 0 });
+  const lifetimeStatsRef = useRef({ correct: 0, total: 0 });
   const [practiceMode, setPracticeMode] = useState(EAR_TRAINING_PRACTICE_MODES[0].key);
   const [timeRemaining, setTimeRemaining] = useState(TIMED_CHALLENGE_DURATION_S);
   const [isTimedOver, setIsTimedOver] = useState(false);
@@ -72,6 +79,9 @@ export function useEarTraining() {
     const best = loadBestStreak(modeKey);
     bestStreakRef.current = best;
     setBestStreak(best);
+    const lifetime = loadLifetimeStats(modeKey);
+    lifetimeStatsRef.current = lifetime;
+    setLifetimeStats(lifetime);
   }, [modeKey]);
 
   // Any change of pace (including the very first mount) leaves the timer
@@ -299,6 +309,15 @@ export function useEarTraining() {
       }
       return next;
     });
+    // Persisted immediately (not just held in state) so it survives closing
+    // the quiz or the tab mid-session, same as best streak above.
+    const nextLifetime = {
+      correct: lifetimeStatsRef.current.correct + (wasCorrect ? 1 : 0),
+      total: lifetimeStatsRef.current.total + 1,
+    };
+    lifetimeStatsRef.current = nextLifetime;
+    setLifetimeStats(nextLifetime);
+    saveLifetimeStats(modeKey, nextLifetime);
   }
 
   // Shared by handleFretClick (guitar: cell -> midi) and handlePianoKeyClick
@@ -381,6 +400,8 @@ export function useEarTraining() {
 
   const accuracyPct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : null;
   const incorrectCount = score.total - score.correct;
+  const lifetimeAccuracyPct =
+    lifetimeStats.total > 0 ? Math.round((lifetimeStats.correct / lifetimeStats.total) * 100) : null;
 
   const isChoiceQuestion = !!question?.choices;
   const isFretQuestion = !!question && !question.choices;
@@ -466,6 +487,8 @@ export function useEarTraining() {
     incorrectCount,
     streak,
     bestStreak,
+    lifetimeStats,
+    lifetimeAccuracyPct,
     practiceMode,
     setPracticeMode,
     practiceModes: EAR_TRAINING_PRACTICE_MODES,

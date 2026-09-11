@@ -77,6 +77,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     incorrectCount,
     streak,
     bestStreak,
+    lifetimeAccuracyPct,
     practiceMode,
     setPracticeMode,
     practiceModes,
@@ -244,6 +245,13 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
           <span>
             {t('earTraining.bestStreak')} <strong>{bestStreak}</strong>
           </span>
+          {/* Everything above resets to 0 the moment a new session starts —
+              this is the one tile that doesn't: accuracy on this mode,
+              accumulated across every session ever, so there's an actual
+              answer to "am I improving over time?". */}
+          <span>
+            {t('earTraining.lifetimeAccuracy')} <strong>{lifetimeAccuracyPct === null ? '—' : `${lifetimeAccuracyPct}%`}</strong>
+          </span>
         </div>
 
         {question && (
@@ -265,6 +273,10 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                   answer: choiceLabel(t, question, question.choices.find((c) => c.key === question.correctChoiceKey)),
                 })}
                 {question.kind === 'triad' && ` (${t(`earTraining.inversion.${question.inversionLabel}`)})`}
+                {question.kind === 'interval' &&
+                  ` (${t(question.descending ? 'earTraining.interval.descending' : 'earTraining.interval.ascending')} — ${t(
+                    question.harmonic ? 'earTraining.interval.harmonic' : 'earTraining.interval.melodic'
+                  )})`}
               </p>
             )}
 

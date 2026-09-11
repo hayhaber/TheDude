@@ -198,13 +198,26 @@ function generatePitchQuestion(difficulty) {
   };
 }
 
+// Lowest pitch reachable on the neck at all (open low E) — a descending
+// interval can't go below this, so generateIntervalQuestion falls back to
+// ascending whenever the root is too close to the floor.
+const MIN_PLAYABLE_MIDI = STANDARD_TUNING[0].baseMidi;
+
 function generateIntervalQuestion(difficulty) {
   const rootCell = randomCell(difficulty);
   const rootMidi = midiForCell(rootCell.stringIndex, rootCell.fret);
   const pool = INTERVALS_BY_DIFFICULTY[difficulty.key] ?? INTERVALS_BY_DIFFICULTY.advanced;
   const correct = pick(pool);
-  const secondMidi = rootMidi + correct.semitones;
-  const secondCell = findCellForMidi(secondMidi) ?? { stringIndex: rootCell.stringIndex, fret: rootCell.fret + correct.semitones };
+  // Ascending vs descending, and played together (harmonic) vs one after
+  // the other (melodic) — both randomized per question so the player
+  // actually gets trained on all four combinations over time, matching
+  // reference ear-training apps' own "ascending/descending" and "melodic/
+  // harmonic" options (see earTrainingPlayer.js for the harmonic playback).
+  const descending = Math.random() < 0.5 && rootMidi - correct.semitones >= MIN_PLAYABLE_MIDI;
+  const harmonic = Math.random() < 0.5;
+  const delta = descending ? -correct.semitones : correct.semitones;
+  const secondMidi = rootMidi + delta;
+  const secondCell = findCellForMidi(secondMidi) ?? { stringIndex: rootCell.stringIndex, fret: Math.max(0, rootCell.fret + delta) };
 
   const distractors = shuffle(pool.filter((c) => c.semitones !== correct.semitones)).slice(0, 3);
   // Fixed choice ORDER (the pool's own semitone order), even though which
@@ -218,6 +231,8 @@ function generateIntervalQuestion(difficulty) {
   return {
     kind: 'interval',
     prompt: 'Listen to the interval — which one is it?',
+    descending,
+    harmonic,
     notesToPlay: [
       { stringIndex: rootCell.stringIndex, fret: rootCell.fret, midi: rootMidi },
       { stringIndex: secondCell.stringIndex, fret: secondCell.fret, midi: secondMidi },
@@ -445,4 +460,33 @@ export function loadBestStreak(modeKey) {
 
 export function saveBestStreak(modeKey, value) {
   localStorage.setItem(BEST_STREAK_STORAGE_PREFIX + modeKey, String(value));
+}
+
+// Lifetime (cross-session) accuracy per mode — same storage pattern as best
+// streak above, but a running {correct, total} tally instead of a single
+// number. The in-modal score/streak/accuracy tiles all reset to 0 the
+// moment a new session starts (by design — "how am I doing right now"), so
+// there was previously no way to see whether accuracy on, say, Chord
+// Recognition is actually improving week over week. This is that persistent
+// record, per explicit request.
+const LIFETIME_STATS_STORAGE_PREFIX = 'earTrainingLifetime:';
+
+export function loadLifetimeStats(modeKey) {
+  try {
+    const raw = localStorage.getItem(LIFETIME_STATS_STORAGE_PREFIX + modeKey);
+    if (!raw) return { correct: 0, total: 0 };
+    const parsed = JSON.parse(raw);
+    const correct = Number(parsed?.correct);
+    const total = Number(parsed?.total);
+    if (!Number.isFinite(correct) || !Number.isFinite(total) || total < 0 || correct < 0 || correct > total) {
+      return { correct: 0, total: 0 };
+    }
+    return { correct, total };
+  } catch {
+    return { correct: 0, total: 0 };
+  }
+}
+
+export function saveLifetimeStats(modeKey, stats) {
+  localStorage.setItem(LIFETIME_STATS_STORAGE_PREFIX + modeKey, JSON.stringify(stats));
 }

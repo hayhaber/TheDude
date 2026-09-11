@@ -99,14 +99,29 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
 
   const isChoiceQuestion = !!question?.choices;
   const isTimed = practiceMode === 'timed';
+  const isChordQuiz = question?.kind === 'chord';
+  // Chord Recognition gets the exact same self-flowing treatment as the
+  // fret quiz (see useEarTraining's AUTO_ADVANCE_QUESTION_KINDS) — this is
+  // the one flag both the Next-button logic below and the inline-instrument
+  // choice share.
+  const isAutoFlowQuestion = isFretQuestion || isChordQuiz;
 
-  // For pitch / call-&-response questions the instrument IS the answer
-  // input, so it's rendered right here in the card (App.jsx drops the
-  // pinned Stage instrument while such a question is active — see
-  // `earTrainingOwnsInstrument` there). Hearing the note, finding it on the
-  // neck, tapping it, and seeing the green/red result all happen in one
-  // place instead of the neck being pinned far away at the bottom.
-  const showInlineInstrument = isFretQuestion && !!question;
+  // For pitch / call-&-response / chord questions, the instrument is
+  // rendered right here in the card (App.jsx drops the pinned Stage
+  // instrument while one of these is active — see `earTrainingOwnsInstrument`
+  // there) instead of being pinned far away at the bottom, disconnected from
+  // the prompt. For fret questions it's also the answer input; for chord
+  // questions it's just where the revealed voicing appears once answered.
+  const showInlineInstrument = isAutoFlowQuestion && !!question;
+  // Chord Recognition names the actual chord (e.g. "Bb") above the neck,
+  // positioned over its shape, styled like every other chord-name label
+  // this app already draws there (Fretboard's roadmap-chord-label — see
+  // Fretboard.jsx's own comment on quizChordLabel) — shown only once
+  // answered, same timing as the revealed voicing itself.
+  const quizChordLabel =
+    isChordQuiz && answeredChoiceKey && question.chordText
+      ? { text: question.chordText, fret: question.chordBaseFret ?? 0 }
+      : null;
   const inlineInstrument = !showInlineInstrument ? null : instrument === 'piano' ? (
     <div className="ear-training-instrument">
       <PianoKeyboard
@@ -126,6 +141,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
         quizCells={quizCells}
         quizRevealCells={quizRevealCells}
         quizFeedbackCell={feedback?.cell ? feedback : null}
+        quizChordLabel={quizChordLabel}
         onQuizCellClick={handleFretClick}
       />
     </div>
@@ -262,11 +278,11 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                 </span>
               )}
               <div className="ear-training-trailing">
-                {/* Fret questions flow on their own (a tap on the neck
-                    jumps ahead). Pressing "Play again" after answering
-                    pauses that and brings back a Next button so you can
-                    re-listen as long as you want. */}
-                {answered && ((isFretQuestion && autoAdvancePaused) || (!isTimed && !isFretQuestion)) && (
+                {/* Fret/chord questions flow on their own (a tap on the neck
+                    jumps ahead for fret questions). Pressing "Play again"
+                    after answering pauses that and brings back a Next
+                    button so you can re-listen/study as long as you want. */}
+                {answered && ((isAutoFlowQuestion && autoAdvancePaused) || (!isTimed && !isAutoFlowQuestion)) && (
                   <button type="button" className="ear-training-next" onClick={next}>
                     {t('earTraining.next')}
                   </button>

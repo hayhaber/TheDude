@@ -168,6 +168,12 @@ export function Fretboard({
   quizCells = [],
   quizRevealCells = [],
   quizFeedbackCell = null,
+  // Chord Recognition names the revealed chord above its shape (e.g.
+  // "Bb") — same halo+colored-text visual language as the CAGED roadmap's
+  // own chord labels below, just a single one with no pin/connector.
+  // `fret` positions it (the voicing's baseFret, so it centers over a
+  // barre shape the same way Compose's own display does).
+  quizChordLabel = null,
   onQuizCellClick = null,
   // Studies -> Scales overlay — every fretboard position belonging to the
   // scale currently being shown, tagged with a degree label and whether
@@ -344,12 +350,18 @@ export function Fretboard({
       ...landingNotes.map((n) => n.fret).filter((f) => f !== 0),
       ...drillNotes.map((n) => n.fret).filter((f) => f !== 0),
       ...quizCells.map((c) => c.fret).filter((f) => f !== 0),
+      // A choice question's revealed voicing (chord/triad/scaleid, shown
+      // once answered) wasn't included here before — on a narrow window
+      // (mobile's default 7-fret camera) a shape up the neck (a barre
+      // chord, say) could reveal itself half off-screen. It has no
+      // clickable cells of its own so quizCells alone never caught it.
+      ...quizRevealCells.map((c) => c.fret).filter((f) => f !== 0),
       ...scaleNotes.map((n) => n.fret).filter((f) => f !== 0),
       ...actionOverlay.flatMap((p) => [p.fret, p.targetFret]).filter((f) => f != null && f !== 0),
       ...voiceLeadingNotes.map((n) => n.fret).filter((f) => f !== 0),
       ...(capoFret ? [capoFret] : []),
     ],
-    [position, lick, landingNotes, drillNotes, quizCells, scaleNotes, actionOverlay, voiceLeadingNotes, capoFret]
+    [position, lick, landingNotes, drillNotes, quizCells, quizRevealCells, scaleNotes, actionOverlay, voiceLeadingNotes, capoFret]
   );
   const frameFretsKey = frameFrets.join(',');
 
@@ -1383,6 +1395,30 @@ export function Fretboard({
             r={DOT_RADIUS}
             className={quizFeedbackCell.correct ? 'quiz-feedback-correct' : 'quiz-feedback-incorrect'}
           />
+        )}
+
+        {/* Chord Recognition's revealed chord name (e.g. "Bb") — same
+            halo+colored-text label the CAGED roadmap draws above the
+            strings, just the one, centered over the revealed shape. */}
+        {quizChordLabel && (
+          <>
+            <text
+              x={quizChordLabel.fret === 0 ? fretX(0) : fretX(quizChordLabel.fret) - FRET_WIDTH / 2}
+              y={ROADMAP_CHORD_Y}
+              className="roadmap-chord-label-halo"
+              textAnchor="middle"
+            >
+              {quizChordLabel.text}
+            </text>
+            <text
+              x={quizChordLabel.fret === 0 ? fretX(0) : fretX(quizChordLabel.fret) - FRET_WIDTH / 2}
+              y={ROADMAP_CHORD_Y}
+              className="roadmap-chord-label"
+              textAnchor="middle"
+            >
+              {quizChordLabel.text}
+            </text>
+          </>
         )}
       </svg>
     </div>

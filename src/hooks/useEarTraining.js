@@ -21,7 +21,11 @@ const FEEDBACK_HOLD_MS = 2000;
 // Fret questions (pitch / call-&-response) auto-advance in every mode — no
 // "Next" button to press. A right answer just needs a beat to register; a
 // wrong one holds longer so the reveal marker and the picked-note → correct-
-// note playback both land before the next question wipes them.
+// note playback both land before the next question wipes them. Chord
+// Recognition ('chord') gets the exact same self-flowing treatment, per
+// explicit request to match the fret-quiz's own flow — every other choice
+// question (interval/triad/scaleid) keeps the Next button in Standard mode.
+const AUTO_ADVANCE_QUESTION_KINDS = new Set(['pitch', 'callresponse', 'chord']);
 const AUTO_ADVANCE_CORRECT_MS = 1100;
 const AUTO_ADVANCE_WRONG_MS = 2600;
 
@@ -229,13 +233,14 @@ export function useEarTraining() {
   // answer instead of it flashing away instantly.
   function advance(wasCorrect) {
     setAnswered(true);
-    // Fret questions (pitch / call-&-response) flow on their own in every
-    // mode — the player never presses Next. Choice questions still wait for
-    // Next in Standard mode (so the revealed chord/interval can be studied),
-    // and auto-advance only under the Timed clock.
-    const isFret = question?.kind === 'pitch' || question?.kind === 'callresponse';
-    if (!isFret && practiceMode !== 'timed') return;
-    const holdMs = isFret
+    // Fret questions (pitch / call-&-response) and Chord Recognition flow on
+    // their own in every mode — the player never presses Next (see
+    // AUTO_ADVANCE_QUESTION_KINDS's own comment). Every other choice question
+    // still waits for Next in Standard mode (so the revealed interval/scale
+    // can be studied), and auto-advances only under the Timed clock.
+    const autoFlows = AUTO_ADVANCE_QUESTION_KINDS.has(question?.kind);
+    if (!autoFlows && practiceMode !== 'timed') return;
+    const holdMs = autoFlows
       ? wasCorrect
         ? AUTO_ADVANCE_CORRECT_MS
         : AUTO_ADVANCE_WRONG_MS

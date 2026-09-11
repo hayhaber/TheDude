@@ -256,20 +256,25 @@ function generateTriadQuestion(difficulty) {
 // describe it — shared by all three tiers below rather than duplicated per
 // tier. Reuses computeChordPositions, the exact same engine Compose uses to
 // show a chord's playable shapes, so the quiz always hears/shows a real,
-// familiar voicing rather than a separately-invented one.
+// familiar voicing rather than a separately-invented one — and always the
+// SAME one Compose itself would default to (positions[0], lowest baseFret
+// first — see voicings.js's own baseFret sort), not a random pick among
+// every valid shape. That's what makes a barre chord (e.g. Bb) always show
+// as the standard barre shape here too, instead of occasionally landing on
+// some other valid-but-unfamiliar position further up the neck.
 function buildChordVoicing(rootPitchClass, qualityKey, difficulty) {
   const quality = CHORD_QUALITIES[qualityKey];
   const symbolText = PITCH_CLASS_NAMES[rootPitchClass] + (quality.aliases[0] || '');
   const { isValid, positions } = computeChordPositions(symbolText, 'chord');
 
   const inRange = isValid ? positions.filter((p) => p.strings.every((s) => s.fret === null || s.fret <= difficulty.fretMax + 5)) : [];
-  const chosen = pick(inRange.length > 0 ? inRange : positions.length > 0 ? positions : null);
+  const chosen = inRange.length > 0 ? inRange[0] : positions.length > 0 ? positions[0] : null;
   if (!chosen) return null;
 
   const notesToPlay = chosen.strings
     .map((s, i) => (s.fret === null ? null : { stringIndex: i, fret: s.fret, midi: midiForCell(i, s.fret), role: s.role }))
     .filter(Boolean);
-  return { notesToPlay };
+  return { notesToPlay, chordText: symbolText, baseFret: chosen.baseFret };
 }
 
 // Chord Recognition — three genuinely different tasks per tier (see
@@ -291,13 +296,22 @@ function generateChordQuestion(difficulty) {
   if (!voicing) return generateTriadQuestion(difficulty);
 
   const distractors = shuffle(pool.filter((k) => k !== qualityKey)).slice(0, 4);
-  const choices = shuffle([qualityKey, ...distractors]).map((k) => ({ key: k, label: CHORD_QUALITIES[k].label }));
+  // Fixed choice ORDER (pool's own canonical order — e.g. Major always
+  // before Minor), even though which qualities actually appear varies —
+  // shuffling this every question (the old behavior) made the two/five
+  // answer buttons visibly swap position between questions, which read as
+  // broken rather than random.
+  const choices = [qualityKey, ...distractors]
+    .sort((a, b) => pool.indexOf(a) - pool.indexOf(b))
+    .map((k) => ({ key: k, label: CHORD_QUALITIES[k].label }));
 
   return {
     kind: 'chord',
     needsRoot: false,
     prompt: 'Listen to the chord — what quality is it?',
     notesToPlay: voicing.notesToPlay,
+    chordText: voicing.chordText,
+    chordBaseFret: voicing.baseFret,
     choices,
     correctChoiceKey: qualityKey,
   };
@@ -331,6 +345,8 @@ function generateChordRootQualityQuestion(difficulty) {
     needsRoot: true,
     prompt: 'Listen to the chord — what is its root note and quality?',
     notesToPlay: voicing.notesToPlay,
+    chordText: voicing.chordText,
+    chordBaseFret: voicing.baseFret,
     choices,
     correctChoiceKey: correctKey,
   };

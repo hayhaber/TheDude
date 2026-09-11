@@ -1418,16 +1418,20 @@ function App() {
     onMetronomeBpmChange: metronome.setBpm,
   };
 
-  // The ear-training pitch/fret quiz renders its own instrument right inside
-  // the question card (so the note you hear, the neck you tap, and the
-  // correct/incorrect feedback are all in one place instead of the neck
-  // being pinned far away at the bottom of the page). While such a question
-  // is active, drop the pinned Stage instrument entirely — otherwise
-  // there'd be two, and tapping the disconnected bottom one is exactly the
-  // confusion this fixes. Choice questions (chord/interval/…) keep the
-  // pinned neck: it still has a job there, revealing the answer shape.
+  // The ear-training pitch/fret quiz — and Chord Recognition, matching that
+  // same flow per explicit request — renders its own instrument right
+  // inside the question card (so the note you hear, the neck you tap/see,
+  // and the correct/incorrect feedback are all in one place instead of the
+  // neck being pinned far away at the bottom of the page). While such a
+  // question is active, drop the pinned Stage instrument entirely —
+  // otherwise there'd be two. Every other choice question (interval/triad/
+  // scaleid) keeps the pinned neck: it still has a job there, revealing the
+  // answer shape.
   const earTrainingOwnsInstrument =
-    activeSection === 'practice' && practiceTab === 'ear-training' && earTraining.open && earTraining.isFretQuestion;
+    activeSection === 'practice' &&
+    practiceTab === 'ear-training' &&
+    earTraining.open &&
+    (earTraining.isFretQuestion || earTraining.question?.kind === 'chord');
 
   function handlePrevChord() {
     setActiveIndex((i) => (i - 1 + progression.length) % progression.length);

@@ -26,6 +26,14 @@ export function playQuestionAudio(question) {
     notes.forEach((n, i) => setTimeout(() => playNote(n.midi), i * 90));
     return;
   }
+  if (question.kind === 'direction') {
+    // Always melodic/sequential — direction is inherently a "which came
+    // second, and was it higher or lower" percept, so playing both notes
+    // together would defeat the exercise.
+    playNote(notes[0].midi);
+    setTimeout(() => playNote(notes[1].midi), 650);
+    return;
+  }
   if (question.kind === 'interval') {
     // Harmonic (played together) vs melodic (one after another) — see
     // generateIntervalQuestion's own comment for why this varies per

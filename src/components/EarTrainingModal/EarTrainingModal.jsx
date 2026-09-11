@@ -12,6 +12,7 @@ import './EarTrainingModal.css';
 function promptFor(t, question) {
   if (question.kind === 'pitch') return t('earTraining.prompt.pitch');
   if (question.kind === 'chord') return t(question.needsRoot ? 'earTraining.prompt.chordRootQuality' : 'earTraining.prompt.chord');
+  if (question.kind === 'direction') return t('earTraining.prompt.direction');
   if (question.kind === 'interval') return t('earTraining.prompt.interval');
   if (question.kind === 'callresponse') return t('earTraining.prompt.callresponse', { length: question.targetMidiSequence.length });
   if (question.kind === 'triad') return t('earTraining.prompt.triad');
@@ -27,6 +28,7 @@ function choiceLabel(t, question, choice) {
     // everywhere else in the app too, so only the quality half is translated.
     return choice.rootLetter ? `${choice.rootLetter} ${qualityText}` : qualityText;
   }
+  if (question.kind === 'direction') return t(`direction.${choice.label}`);
   if (question.kind === 'interval') return t(`interval.${choice.label}`);
   if (question.kind === 'scaleid') return t(choice.labelKey);
   return choice.label;
@@ -228,6 +230,19 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
             ))}
           </div>
         </div>
+
+        {/* What the selected mode is actually asking you to do — closed by
+            default (a click-to-open disclosure, not clutter), but placed
+            right under the mode picker so it's the first thing seen before
+            diving into questions, not buried somewhere it could be missed.
+            Per-mode content (theory + a couple of concrete examples),
+            independent of the global ⓘ info-tooltips switch — this is core
+            instructions for the exercise itself, not optional supplementary
+            theory, so it stays available regardless of that setting. */}
+        <details className="ear-training-explainer" key={modeKey}>
+          <summary>{t('earTraining.explain.label')}</summary>
+          <p dir="auto">{t(`earTraining.explain.${modeKey}`)}</p>
+        </details>
 
         <div className="ear-training-scoreboard">
           <span>

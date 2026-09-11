@@ -48,6 +48,11 @@ export const EAR_TRAINING_MODES = [
   // intervals and triad-quality questions on every question, so a player
   // wanting to isolate one or the other couldn't. Now each is its own mode.
   { key: 'triad', labelKey: 'earTraining.mode.triad' },
+  // The most basic relative-pitch skill there is — "did the pitch go up or
+  // down?" — placed right before full Interval recognition since it's the
+  // natural prerequisite step (several reference ear-training apps ship it
+  // as their own beginner-tier drill for exactly this reason).
+  { key: 'direction', labelKey: 'earTraining.mode.direction' },
   { key: 'interval', labelKey: 'earTraining.mode.interval' },
   { key: 'callresponse', labelKey: 'earTraining.mode.callresponse' },
   { key: 'scaleid', labelKey: 'earTraining.mode.scaleid' },
@@ -198,10 +203,13 @@ function generatePitchQuestion(difficulty) {
   };
 }
 
-// Lowest pitch reachable on the neck at all (open low E) — a descending
-// interval can't go below this, so generateIntervalQuestion falls back to
-// ascending whenever the root is too close to the floor.
+// Lowest/highest pitch reachable on the neck at all (open low E .. top fret
+// of the high E) — a descending interval can't go below the floor, an
+// ascending one can't go above the ceiling, so both generateIntervalQuestion
+// and generateDirectionQuestion fall back to the other direction whenever
+// the root is too close to either edge.
 const MIN_PLAYABLE_MIDI = STANDARD_TUNING[0].baseMidi;
+const MAX_PLAYABLE_MIDI = STANDARD_TUNING[STANDARD_TUNING.length - 1].baseMidi + MAX_FRET;
 
 function generateIntervalQuestion(difficulty) {
   const rootCell = randomCell(difficulty);
@@ -239,6 +247,53 @@ function generateIntervalQuestion(difficulty) {
     ],
     choices,
     correctChoiceKey: String(correct.semitones),
+  };
+}
+
+// Pitch Direction — "did the pitch go up or down?", the most basic
+// relative-pitch skill and the natural prerequisite to full interval-
+// quality recognition (see EAR_TRAINING_MODES' own comment; several
+// reference ear-training apps ship this as their own dedicated beginner
+// drill). Difficulty controls the SIZE of the gap between the two notes —
+// wide and obvious for Beginner, down to a single semitone for Advanced —
+// the same "narrow the range to make it harder" knob those apps recommend,
+// folded into our existing 3-tier difficulty instead of a separate control.
+const DIRECTION_SEMITONE_RANGE = {
+  beginner: [5, 12],
+  intermediate: [2, 7],
+  advanced: [1, 3],
+};
+
+function generateDirectionQuestion(difficulty) {
+  const rootCell = randomCell(difficulty);
+  const rootMidi = midiForCell(rootCell.stringIndex, rootCell.fret);
+  const [minGap, maxGap] = DIRECTION_SEMITONE_RANGE[difficulty.key] ?? DIRECTION_SEMITONE_RANGE.advanced;
+  const gap = randomInt(minGap, maxGap);
+  // Direction IS the question — genuinely random each time (unlike the
+  // interval mode's ascending/descending, which is an added realism layer
+  // on top of a *different* target answer) — only overridden by the
+  // playable-range guards below, never biased on its own.
+  let higher = Math.random() < 0.5;
+  if (higher && rootMidi + gap > MAX_PLAYABLE_MIDI) higher = false;
+  if (!higher && rootMidi - gap < MIN_PLAYABLE_MIDI) higher = true;
+  const delta = higher ? gap : -gap;
+  const secondMidi = rootMidi + delta;
+  const secondCell = findCellForMidi(secondMidi) ?? { stringIndex: rootCell.stringIndex, fret: Math.max(0, rootCell.fret + delta) };
+
+  return {
+    kind: 'direction',
+    prompt: 'Listen — did the second note go higher or lower than the first?',
+    notesToPlay: [
+      { stringIndex: rootCell.stringIndex, fret: rootCell.fret, midi: rootMidi },
+      { stringIndex: secondCell.stringIndex, fret: secondCell.fret, midi: secondMidi },
+    ],
+    // Fixed order (Higher first) — same "never shuffle a 2-button quiz"
+    // lesson as Chord Recognition's Major/Minor buttons.
+    choices: [
+      { key: 'higher', label: 'Higher' },
+      { key: 'lower', label: 'Lower' },
+    ],
+    correctChoiceKey: higher ? 'higher' : 'lower',
   };
 }
 
@@ -445,6 +500,7 @@ export function generateQuestion(modeKey, difficulty) {
   if (modeKey === 'pitch') return generatePitchQuestion(difficulty);
   if (modeKey === 'chord') return generateChordQuestion(difficulty);
   if (modeKey === 'triad') return generateTriadQuestion(difficulty);
+  if (modeKey === 'direction') return generateDirectionQuestion(difficulty);
   if (modeKey === 'interval') return generateIntervalQuestion(difficulty);
   if (modeKey === 'scaleid') return generateScaleIdQuestion(difficulty);
   return generateCallResponseQuestion(difficulty);

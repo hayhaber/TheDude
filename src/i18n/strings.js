@@ -843,12 +843,14 @@ export const STRINGS = {
     'earTraining.mode.pitch': 'Pitch / Fret Location',
     'earTraining.mode.chord': 'Chord Recognition',
     'earTraining.mode.triad': 'Triad Quality Recognition',
+    'earTraining.mode.direction': 'Pitch Direction (Higher/Lower)',
     'earTraining.mode.interval': 'Interval Recognition',
     'earTraining.mode.callresponse': 'Call & Response',
     'earTraining.mode.scaleid': 'Scale Recognition',
     'earTraining.prompt.pitch': 'Click the fret that matches the pitch you hear.',
     'earTraining.prompt.chord': 'Listen to the chord — what quality is it?',
     'earTraining.prompt.chordRootQuality': 'Listen to the chord — what is its root note and quality?',
+    'earTraining.prompt.direction': 'Listen — did the second note go higher or lower than the first?',
     'earTraining.prompt.interval': 'Listen to the interval — which one is it?',
     'earTraining.prompt.triad': 'Listen to the triad — what quality is it?',
     'earTraining.prompt.callresponse': 'Listen, then reproduce the {length}-note phrase in order.',
@@ -861,6 +863,23 @@ export const STRINGS = {
     'earTraining.interval.descending': 'descending',
     'earTraining.interval.harmonic': 'harmonic',
     'earTraining.interval.melodic': 'melodic',
+    'direction.Higher': 'Higher',
+    'direction.Lower': 'Lower',
+    'earTraining.explain.label': 'What is this exercise?',
+    'earTraining.explain.pitch':
+      "You'll hear one note played somewhere on the neck. You're told which string it's on — the question is purely which fret. Example: on the low E string, the open string is E, the 3rd fret is G, and the 5th fret is A — the further right you tap, the higher the pitch should sound.",
+    'earTraining.explain.chord':
+      "You'll hear 3 or more notes played together as a chord. Decide whether it sounds Major (bright, resolved) or Minor (darker, more tense) — same root, different 3rd. Example: C Major is C–E–G; lower that E to an E♭ and it becomes C Minor (C–E♭–G) — that one note is the whole difference in color.",
+    'earTraining.explain.triad':
+      "Like Chord Recognition, but with two more qualities to tell apart: Diminished (the 3rd AND the 5th both lowered — tense, unstable, e.g. C–E♭–G♭) and Augmented (the 5th raised — floaty, unresolved, e.g. C–E–G♯), alongside the familiar Major (C–E–G) and Minor (C–E♭–G).",
+    'earTraining.explain.direction':
+      "You'll hear two notes, one after the other. Just decide which way the pitch moved: did the second note sound higher or lower than the first? Example: E then G is higher (the pitch rose); E then C is lower (the pitch dropped). This is the most basic ear-training skill — the natural first step before full Interval Recognition.",
+    'earTraining.explain.interval':
+      "An interval is the distance in pitch between two notes, measured in semitones (one semitone = one fret on the guitar). Examples: C to E♭ is a Minor 3rd (3 semitones, a darker sound); C to E is a Major 3rd (4 semitones, brighter); C to G is a Perfect 5th (7 semitones — the strong, stable interval that opens \"Twinkle Twinkle Little Star\"); C up to the next C is an Octave (12 semitones) — the same note, doubled in pitch.",
+    'earTraining.explain.callresponse':
+      "You'll hear a short phrase of several notes, one after another. Reproduce the exact same sequence by tapping the matching frets/keys in the same order. Example: if the phrase goes low → high → middle, tap those three in that exact order — a wrong note ends the phrase early and you'll hear it again from the start.",
+    'earTraining.explain.scaleid':
+      "You'll hear a short run of notes climbing up a scale. Identify which scale or mode it is by its overall mood. Example: a Major scale run sounds bright and settled; a Natural Minor run sounds darker/sadder from the same starting note; a Blues scale adds an extra \"blue note\" that gives it a gritty edge.",
     'earTraining.mic.label': 'Or play it on your guitar',
     'earTraining.mic.playIt': 'Play It',
     'earTraining.mic.permission': 'Click "Play It" and allow microphone access to answer by ear.',
@@ -1773,12 +1792,14 @@ export const STRINGS = {
     'earTraining.mode.pitch': 'גובה צליל / מיקום על המסרגה',
     'earTraining.mode.chord': 'זיהוי אקורדים',
     'earTraining.mode.triad': 'זיהוי איכות שלישיות (טריאדות)',
+    'earTraining.mode.direction': 'כיוון הצליל (גבוה/נמוך)',
     'earTraining.mode.interval': 'זיהוי אינטרוולים',
     'earTraining.mode.callresponse': 'קריאה ותשובה',
     'earTraining.mode.scaleid': 'זיהוי סולמות',
     'earTraining.prompt.pitch': 'לחץ על המשבצת המתאימה לצליל ששמעת.',
     'earTraining.prompt.chord': 'הקשב לאקורד — מהי איכותו?',
     'earTraining.prompt.chordRootQuality': 'הקשב לאקורד — מהו התו הבסיס ומהי האיכות?',
+    'earTraining.prompt.direction': 'הקשב — האם הצליל השני היה גבוה יותר או נמוך יותר מהראשון?',
     'earTraining.prompt.interval': 'הקשב לאינטרוול — איזה אינטרוול זהו?',
     'earTraining.prompt.triad': 'הקשב לטריאדה — מהי איכותה?',
     'earTraining.prompt.callresponse': 'הקשב, ואז שחזר את הפראזה בת {length} התווים לפי הסדר.',
@@ -1791,6 +1812,23 @@ export const STRINGS = {
     'earTraining.interval.descending': 'יורד',
     'earTraining.interval.harmonic': 'הרמוני',
     'earTraining.interval.melodic': 'מלודי',
+    'direction.Higher': 'גבוה יותר',
+    'direction.Lower': 'נמוך יותר',
+    'earTraining.explain.label': 'מה זה התרגיל הזה?',
+    'earTraining.explain.pitch':
+      'תשמע צליל בודד המתנגן איפשהו על הצוואר. נאמר לך על איזה מיתר — השאלה היא רק על איזה שריג. לדוגמה: על מיתר המי הנמוך, המיתר הפתוח הוא מי, השריג ה-3 הוא סול, והשריג ה-5 הוא לה — ככל שתקיש ימינה יותר, הצליל אמור להישמע גבוה יותר.',
+    'earTraining.explain.chord':
+      'תשמע 3 צלילים או יותר המתנגנים יחד כאקורד. עליך להחליט אם הוא נשמע מאג\'ור (בהיר, פתור) או מינור (כהה יותר, מתוח יותר) — אותו תו יסוד, שלישית שונה. לדוגמה: דו מאג\'ור הוא דו–מי–סול; אם נוריד את המי לתו מי-במול, זה הופך לדו מינור (דו–מי♭–סול) — התו האחד הזה הוא כל ההבדל בצבע הצליל.',
+    'earTraining.explain.triad':
+      'כמו זיהוי אקורדים, אך עם שתי איכויות נוספות להבחין ביניהן: דימיניש (גם השלישית וגם החמישית מונמכות — מתוח ולא יציב, למשל דו–מי♭–סול♭) ואוגמנטד (החמישית מוגבהת — מרחף, לא פתור, למשל דו–מי–סול♯), לצד מאג\'ור (דו–מי–סול) ומינור (דו–מי♭–סול) המוכרים.',
+    'earTraining.explain.direction':
+      'תשמע שני צלילים, בזה אחר זה. פשוט תחליט לאיזה כיוון הצליל זז: האם הצליל השני נשמע גבוה יותר או נמוך יותר מהראשון? לדוגמה: מי ואז סול — גבוה יותר (הצליל עלה); מי ואז דו — נמוך יותר (הצליל ירד). זהו כישור השמיעה הבסיסי ביותר — הצעד הראשון הטבעי לפני זיהוי אינטרוולים מלא.',
+    'earTraining.explain.interval':
+      'אינטרוול הוא המרחק בגובה הצליל בין שני תווים, נמדד בחצאי-טונים (חצי טון אחד = שריג אחד בגיטרה). דוגמאות: דו עד מי-במול הוא שלישית מינורית (3 חצאי-טונים, צליל כהה יותר); דו עד מי הוא שלישית מז\'ורית (4 חצאי-טונים, בהיר יותר); דו עד סול הוא חמישית טהורה (7 חצאי-טונים — האינטרוול החזק והיציב שפותח את "טוויקל טוויקל ליטל סטאר"); דו עד הדו הבא הוא אוקטבה (12 חצאי-טונים) — אותו תו, בגובה כפול.',
+    'earTraining.explain.callresponse':
+      'תשמע פראזה קצרה של כמה צלילים, בזה אחר זה. שחזר בדיוק את אותו הרצף על ידי הקשה על השריגים/המקשים המתאימים באותו הסדר. לדוגמה: אם הפראזה עולה נמוך ← גבוה ← אמצעי, הקש על השלושה האלה בדיוק באותו סדר — תו שגוי מסיים את הפראזה מוקדם ותשמע אותה שוב מההתחלה.',
+    'earTraining.explain.scaleid':
+      'תשמע ריצה קצרה של צלילים העולה לאורך סולם. זהה איזה סולם או מוד זה לפי האופי הכללי שלו. לדוגמה: ריצה בסולם מאג\'ור נשמעת בהירה ופתורה; ריצה בסולם מינור טבעי נשמעת כהה/עצובה יותר מאותו תו התחלה; סולם בלוז מוסיף "תו כחול" נוסף שנותן לו חספוס אופייני.',
     'earTraining.mic.label': 'או נגן על הגיטרה שלך',
     'earTraining.mic.playIt': 'נגן',
     'earTraining.mic.permission': 'לחץ על "נגן" ואשר גישה למיקרופון כדי לענות על פי שמיעה.',

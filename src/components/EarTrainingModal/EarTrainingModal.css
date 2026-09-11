@@ -359,3 +359,35 @@
 .ear-training-mic-disclosure[open] > summary {
   margin-bottom: 6px;
 }
+
+/* "What is this exercise?" — the exercise's own instructions/theory, kept
+   separate from the ⓘ info-tooltips system (that's optional supplementary
+   detail; this is what you need to know before you can even attempt a
+   question, so it doesn't depend on that switch). Closed by default, but
+   right under the mode picker so it's the first thing seen. */
+.ear-training-explainer {
+  margin: 2px 0 4px;
+}
+
+.ear-training-explainer > summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  list-style: revert;
+}
+
+.ear-training-explainer > summary:hover {
+  text-decoration: underline;
+}
+
+.ear-training-explainer p {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}

@@ -100,18 +100,20 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
   const isChoiceQuestion = !!question?.choices;
   const isTimed = practiceMode === 'timed';
   const isChordQuiz = question?.kind === 'chord';
-  // Chord Recognition gets the exact same self-flowing treatment as the
-  // fret quiz (see useEarTraining's AUTO_ADVANCE_QUESTION_KINDS) — this is
-  // the one flag both the Next-button logic below and the inline-instrument
-  // choice share.
-  const isAutoFlowQuestion = isFretQuestion || isChordQuiz;
+  // Every mode now flows on its own (see useEarTraining's
+  // AUTO_ADVANCE_QUESTION_KINDS — it covers every kind that exists), so
+  // this is simply "is there a question at all": isFretQuestion (pitch/
+  // call-&-response) and isChoiceQuestion (chord/triad/interval/scaleid)
+  // together exhaust every kind by construction. One flag shared by the
+  // Next-button logic below and the inline-instrument choice.
+  const isAutoFlowQuestion = isFretQuestion || isChoiceQuestion;
 
-  // For pitch / call-&-response / chord questions, the instrument is
-  // rendered right here in the card (App.jsx drops the pinned Stage
-  // instrument while one of these is active — see `earTrainingOwnsInstrument`
-  // there) instead of being pinned far away at the bottom, disconnected from
-  // the prompt. For fret questions it's also the answer input; for chord
-  // questions it's just where the revealed voicing appears once answered.
+  // The instrument is rendered right here in the card for every question
+  // kind (App.jsx drops the pinned Stage instrument while a question is
+  // active — see `earTrainingOwnsInstrument` there) instead of being pinned
+  // far away at the bottom, disconnected from the prompt. For fret
+  // questions it's also the answer input; for choice questions it's where
+  // the revealed voicing/notes appear once answered.
   const showInlineInstrument = isAutoFlowQuestion && !!question;
   // Chord Recognition names the actual chord (e.g. "Bb") above the neck,
   // positioned over its shape, styled like every other chord-name label

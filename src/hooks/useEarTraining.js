@@ -18,14 +18,15 @@ const MISTAKE_FLASH_MS = 700;
 // the instant an answer comes in (registerResult runs synchronously before
 // this), so only the visible question/fretboard swap is delayed.
 const FEEDBACK_HOLD_MS = 2000;
-// Fret questions (pitch / call-&-response) auto-advance in every mode — no
-// "Next" button to press. A right answer just needs a beat to register; a
-// wrong one holds longer so the reveal marker and the picked-note → correct-
-// note playback both land before the next question wipes them. Chord
-// Recognition ('chord') gets the exact same self-flowing treatment, per
-// explicit request to match the fret-quiz's own flow — every other choice
-// question (interval/triad/scaleid) keeps the Next button in Standard mode.
-const AUTO_ADVANCE_QUESTION_KINDS = new Set(['pitch', 'callresponse', 'chord']);
+// Every question kind auto-advances in every mode — no "Next" button to
+// press. A right answer just needs a beat to register; a wrong one holds
+// longer so the reveal marker (and, for pitch/call-&-response, the picked-
+// note → correct-note playback) both land before the next question wipes
+// them. Applied uniformly across all modes per explicit request — Chord
+// Recognition got this treatment first, then Interval/Triad/Scale ID
+// (identical "listen, pick a button, see the reveal" shape) were brought in
+// line with it too.
+const AUTO_ADVANCE_QUESTION_KINDS = new Set(['pitch', 'callresponse', 'chord', 'triad', 'interval', 'scaleid']);
 const AUTO_ADVANCE_CORRECT_MS = 1100;
 const AUTO_ADVANCE_WRONG_MS = 2600;
 

@@ -207,7 +207,13 @@ function generateIntervalQuestion(difficulty) {
   const secondCell = findCellForMidi(secondMidi) ?? { stringIndex: rootCell.stringIndex, fret: rootCell.fret + correct.semitones };
 
   const distractors = shuffle(pool.filter((c) => c.semitones !== correct.semitones)).slice(0, 3);
-  const choices = shuffle([correct, ...distractors]).map((c) => ({ key: String(c.semitones), label: c.label }));
+  // Fixed choice ORDER (the pool's own semitone order), even though which
+  // intervals actually appear varies — see generateChordQuestion's own
+  // comment for why: shuffling this every question made the answer buttons
+  // visibly swap position between questions.
+  const choices = [correct, ...distractors]
+    .sort((a, b) => a.semitones - b.semitones)
+    .map((c) => ({ key: String(c.semitones), label: c.label }));
 
   return {
     kind: 'interval',
@@ -227,7 +233,10 @@ function generateTriadQuestion(difficulty) {
   const quality = CHORD_QUALITIES[qualityKey];
   const positions = enumerateTriadPositions(rootPitchClass, quality.tones);
   const inRange = positions.filter((p) => p.strings.every((s) => s.fret === null || s.fret <= difficulty.fretMax + 5));
-  const chosen = pick(inRange.length > 0 ? inRange : positions);
+  // Same fix as buildChordVoicing above: always the first (canonical,
+  // lowest-fret) shape — the same one Compose's own Triads mode would
+  // default to — instead of a random pick among every valid position.
+  const chosen = inRange.length > 0 ? inRange[0] : positions[0];
 
   const notesToPlay = chosen.strings
     .map((s, i) => (s.fret === null ? null : { stringIndex: i, fret: s.fret, midi: midiForCell(i, s.fret), role: s.role }))
@@ -402,7 +411,11 @@ function generateScaleIdQuestion(difficulty) {
   const notesToPlay = notes.map((n) => ({ stringIndex: n.string, fret: n.fret, midi: midiForCell(n.string, n.fret) }));
 
   const distractors = shuffle(pool.filter((k) => k !== correctKey)).slice(0, 3);
-  const choices = shuffle([correctKey, ...distractors]).map((k) => ({ key: k, labelKey: `scaleFamily.${k}` }));
+  // Fixed choice ORDER (the pool's own canonical order) — same reasoning
+  // as generateChordQuestion/generateIntervalQuestion.
+  const choices = [correctKey, ...distractors]
+    .sort((a, b) => pool.indexOf(a) - pool.indexOf(b))
+    .map((k) => ({ key: k, labelKey: `scaleFamily.${k}` }));
 
   return {
     kind: 'scaleid',

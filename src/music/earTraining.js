@@ -41,34 +41,56 @@ export function pianoQuizKeys(difficulty) {
 // labelKey looks up display text in i18n/strings.js (earTraining.mode.*,
 // difficulty.*) — kept as a key rather than a bilingual object here since
 // EarTrainingModal already needs a `t()` call for other quiz text anyway.
+// Order here is the Quiz Mode dropdown's own order — deliberately easiest
+// to most advanced, not alphabetical or by when each mode was added. Cross-
+// checked against how reference ear-training courses actually stage this,
+// most usefully Rick Beato's own paid "Ear Training Method" (20 chapters,
+// beatoeartraining.com) — a real, well-regarded professional curriculum,
+// not just an app's marketing copy — whose own chapter order is Pitch ->
+// Intervals -> Triads -> Sevenths -> Tonal Progressions -> ... -> Scales ->
+// ... -> Melodic Dictation. That single-note-first, then-intervals,
+// THEN-chords, scales-before-full-melodic-dictation shape is the backbone
+// here:
+//   1. Direction    — even more basic than any of Beato's own chapters:
+//                      "can you tell two notes apart at all, and which one's
+//                      higher?" The prerequisite beneath his own starting
+//                      point.
+//   2. Pitch        — Beato ch.1 "Pitch": name a single absolute note.
+//   3. Scale Degree — still one note at a time, but by its ROLE in a key
+//                      (movable-do) rather than its absolute name — the
+//                      natural companion step before jumping to comparing
+//                      TWO notes mathematically, and the direct bridge
+//                      toward Studies -> Chords by Ear's own functional/
+//                      Roman-numeral hearing later.
+//   4. Interval     — Beato ch.2 "Intervals": the exact distance between
+//                      two notes, a more analytical skill than either of
+//                      the two single-note steps above.
+//   5. Chord        — Beato ch.3 "Triads" (the Major/Minor-only tier first).
+//   6. Triad        — the same skill widened to Diminished/Augmented too;
+//                      kept immediately after Chord since it's a direct
+//                      extension of it, not a new concept (was its own
+//                      split-out mode already — see below).
+//   7. Scale ID     — Beato ch.9 "Scales": the OVERALL color of many
+//                      degrees heard as one run, which benefits from
+//                      already knowing individual degrees/intervals.
+//   8. Call & Response — Beato's own "Melodic Dictation" sits far later
+//                      (ch.11, after chords AND scales) for a reason: it's
+//                      the integrative, most demanding skill here, drawing
+//                      on pitch + interval + tonal hearing all at once to
+//                      reproduce a whole phrase — the capstone before
+//                      moving on to the full Chords by Ear course.
 export const EAR_TRAINING_MODES = [
+  { key: 'direction', labelKey: 'earTraining.mode.direction' },
   { key: 'pitch', labelKey: 'earTraining.mode.pitch' },
+  { key: 'scaledegree', labelKey: 'earTraining.mode.scaledegree' },
+  { key: 'interval', labelKey: 'earTraining.mode.interval' },
   { key: 'chord', labelKey: 'earTraining.mode.chord' },
   // Split out from 'interval' — that mode used to coin-flip between plain
   // intervals and triad-quality questions on every question, so a player
   // wanting to isolate one or the other couldn't. Now each is its own mode.
   { key: 'triad', labelKey: 'earTraining.mode.triad' },
-  // Direction -> Scale Degree -> Interval is a deliberate teaching sequence,
-  // not just alphabetical order (checked against how reference ear-training
-  // apps/method books stage this):
-  //   1. Direction — the most basic relative-pitch skill there is, "did the
-  //      pitch go up or down?".
-  //   2. Scale Degree — tonal/functional hearing: a cadence plants a key in
-  //      your ear, then you name a note by its role IN that key (movable-do
-  //      style). This is the real skill behind figuring out a melody by
-  //      ear, and it leans on the tonal "gravity" most listeners already
-  //      feel intuitively rather than on counting semitones — the natural
-  //      bridge toward Studies -> Chords by Ear's own functional/Roman-
-  //      numeral hearing.
-  //   3. Interval — quantifying the exact distance between two notes, a
-  //      more analytical skill layered on top of that tonal foundation
-  //      (and the one that generalizes to chromatic, out-of-key content
-  //      Scale Degree deliberately doesn't touch).
-  { key: 'direction', labelKey: 'earTraining.mode.direction' },
-  { key: 'scaledegree', labelKey: 'earTraining.mode.scaledegree' },
-  { key: 'interval', labelKey: 'earTraining.mode.interval' },
-  { key: 'callresponse', labelKey: 'earTraining.mode.callresponse' },
   { key: 'scaleid', labelKey: 'earTraining.mode.scaleid' },
+  { key: 'callresponse', labelKey: 'earTraining.mode.callresponse' },
 ];
 
 // Pace, independent of quiz content (modeKey) — Standard holds each question

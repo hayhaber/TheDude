@@ -846,6 +846,7 @@ export const STRINGS = {
     'earTraining.mode.direction': 'Pitch Direction (Higher/Lower)',
     'earTraining.mode.scaledegree': 'Scale Degree (in a Key)',
     'earTraining.mode.interval': 'Interval Recognition',
+    'earTraining.mode.rhythm': 'Rhythm Recognition',
     'earTraining.mode.callresponse': 'Call & Response',
     'earTraining.mode.scaleid': 'Scale Recognition',
     'earTraining.prompt.pitch': 'Click the fret that matches the pitch you hear.',
@@ -855,6 +856,7 @@ export const STRINGS = {
     'earTraining.prompt.scaledegree': 'A cadence sets the key — then listen to the note. Which scale degree is it?',
     'earTraining.prompt.interval': 'Listen to the interval — which one is it?',
     'earTraining.prompt.triad': 'Listen to the triad — what quality is it?',
+    'earTraining.prompt.rhythm': 'Listen to the rhythm — which pattern is it?',
     'earTraining.prompt.callresponse': 'Listen, then reproduce the {length}-note phrase in order.',
     'earTraining.prompt.scaleid': 'Listen to the scale — which one is it?',
     'earTraining.reveal': 'That was: {answer}',
@@ -882,6 +884,8 @@ export const STRINGS = {
       "An interval is the distance in pitch between two notes, measured in semitones (one semitone = one fret on the guitar). Examples: C to E♭ is a Minor 3rd (3 semitones, a darker sound); C to E is a Major 3rd (4 semitones, brighter); C to G is a Perfect 5th (7 semitones — the strong, stable interval that opens \"Twinkle Twinkle Little Star\"); C up to the next C is an Octave (12 semitones) — the same note, doubled in pitch.",
     'earTraining.explain.callresponse':
       "You'll hear a short phrase of several notes, one after another. Reproduce the exact same sequence by tapping the matching frets/keys in the same order. Example: if the phrase goes low → high → middle, tap those three in that exact order — a wrong note ends the phrase early and you'll hear it again from the start.",
+    'earTraining.explain.rhythm':
+      "No pitch this time — just timing. You'll hear a one-bar rhythm made of clicks, and pick which written pattern matches it. Patterns are written as simple syllables: \"Ta\" is one steady beat, \"Ta-di\" is a beat split into two quick notes, \"Ta-a\" is one note held across two beats, and \"(rest)\" is a beat of silence. Example: \"Ta Ta-di Ta Ta\" is a steady beat, then a quick two-note beat, then two more steady beats.",
     'earTraining.explain.scaleid':
       "You'll hear a short run of notes climbing up a scale. Identify which scale or mode it is by its overall mood. Example: a Major scale run sounds bright and settled; a Natural Minor run sounds darker/sadder from the same starting note; a Blues scale adds an extra \"blue note\" that gives it a gritty edge. Advanced difficulty adds the modes — Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian — each a different \"flavor\" of the same 7 notes.",
     'earTraining.mic.label': 'Or play it on your guitar',
@@ -1799,6 +1803,7 @@ export const STRINGS = {
     'earTraining.mode.direction': 'כיוון הצליל (גבוה/נמוך)',
     'earTraining.mode.scaledegree': 'דרגת סולם (בתוך מפתח)',
     'earTraining.mode.interval': 'זיהוי אינטרוולים',
+    'earTraining.mode.rhythm': 'זיהוי קצב',
     'earTraining.mode.callresponse': 'קריאה ותשובה',
     'earTraining.mode.scaleid': 'זיהוי סולמות',
     'earTraining.prompt.pitch': 'לחץ על המשבצת המתאימה לצליל ששמעת.',
@@ -1808,6 +1813,7 @@ export const STRINGS = {
     'earTraining.prompt.scaledegree': 'קדנצה קובעת את המפתח — ואז הקשב לצליל. איזו דרגת סולם זו?',
     'earTraining.prompt.interval': 'הקשב לאינטרוול — איזה אינטרוול זהו?',
     'earTraining.prompt.triad': 'הקשב לטריאדה — מהי איכותה?',
+    'earTraining.prompt.rhythm': 'הקשב לקצב — איזו תבנית זו?',
     'earTraining.prompt.callresponse': 'הקשב, ואז שחזר את הפראזה בת {length} התווים לפי הסדר.',
     'earTraining.prompt.scaleid': 'הקשב לסולם — איזה סולם זהו?',
     'earTraining.reveal': 'זה היה: {answer}',
@@ -1835,6 +1841,8 @@ export const STRINGS = {
       'אינטרוול הוא המרחק בגובה הצליל בין שני תווים, נמדד בחצאי-טונים (חצי טון אחד = שריג אחד בגיטרה). דוגמאות: דו עד מי-במול הוא שלישית מינורית (3 חצאי-טונים, צליל כהה יותר); דו עד מי הוא שלישית מז\'ורית (4 חצאי-טונים, בהיר יותר); דו עד סול הוא חמישית טהורה (7 חצאי-טונים — האינטרוול החזק והיציב שפותח את "טוויקל טוויקל ליטל סטאר"); דו עד הדו הבא הוא אוקטבה (12 חצאי-טונים) — אותו תו, בגובה כפול.',
     'earTraining.explain.callresponse':
       'תשמע פראזה קצרה של כמה צלילים, בזה אחר זה. שחזר בדיוק את אותו הרצף על ידי הקשה על השריגים/המקשים המתאימים באותו הסדר. לדוגמה: אם הפראזה עולה נמוך ← גבוה ← אמצעי, הקש על השלושה האלה בדיוק באותו סדר — תו שגוי מסיים את הפראזה מוקדם ותשמע אותה שוב מההתחלה.',
+    'earTraining.explain.rhythm':
+      'הפעם בלי גובה צליל בכלל — רק תזמון. תשמע קצב באורך פעימה אחת (תיבה) שמורכב מנקישות, ותבחר איזו תבנית כתובה מתאימה לו. התבניות כתובות בהברות פשוטות: "Ta" היא פעימה יציבה אחת, "Ta-di" היא פעימה שמתחלקת לשני צלילים מהירים, "Ta-a" הוא צליל אחד המוחזק לאורך שתי פעימות, ו-"(rest)" היא פעימת שתיקה. לדוגמה: "Ta Ta-di Ta Ta" זו פעימה יציבה, ואז פעימה מהירה של שני צלילים, ואז עוד שתי פעימות יציבות.',
     'earTraining.explain.scaleid':
       'תשמע ריצה קצרה של צלילים העולה לאורך סולם. זהה איזה סולם או מוד זה לפי האופי הכללי שלו. לדוגמה: ריצה בסולם מאג\'ור נשמעת בהירה ופתורה; ריצה בסולם מינור טבעי נשמעת כהה/עצובה יותר מאותו תו התחלה; סולם בלוז מוסיף "תו כחול" נוסף שנותן לו חספוס אופייני. ברמת קושי מתקדמת (Advanced) מתווספים גם המודים — דוריאן, פריגיאן, לידיאן, מיקסולידיאן, אאוליאן, לוקריאן — כל אחד "טעם" שונה של אותם 7 תווים.',
     'earTraining.mic.label': 'או נגן על הגיטרה שלך',

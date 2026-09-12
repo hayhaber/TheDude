@@ -70,10 +70,13 @@ export function pianoQuizKeys(difficulty) {
 //                      kept immediately after Chord since it's a direct
 //                      extension of it, not a new concept (was its own
 //                      split-out mode already — see below).
-//   7. Scale ID     — Beato ch.9 "Scales": the OVERALL color of many
+//   7. Rhythm       — Beato ch.8 "Rhythm": a genuinely different skill axis
+//                      (timing, not pitch at all) — placed right where he
+//                      places it, after basic chords and before Scales.
+//   8. Scale ID     — Beato ch.9 "Scales": the OVERALL color of many
 //                      degrees heard as one run, which benefits from
 //                      already knowing individual degrees/intervals.
-//   8. Call & Response — Beato's own "Melodic Dictation" sits far later
+//   9. Call & Response — Beato's own "Melodic Dictation" sits far later
 //                      (ch.11, after chords AND scales) for a reason: it's
 //                      the integrative, most demanding skill here, drawing
 //                      on pitch + interval + tonal hearing all at once to
@@ -89,6 +92,7 @@ export const EAR_TRAINING_MODES = [
   // intervals and triad-quality questions on every question, so a player
   // wanting to isolate one or the other couldn't. Now each is its own mode.
   { key: 'triad', labelKey: 'earTraining.mode.triad' },
+  { key: 'rhythm', labelKey: 'earTraining.mode.rhythm' },
   { key: 'scaleid', labelKey: 'earTraining.mode.scaleid' },
   { key: 'callresponse', labelKey: 'earTraining.mode.callresponse' },
 ];
@@ -607,6 +611,94 @@ function generateScaleIdQuestion(difficulty) {
   };
 }
 
+// Rhythm Recognition — a genuinely different skill axis from every mode
+// above (timing, not pitch at all), reusing the exact same "listen, pick
+// from fixed choices, see the reveal" shape so it needs no new interaction
+// paradigm or fretboard involvement whatsoever. Patterns are written as
+// Kodály-style rhythm syllables — a real, long-established beginner
+// rhythm-literacy method (not invented for this app): "Ta" = one beat,
+// "Ta-di" = a beat split into two even notes, "Ta-a" = one note held
+// across two beats, "(rest)" = a beat of silence. Every pattern in every
+// pool is exactly one 4-beat bar, so the difficulty curve is purely about
+// how finely subdivided/syncopated that one bar gets, matching Beato's own
+// ch.8 placement (right after basic chords, before Scales):
+//   beginner     — three maximally-contrasting, UNMIXED patterns (all
+//                  quarters / all eighths / two held half-bars) — this is
+//                  "can you tell a steady pulse from a running one at all",
+//                  not yet "which exact mixed pattern was that".
+//   intermediate — quarters and eighths freely mixed within the bar.
+//   advanced     — adds held two-beat notes and rests (syncopation).
+const RHYTHM_BEAT_MS = 500; // a comfortable, fixed ~120bpm feel
+const RHYTHM_CELL_BEATS = { Q: 1, EE: 1, H: 2, R: 1 };
+const RHYTHM_CELL_ONSET_FRACTIONS = { Q: [0], EE: [0, 0.5], H: [0], R: [] };
+const RHYTHM_CELL_SYLLABLE = { Q: 'Ta', EE: 'Ta-di', H: 'Ta-a', R: '(rest)' };
+const RHYTHM_POOLS = {
+  beginner: [
+    ['Q', 'Q', 'Q', 'Q'],
+    ['EE', 'EE', 'EE', 'EE'],
+    ['H', 'H'],
+  ],
+  intermediate: [
+    ['Q', 'EE', 'Q', 'Q'],
+    ['EE', 'Q', 'EE', 'Q'],
+    ['Q', 'Q', 'EE', 'EE'],
+    ['EE', 'EE', 'Q', 'Q'],
+    ['Q', 'EE', 'EE', 'Q'],
+    ['EE', 'Q', 'Q', 'EE'],
+  ],
+  advanced: [
+    ['H', 'Q', 'Q'],
+    ['Q', 'Q', 'H'],
+    ['Q', 'R', 'Q', 'Q'],
+    ['R', 'Q', 'Q', 'Q'],
+    ['EE', 'R', 'EE', 'Q'],
+    ['Q', 'EE', 'R', 'Q'],
+    ['H', 'EE', 'Q'],
+    ['EE', 'H', 'Q'],
+  ],
+};
+
+function syllablesFor(cells) {
+  return cells.map((c) => RHYTHM_CELL_SYLLABLE[c]).join(' ');
+}
+
+// Every onset (in ms from the start of the bar) the pattern's clicks
+// should fire at, at RHYTHM_BEAT_MS per beat.
+function rhythmOnsetsMs(cells) {
+  const onsets = [];
+  let cursorBeats = 0;
+  for (const cell of cells) {
+    for (const fraction of RHYTHM_CELL_ONSET_FRACTIONS[cell]) {
+      onsets.push(Math.round((cursorBeats + fraction) * RHYTHM_BEAT_MS));
+    }
+    cursorBeats += RHYTHM_CELL_BEATS[cell];
+  }
+  return onsets;
+}
+
+function generateRhythmQuestion(difficulty) {
+  const pool = RHYTHM_POOLS[difficulty.key] ?? RHYTHM_POOLS.advanced;
+  const correctCells = pick(pool);
+  const correctKey = syllablesFor(correctCells);
+
+  const distractors = shuffle(pool.filter((cells) => cells !== correctCells)).slice(0, 3);
+  // Fixed choice ORDER (the pool's own order) — same lesson as every other
+  // mode: shuffling a small answer set every question made buttons look
+  // like they were randomly swapping position between questions.
+  const choices = [correctCells, ...distractors]
+    .sort((a, b) => pool.indexOf(a) - pool.indexOf(b))
+    .map((cells) => ({ key: syllablesFor(cells), label: syllablesFor(cells) }));
+
+  return {
+    kind: 'rhythm',
+    prompt: 'Listen to the rhythm — which pattern is it?',
+    rhythmOnsets: rhythmOnsetsMs(correctCells),
+    notesToPlay: [],
+    choices,
+    correctChoiceKey: correctKey,
+  };
+}
+
 export function generateQuestion(modeKey, difficulty) {
   if (modeKey === 'pitch') return generatePitchQuestion(difficulty);
   if (modeKey === 'chord') return generateChordQuestion(difficulty);
@@ -614,6 +706,7 @@ export function generateQuestion(modeKey, difficulty) {
   if (modeKey === 'direction') return generateDirectionQuestion(difficulty);
   if (modeKey === 'scaledegree') return generateScaleDegreeQuestion(difficulty);
   if (modeKey === 'interval') return generateIntervalQuestion(difficulty);
+  if (modeKey === 'rhythm') return generateRhythmQuestion(difficulty);
   if (modeKey === 'scaleid') return generateScaleIdQuestion(difficulty);
   return generateCallResponseQuestion(difficulty);
 }

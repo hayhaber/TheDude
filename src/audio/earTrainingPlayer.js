@@ -26,6 +26,13 @@ export function playQuestionAudio(question) {
     notes.forEach((n, i) => setTimeout(() => playNote(n.midi), i * 90));
     return;
   }
+  if (question.kind === 'rhythm') {
+    // One fixed, repeated click — the point is purely timing, so a single
+    // unchanging pitch keeps pitch perception out of the exercise entirely.
+    const RHYTHM_CLICK_MIDI = 84;
+    question.rhythmOnsets.forEach((ms) => setTimeout(() => playNote(RHYTHM_CLICK_MIDI), ms));
+    return;
+  }
   if (question.kind === 'scaledegree') {
     // I-IV-V-I cadence first (light strum-like stagger per chord, same
     // technique the chord/triad kinds above use), THEN — after a clear gap

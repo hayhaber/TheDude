@@ -18,6 +18,7 @@ function promptFor(t, question) {
   if (question.kind === 'interval') return t('earTraining.prompt.interval');
   if (question.kind === 'callresponse') return t('earTraining.prompt.callresponse', { length: question.targetMidiSequence.length });
   if (question.kind === 'triad') return t('earTraining.prompt.triad');
+  if (question.kind === 'rhythm') return t('earTraining.prompt.rhythm');
   if (question.kind === 'scaleid') return t('earTraining.prompt.scaleid');
   return question.prompt;
 }
@@ -118,8 +119,11 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
   // active — see `earTrainingOwnsInstrument` there) instead of being pinned
   // far away at the bottom, disconnected from the prompt. For fret
   // questions it's also the answer input; for choice questions it's where
-  // the revealed voicing/notes appear once answered.
-  const showInlineInstrument = isAutoFlowQuestion && !!question;
+  // the revealed voicing/notes appear once answered. Rhythm is the one
+  // exception — it's pure timing, no pitch/fretboard position involved at
+  // all, so there's nothing meaningful to show; an empty neck would just
+  // be wasted space.
+  const showInlineInstrument = isAutoFlowQuestion && !!question && question.kind !== 'rhythm';
   // Chord Recognition names the actual chord (e.g. "Bb") above the neck,
   // positioned over its shape, styled like every other chord-name label
   // this app already draws there (Fretboard's roadmap-chord-label — see

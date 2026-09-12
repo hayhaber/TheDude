@@ -36,6 +36,7 @@ const AUTO_ADVANCE_QUESTION_KINDS = new Set([
   'direction',
   'scaledegree',
   'interval',
+  'rhythm',
   'scaleid',
 ]);
 const AUTO_ADVANCE_CORRECT_MS = 1100;

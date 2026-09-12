@@ -721,7 +721,7 @@ export const STRINGS = {
     'emotionSelector.none': 'None',
 
     'lickPanel.artistStyle': 'Artist style',
-    'lickPanel.legend': 'b = bend  ·  h = hammer-on  ·  p = pull-off  ·  / = slide  ·  ~ = vibrato',
+    'lickPanel.legend': 'b = bend  ·  h = hammer-on  ·  p = pull-off  ·  / = slide  ·  ~ = vibrato  ·  r = release',
 
     'lickLibrary.artist': 'Artist',
     'lickLibrary.genre': 'Genre',
@@ -1679,7 +1679,7 @@ export const STRINGS = {
     'emotionSelector.none': 'ללא',
 
     'lickPanel.artistStyle': 'סגנון נגן',
-    'lickPanel.legend': 'b = כפיפה  ·  h = האמר-און  ·  p = פול-אוף  ·  / = סליידה  ·  ~ = ויברטו',
+    'lickPanel.legend': 'b = כפיפה  ·  h = האמר-און  ·  p = פול-אוף  ·  / = סליידה  ·  ~ = ויברטו  ·  r = שחרור',
 
     'lickLibrary.artist': 'אמן',
     'lickLibrary.genre': 'ז\'אנר',

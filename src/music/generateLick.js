@@ -19,6 +19,7 @@ const TECHNIQUE_LABEL = {
   hammer: 'Hammer-on',
   pull: 'Pull-off',
   vibrato: 'Vibrato',
+  release: 'Release',
 };
 
 // A rough, standard guitar "position" name from the fret range actually
@@ -41,7 +42,7 @@ function techniquesUsed(template) {
   const hasHammer = template.some((n) => n.technique === 'hammer');
   const hasPull = template.some((n) => n.technique === 'pull');
   if (hasHammer && hasPull) set.add('Legato');
-  if (!hasHammer && !hasPull && !template.some((n) => n.technique === 'slide')) set.add('Alternate Picking');
+  if (!hasHammer && !hasPull && !template.some((n) => n.technique === 'slide' || n.technique === 'release')) set.add('Alternate Picking');
   return [...set];
 }
 

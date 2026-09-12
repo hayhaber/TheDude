@@ -7,7 +7,7 @@ import './LickNotation.css';
 const NOTE_WIDTH = 55;
 const STAVE_PADDING = 60;
 const STAVE_HEIGHT = 140;
-const TECHNIQUE_GLYPH = { bend: 'b', slide: '/', hammer: 'h', pull: 'p', vibrato: '~' };
+const TECHNIQUE_GLYPH = { bend: 'b', slide: '/', hammer: 'h', pull: 'p', vibrato: '~', release: 'r' };
 
 // A lick's notes use STANDARD_TUNING's own 0-5 array index (0 = low E ... 5
 // = high E — see music/licks.js's header comment), not VexFlow's traditional

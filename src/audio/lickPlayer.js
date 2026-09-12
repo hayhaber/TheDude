@@ -69,14 +69,16 @@ export function playLick(notes, { onNoteStart, onDone } = {}) {
   const ctx = getAudioContext();
   const instrument = getReadySampledInstrument();
 
-  // A hammer-on/pull-off is arrived at *from* the previous note without a
-  // fresh pick attack — the gap before it collapses to near-zero (legato)
-  // instead of the normal picked NOTE_GAP, same as a guitarist wouldn't
-  // leave a picked silence between the two.
+  // A hammer-on/pull-off/release is arrived at *from* the previous note
+  // without a fresh pick attack — the gap before it collapses to near-zero
+  // (legato) instead of the normal picked NOTE_GAP, same as a guitarist
+  // wouldn't leave a picked silence between the two (a release is just a
+  // bend's pitch falling back down on the same already-ringing string).
+  const LEGATO_TECHNIQUES = new Set(['hammer', 'pull', 'release']);
   let cursor = 0;
   const schedule = notes.map((note, i) => {
     const duration = NOTE_DURATION * (note.durationMultiplier ?? 1);
-    const gapBefore = i === 0 ? 0 : (note.technique === 'hammer' || note.technique === 'pull' ? LEGATO_GAP : NOTE_GAP);
+    const gapBefore = i === 0 ? 0 : (LEGATO_TECHNIQUES.has(note.technique) ? LEGATO_GAP : NOTE_GAP);
     cursor += gapBefore;
     const offset = cursor;
     cursor += duration;
@@ -87,21 +89,41 @@ export function playLick(notes, { onNoteStart, onDone } = {}) {
   const timers = [];
   const activeVoices = []; // { osc, gain, lfo? } (synth path) or { midi } (sampled path) — only CURRENTLY SOUNDING notes
 
+  // A release's starting pitch is wherever the preceding bend left the
+  // string ringing (that note's own bend width, if it was in fact a bend on
+  // the same string) — falling back to a generic whole-step above when the
+  // source tab/lick data doesn't give us that (e.g. a release with no
+  // recorded bend before it), so it still audibly falls rather than playing
+  // as a plain note.
+  function glideStartMidi(note, prevNote, midi, fallbackDelta) {
+    if (note.technique === 'release' && prevNote && prevNote.technique === 'bend' && prevNote.string === note.string) {
+      const prevMidi = STANDARD_TUNING[prevNote.string].baseMidi + prevNote.fret;
+      return prevMidi + (prevNote.bendSemitones ?? BEND_SEMITONES);
+    }
+    if (note.technique === 'slide' && prevNote && prevNote.string === note.string) {
+      return STANDARD_TUNING[note.string].baseMidi + prevNote.fret;
+    }
+    return midi + fallbackDelta;
+  }
+
   function triggerNote(note, duration, prevNote) {
     const midi = STANDARD_TUNING[note.string].baseMidi + note.fret;
-    const isLegato = note.technique === 'hammer' || note.technique === 'pull';
+    const isLegato = LEGATO_TECHNIQUES.has(note.technique);
     const velocity = isLegato ? SAMPLE_VELOCITY * LEGATO_VELOCITY_SCALE : SAMPLE_VELOCITY;
     const startTime = ctx.currentTime;
     const stopTime = startTime + duration;
 
     if (instrument) {
-      if (note.technique === 'slide') {
-        // Glides in from the previous note's pitch on the same string (or a
-        // generic whole-step below when there's no same-string predecessor
-        // to slide from) up to this note's own pitch, then holds — same
-        // retrigger-based approximation the bend/vibrato cases below use,
-        // since smplr has no live pitch-automation to ramp continuously.
-        const startMidi = prevNote && prevNote.string === note.string ? STANDARD_TUNING[note.string].baseMidi + prevNote.fret : midi - 2;
+      if (note.technique === 'slide' || note.technique === 'release') {
+        // Glides in from where the string was actually left ringing (the
+        // previous note, or the bend it came from) to this note's own
+        // pitch, then holds — same retrigger-based approximation the
+        // bend/vibrato cases below use, since smplr has no live
+        // pitch-automation to ramp continuously. Slide's generic fallback
+        // (no usable predecessor) is a whole step below; release's is a
+        // whole step above, since a release always falls.
+        const fallbackDelta = note.technique === 'release' ? 2 : -2;
+        const startMidi = glideStartMidi(note, prevNote, midi, fallbackDelta);
         const startCents = (startMidi - midi) * 100;
         const glideTime = Math.min(SLIDE_GLIDE_TIME, duration * 0.6);
         const stepDuration = glideTime / SLIDE_STEP_COUNT;
@@ -161,11 +183,12 @@ export function playLick(notes, { onNoteStart, onDone } = {}) {
     osc.type = 'triangle';
 
     let lfo = null;
-    if (note.technique === 'slide') {
+    if (note.technique === 'slide' || note.technique === 'release') {
       // Same glide-in-then-hold idea as the sampled path above, but as a
       // true continuous ramp since the synth path can automate frequency
       // directly.
-      const startMidi = prevNote && prevNote.string === note.string ? STANDARD_TUNING[note.string].baseMidi + prevNote.fret : midi - 2;
+      const fallbackDelta = note.technique === 'release' ? 2 : -2;
+      const startMidi = glideStartMidi(note, prevNote, midi, fallbackDelta);
       const startFreq = midiToFrequency(startMidi);
       const glideTime = Math.min(SLIDE_GLIDE_TIME, duration * 0.6);
       osc.frequency.setValueAtTime(startFreq, startTime);

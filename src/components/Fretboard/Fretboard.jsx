@@ -80,7 +80,7 @@ function useWindowFrets() {
   return count;
 }
 
-const TECHNIQUE_GLYPH = { bend: 'b', slide: '/', hammer: 'h', pull: 'p', vibrato: '~' };
+const TECHNIQUE_GLYPH = { bend: 'b', slide: '/', hammer: 'h', pull: 'p', vibrato: '~', release: 'r' };
 
 // Technique & Guitar Masters overlay: fretboardMapping.positions use real
 // guitar string numbers (1-6, per the data schema) — Fretboard's own

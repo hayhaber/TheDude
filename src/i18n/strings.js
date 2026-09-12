@@ -871,7 +871,7 @@ export const STRINGS = {
     'earTraining.explain.pitch':
       "You'll hear one note played somewhere on the neck. You're told which string it's on — the question is purely which fret. Example: on the low E string, the open string is E, the 3rd fret is G, and the 5th fret is A — the further right you tap, the higher the pitch should sound.",
     'earTraining.explain.chord':
-      "You'll hear 3 or more notes played together as a chord. Decide whether it sounds Major (bright, resolved) or Minor (darker, more tense) — same root, different 3rd. Example: C Major is C–E–G; lower that E to an E♭ and it becomes C Minor (C–E♭–G) — that one note is the whole difference in color.",
+      "You'll hear 3 or more notes played together as a chord. Decide whether it sounds Major (bright, resolved) or Minor (darker, more tense) — same root, different 3rd. Example: C Major is C–E–G; lower that E to an E♭ and it becomes C Minor (C–E♭–G) — that one note is the whole difference in color. Advanced difficulty widens the vocabulary well beyond Major/Minor — 7th chords (Dominant, Major 7, Minor 7), Sus2/Sus4, Diminished 7, and Add9 all join the pool.",
     'earTraining.explain.triad':
       "Like Chord Recognition, but with two more qualities to tell apart: Diminished (the 3rd AND the 5th both lowered — tense, unstable, e.g. C–E♭–G♭) and Augmented (the 5th raised — floaty, unresolved, e.g. C–E–G♯), alongside the familiar Major (C–E–G) and Minor (C–E♭–G).",
     'earTraining.explain.direction':
@@ -883,7 +883,7 @@ export const STRINGS = {
     'earTraining.explain.callresponse':
       "You'll hear a short phrase of several notes, one after another. Reproduce the exact same sequence by tapping the matching frets/keys in the same order. Example: if the phrase goes low → high → middle, tap those three in that exact order — a wrong note ends the phrase early and you'll hear it again from the start.",
     'earTraining.explain.scaleid':
-      "You'll hear a short run of notes climbing up a scale. Identify which scale or mode it is by its overall mood. Example: a Major scale run sounds bright and settled; a Natural Minor run sounds darker/sadder from the same starting note; a Blues scale adds an extra \"blue note\" that gives it a gritty edge.",
+      "You'll hear a short run of notes climbing up a scale. Identify which scale or mode it is by its overall mood. Example: a Major scale run sounds bright and settled; a Natural Minor run sounds darker/sadder from the same starting note; a Blues scale adds an extra \"blue note\" that gives it a gritty edge. Advanced difficulty adds the modes — Dorian, Phrygian, Lydian, Mixolydian, Aeolian, Locrian — each a different \"flavor\" of the same 7 notes.",
     'earTraining.mic.label': 'Or play it on your guitar',
     'earTraining.mic.playIt': 'Play It',
     'earTraining.mic.permission': 'Click "Play It" and allow microphone access to answer by ear.',
@@ -1824,7 +1824,7 @@ export const STRINGS = {
     'earTraining.explain.pitch':
       'תשמע צליל בודד המתנגן איפשהו על הצוואר. נאמר לך על איזה מיתר — השאלה היא רק על איזה שריג. לדוגמה: על מיתר המי הנמוך, המיתר הפתוח הוא מי, השריג ה-3 הוא סול, והשריג ה-5 הוא לה — ככל שתקיש ימינה יותר, הצליל אמור להישמע גבוה יותר.',
     'earTraining.explain.chord':
-      'תשמע 3 צלילים או יותר המתנגנים יחד כאקורד. עליך להחליט אם הוא נשמע מאג\'ור (בהיר, פתור) או מינור (כהה יותר, מתוח יותר) — אותו תו יסוד, שלישית שונה. לדוגמה: דו מאג\'ור הוא דו–מי–סול; אם נוריד את המי לתו מי-במול, זה הופך לדו מינור (דו–מי♭–סול) — התו האחד הזה הוא כל ההבדל בצבע הצליל.',
+      'תשמע 3 צלילים או יותר המתנגנים יחד כאקורד. עליך להחליט אם הוא נשמע מאג\'ור (בהיר, פתור) או מינור (כהה יותר, מתוח יותר) — אותו תו יסוד, שלישית שונה. לדוגמה: דו מאג\'ור הוא דו–מי–סול; אם נוריד את המי לתו מי-במול, זה הופך לדו מינור (דו–מי♭–סול) — התו האחד הזה הוא כל ההבדל בצבע הצליל. ברמת קושי מתקדמת (Advanced) האוצר המילים מתרחב הרבה מעבר למאג\'ור/מינור — אקורדי שביעית (דומיננטי, מאג\'ור 7, מינור 7), Sus2/Sus4, דימיניש 7, ו-Add9 מצטרפים למאגר.',
     'earTraining.explain.triad':
       'כמו זיהוי אקורדים, אך עם שתי איכויות נוספות להבחין ביניהן: דימיניש (גם השלישית וגם החמישית מונמכות — מתוח ולא יציב, למשל דו–מי♭–סול♭) ואוגמנטד (החמישית מוגבהת — מרחף, לא פתור, למשל דו–מי–סול♯), לצד מאג\'ור (דו–מי–סול) ומינור (דו–מי♭–סול) המוכרים.',
     'earTraining.explain.direction':
@@ -1836,7 +1836,7 @@ export const STRINGS = {
     'earTraining.explain.callresponse':
       'תשמע פראזה קצרה של כמה צלילים, בזה אחר זה. שחזר בדיוק את אותו הרצף על ידי הקשה על השריגים/המקשים המתאימים באותו הסדר. לדוגמה: אם הפראזה עולה נמוך ← גבוה ← אמצעי, הקש על השלושה האלה בדיוק באותו סדר — תו שגוי מסיים את הפראזה מוקדם ותשמע אותה שוב מההתחלה.',
     'earTraining.explain.scaleid':
-      'תשמע ריצה קצרה של צלילים העולה לאורך סולם. זהה איזה סולם או מוד זה לפי האופי הכללי שלו. לדוגמה: ריצה בסולם מאג\'ור נשמעת בהירה ופתורה; ריצה בסולם מינור טבעי נשמעת כהה/עצובה יותר מאותו תו התחלה; סולם בלוז מוסיף "תו כחול" נוסף שנותן לו חספוס אופייני.',
+      'תשמע ריצה קצרה של צלילים העולה לאורך סולם. זהה איזה סולם או מוד זה לפי האופי הכללי שלו. לדוגמה: ריצה בסולם מאג\'ור נשמעת בהירה ופתורה; ריצה בסולם מינור טבעי נשמעת כהה/עצובה יותר מאותו תו התחלה; סולם בלוז מוסיף "תו כחול" נוסף שנותן לו חספוס אופייני. ברמת קושי מתקדמת (Advanced) מתווספים גם המודים — דוריאן, פריגיאן, לידיאן, מיקסולידיאן, אאוליאן, לוקריאן — כל אחד "טעם" שונה של אותם 7 תווים.',
     'earTraining.mic.label': 'או נגן על הגיטרה שלך',
     'earTraining.mic.playIt': 'נגן',
     'earTraining.mic.permission': 'לחץ על "נגן" ואשר גישה למיקרופון כדי לענות על פי שמיעה.',

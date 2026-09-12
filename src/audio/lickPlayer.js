@@ -7,7 +7,7 @@ import { getCurrentGuitarProfile } from './audioSettingsStore';
 
 const NOTE_DURATION = 0.35; // seconds each note rings before the next starts
 const NOTE_GAP = 0.05; // seconds of silence between notes
-const BEND_SEMITONES = 1.5; // full+half-step bend, matching real string-bend range
+const BEND_SEMITONES = 1.5; // default (no Emotion Mode) bend width — between a half-step and whole-step; real named bend widths are 1 (half), 2 (whole) or 3 (step-and-a-half) semitones, see emotionEngine.js's own per-emotion values
 const VIBRATO_RATE = 6; // Hz
 const VIBRATO_DEPTH_SEMITONES = 0.25;
 const SAMPLE_VELOCITY = 100;

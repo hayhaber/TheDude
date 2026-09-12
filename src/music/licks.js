@@ -16,6 +16,21 @@ export const ARTISTS = [
   { key: 'moore', name: 'Gary Moore' },
   { key: 'satriani', name: 'Joe Satriani' },
   { key: 'johnson', name: 'Eric Johnson' },
+  // Three more Rock-family artists, added to round out that genre
+  // specifically (per explicit request — the user is mainly interested in
+  // Rock) rather than branching into unrelated genres (Rockabilly/
+  // Bluegrass/Country) that would need their own separate research pass to
+  // get authentically right. Chosen for being stylistically DISTINCT from
+  // the Rock artists already here, not redundant with them: Angus Young is
+  // riff-driven blues-rock at a genuinely approachable technical level
+  // (mostly pentatonic + big bends, no fast legato) — a Rock option for
+  // players not yet ready for Satriani/Vai; Jimmy Page is the bluesy,
+  // exotic-scale-flavored classic-rock end; Brian May is the melodic,
+  // sustain-and-harmony end — neither overlaps the blues-rock feel Clapton/
+  // BB King/Moore already cover.
+  { key: 'angus', name: 'Angus Young' },
+  { key: 'page', name: 'Jimmy Page' },
+  { key: 'may', name: 'Brian May' },
 ];
 
 // Per-lick metadata (spec #5: "Each lick should contain difficulty, style,
@@ -36,6 +51,9 @@ export const ARTIST_STYLE = {
   moore: 'Hard Rock',
   satriani: 'Rock',
   johnson: 'Rock',
+  angus: 'Hard Rock',
+  page: 'Classic Rock',
+  may: 'Rock',
 };
 
 export const ARTIST_DIFFICULTY = {
@@ -49,6 +67,9 @@ export const ARTIST_DIFFICULTY = {
   moore: 'Advanced',
   satriani: 'Advanced',
   johnson: 'Advanced',
+  angus: 'Beginner',
+  page: 'Advanced',
+  may: 'Intermediate',
 };
 
 // The "Rhythm" dimension of a style preset (spec #15: phrasing, bends,
@@ -67,6 +88,9 @@ export const ARTIST_PACE = {
   moore: 1,
   satriani: 0.85,
   johnson: 0.9,
+  angus: 1,
+  page: 0.95,
+  may: 1.15,
 };
 
 const SCALE_LABEL_BY_QUALITY = {
@@ -244,6 +268,51 @@ export const LICKS = {
     dominant7: [
       [note(P4, 3, 'hammer'), note(P5, 4, 'pull'), note(b7, 4, 'bend'), note(R, 5), note(R, 5, 'vibrato')],
       [note(b3, 3, 'bend'), note(P4, 4), note(P5, 4), note(b7, 4, 'hammer'), note(R, 5, 'vibrato')],
+    ],
+  },
+
+  angus: {
+    major: [
+      [note(R, 2), note(M2, 2), note(M3, 3, 'bend'), note(P5, 3), note(R, 4)],
+      [note(P5, 2), note(M6, 3, 'bend'), note(R, 4), note(M2, 4)],
+    ],
+    minor: [
+      [note(R, 2), note(b3, 2, 'bend'), note(P4, 3), note(P5, 3), note(R, 4)],
+      [note(P4, 2), note(P5, 3, 'bend'), note(b7, 3), note(R, 4)],
+    ],
+    dominant7: [
+      [note(R, 2), note(b3, 2, 'bend'), note(P4, 3), note(b7, 3), note(R, 4)],
+      [note(P5, 2), note(b7, 3, 'bend'), note(R, 4), note(b3, 4)],
+    ],
+  },
+
+  page: {
+    major: [
+      [note(R, 1), note(M2, 2, 'hammer'), note(M3, 2), note(P5, 3, 'hammer'), note(M6, 3, 'pull'), note(R, 4)],
+      [note(M3, 2), note(P5, 2, 'hammer'), note(M6, 3), note(R, 4, 'pull'), note(M2, 4)],
+    ],
+    minor: [
+      [note(R, 1), note(b3, 2, 'hammer'), note(P4, 2), note(b5, 3, 'hammer'), note(P5, 3, 'pull'), note(b7, 4)],
+      [note(b3, 2), note(P4, 2, 'hammer'), note(b5, 3), note(P5, 3, 'pull'), note(R, 4)],
+    ],
+    dominant7: [
+      [note(R, 1), note(b2, 2), note(M2, 2, 'hammer'), note(b3, 3), note(P4, 3, 'hammer'), note(b7, 4, 'pull')],
+      [note(b7, 2), note(R, 3, 'hammer'), note(b5, 3), note(P5, 4, 'pull'), note(b3, 4)],
+    ],
+  },
+
+  may: {
+    major: [
+      [note(P5, 4), note(M6, 4, 'bend'), note(R, 5, 'vibrato'), note(M2, 5)],
+      [note(M3, 4, 'bend'), note(P5, 4), note(M6, 4, 'vibrato'), note(R, 5)],
+    ],
+    minor: [
+      [note(P4, 4), note(P5, 4, 'bend'), note(b7, 4, 'vibrato'), note(R, 5)],
+      [note(b3, 4, 'bend'), note(P5, 4), note(b7, 4, 'vibrato'), note(R, 5)],
+    ],
+    dominant7: [
+      [note(P4, 4), note(P5, 4, 'bend'), note(b7, 4, 'vibrato'), note(R, 5)],
+      [note(b3, 4, 'bend'), note(P4, 4), note(P5, 4), note(b7, 4, 'vibrato')],
     ],
   },
 };

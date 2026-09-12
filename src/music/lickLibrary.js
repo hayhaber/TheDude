@@ -42,13 +42,20 @@ function buildLibrary() {
   return entries;
 }
 
+export const LICK_DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
+
 // Built once at module load — every entry is a pure function of static data
 // (LICKS + the fixed reference chords above), so there's nothing to
-// recompute per render.
-export const LICK_LIBRARY = buildLibrary();
+// recompute per render. Sorted Beginner -> Advanced (ties broken by artist,
+// then quality/variation as authored) so a beginner browsing the unfiltered
+// library meets easier material first instead of raw artist-array order.
+export const LICK_LIBRARY = buildLibrary().sort((a, b) => {
+  const byDifficulty = LICK_DIFFICULTIES.indexOf(a.difficulty) - LICK_DIFFICULTIES.indexOf(b.difficulty);
+  if (byDifficulty !== 0) return byDifficulty;
+  return a.artist.localeCompare(b.artist);
+});
 
 export const LICK_GENRES = [...new Set(Object.values(ARTIST_STYLE))].sort();
-export const LICK_DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
 
 export function filterLickLibrary({ artistKey = null, genre = null, difficulty = null } = {}) {
   return LICK_LIBRARY.filter(

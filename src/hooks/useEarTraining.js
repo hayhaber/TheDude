@@ -81,6 +81,14 @@ export function useEarTraining() {
   const timerDeadlineRef = useRef(null); // wall-clock ms timestamp the countdown ends at
   const feedbackHoldTimeoutRef = useRef(null);
   const bestStreakRef = useRef(0);
+  // Set by start(), consumed by the very next newQuestion() — the player
+  // just tapped "Start Quiz" and hasn't necessarily settled in yet (picking
+  // a mode/difficulty, getting instruments ready, reading the "what is this
+  // exercise?" explainer, ...), so the first question must NOT play itself;
+  // it waits for an explicit Play tap. Every question after that (auto-
+  // advance, Next, Skip, switching mode/difficulty mid-session) still
+  // autoplays as before — by then the player is already actively practicing.
+  const suppressAutoplayOnceRef = useRef(false);
 
   const difficulty = EAR_TRAINING_DIFFICULTIES.find((d) => d.key === difficultyKey) ?? EAR_TRAINING_DIFFICULTIES[0];
 
@@ -161,12 +169,19 @@ export function useEarTraining() {
     setAnswered(false);
     setAutoAdvancePaused(false);
     // Auto-play the instant a question loads — every reference ear-training
-    // app (EarMaster, Tenuto, ...) does this; the player shouldn't have to
-    // remember to press Play just to hear the first attempt. The Replay
-    // button (below) still exists for repeats. Safe re: autoplay policy —
-    // this only ever runs after the "Start Quiz" tap has already unlocked
-    // the AudioContext (see EarTrainingModal.jsx's own comment on that).
-    playQuestionAudio(q);
+    // app (EarMaster, Tenuto, ...) does this once the player is actually
+    // mid-session, so they never have to remember to press Play just to
+    // hear the next attempt. The one exception is the very first question
+    // right after "Start Quiz" (see suppressAutoplayOnceRef's own comment)
+    // — the player isn't necessarily ready yet, so that one waits for an
+    // explicit Play tap instead. Safe re: autoplay policy either way — this
+    // only ever runs after the "Start Quiz" tap has already unlocked the
+    // AudioContext (see EarTrainingModal.jsx's own comment on that).
+    if (suppressAutoplayOnceRef.current) {
+      suppressAutoplayOnceRef.current = false;
+    } else {
+      playQuestionAudio(q);
+    }
   }
 
   // Covers both the initial question on start() and regenerating one
@@ -221,6 +236,11 @@ export function useEarTraining() {
   }
 
   function start() {
+    // Only arm the suppression on a real closed->open transition (tapping
+    // "Start Quiz" fresh) — start() is also reused by the Timed summary
+    // screen's "Play again" button, where `open` is already true and this
+    // must keep behaving exactly as it already did.
+    if (!open) suppressAutoplayOnceRef.current = true;
     setOpen(true);
     setScore({ correct: 0, total: 0 });
     setStreak(0);

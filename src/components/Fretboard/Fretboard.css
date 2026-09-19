@@ -481,6 +481,16 @@
   stroke-width: 1;
 }
 
+/* Scale Practice's "now playing" marker — same red as Practice Drills'
+   drill-dot-current, takes over from scale-dot-root/-blue for whichever
+   note the metronome is currently on, so it reads unambiguously as "here"
+   regardless of whether that note also happens to be the root/blue note. */
+.scale-dot-current {
+  fill: var(--danger);
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+}
+
 .scale-dot-label {
   font-size: 11px;
   fill: #fff;

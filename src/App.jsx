@@ -1065,20 +1065,20 @@ function App() {
     return notes;
   }, [rhythmGame.exercise, rhythmGame.stepIndex]);
 
-  // Scale Practice's own current/next/past highlighting — identical shape,
-  // driven by its own independent useRhythmGame instance's stepIndex.
-  const scalePracticeDrillNotes = useMemo(() => {
-    if (!scalePractice.exercise || scalePractice.stepIndex < 0) return [];
-    const { sequence } = scalePractice.exercise;
-    const notes = [];
-    const current = sequence[scalePractice.stepIndex];
-    if (current) notes.push({ ...current, order: scalePractice.stepIndex + 1, tier: 'current' });
-    const nextIndex = scalePractice.stepIndex + 1;
-    if (nextIndex < sequence.length) notes.push({ ...sequence[nextIndex], order: nextIndex + 1, tier: 'next' });
-    const prevIndex = scalePractice.stepIndex - 1;
-    if (prevIndex >= 0) notes.push({ ...sequence[prevIndex], order: prevIndex + 1, tier: 'past' });
-    return notes;
-  }, [scalePractice.exercise, scalePractice.stepIndex]);
+  // Scale Practice's fretboard overlay: the whole shape (shapeNotes) stays
+  // visible at all times — whether playing or not — with whichever note the
+  // metronome is currently on tagged isCurrent (Fretboard.jsx renders that
+  // as the same red, pulsing-ring "now playing" marker Practice Drills'
+  // Static Overview uses). Matches by string+fret rather than indexing
+  // shapeNotes directly, since `sequence` (what stepIndex indexes into) is
+  // the up-and-down version of shapeNotes and revisits some notes twice.
+  const scalePracticeShapeNotes = useMemo(() => {
+    const shapeNotes = scalePractice.exercise?.shapeNotes ?? [];
+    if (!scalePractice.isPlaying || scalePractice.stepIndex < 0) return shapeNotes;
+    const current = scalePractice.exercise?.sequence?.[scalePractice.stepIndex];
+    if (!current) return shapeNotes;
+    return shapeNotes.map((n) => (n.string === current.string && n.fret === current.fret ? { ...n, isCurrent: true } : n));
+  }, [scalePractice.exercise, scalePractice.isPlaying, scalePractice.stepIndex]);
 
   // C major reference positions for the Studies -> CAGED course — cheap to
   // recompute per render, same as every other derived value here.
@@ -1194,19 +1194,16 @@ function App() {
             quizFeedbackCell: rhythmGame.feedbackCell,
           }
         : practiceTab === 'scalePractice'
-        ? scalePractice.isPlaying
-          ? {
-              position: null,
-              drillNotes: scalePracticeDrillNotes,
-              labelMode: scalePracticeLabelMode,
-              quizFeedbackCell: scalePractice.feedbackCell,
-            }
-          : // Not playing (including "not started yet") — show the whole
-            // shape being practiced as a static overlay (same scaleNotes
-            // prop/visual language Studies -> Scales already uses), so the
-            // player can see/study it before pressing Start rather than
-            // only finding out one note at a time mid-session.
-            { position: null, scaleNotes: scalePractice.exercise?.shapeNotes ?? [], labelMode: scalePracticeLabelMode }
+        ? // Always the whole shape (see scalePracticeShapeNotes above) — while
+          // playing, one note is tagged isCurrent for the moving marker;
+          // while stopped, it's just the plain static shape to study before
+          // pressing Start.
+          {
+            position: null,
+            scaleNotes: scalePracticeShapeNotes,
+            labelMode: scalePracticeLabelMode,
+            quizFeedbackCell: scalePractice.feedbackCell,
+          }
         : practiceTab === 'bending'
         ? {
             position: null,

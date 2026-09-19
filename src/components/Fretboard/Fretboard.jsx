@@ -1150,7 +1150,13 @@ export function Fretboard({
 
         {/* Studies -> Scales overlay — every note of the scale currently
             shown, root notes tinted distinctly from the rest so the "home"
-            note is always obvious regardless of position/key. */}
+            note is always obvious regardless of position/key. Practice ->
+            Scale Practice reuses this same overlay while playing (rather
+            than swapping to the narrower current/next/past drill overlay),
+            tagging just the active step `isCurrent` — the same red,
+            pulsing-ring "now playing" marker Practice Drills' Static
+            Overview uses, so the whole shape stays visible the whole time
+            and only that one marker moves with the metronome. */}
         {scaleNotes.map((n, i) => {
           const cx = n.fret === 0 ? fretX(0) : fretX(n.fret) - FRET_WIDTH / 2;
           const cy = stringY(n.string);
@@ -1166,12 +1172,15 @@ export function Fretboard({
                 (e.key === 'Enter' || e.key === ' ') && playNote(tuning[n.string].baseMidi + n.fret)
               }
             >
+              {n.isCurrent && (
+                <circle cx={cx} cy={cy} r={DOT_RADIUS + 5} fill="none" className="drill-dot-current-ring" />
+              )}
               <circle
                 cx={cx}
                 cy={cy}
                 r={DOT_RADIUS}
                 className={
-                  (n.isBlueNote ? 'scale-dot-blue' : n.isRoot ? 'scale-dot-root' : 'scale-dot') +
+                  (n.isCurrent ? 'scale-dot-current' : n.isBlueNote ? 'scale-dot-blue' : n.isRoot ? 'scale-dot-root' : 'scale-dot') +
                   // Scale Practice's Transition mode only — an extra colored
                   // ring (independent of the fill color above, which stays
                   // reserved for root/blue-note) marking whether this note

@@ -207,7 +207,16 @@ export const SCALES_LESSONS = [
     stage: SCALES_STAGES.MODES,
     id: `scales-mode-${scaleKey}`,
     kind: 'scale',
-    hasPositions: false,
+    // Each mode is a 7-note scale with the exact same fretboard density as
+    // Major/Natural Minor (which already use positions) — real teachers
+    // absolutely do teach modes "in position" (e.g. "Dorian in 2nd
+    // position"), and every mode verified complete (both root occurrences,
+    // full degree coverage) with the same fivePositionWindows() used
+    // everywhere else. Unlike Diminished/Whole Tone below, a mode's own
+    // fretboard pattern doesn't repeat every 2-3 frets, so 5 distinct CAGED-
+    // anchored positions are a real, meaningfully different set of shapes
+    // here, not just arbitrary copies of the same repeating unit.
+    hasPositions: true,
   })),
   drill(
     { en: 'Harmonic Minor', he: 'מינור הרמוני' },
@@ -220,7 +229,9 @@ export const SCALES_LESSONS = [
         'ויוצר תו הובלה אמיתי בחזרה לשורש (שחסר במינור הטבעי).',
     },
     'harmonicMinor',
-    { stage: SCALES_STAGES.ADVANCED, id: 'scales-harmonic-minor', kind: 'scale', hasPositions: false }
+    // Same reasoning as the Modes above — a 7-note scale, same density as
+    // Natural Minor, verified complete with the shared position windows.
+    { stage: SCALES_STAGES.ADVANCED, id: 'scales-harmonic-minor', kind: 'scale', hasPositions: true }
   ),
   drill(
     { en: 'Melodic Minor', he: 'מינור מלודי' },
@@ -234,7 +245,7 @@ export const SCALES_LESSONS = [
         'שמירה על השלישית המינורית, ונותן צליל שנגני ג\'אז נשענים עליו רבות מעל אקורדי מינור-מז\'ור ודומיננטים משונים.',
     },
     'melodicMinor',
-    { stage: SCALES_STAGES.ADVANCED, id: 'scales-melodic-minor', kind: 'scale', hasPositions: false }
+    { stage: SCALES_STAGES.ADVANCED, id: 'scales-melodic-minor', kind: 'scale', hasPositions: true }
   ),
   drill(
     { en: 'Diminished Scale', he: 'סולם דימיניושד' },
@@ -249,6 +260,11 @@ export const SCALES_LESSONS = [
         'משמש מעל אקורדי דימיניושד ודומיננטים משונים.',
     },
     'diminished',
+    // Stays full-neck, unlike the 7-note scales above: this one's own real
+    // fretboard pattern repeats every minor 3rd (3 frets) — nothing like the
+    // ~2-3-fret-apart-but-genuinely-different CAGED shapes those scales
+    // have. 5 CAGED-anchored "positions" here would just be arbitrary
+    // copies of the same repeating unit, not 5 distinct real shapes.
     { stage: SCALES_STAGES.ADVANCED, id: 'scales-diminished', kind: 'scale', hasPositions: false }
   ),
   drill(
@@ -263,6 +279,9 @@ export const SCALES_LESSONS = [
         '"מרחף" ללא משיכה חזקה לתו כלשהו. קשור להרמוניה אוגמנטד ודומיננטים משונים.',
     },
     'wholeTone',
+    // Same reasoning as Diminished above, more extreme — this pattern
+    // repeats every whole step (2 frets), so there's no meaningful "5
+    // positions" at all.
     { stage: SCALES_STAGES.ADVANCED, id: 'scales-whole-tone', kind: 'scale', hasPositions: false }
   ),
 ].map((lesson) => ({

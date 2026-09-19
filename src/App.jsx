@@ -985,9 +985,13 @@ function App() {
     });
   }
 
-  // Static Overview shows the whole exercise at once (start note
-  // emphasized); Live Playback shows only current/next/one-past around the
-  // active step — see components/Fretboard/Fretboard.jsx for tier styling.
+  // Static Overview shows the whole exercise at once (start note emphasized,
+  // and — while playing — the active step marked 'current' the same red,
+  // pulsing-ring way Live Playback marks it, so the layout never moves but
+  // the "you are here" dot still advances with the metronome); Live
+  // Playback instead shows only current/next/one-past around the active
+  // step, panning as it goes — see components/Fretboard/Fretboard.jsx for
+  // tier styling.
   const drillNotes = useMemo(() => {
     if (!drill.exercise) return [];
     const { sequence } = drill.exercise;
@@ -996,7 +1000,11 @@ function App() {
     // usePracticeDrill's noteLabelMode) without needing the whole sequence
     // separately.
     if (drill.mode === 'static') {
-      return sequence.map((s, i) => ({ ...s, order: i + 1, tier: i === 0 ? 'start' : 'all' }));
+      return sequence.map((s, i) => ({
+        ...s,
+        order: i + 1,
+        tier: i === drill.stepIndex ? 'current' : i === 0 ? 'start' : 'all',
+      }));
     }
     const notes = [];
     const current = sequence[drill.stepIndex];

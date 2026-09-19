@@ -44,8 +44,17 @@ export function computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fre
 // The 5 CAGED-style position anchors for a given root — reuses
 // SHAPE_TEMPLATES.major's own root-fret math (the same shapes the CAGED
 // course displays) rather than hand-authoring separate scale-position
-// templates. Each window is a hand-span (anchor - 2 to anchor + 4) around
-// that shape's root fret, sorted low-to-high up the neck.
+// templates. Each window is a one-hand-position span (anchor - 1 to
+// anchor + 2, 4 frets — matching how these shapes are taught, e.g.
+// fretjam's own CAGED scale diagrams) around that shape's root fret,
+// sorted low-to-high up the neck. A wider -2/+4 span was tried first, but
+// with real CAGED root frets landing only ~2-3 frets apart (verified
+// across all 12 keys), that made consecutive positions share 4-5 of their
+// 6 frets — the student would switch Position and see almost the same
+// notes again, reading as "nothing was removed." At 4 frets wide,
+// neighbors share only 1-2 frets — real, useful anchor overlap (the basis
+// of a separate, more advanced "connecting positions" skill, not yet
+// built) without each position swallowing its neighbor.
 export function fivePositionWindows(rootPitchClass) {
   const anchors = SHAPE_TEMPLATES.major.map((template) => {
     const anchorIndex = template.strings.findIndex((s) => s.role === 'root');
@@ -60,8 +69,8 @@ export function fivePositionWindows(rootPitchClass) {
     .map(({ shapeName, rootFret }) => ({
       shapeName,
       rootFret,
-      fretStart: Math.max(0, rootFret - 2),
-      fretEnd: Math.min(MAX_FRET, rootFret + 4),
+      fretStart: Math.max(0, rootFret - 1),
+      fretEnd: Math.min(MAX_FRET, rootFret + 2),
     }))
     .sort((a, b) => a.rootFret - b.rootFret);
 }

@@ -41,6 +41,39 @@ export function computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fre
   return notes;
 }
 
+// The b5 "blue note" — a chromatic passing tone commonly added to the
+// minor pentatonic scale (turning it into a 6-note "blues-flavored" scale)
+// without switching to the full Blues scale entry. Shared by Studies ->
+// Scales (scalesCurriculum.js) and Practice -> Scale Practice
+// (scalePracticeContent.js) rather than defined twice.
+export const BLUE_NOTE_INTERVAL = 6;
+
+// Only minorPentatonic ever gets the b5 injected as an opt-in extra — every
+// other scale family (including Blues, whose OWN interval set already has
+// a real b5) is returned unchanged.
+export function scaleFamilyWithBlueNote(scaleKey, family, includeBlueNote) {
+  if (scaleKey !== 'minorPentatonic' || !includeBlueNote) return family;
+  const intervals = [...family.intervals, BLUE_NOTE_INTERVAL].sort((a, b) => a - b);
+  const degreeLabels = intervals.map((interval) => {
+    const knownIndex = family.intervals.indexOf(interval);
+    return knownIndex === -1 ? 'b5' : family.degreeLabels[knownIndex];
+  });
+  return { intervals, degreeLabels };
+}
+
+// Highlights which note IS the blue note — minorPentatonic's b5 only exists
+// at all when scaleFamilyWithBlueNote() injected it above, and Blues' own
+// b5 is a native scale tone the lesson explicitly calls "the blue note" in
+// its own description — either way the degree label 'b5' unambiguously
+// identifies it here. Deliberately scoped to just these two scale keys:
+// other scales with a real b5 degree (Locrian, diminished, ...) aren't
+// being taught as "there's one added blue note," so tagging their b5 the
+// same way would misrepresent them.
+export function tagBlueNote(notes, scaleKey) {
+  if (scaleKey !== 'minorPentatonic' && scaleKey !== 'blues') return notes;
+  return notes.map((n) => (n.degreeLabel === 'b5' ? { ...n, isBlueNote: true } : n));
+}
+
 // The 5 CAGED-style position anchors for a given root — reuses
 // SHAPE_TEMPLATES.major's own root-fret math (the same shapes the CAGED
 // course displays) rather than hand-authoring separate scale-position

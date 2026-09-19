@@ -24,14 +24,9 @@
 //                   as the scale tones naturally fall, not a slide up one
 //                   string the full distance (that's a different, separate
 //                   technique from 'linear', not what bridges two boxes).
-import { computeScaleNotes, fivePositionWindows } from './scaleShapes';
+import { computeScaleNotes, fivePositionWindows, scaleFamilyWithBlueNote, tagBlueNote } from './scaleShapes';
 import { SCALE_FAMILIES } from './scalesCurriculum';
 import { STANDARD_TUNING, MAX_FRET } from './notes';
-
-// The b5 "blue note" — a chromatic passing tone commonly added to the
-// minor pentatonic scale (turning it into a 6-note "blues-flavored"
-// scale) without actually switching to the full Blues scale entry.
-const BLUE_NOTE_INTERVAL = 6;
 
 const MIN_BPM = 55;
 const MAX_BPM = 85; // one note per beat — kept comfortably inside useRhythmGame's own 600ms hit window even at the top of this range
@@ -40,17 +35,8 @@ function suggestedBpm() {
   return MIN_BPM + Math.floor(Math.random() * (MAX_BPM - MIN_BPM + 1));
 }
 
-// Only minorPentatonic has a defined "blue note" concept here — every
-// other scale family is returned unchanged.
 function scaleIntervals(scaleKey, includeBlueNote) {
-  const family = SCALE_FAMILIES[scaleKey];
-  if (scaleKey !== 'minorPentatonic' || !includeBlueNote) return family;
-  const intervals = [...family.intervals, BLUE_NOTE_INTERVAL].sort((a, b) => a - b);
-  const degreeLabels = intervals.map((interval) => {
-    const knownIndex = family.intervals.indexOf(interval);
-    return knownIndex === -1 ? 'b5' : family.degreeLabels[knownIndex];
-  });
-  return { intervals, degreeLabels };
+  return scaleFamilyWithBlueNote(scaleKey, SCALE_FAMILIES[scaleKey], includeBlueNote);
 }
 
 // Ascending up to the top note, then back down to the root without
@@ -59,16 +45,6 @@ function scaleIntervals(scaleKey, includeBlueNote) {
 function upAndDown(notesAscending) {
   const descending = notesAscending.slice(0, -1).reverse();
   return [...notesAscending, ...descending];
-}
-
-// The b5 injected by scaleIntervals() is tagged with the literal degree
-// label 'b5' — safe to match on here since scalePracticeContent.js is the
-// only place that ever injects it (SCALE_FAMILIES entries used elsewhere,
-// e.g. the real Blues/Locrian scales, keep their own legitimate 'b5' labels
-// untouched — this tag only ever reaches Fretboard notes built by this file).
-function tagBlueNote(notes, scaleKey, includeBlueNote) {
-  if (scaleKey !== 'minorPentatonic' || !includeBlueNote) return notes;
-  return notes.map((n) => (n.degreeLabel === 'b5' ? { ...n, isBlueNote: true } : n));
 }
 
 // One-finger-per-fret (OFPF) — the standard system for assigning left-hand
@@ -96,8 +72,7 @@ export function buildPositionExercise(scaleKey, rootPitchClass, positionIndex, {
       computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: window.fretStart, fretEnd: window.fretEnd }).sort(
         (a, b) => a.string - b.string || a.fret - b.fret
       ),
-      scaleKey,
-      includeBlueNote
+      scaleKey
     )
   );
   // shapeNotes: the plain (non-repeated) note set, for a static "study this
@@ -119,8 +94,7 @@ export function buildLinearExercise(
     computeScaleNotes({ rootPitchClass, intervals, degreeLabels, fretStart: 0, fretEnd: Math.min(MAX_FRET, fretEnd) })
       .filter((n) => strings.includes(n.string))
       .sort((a, b) => a.string - b.string || a.fret - b.fret),
-    scaleKey,
-    includeBlueNote
+    scaleKey
   );
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes };
 }
@@ -199,7 +173,7 @@ export function buildTransitionExercise(scaleKey, rootPitchClass, positionIndex,
   const PHRASE_HALF = 4;
   const phrase = fullPath.slice(Math.max(0, splitAt - PHRASE_HALF), Math.min(fullPath.length, splitAt + PHRASE_HALF));
 
-  const notes = withFingering(tagTransitionSide(tagBlueNote(phrase, scaleKey, includeBlueNote), from, to));
+  const notes = withFingering(tagTransitionSide(tagBlueNote(phrase, scaleKey), from, to));
 
   return { title: null, bpmSuggested: suggestedBpm(), sequence: upAndDown(notes), shapeNotes: notes, from, to };
 }

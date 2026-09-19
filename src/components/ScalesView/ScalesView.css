@@ -78,6 +78,20 @@
   cursor: default;
 }
 
+.scales-connect-btn {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* Overrides .scales-field's column layout (built for a label sitting above
+   a select) — a checkbox reads naturally inline with its own text instead. */
+.scales-blue-note-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .scales-practice {
   display: flex;
   flex-direction: column;

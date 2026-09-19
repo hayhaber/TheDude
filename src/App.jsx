@@ -114,6 +114,11 @@ function App() {
   // the shared Stage's fretboard-content resolver below knows whether
   // Practice is currently showing Drills or Ear Training.
   const [practiceTab, setPracticeTab] = useState('drills');
+  // One-shot handoff from Studies -> Scales into Practice -> Scale Practice's
+  // 'transition' mode (see ScalesView's "practice connecting positions" link)
+  // — consumed and cleared by ScalePracticePanel itself so a plain manual
+  // visit to that tab later doesn't replay a stale seed from an old click.
+  const [scalePracticeSeed, setScalePracticeSeed] = useState(null);
   // Lifted the same way as practiceTab — the Studies -> CAGED course's
   // active lesson decides what the shared Stage Fretboard shows.
   const [studiesLessonId, setStudiesLessonId] = useState(CAGED_LESSONS[0].id);
@@ -1219,7 +1224,13 @@ function App() {
       ? studiesCourse === 'scales'
         ? drill.exercise
           ? { position: null, drillNotes, labelMode: drill.noteLabelMode }
-          : resolveScaleStageProps(activeScaleLesson, scalesLesson.rootPitchClass, scalesLesson.labelMode, activeScalePosition)
+          : resolveScaleStageProps(
+              activeScaleLesson,
+              scalesLesson.rootPitchClass,
+              scalesLesson.labelMode,
+              activeScalePosition,
+              scalesLesson.includeBlueNote
+            )
         : studiesCourse === 'techniqueMasters'
         ? visualizedTechniqueExercise
           ? {
@@ -1675,6 +1686,8 @@ function App() {
           chordRhythm={chordRhythm}
           guitarChordRhythm={guitarChordRhythm}
           scalePractice={scalePractice}
+          scalePracticeSeed={scalePracticeSeed}
+          onScalePracticeSeedConsumed={() => setScalePracticeSeed(null)}
           scalePracticeLabelMode={scalePracticeLabelMode}
           onScalePracticeLabelModeChange={setScalePracticeLabelMode}
           metronome={metronome}
@@ -1702,6 +1715,15 @@ function App() {
             earTraining.setModeKey('scaleid');
             earTraining.start();
             setPracticeTab('ear-training');
+            setActiveSection('practice');
+          }}
+          onOpenScalePracticeTransition={() => {
+            setScalePracticeSeed({
+              scaleKey: activeScaleLesson.scaleKey,
+              root: scalesLesson.rootPitchClass,
+              positionIndex: Math.min(scalesLesson.positionIndex, 3),
+            });
+            setPracticeTab('scalePractice');
             setActiveSection('practice');
           }}
           techniqueVisualizer={techniqueVisualizer}

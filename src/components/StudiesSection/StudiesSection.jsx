@@ -38,6 +38,7 @@ export function StudiesSection({
   drill,
   metronome,
   onOpenScaleEarTraining,
+  onOpenScalePracticeTransition,
   techniqueVisualizer,
   circleLesson,
   circleProgress,
@@ -132,6 +133,7 @@ export function StudiesSection({
           drill={drill}
           metronome={metronome}
           onOpenScaleEarTraining={onOpenScaleEarTraining}
+          onOpenScalePracticeTransition={onOpenScalePracticeTransition}
         />
       )}
 

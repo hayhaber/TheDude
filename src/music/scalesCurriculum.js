@@ -3,7 +3,7 @@
 // lives in scaleShapes.js; this file is purely curriculum content plus the
 // one function (resolveScaleStageProps) that turns "which lesson + key +
 // position" into Fretboard props.
-import { computeScaleNotes } from './scaleShapes';
+import { computeScaleNotes, scaleFamilyWithBlueNote, tagBlueNote } from './scaleShapes';
 
 export const SCALES_STAGES = {
   FOUNDATION: 'foundation',
@@ -172,7 +172,7 @@ export const SCALES_LESSONS = [
         'לנחות עליו ישירות. תרגלו התרה מה-b5 אל הדרגה הרביעית או החמישית.',
     },
     'blues',
-    { stage: SCALES_STAGES.BLUES, id: 'scales-blues', kind: 'scale', hasPositions: false }
+    { stage: SCALES_STAGES.BLUES, id: 'scales-blues', kind: 'scale', hasPositions: true }
   ),
   ...[
     ['ionian', { en: 'Ionian Mode', he: 'מודוס יוני (Ionian)' }, {
@@ -299,12 +299,21 @@ export function buildScaleExercise(scaleKey, rootPitchClass, { fretStart = 0, fr
 // The single function ScalesView calls to turn "which lesson + key +
 // position" into Fretboard props — keeps the branching out of the component,
 // same role as cagedCurriculum.js's resolveCagedStageProps.
-export function resolveScaleStageProps(lesson, rootPitchClass, labelMode, position) {
+// `includeBlueNote` only has an effect for the Minor Pentatonic Scale lesson
+// (an opt-in preview of the b5 the Blues Scale lesson adds) — the Blues
+// Scale lesson's own b5 is always highlighted, no toggle needed, since it's
+// a native part of that scale and the lesson text already calls it out by
+// name (see scaleFamilyWithBlueNote/tagBlueNote in scaleShapes.js).
+export function resolveScaleStageProps(lesson, rootPitchClass, labelMode, position, includeBlueNote = false) {
   if (!lesson || lesson.kind !== 'scale') return { position: null };
-  const family = SCALE_FAMILIES[lesson.scaleKey];
-  if (!family) return { position: null };
+  const baseFamily = SCALE_FAMILIES[lesson.scaleKey];
+  if (!baseFamily) return { position: null };
+  const family = scaleFamilyWithBlueNote(lesson.scaleKey, baseFamily, includeBlueNote);
   const fretStart = position ? position.fretStart : 0;
   const fretEnd = position ? position.fretEnd : 12;
-  const scaleNotes = computeScaleNotes({ rootPitchClass, intervals: family.intervals, degreeLabels: family.degreeLabels, fretStart, fretEnd });
+  const scaleNotes = tagBlueNote(
+    computeScaleNotes({ rootPitchClass, intervals: family.intervals, degreeLabels: family.degreeLabels, fretStart, fretEnd }),
+    lesson.scaleKey
+  );
   return { position: null, scaleNotes, labelMode };
 }

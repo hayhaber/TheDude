@@ -455,6 +455,9 @@ export const STRINGS = {
     'scales.badge.tempo100': '100+ BPM Reached',
     'scales.badge.tempo140': '140+ BPM Reached',
     'scales.badge.earTrainingSharp': 'Sharp Ear (80%+)',
+    'scales.showBlueNote': 'Show blue note',
+    'scales.connectPositions': 'Connect',
+    'scales.connectPositionsHint': 'Practice bridging into the next position (Scale Practice)',
 
     'songs.title': 'Songs',
     'songs.subtitle': 'Search for chord charts and guitar solos on trusted external sites.',
@@ -1413,6 +1416,9 @@ export const STRINGS = {
     'scales.badge.tempo100': 'הגעה ל-100+ BPM',
     'scales.badge.tempo140': 'הגעה ל-140+ BPM',
     'scales.badge.earTrainingSharp': 'אוזן חדה (80%+)',
+    'scales.showBlueNote': 'הצג תו בלוז',
+    'scales.connectPositions': 'חבר',
+    'scales.connectPositionsHint': 'תרגל מעבר לפוזיציה הבאה (תרגול סולמות)',
 
     'songs.title': 'שירים',
     'songs.subtitle': 'חפשו תרשימי אקורדים וסולואים באתרים חיצוניים מהימנים.',

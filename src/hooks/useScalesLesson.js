@@ -12,6 +12,10 @@ export function useScalesLesson(lessons) {
   const [labelMode, setLabelMode] = useState('degree');
   const [positionIndex, setPositionIndex] = useState(0);
   const [direction, setDirection] = useState('ascending');
+  // Only meaningful for the Minor Pentatonic Scale lesson — see
+  // resolveScaleStageProps — an opt-in preview of the b5 "blue note" the
+  // Blues Scale lesson adds on top of this same 5 notes.
+  const [includeBlueNote, setIncludeBlueNote] = useState(false);
 
   // Selecting a new lesson resets the position index — a saved position 4
   // from a 5-position lesson would be out of range (or just irrelevant) for
@@ -32,5 +36,7 @@ export function useScalesLesson(lessons) {
     setPositionIndex,
     direction,
     setDirection,
+    includeBlueNote,
+    setIncludeBlueNote,
   };
 }

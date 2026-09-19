@@ -51,6 +51,8 @@ export function PracticeView({
   chordRhythm,
   guitarChordRhythm,
   scalePractice,
+  scalePracticeSeed,
+  onScalePracticeSeedConsumed,
   scalePracticeLabelMode,
   onScalePracticeLabelModeChange,
   metronome,
@@ -114,6 +116,8 @@ export function PracticeView({
       {activeTab === 'scalePractice' && (
         <ScalePracticePanel
           scalePractice={scalePractice}
+          seed={scalePracticeSeed}
+          onSeedConsumed={onScalePracticeSeedConsumed}
           labelMode={scalePracticeLabelMode}
           onLabelModeChange={onScalePracticeLabelModeChange}
           metronome={metronome}

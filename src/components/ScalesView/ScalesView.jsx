@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SCALES_STAGES, SCALES_STAGE_LABELS, buildScaleExercise, scaleKeySuffix } from '../../music/scalesCurriculum';
 import { fivePositionWindows } from '../../music/scaleShapes';
+import { SCALE_PRACTICE_KEYS } from '../ScalePracticePanel/ScalePracticePanel';
 import { KEY_NAMES } from '../../music/scaleAnalyzer';
 import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { useInstrument } from '../../instruments/useInstrument';
@@ -23,14 +24,26 @@ const STAGE_ORDER = [
 // doesn't: key, degree/note labels, 5-position browser, and practice
 // direction/loop/tempo, all feeding the *existing* metronome-driven drill
 // engine and shared Fretboard rather than any new playback/visualization.
-export function ScalesView({ lessons, scalesLesson, progress, drill, metronome, onOpenScaleEarTraining }) {
+export function ScalesView({ lessons, scalesLesson, progress, drill, metronome, onOpenScaleEarTraining, onOpenScalePracticeTransition }) {
   const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
   const [loopStart, setLoopStart] = useState(0);
   const [loopEnd, setLoopEnd] = useState(12);
 
-  const { lessonId, setLessonId, rootPitchClass, setRootPitchClass, labelMode, setLabelMode, positionIndex, setPositionIndex, direction, setDirection } =
-    scalesLesson;
+  const {
+    lessonId,
+    setLessonId,
+    rootPitchClass,
+    setRootPitchClass,
+    labelMode,
+    setLabelMode,
+    positionIndex,
+    setPositionIndex,
+    direction,
+    setDirection,
+    includeBlueNote,
+    setIncludeBlueNote,
+  } = scalesLesson;
 
   const activeIndex = lessons.findIndex((l) => l.id === lessonId);
   const lesson = lessons[activeIndex] ?? lessons[0];
@@ -147,6 +160,13 @@ export function ScalesView({ lessons, scalesLesson, progress, drill, metronome, 
                 </button>
               </div>
 
+              {lesson.scaleKey === 'minorPentatonic' && (
+                <label className="scales-field scales-blue-note-toggle">
+                  <input type="checkbox" checked={includeBlueNote} onChange={(e) => setIncludeBlueNote(e.target.checked)} />
+                  {t('scales.showBlueNote')}
+                </label>
+              )}
+
               {usesPositions && positions.length > 0 && (
                 <div className="scales-position-nav">
                   <button type="button" onClick={() => setPositionIndex((i) => Math.max(0, i - 1))} disabled={positionIndex <= 0}>
@@ -162,6 +182,16 @@ export function ScalesView({ lessons, scalesLesson, progress, drill, metronome, 
                   >
                     {t('positionControls.next')}
                   </button>
+                  {SCALE_PRACTICE_KEYS.includes(lesson.scaleKey) && positionIndex < positions.length - 1 && (
+                    <button
+                      type="button"
+                      className="scales-connect-btn"
+                      title={t('scales.connectPositionsHint')}
+                      onClick={() => onOpenScalePracticeTransition?.()}
+                    >
+                      {t('scales.connectPositions')}
+                    </button>
+                  )}
                 </div>
               )}
             </div>

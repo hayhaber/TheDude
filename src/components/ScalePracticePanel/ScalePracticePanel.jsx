@@ -5,7 +5,8 @@ import { ChevronIcon } from '../ChevronIcon/ChevronIcon';
 import { LabelModeToggle } from '../LabelModeToggle/LabelModeToggle';
 import './ScalePracticePanel.css';
 
-const SCALE_KEYS = ['minorPentatonic', 'majorPentatonic', 'major', 'naturalMinor'];
+export const SCALE_PRACTICE_KEYS = ['minorPentatonic', 'majorPentatonic', 'major', 'naturalMinor'];
+const SCALE_KEYS = SCALE_PRACTICE_KEYS;
 const ROOT_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const STRING_NAMES = ['scalePractice.string.lowE', 'scalePractice.string.a', 'scalePractice.string.d', 'scalePractice.string.g', 'scalePractice.string.b', 'scalePractice.string.highE'];
 const MODES = ['position', 'linear', 'transition'];
@@ -17,7 +18,7 @@ const MODES = ['position', 'linear', 'transition'];
 // The exercise regenerates automatically whenever a control changes (not on
 // every keystroke — only real state changes), never mid-session; Play/Stop/
 // score chrome mirrors RhythmGamePanel's own layout for the same feature.
-export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange, metronome }) {
+export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelMode, onLabelModeChange, metronome }) {
   const { t } = useLanguage();
   const [scaleKey, setScaleKey] = useState('minorPentatonic');
   const [root, setRoot] = useState(9); // A — the classic first pentatonic key taught (Am pentatonic)
@@ -26,6 +27,21 @@ export function ScalePracticePanel({ scalePractice, labelMode, onLabelModeChange
   const [stringIndex, setStringIndex] = useState(2); // D string — comfortable middle string for a linear run
   const [stringCount, setStringCount] = useState(1);
   const [includeBlueNote, setIncludeBlueNote] = useState(false);
+
+  // One-shot handoff from Studies -> Scales' "practice connecting positions"
+  // link (see ScalesView/App.jsx) — jumps straight into Transition mode at
+  // whichever scale/key/position the student was just looking at, instead
+  // of landing on this panel's own unrelated defaults. Consumed immediately
+  // so a later, unrelated visit to this tab doesn't replay a stale seed.
+  useEffect(() => {
+    if (!seed) return;
+    setScaleKey(seed.scaleKey);
+    setRoot(seed.root);
+    setMode('transition');
+    setPositionIndex(seed.positionIndex);
+    onSeedConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed]);
 
   const { exercise, stepIndex, isPlaying, ended, play, restart, stop, score, combo, maxCombo, accuracyPct, micIsListening, micError } =
     scalePractice;

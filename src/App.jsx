@@ -280,6 +280,20 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceTab]);
 
+  // Same idea within Studies — CAGED's workout, Scales' practice exercise,
+  // and Circle of Fifths' I-IV-V/vi-ii-V-I drills all share this same drill
+  // engine, so switching from one course to another mid-drill (without
+  // hitting Exit first) left it clicking/advancing in a course that's no
+  // longer even on screen (verified: the metronome kept firing). Only fires
+  // while actually in Studies, for the same reason as the Practice guard
+  // above — `studiesCourse` is stale/irrelevant while in Practice.
+  useEffect(() => {
+    if (drill.isPlaying && activeSection === 'studies') {
+      drill.pause();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studiesCourse]);
+
   // Same safety for Rhythm Practice (Practice-only, not shared with
   // Studies) — leaving the section mid-session must not leave the mic open
   // or the metronome ticking somewhere the user can't see it.

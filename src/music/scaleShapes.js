@@ -77,17 +77,23 @@ export function tagBlueNote(notes, scaleKey) {
 // The 5 CAGED-style position anchors for a given root — reuses
 // SHAPE_TEMPLATES.major's own root-fret math (the same shapes the CAGED
 // course displays) rather than hand-authoring separate scale-position
-// templates. Each window is a one-hand-position span (anchor - 1 to
-// anchor + 2, 4 frets — matching how these shapes are taught, e.g.
-// fretjam's own CAGED scale diagrams) around that shape's root fret,
-// sorted low-to-high up the neck. A wider -2/+4 span was tried first, but
-// with real CAGED root frets landing only ~2-3 frets apart (verified
-// across all 12 keys), that made consecutive positions share 4-5 of their
-// 6 frets — the student would switch Position and see almost the same
-// notes again, reading as "nothing was removed." At 4 frets wide,
-// neighbors share only 1-2 frets — real, useful anchor overlap (the basis
-// of a separate, more advanced "connecting positions" skill, not yet
-// built) without each position swallowing its neighbor.
+// templates. Each window is anchor-1..anchor+3 (5 frets) around that
+// shape's root fret, sorted low-to-high up the neck.
+//
+// This width went through two other values first:
+//   - The original -2/+4 (6 frets): with real CAGED root frets landing only
+//     ~2-3 frets apart (verified across all 12 keys), consecutive positions
+//     shared 4-5 of their 6 frets — switching Position looked like nothing
+//     was removed, just added to.
+//   - A narrower -1/+2 (4 frets) fixed the overlap, but broke something
+//     more basic: a real "position" is a root-to-root box (you should see
+//     the root note at BOTH the low and high end, one octave apart) — at 4
+//     frets wide, some shape/key combinations only fit ONE root occurrence
+//     (verified: minimum dropped to 1 across all 12 keys), i.e. the box
+//     genuinely lost real notes it should contain, not just extra overlap.
+// At 5 frets, every shape in every key keeps both root occurrences
+// (verified minimum: 2) while overlap with neighbors stays a real, modest
+// 2-3 frets — not the 4-5-fret near-duplication the original width had.
 export function fivePositionWindows(rootPitchClass) {
   const anchors = SHAPE_TEMPLATES.major.map((template) => {
     const anchorIndex = template.strings.findIndex((s) => s.role === 'root');
@@ -103,7 +109,7 @@ export function fivePositionWindows(rootPitchClass) {
       shapeName,
       rootFret,
       fretStart: Math.max(0, rootFret - 1),
-      fretEnd: Math.min(MAX_FRET, rootFret + 2),
+      fretEnd: Math.min(MAX_FRET, rootFret + 3),
     }))
     .sort((a, b) => a.rootFret - b.rootFret);
 }

@@ -107,6 +107,74 @@ export const DRILLS = [
     ],
   },
   {
+    id: 'caged-position-connector',
+    title: { en: 'CAGED Position Connector (C Major)', he: 'מחבר פוזיציות CAGED (דו מז\'ור)' },
+    category: 'position_switch',
+    source: 'The CAGED system — a foundational position-connecting method taught by certified guitar teachers worldwide',
+    description: {
+      en:
+        'Climb the C major scale straight through the C-shape (open position) into the A-shape (2nd-4th fret) without ' +
+        'stopping — the classic first CAGED "connecting the boxes" exercise every certified teacher builds on.',
+      he:
+        'טפסו על סולם דו מז\'ור ישר דרך צורת C (פוזיציה פתוחה) אל צורת A (שריג 2-4) בלי לעצור — תרגיל "חיבור הקופסאות" ' +
+        'הקלאסי הראשון של CAGED שכל מורה מוסמך בונה עליו.',
+    },
+    difficulty: 'Beginner',
+    bpmSuggested: 85,
+    noteValue: 'quarter',
+    sequence: [
+      step(0, 0, 0, 'E'), step(0, 1, 1, 'F'), step(0, 3, 3, 'G'), step(0, 5, 4, 'A'),
+      step(1, 2, 1, 'B'), step(1, 3, 2, 'C'), step(1, 5, 4, 'D'),
+      step(2, 2, 1, 'E'), step(2, 3, 2, 'F'), step(2, 5, 4, 'G'),
+    ],
+  },
+  {
+    id: 'berklee-three-octave-shift',
+    title: { en: 'Three-Octave Position Shift (G Major)', he: 'מעבר פוזיציה תלת-אוקטבי (סול מז\'ור)' },
+    category: 'position_switch',
+    source: "Inspired by Berklee's three-octave scale method (William Leavitt's A Modern Method for Guitar) — an originally-authored fragment demonstrating the position-shift concept, not a copy of the published fingering",
+    description: {
+      en:
+        'A short stretch of the G major scale climbing straight through two positions (mid-neck, not open position) — ' +
+        'the core skill a full three-octave scale is built from: seeing the fretboard as one continuous shape instead ' +
+        'of separate boxes.',
+      he:
+        'קטע קצר מסולם סול מז\'ור המטפס ישר דרך שתי פוזיציות (אמצע הצוואר, לא פוזיציה פתוחה) — המיומנות המרכזית ' +
+        'שעליה בנוי סולם תלת-אוקטבי מלא: לראות את המסרגה כצורה אחת רציפה במקום קופסאות נפרדות.',
+    },
+    difficulty: 'Intermediate',
+    bpmSuggested: 90,
+    noteValue: 'quarter',
+    sequence: [
+      step(0, 5, 1, 'A'), step(0, 7, 3, 'B'), step(0, 8, 4, 'C'),
+      step(1, 5, 1, 'D'), step(1, 7, 3, 'E'),
+      step(1, 9, 1, 'F#'), step(1, 10, 2, 'G'),
+      step(2, 7, 1, 'A'), step(2, 9, 3, 'B'), step(2, 10, 4, 'C'),
+    ],
+  },
+  {
+    id: 'satriani-pentatonic-slide-connector',
+    title: { en: 'Satriani-Style Pentatonic Slide Connector', he: 'מחבר סליידה פנטטוני בסגנון סטריאני' },
+    category: 'position_switch',
+    source: "Inspired by Joe Satriani's pentatonic position-connecting technique — an originally-authored phrase, not a transcription of any specific recording",
+    description: {
+      en:
+        'A minor pentatonic climbing from the root position (5th fret) all the way to the octave (12th fret) via one ' +
+        'connecting slide — Satriani\'s own signature way of escaping "the box" instead of treating each pentatonic ' +
+        'position as its own separate island.',
+      he:
+        'פנטטוני מינור המטפס מפוזיציית השורש (שריג 5) עד האוקטבה (שריג 12) דרך סליידה מחברת אחת — הדרך החתומה של ' +
+        'סטריאני לצאת "מהקופסה" במקום להתייחס לכל פוזיציה פנטטונית כאי נפרד.',
+    },
+    difficulty: 'Intermediate',
+    bpmSuggested: 95,
+    noteValue: 'quarter',
+    sequence: [
+      step(0, 5, 1, 'A'), step(0, 8, 4, 'C'), step(0, 10, 1, 'D'),
+      step(1, 7, 3, 'E'), step(1, 10, 1, 'G'), step(1, 12, 3, 'A'),
+    ],
+  },
+  {
     id: 'govan-string-tracking',
     title: { en: 'String Tracking Drill', he: 'תרגיל מעקב מיתרים' },
     category: 'pro_drills',

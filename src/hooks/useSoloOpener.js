@@ -53,6 +53,7 @@ export function useSoloOpener(metronome) {
 
   function play() {
     firstBeatRef.current = true;
+    setRoundCount(0); // a fresh Start is a new session, not a continuation — newRound() below bumps it to 1
     newRound();
     setIsPlaying(true);
     metronome.start();

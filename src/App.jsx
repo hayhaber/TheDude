@@ -267,6 +267,19 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
 
+  // And within Practice itself — switching away from the Drills tab (e.g.
+  // to Rhythm Practice or Solo Opener) should pause an in-progress drill
+  // too, same as every other Practice tool below does for its own tab. Only
+  // fires while actually in Practice: `practiceTab` is stale/irrelevant
+  // while in Studies, which reuses this same drill engine for its own
+  // exercises and must not be affected by it.
+  useEffect(() => {
+    if (drill.isPlaying && activeSection === 'practice' && practiceTab !== 'drills') {
+      drill.pause();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practiceTab]);
+
   // Same safety for Rhythm Practice (Practice-only, not shared with
   // Studies) — leaving the section mid-session must not leave the mic open
   // or the metronome ticking somewhere the user can't see it.

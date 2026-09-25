@@ -77,8 +77,10 @@ import {
   cagedLessonVars,
   cagedLessonFacts,
   resolveCagedExercise,
+  buildProgressionAreas,
 } from './music/cagedCurriculum';
 import { useShapeShift } from './hooks/useShapeShift';
+import { useShapeQuiz } from './hooks/useShapeQuiz';
 import { SCALES_LESSONS, resolveScaleStageProps } from './music/scalesCurriculum';
 import { CIRCLE_LESSONS, keyByPosition, resolveCircleStageProps } from './music/circleOfFifthsCurriculum';
 import { HARMONY_LESSONS, resolveHarmonyStageProps } from './music/harmonyCurriculum';
@@ -136,6 +138,11 @@ function App() {
   const [cagedInversionStringSet, setCagedInversionStringSet] = useState(0);
   // Studies -> CAGED: which major key every lesson is shown in.
   const [cagedKey, setCagedKey] = useState(CAGED_REFERENCE_CHORD);
+  // Studies -> CAGED -> "Find the Chord Tones": note names or degrees.
+  const [cagedChordToneLabels, setCagedChordToneLabels] = useState('note');
+  // Studies -> CAGED -> "I-IV-V in One Area": which area (index into
+  // buildProgressionAreas' list, one per shape of the I chord).
+  const [cagedProgressionArea, setCagedProgressionArea] = useState(0);
   const cagedProgress = useCagedProgress();
   // Studies now holds two independent courses (CAGED + Scales) — which one
   // is showing, plus the Scales course's own lesson/key/position state and
@@ -1130,6 +1137,28 @@ function App() {
     if (!shapeShiftActive) resetShapeShift();
   }, [shapeShiftActive, resetShapeShift]);
 
+  const shapeQuiz = useShapeQuiz();
+
+  const progressionAreas = useMemo(
+    () => buildProgressionAreas(cagedKey, (chord) => computeChordPositions(chord, 'chord').positions),
+    [cagedKey]
+  );
+  const safeProgressionArea = Math.min(cagedProgressionArea, Math.max(0, progressionAreas.length - 1));
+  const progressionSteps = useMemo(
+    () => progressionAreas[safeProgressionArea]?.steps ?? [],
+    [progressionAreas, safeProgressionArea]
+  );
+  const progressionPlayer = useShapeShift(progressionSteps);
+  const { reset: resetProgressionPlayer } = progressionPlayer;
+  const progressionActive =
+    activeSection === 'studies' && studiesCourse === 'caged' && activeCagedLesson.kind === 'progressionArea';
+  useEffect(() => {
+    resetProgressionPlayer();
+  }, [cagedKey, safeProgressionArea, resetProgressionPlayer]);
+  useEffect(() => {
+    if (!progressionActive) resetProgressionPlayer();
+  }, [progressionActive, resetProgressionPlayer]);
+
   // Studies -> Scales: same idea, resolved from the Scales course's own
   // lifted lesson/key/position state.
   const activeScaleLesson = SCALES_LESSONS.find((l) => l.id === scalesLesson.lessonId) ?? SCALES_LESSONS[0];
@@ -1324,6 +1353,9 @@ function App() {
             triadPositions: cagedTriadPositions,
             inversionStringSet: cagedInversionStringSet,
             shapeShiftStep: shapeShift.current,
+            quizPosition: shapeQuiz.question?.position ?? null,
+            progressionStep: progressionPlayer.current,
+            chordToneLabels: cagedChordToneLabels,
           })
       : activeSection === 'songs'
       ? songTabLick
@@ -1786,6 +1818,13 @@ function App() {
           cagedLessonFacts={cagedLessonFacts(activeCagedLesson, cagedKey, cagedPositions)}
           resolveCagedExercise={(lesson) => resolveCagedExercise(lesson, cagedTriadPositions, cagedKey)}
           shapeShift={shapeShift}
+          shapeQuiz={shapeQuiz}
+          progressionAreas={progressionAreas}
+          progressionAreaIndex={safeProgressionArea}
+          onProgressionAreaChange={setCagedProgressionArea}
+          progressionPlayer={progressionPlayer}
+          chordToneLabels={cagedChordToneLabels}
+          onChordToneLabelsChange={setCagedChordToneLabels}
           onCagedInversionStringSetChange={setCagedInversionStringSet}
           scalesLesson={scalesLesson}
           scalesProgress={scalesProgress}

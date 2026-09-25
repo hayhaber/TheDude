@@ -41,6 +41,13 @@ export function StudiesSection({
   cagedLessonFacts,
   resolveCagedExercise,
   shapeShift,
+  shapeQuiz,
+  progressionAreas,
+  progressionAreaIndex,
+  onProgressionAreaChange,
+  progressionPlayer,
+  chordToneLabels,
+  onChordToneLabelsChange,
   scalesLesson,
   scalesProgress,
   drill,
@@ -138,6 +145,13 @@ export function StudiesSection({
           lessonFacts={cagedLessonFacts}
           resolveExercise={resolveCagedExercise}
           shapeShift={shapeShift}
+          shapeQuiz={shapeQuiz}
+          progressionAreas={progressionAreas}
+          progressionAreaIndex={progressionAreaIndex}
+          onProgressionAreaChange={onProgressionAreaChange}
+          progressionPlayer={progressionPlayer}
+          chordToneLabels={chordToneLabels}
+          onChordToneLabelsChange={onChordToneLabelsChange}
         />
       )}
 

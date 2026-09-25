@@ -8,6 +8,8 @@ import {
   fillLessonText,
 } from '../../music/cagedCurriculum';
 import { ShapeShiftPanel } from '../ShapeShiftPanel/ShapeShiftPanel';
+import { ShapeQuiz } from '../ShapeQuiz/ShapeQuiz';
+import { ProgressionAreaPanel } from '../ProgressionAreaPanel/ProgressionAreaPanel';
 import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { PositionRoadmapPanel } from '../PositionRoadmapPanel/PositionRoadmapPanel';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -35,6 +37,13 @@ export function StudiesView({
   lessonFacts = null,
   resolveExercise,
   shapeShift,
+  shapeQuiz,
+  progressionAreas = [],
+  progressionAreaIndex = 0,
+  onProgressionAreaChange,
+  progressionPlayer,
+  chordToneLabels = 'note',
+  onChordToneLabelsChange,
 }) {
   const { t, lang } = useLanguage();
   const activeIndex = lessons.findIndex((l) => l.id === activeLessonId);
@@ -96,16 +105,37 @@ export function StudiesView({
           )}
 
           <div className="studies-controls" dir={lang === 'he' ? 'rtl' : 'ltr'}>
-            <label className="studies-field">
-              <span>{t('studies.key')}</span>
-              <select value={keyValue} onChange={(e) => onKeyChange?.(e.target.value)}>
-                {CAGED_KEYS.map((k) => (
-                  <option key={k.value} value={k.value}>
-                    {t('studies.keyOption', { key: k.label })}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {activeLesson.kind !== 'shapeQuiz' && (
+              <label className="studies-field">
+                <span>{t('studies.key')}</span>
+                <select value={keyValue} onChange={(e) => onKeyChange?.(e.target.value)}>
+                  {CAGED_KEYS.map((k) => (
+                    <option key={k.value} value={k.value}>
+                      {t('studies.keyOption', { key: k.label })}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {activeLesson.kind === 'chordTones' && (
+              <div className="mode-toggle" role="group" aria-label={t('studies.chordToneLabels')}>
+                <button
+                  type="button"
+                  className={chordToneLabels === 'note' ? 'active' : ''}
+                  onClick={() => onChordToneLabelsChange?.('note')}
+                >
+                  {t('studies.labelNotes')}
+                </button>
+                <button
+                  type="button"
+                  className={chordToneLabels === 'degree' ? 'active' : ''}
+                  onClick={() => onChordToneLabelsChange?.('degree')}
+                >
+                  {t('studies.labelDegrees')}
+                </button>
+              </div>
+            )}
 
             {activeLesson.kind === 'inversionMap' && (
               <label className="studies-field">
@@ -123,6 +153,17 @@ export function StudiesView({
               </label>
             )}
           </div>
+
+          {activeLesson.kind === 'shapeQuiz' && shapeQuiz && <ShapeQuiz quiz={shapeQuiz} />}
+
+          {activeLesson.kind === 'progressionArea' && progressionPlayer && (
+            <ProgressionAreaPanel
+              areas={progressionAreas}
+              areaIndex={progressionAreaIndex}
+              onAreaChange={(i) => onProgressionAreaChange?.(i)}
+              player={progressionPlayer}
+            />
+          )}
 
           {activeLesson.kind === 'shapeShift' && shapeShift && (
             <ShapeShiftPanel shapeShift={shapeShift} keyLabel={cagedKeyLabel(keyValue)} />

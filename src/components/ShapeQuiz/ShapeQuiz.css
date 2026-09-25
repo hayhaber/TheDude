@@ -1,0 +1,24 @@
+.shape-quiz {
+  margin-top: var(--space-4);
+}
+
+.shape-quiz-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.shape-quiz-score {
+  flex: none;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+/* Five single-letter answers: equal, finger-sized targets. */
+.shape-quiz-choice {
+  min-width: 52px;
+  font-size: 17px;
+  font-weight: 700;
+}

@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
+import { shapeLabel } from '../../music/cagedCurriculum';
 import { SHAPE_SHIFT_TEMPOS, SHAPE_SHIFT_BEATS_PER_SHAPE } from '../../hooks/useShapeShift';
 import './ShapeShiftPanel.css';
 
@@ -42,19 +43,15 @@ export function ShapeShiftPanel({ shapeShift, keyLabel }) {
       </ol>
 
       <div className="shape-shift-now" aria-live="polite">
-        <span className="shape-shift-now-title">
-          <bdi>
-            {keyLabel} · {current.shapeName}
-          </bdi>
-        </span>
+        <span className="shape-shift-now-title">{shapeLabel(current.shapeName, lang)}</span>
         <span className="shape-shift-now-meta">
-          {fretText(t, current.baseFret)} · {t(current.direction === 'up' ? 'shapeShift.up' : 'shapeShift.down')}
+          <bdi dir="ltr">{keyLabel}</bdi> · {fretText(t, current.baseFret)} · {t(current.direction === 'up' ? 'shapeShift.up' : 'shapeShift.down')}
         </span>
       </div>
 
       <p className="shape-shift-hint">
         <span className="shape-shift-ring" aria-hidden="true" />
-        {t('shapeShift.hint', { shape: nextStep.shapeName })}
+        {t('shapeShift.hint', { shape: shapeLabel(nextStep.shapeName, lang) })}
       </p>
 
       <div className="shape-shift-controls">

@@ -12,6 +12,7 @@
 // that states the exact frets/strings for the selected key.
 import { transitionLabel } from './positionRoadmap';
 import { colorForChord, colorForNextChord } from '../styles/colors';
+import { STANDARD_TUNING } from './notes';
 
 // Default key: C major, the conventional reference chord for teaching CAGED
 // ("the C you get from the E-shape", etc).
@@ -99,6 +100,27 @@ export const CAGED_LESSONS = [
         'נמצא על שני המיתרים הנמוכים (6 ו-5), המקום הקל ביותר למצוא בו כל תו. צורות D, G ו-C ממלאות אחר כך את ' +
         'הפערים ביניהן. אחרי 5 הצורות תראו כיצד הן מתחברות, וכיצד למצוא את ההיפוכים (אקורדים קטנים בני 3 תווים) ' +
         'שמסתתרים בתוך כל אחת מהן.',
+    },
+  },
+  {
+    id: 'caged-chord-tones',
+    stage: CAGED_STAGES.FOUNDATION,
+    title: { en: 'Find the Chord Tones', he: 'מציאת תווי האקורד' },
+    kind: 'chordTones',
+    description: {
+      en:
+        'Before the shapes, the raw material. Every {key} major chord on the guitar is built from just three notes: ' +
+        '{key} (the root, 1), {third} (the 3rd, 3) and {fifth} (the 5th, 5). The fretboard shows every one of them ' +
+        'from the nut to the 15th fret, with the root highlighted.\n\n' +
+        'Look closely and you can already see the 5 CAGED shapes: each shape is simply one group of these notes ' +
+        'that fits under your hand. Try this: pick one string, find all three notes on it, and play them while ' +
+        'saying each note name and its role (root, 3rd, 5th). Then do the next string.',
+      he:
+        'לפני הצורות, חומר הגלם. כל אקורד {key} מז\'ור בגיטרה בנוי משלושה תווים בלבד: {key} (השורש, 1), {third} ' +
+        '(הטרצה, 3) ו-{fifth} (הקווינטה, 5). המסרגה מציגה את כולם מהאוכף ועד השריג ה-15, והשורש מודגש.\n\n' +
+        'הסתכלו היטב ותראו כבר את 5 צורות ה-CAGED: כל צורה היא פשוט קבוצה אחת של התווים האלה שנכנסת מתחת ליד. ' +
+        'נסו כך: בחרו מיתר אחד, מצאו עליו את שלושת התווים, ונגנו אותם תוך אמירת שם כל תו ותפקידו (שורש, טרצה, ' +
+        'קווינטה). אחר כך עברו למיתר הבא.',
     },
   },
   {
@@ -267,6 +289,43 @@ export const CAGED_LESSONS = [
     },
   },
   {
+    id: 'caged-shape-quiz',
+    stage: CAGED_STAGES.APPLICATION,
+    title: { en: 'Name That Shape', he: 'זהו את הצורה' },
+    kind: 'shapeQuiz',
+    description: {
+      en:
+        'A chord appears on the neck, in a random key and position. Name its CAGED shape. The fastest way is to ' +
+        'find the lowest root (gold) and check which string it is on: a root on string 6 means the E- or G-shape, ' +
+        'string 5 means the A- or C-shape, and string 4 means the D-shape. Then look at the notes around it to ' +
+        'decide between the two.',
+      he:
+        'אקורד מופיע על הצוואר, בטונליות ובמיקום אקראיים. זהו את צורת ה-CAGED שלו. הדרך המהירה ביותר: מצאו את ' +
+        'השורש הנמוך ביותר (בזהב) ובדקו על איזה מיתר הוא נמצא: שורש על מיתר 6 פירושו צורת E או G, מיתר 5 פירושו ' +
+        'צורת A או C, ומיתר 4 פירושו צורת D. אחר כך הסתכלו על התווים סביבו כדי להכריע בין השתיים.',
+    },
+  },
+  {
+    id: 'caged-progression-area',
+    stage: CAGED_STAGES.APPLICATION,
+    title: { en: 'I-IV-V in One Area', he: 'I-IV-V באזור אחד' },
+    kind: 'progressionArea',
+    description: {
+      en:
+        'This is where CAGED pays off in real songs. In {key} major, the I, IV and V chords are {key}, {four} and ' +
+        '{five}. Instead of jumping up and down the neck, stay in one area and play all three there, each with ' +
+        'whichever CAGED shape sits closest.\n\n' +
+        'Choose an area: the player steps through I - IV - V - I, strumming each chord and showing which shape it ' +
+        'uses. Notice how little your hand moves. Then try every area, so you can play the same progression ' +
+        'anywhere on the neck.',
+      he:
+        'כאן CAGED משתלמת בשירים אמיתיים. ב-{key} מז\'ור, האקורדים I, ‏IV ו-V הם {key}, {four} ו-{five}. במקום ' +
+        'לקפוץ למעלה ולמטה בצוואר, הישארו באזור אחד ונגנו את שלושתם שם, כל אחד בצורת ה-CAGED הקרובה ביותר.\n\n' +
+        'בחרו אזור: הנגן עובר על I - IV - V - I, מנגן כל אקורד ומראה באיזו צורה הוא משתמש. שימו לב כמה מעט היד ' +
+        'זזה. אחר כך נסו כל אזור, כך שתוכלו לנגן את אותו מהלך בכל מקום על הצוואר.',
+    },
+  },
+  {
     id: 'caged-inversion-climb',
     stage: CAGED_STAGES.APPLICATION,
     title: { en: 'Inversion Climb', he: 'טיפוס בהיפוכים' },
@@ -320,7 +379,7 @@ function cagedShapeName(position, keyValue) {
 
 // Every position of the key's chord with a normalized CAGED shape name,
 // sorted up the neck.
-function namedShapePositions(positions, keyValue) {
+export function namedShapePositions(positions, keyValue) {
   return positions
     .map((p) => ({ ...p, shapeName: cagedShapeName(p, keyValue) }))
     .sort((a, b) => a.baseFret - b.baseFret);
@@ -340,6 +399,16 @@ function rootStringNumbers(position) {
 
 function shapeHe(shapeName) {
   return `צורת ${shapeName[0]}`;
+}
+
+// A shape's display name in the UI language ("E-shape" / "צורת E"). Handles
+// a combined label like "D-shape / C-shape" too.
+export function shapeLabel(shapeName, lang) {
+  if (!shapeName || lang !== 'he') return shapeName;
+  return shapeName
+    .split(' / ')
+    .map((n) => (/^[A-G]-shape$/.test(n) ? shapeHe(n) : n))
+    .join(' / ');
 }
 
 // Builds a single-chord "roadmap" across the 5 CAGED positions, in the same
@@ -433,10 +502,6 @@ export const CAGED_INVERSION_STRING_SETS = [
 const INVERSION_CYCLE_FRETS = 12;
 
 const DEGREE_LABEL_BY_ROLE = { root: '1', third: '3', fifth: '5' };
-
-function toneLabel(triad, role) {
-  return triad.strings.find((s) => s.fret !== null && s.role === role)?.label ?? '';
-}
 
 // "C", "C/E", "C/G": the chord with its lowest note as a slash bass, i.e.
 // root position, 1st inversion, 2nd inversion.
@@ -543,6 +608,104 @@ export function resolveCagedExercise(lesson, triadPositions, keyValue = CAGED_RE
   return { ...lesson.exercise, id: lesson.id };
 }
 
+// ---- Chord tones ------------------------------------------------------------
+
+// Pitch class -> {label, role} for the key's chord, read from the chord
+// engine's own spelled labels (so Bb major shows D and F, not a sharp name).
+function chordToneMap(positions) {
+  const map = new Map();
+  for (const p of positions) {
+    p.strings.forEach((s, i) => {
+      if (s.fret === null || !s.role) return;
+      const pc = (STANDARD_TUNING[i].pitchClass + s.fret) % 12;
+      if (!map.has(pc)) map.set(pc, { label: s.label, role: s.role });
+    });
+  }
+  return map;
+}
+
+const CHORD_TONES_MAX_FRET = 15;
+
+// Every root/3rd/5th of the key's chord from the nut to fret 15.
+function chordToneNotes(positions) {
+  const tones = chordToneMap(positions);
+  const notes = [];
+  STANDARD_TUNING.forEach((str, string) => {
+    for (let fret = 0; fret <= CHORD_TONES_MAX_FRET; fret += 1) {
+      const tone = tones.get((str.pitchClass + fret) % 12);
+      if (!tone) continue;
+      notes.push({ string, fret, noteName: tone.label, degreeLabel: DEGREE_LABEL_BY_ROLE[tone.role], isRoot: tone.role === 'root' });
+    }
+  });
+  return notes;
+}
+
+// ---- I-IV-V in one area -----------------------------------------------------
+
+// The IV and V chords of each major key, spelled the conventional way.
+export const CAGED_PRIMARY_CHORDS = {
+  C: ['F', 'G'],
+  Db: ['Gb', 'Ab'],
+  D: ['G', 'A'],
+  Eb: ['Ab', 'Bb'],
+  E: ['A', 'B'],
+  F: ['Bb', 'C'],
+  'F#': ['B', 'C#'],
+  G: ['C', 'D'],
+  Ab: ['Db', 'Eb'],
+  A: ['D', 'E'],
+  Bb: ['Eb', 'F'],
+  B: ['E', 'F#'],
+};
+
+// Where the hand actually sits for a shape: the average fret of its fretted
+// (non-open) notes. baseFret alone misleads for shapes that reach back.
+function handCenter(position) {
+  const frets = position.strings.map((s) => s.fret).filter((f) => f !== null && f > 0);
+  if (frets.length === 0) return 0;
+  return frets.reduce((a, b) => a + b, 0) / frets.length;
+}
+
+function closestPosition(candidates, center) {
+  let best = null;
+  for (const c of candidates) {
+    const d = Math.abs(handCenter(c) - center);
+    if (!best || d < best.d - 1e-9 || (Math.abs(d - best.d) < 1e-9 && c.baseFret < best.c.baseFret)) best = { c, d };
+  }
+  return best?.c ?? null;
+}
+
+// One "area" per shape of the I chord (one trip around the cycle): the I
+// chord there, plus the IV and V positions whose hands sit closest to it.
+// `chordPositions` maps a chord symbol to its computeChordPositions list.
+export function buildProgressionAreas(keyValue, positionsFor) {
+  const [four, five] = CAGED_PRIMARY_CHORDS[keyValue] ?? [];
+  if (!four) return [];
+  const ones = oneCycle(positionsFor(keyValue), keyValue).slice(0, 5);
+  const fours = namedShapePositions(positionsFor(four), four);
+  const fives = namedShapePositions(positionsFor(five), five);
+  return ones.map((one) => {
+    const center = handCenter(one);
+    const chords = [
+      { numeral: 'I', chordText: keyValue, position: one },
+      { numeral: 'IV', chordText: four, position: closestPosition(fours, center) },
+      { numeral: 'V', chordText: five, position: closestPosition(fives, center) },
+      { numeral: 'I', chordText: keyValue, position: one },
+    ];
+    return {
+      anchorShape: one.shapeName,
+      anchorFret: one.baseFret,
+      steps: chords.map((c) => ({
+        ...c,
+        shapeName: c.position?.shapeName ?? '',
+        baseFret: c.position?.baseFret ?? 0,
+        direction: 'up',
+        sharedRoots: [],
+      })),
+    };
+  });
+}
+
 // ---- Per-key text ---------------------------------------------------------
 
 // The {token} values lesson descriptions use, for the selected key.
@@ -556,8 +719,10 @@ export function cagedLessonVars(keyValue, positions, triadPositions) {
   });
   return {
     key,
-    third: intro ? toneLabel(intro, 'third') : '',
-    fifth: intro ? toneLabel(intro, 'fifth') : '',
+    third: [...chordToneMap(positions).values()].find((t) => t.role === 'third')?.label ?? '',
+    fifth: [...chordToneMap(positions).values()].find((t) => t.role === 'fifth')?.label ?? '',
+    four: CAGED_PRIMARY_CHORDS[keyValue]?.[0] ?? '',
+    five: CAGED_PRIMARY_CHORDS[keyValue]?.[1] ?? '',
     introFrets: intro ? intro.strings.filter((s) => s.fret !== null).map((s) => s.fret).join('-') : '',
     introShape,
     introShapeHe: introShape ? shapeHe(introShape) : '',
@@ -595,7 +760,18 @@ export function resolveCagedStageProps(lesson, positions, options = {}) {
     triadPositions = [],
     inversionStringSet = 0,
     shapeShiftStep = null,
+    quizPosition = null,
+    progressionStep = null,
   } = options;
+  if (lesson?.kind === 'chordTones') {
+    return { position: null, scaleNotes: chordToneNotes(positions), labelMode: options.chordToneLabels ?? 'note' };
+  }
+  if (lesson?.kind === 'shapeQuiz') {
+    return { position: quizPosition, labelMode: 'note', colorMode: 'function' };
+  }
+  if (lesson?.kind === 'progressionArea') {
+    return { position: progressionStep?.position ?? null, labelMode: 'note' };
+  }
   if (!lesson) return { position: null };
   if (lesson.kind === 'shape') {
     return { position: findShapePosition(positions, keyValue, lesson.shapeName), labelMode: 'note' };

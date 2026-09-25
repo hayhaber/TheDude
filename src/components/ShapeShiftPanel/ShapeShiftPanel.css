@@ -135,3 +135,26 @@
     padding: 16px;
   }
 }
+
+/* I-IV-V chips are tappable (jump to that chord) and carry 3 lines. */
+.progression-chip-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.shape-shift-chain:has(.progression-chip-button) .shape-shift-chip {
+  max-width: 96px;
+}
+
+.shape-shift-area {
+  align-self: flex-start;
+  max-width: 100%;
+}

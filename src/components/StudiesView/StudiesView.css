@@ -145,6 +145,29 @@
   margin: var(--space-4) 0 0;
   color: var(--text-secondary);
   line-height: 1.5;
+  /* Lets a lesson split its text into paragraphs with a blank line. */
+  white-space: pre-line;
+}
+
+/* Same label-above-select look as ScalesView.css's .scales-field. */
+.studies-inversion-set {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: var(--space-4);
+  font-size: 12px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.studies-inversion-set select {
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .studies-exercise {

@@ -122,6 +122,9 @@ function App() {
   // Lifted the same way as practiceTab — the Studies -> CAGED course's
   // active lesson decides what the shared Stage Fretboard shows.
   const [studiesLessonId, setStudiesLessonId] = useState(CAGED_LESSONS[0].id);
+  // Studies -> CAGED -> "Inversions Up the Neck": which string set is shown
+  // (index into CAGED_INVERSION_STRING_SETS' `order`).
+  const [cagedInversionStringSet, setCagedInversionStringSet] = useState(0);
   const cagedProgress = useCagedProgress();
   // Studies now holds two independent courses (CAGED + Scales) — which one
   // is showing, plus the Scales course's own lesson/key/position state and
@@ -1097,6 +1100,7 @@ function App() {
   // C major reference positions for the Studies -> CAGED course — cheap to
   // recompute per render, same as every other derived value here.
   const cagedPositions = computeChordPositions(CAGED_REFERENCE_CHORD, 'chord').positions;
+  const cagedTriadPositions = computeChordPositions(CAGED_REFERENCE_CHORD, 'triad').positions;
   const activeCagedLesson = CAGED_LESSONS.find((l) => l.id === studiesLessonId) ?? CAGED_LESSONS[0];
 
   // Studies -> Scales: same idea, resolved from the Scales course's own
@@ -1288,7 +1292,7 @@ function App() {
         ? { position: null } // piano-only course; guitar mode can never actually select it (gated in StudiesSection)
         : activeCagedLesson.kind === 'exercise'
         ? { position: null, drillNotes, labelMode: drill.noteLabelMode }
-        : resolveCagedStageProps(activeCagedLesson, cagedPositions)
+        : resolveCagedStageProps(activeCagedLesson, cagedPositions, cagedTriadPositions, cagedInversionStringSet)
       : activeSection === 'songs'
       ? songTabLick
         ? { position: null, lick: songTabLick, playingNoteOrder: songTabPlayingOrder }
@@ -1738,7 +1742,13 @@ function App() {
           cagedLessonId={studiesLessonId}
           onSelectCagedLesson={setStudiesLessonId}
           cagedProgress={cagedProgress}
-          cagedRoadmap={activeCagedLesson.kind === 'connecting' ? stageFretboardProps.roadmap : null}
+          cagedRoadmap={
+            activeCagedLesson.kind === 'connecting' || activeCagedLesson.kind === 'inversionMap'
+              ? stageFretboardProps.roadmap
+              : null
+          }
+          cagedInversionStringSet={cagedInversionStringSet}
+          onCagedInversionStringSetChange={setCagedInversionStringSet}
           scalesLesson={scalesLesson}
           scalesProgress={scalesProgress}
           drill={drill}

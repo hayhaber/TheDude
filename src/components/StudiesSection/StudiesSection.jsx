@@ -33,6 +33,8 @@ export function StudiesSection({
   onSelectCagedLesson,
   cagedProgress,
   cagedRoadmap,
+  cagedInversionStringSet,
+  onCagedInversionStringSetChange,
   scalesLesson,
   scalesProgress,
   drill,
@@ -122,6 +124,8 @@ export function StudiesSection({
           progress={cagedProgress}
           drill={drill}
           roadmap={cagedRoadmap}
+          inversionStringSet={cagedInversionStringSet}
+          onInversionStringSetChange={onCagedInversionStringSetChange}
         />
       )}
 

@@ -1,18 +1,26 @@
-import { CAGED_STAGES, CAGED_STAGE_LABELS } from '../../music/cagedCurriculum';
+import { CAGED_STAGE_ORDER, CAGED_STAGE_LABELS, CAGED_INVERSION_STRING_SETS } from '../../music/cagedCurriculum';
 import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { PositionRoadmapPanel } from '../PositionRoadmapPanel/PositionRoadmapPanel';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import './StudiesView.css';
 
-const STAGE_ORDER = [CAGED_STAGES.FOUNDATION, CAGED_STAGES.SHAPES, CAGED_STAGES.CONNECTING, CAGED_STAGES.APPLICATION];
 
 // Structured, step-by-step CAGED course. Like PracticeView, this owns no
 // Fretboard of its own — the active lesson feeds the one shared Stage
 // Fretboard via App.jsx's stageFretboardProps resolver (see
 // music/cagedCurriculum.js's resolveCagedStageProps). Built to expand: a new
 // lesson is one entry in CAGED_LESSONS, nothing here needs to change.
-export function StudiesView({ lessons, activeLessonId, onSelectLesson, progress, drill, roadmap }) {
+export function StudiesView({
+  lessons,
+  activeLessonId,
+  onSelectLesson,
+  progress,
+  drill,
+  roadmap,
+  inversionStringSet = 0,
+  onInversionStringSetChange,
+}) {
   const { t, lang } = useLanguage();
   const activeIndex = lessons.findIndex((l) => l.id === activeLessonId);
   const activeLesson = lessons[activeIndex] ?? lessons[0];
@@ -28,7 +36,7 @@ export function StudiesView({ lessons, activeLessonId, onSelectLesson, progress,
       <div className="studies-layout">
         <nav className="studies-rail" aria-label={t('studies.lessonsLabel')}>
           <p className="studies-progress">{t('studies.progress', { done: completeCount, total: lessons.length })}</p>
-          {STAGE_ORDER.map((stage) => (
+          {CAGED_STAGE_ORDER.map((stage) => (
             <div key={stage} className="studies-stage-group">
               <p className="studies-stage-label">{localize(CAGED_STAGE_LABELS[stage], lang)}</p>
               {lessons
@@ -66,7 +74,25 @@ export function StudiesView({ lessons, activeLessonId, onSelectLesson, progress,
             {localize(activeLesson.description, lang)}
           </p>
 
-          {activeLesson.kind === 'connecting' && roadmap && <PositionRoadmapPanel roadmap={roadmap} />}
+          {activeLesson.kind === 'inversionMap' && (
+            <label className="studies-inversion-set">
+              <span>{t('studies.inversionStringSet')}</span>
+              <select
+                value={inversionStringSet}
+                onChange={(e) => onInversionStringSetChange?.(Number(e.target.value))}
+              >
+                {CAGED_INVERSION_STRING_SETS.map((set) => (
+                  <option key={set.order} value={set.order}>
+                    {localize(set.label, lang)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {(activeLesson.kind === 'connecting' || activeLesson.kind === 'inversionMap') && roadmap && (
+            <PositionRoadmapPanel roadmap={roadmap} />
+          )}
 
           {activeLesson.kind === 'exercise' && (
             <div className="studies-exercise">

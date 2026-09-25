@@ -35,6 +35,12 @@ export function StudiesSection({
   cagedRoadmap,
   cagedInversionStringSet,
   onCagedInversionStringSetChange,
+  cagedKey,
+  onCagedKeyChange,
+  cagedLessonVars,
+  cagedLessonFacts,
+  resolveCagedExercise,
+  shapeShift,
   scalesLesson,
   scalesProgress,
   drill,
@@ -126,6 +132,12 @@ export function StudiesSection({
           roadmap={cagedRoadmap}
           inversionStringSet={cagedInversionStringSet}
           onInversionStringSetChange={onCagedInversionStringSetChange}
+          keyValue={cagedKey}
+          onKeyChange={onCagedKeyChange}
+          lessonVars={cagedLessonVars}
+          lessonFacts={cagedLessonFacts}
+          resolveExercise={resolveCagedExercise}
+          shapeShift={shapeShift}
         />
       )}
 

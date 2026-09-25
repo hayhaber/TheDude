@@ -1,4 +1,13 @@
-import { CAGED_STAGE_ORDER, CAGED_STAGE_LABELS, CAGED_INVERSION_STRING_SETS } from '../../music/cagedCurriculum';
+import {
+  CAGED_STAGE_ORDER,
+  CAGED_STAGE_LABELS,
+  CAGED_INVERSION_STRING_SETS,
+  CAGED_KEYS,
+  CAGED_REFERENCE_CHORD,
+  cagedKeyLabel,
+  fillLessonText,
+} from '../../music/cagedCurriculum';
+import { ShapeShiftPanel } from '../ShapeShiftPanel/ShapeShiftPanel';
 import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { PositionRoadmapPanel } from '../PositionRoadmapPanel/PositionRoadmapPanel';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -20,6 +29,12 @@ export function StudiesView({
   roadmap,
   inversionStringSet = 0,
   onInversionStringSetChange,
+  keyValue = CAGED_REFERENCE_CHORD,
+  onKeyChange,
+  lessonVars = {},
+  lessonFacts = null,
+  resolveExercise,
+  shapeShift,
 }) {
   const { t, lang } = useLanguage();
   const activeIndex = lessons.findIndex((l) => l.id === activeLessonId);
@@ -71,23 +86,46 @@ export function StudiesView({
           </div>
 
           <p className="studies-lesson-description" dir="auto">
-            {localize(activeLesson.description, lang)}
+            {fillLessonText(localize(activeLesson.description, lang), lessonVars)}
           </p>
 
-          {activeLesson.kind === 'inversionMap' && (
-            <label className="studies-inversion-set">
-              <span>{t('studies.inversionStringSet')}</span>
-              <select
-                value={inversionStringSet}
-                onChange={(e) => onInversionStringSetChange?.(Number(e.target.value))}
-              >
-                {CAGED_INVERSION_STRING_SETS.map((set) => (
-                  <option key={set.order} value={set.order}>
-                    {localize(set.label, lang)}
+          {lessonFacts && (
+            <p className="studies-lesson-facts" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+              {localize(lessonFacts, lang)}
+            </p>
+          )}
+
+          <div className="studies-controls" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+            <label className="studies-field">
+              <span>{t('studies.key')}</span>
+              <select value={keyValue} onChange={(e) => onKeyChange?.(e.target.value)}>
+                {CAGED_KEYS.map((k) => (
+                  <option key={k.value} value={k.value}>
+                    {t('studies.keyOption', { key: k.label })}
                   </option>
                 ))}
               </select>
             </label>
+
+            {activeLesson.kind === 'inversionMap' && (
+              <label className="studies-field">
+                <span>{t('studies.inversionStringSet')}</span>
+                <select
+                  value={inversionStringSet}
+                  onChange={(e) => onInversionStringSetChange?.(Number(e.target.value))}
+                >
+                  {CAGED_INVERSION_STRING_SETS.map((set) => (
+                    <option key={set.order} value={set.order}>
+                      {localize(set.label, lang)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+
+          {activeLesson.kind === 'shapeShift' && shapeShift && (
+            <ShapeShiftPanel shapeShift={shapeShift} keyLabel={cagedKeyLabel(keyValue)} />
           )}
 
           {(activeLesson.kind === 'connecting' || activeLesson.kind === 'inversionMap') && roadmap && (
@@ -99,7 +137,12 @@ export function StudiesView({
               <button
                 type="button"
                 className="studies-load-exercise-btn"
-                onClick={() => drill.loadExercise({ ...activeLesson.exercise, id: activeLesson.id }, 'caged')}
+                onClick={() =>
+                  drill.loadExercise(
+                    resolveExercise ? resolveExercise(activeLesson) : { ...activeLesson.exercise, id: activeLesson.id },
+                    'caged'
+                  )
+                }
               >
                 {t('studies.loadExercise')}
               </button>

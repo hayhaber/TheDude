@@ -69,7 +69,16 @@ import { usePianoCurriculumProgress } from './hooks/usePianoCurriculumProgress';
 import { usePianoCurriculumLesson } from './hooks/usePianoCurriculumLesson';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useGlobalShortcutListener } from './hooks/useGlobalShortcutListener';
-import { CAGED_LESSONS, CAGED_REFERENCE_CHORD, resolveCagedStageProps } from './music/cagedCurriculum';
+import {
+  CAGED_LESSONS,
+  CAGED_REFERENCE_CHORD,
+  resolveCagedStageProps,
+  buildShapeShiftSteps,
+  cagedLessonVars,
+  cagedLessonFacts,
+  resolveCagedExercise,
+} from './music/cagedCurriculum';
+import { useShapeShift } from './hooks/useShapeShift';
 import { SCALES_LESSONS, resolveScaleStageProps } from './music/scalesCurriculum';
 import { CIRCLE_LESSONS, keyByPosition, resolveCircleStageProps } from './music/circleOfFifthsCurriculum';
 import { HARMONY_LESSONS, resolveHarmonyStageProps } from './music/harmonyCurriculum';
@@ -125,6 +134,8 @@ function App() {
   // Studies -> CAGED -> "Inversions Up the Neck": which string set is shown
   // (index into CAGED_INVERSION_STRING_SETS' `order`).
   const [cagedInversionStringSet, setCagedInversionStringSet] = useState(0);
+  // Studies -> CAGED: which major key every lesson is shown in.
+  const [cagedKey, setCagedKey] = useState(CAGED_REFERENCE_CHORD);
   const cagedProgress = useCagedProgress();
   // Studies now holds two independent courses (CAGED + Scales) — which one
   // is showing, plus the Scales course's own lesson/key/position state and
@@ -229,7 +240,7 @@ function App() {
   const practiceCatalog = useMemo(
     () => [
       ...DRILLS.map((d) => ({ id: d.id, context: 'drills', title: d.title, exercise: d })),
-      ...CAGED_LESSONS.filter((l) => l.kind === 'exercise').map((l) => ({ id: l.id, context: 'caged', title: l.title })),
+      ...CAGED_LESSONS.filter((l) => l.kind === 'exercise' || l.kind === 'shapeShift').map((l) => ({ id: l.id, context: 'caged', title: l.title })),
       ...SCALES_LESSONS.filter((l) => l.kind === 'scale').map((l) => ({ id: l.id, context: 'scales', title: l.title })),
       ...CIRCLE_LESSONS.filter((l) => l.kind === 'exercise').map((l) => ({ id: l.id, context: 'circleOfFifths', title: l.title })),
     ],
@@ -1099,9 +1110,25 @@ function App() {
 
   // C major reference positions for the Studies -> CAGED course — cheap to
   // recompute per render, same as every other derived value here.
-  const cagedPositions = computeChordPositions(CAGED_REFERENCE_CHORD, 'chord').positions;
-  const cagedTriadPositions = computeChordPositions(CAGED_REFERENCE_CHORD, 'triad').positions;
+  const cagedPositions = useMemo(() => computeChordPositions(cagedKey, 'chord').positions, [cagedKey]);
+  const cagedTriadPositions = useMemo(() => computeChordPositions(cagedKey, 'triad').positions, [cagedKey]);
   const activeCagedLesson = CAGED_LESSONS.find((l) => l.id === studiesLessonId) ?? CAGED_LESSONS[0];
+  const cagedVars = useMemo(
+    () => cagedLessonVars(cagedKey, cagedPositions, cagedTriadPositions),
+    [cagedKey, cagedPositions, cagedTriadPositions]
+  );
+  const shapeShiftSteps = useMemo(() => buildShapeShiftSteps(cagedPositions, cagedKey), [cagedPositions, cagedKey]);
+  const shapeShift = useShapeShift(shapeShiftSteps);
+  const { reset: resetShapeShift } = shapeShift;
+  // A new key means a new set of shapes, and leaving the workout (or the
+  // Studies section) should never leave it strumming in the background.
+  useEffect(() => {
+    resetShapeShift();
+  }, [cagedKey, resetShapeShift]);
+  const shapeShiftActive = activeSection === 'studies' && studiesCourse === 'caged' && activeCagedLesson.kind === 'shapeShift';
+  useEffect(() => {
+    if (!shapeShiftActive) resetShapeShift();
+  }, [shapeShiftActive, resetShapeShift]);
 
   // Studies -> Scales: same idea, resolved from the Scales course's own
   // lifted lesson/key/position state.
@@ -1292,7 +1319,12 @@ function App() {
         ? { position: null } // piano-only course; guitar mode can never actually select it (gated in StudiesSection)
         : activeCagedLesson.kind === 'exercise'
         ? { position: null, drillNotes, labelMode: drill.noteLabelMode }
-        : resolveCagedStageProps(activeCagedLesson, cagedPositions, cagedTriadPositions, cagedInversionStringSet)
+        : resolveCagedStageProps(activeCagedLesson, cagedPositions, {
+            keyValue: cagedKey,
+            triadPositions: cagedTriadPositions,
+            inversionStringSet: cagedInversionStringSet,
+            shapeShiftStep: shapeShift.current,
+          })
       : activeSection === 'songs'
       ? songTabLick
         ? { position: null, lick: songTabLick, playingNoteOrder: songTabPlayingOrder }
@@ -1748,6 +1780,12 @@ function App() {
               : null
           }
           cagedInversionStringSet={cagedInversionStringSet}
+          cagedKey={cagedKey}
+          onCagedKeyChange={setCagedKey}
+          cagedLessonVars={cagedVars}
+          cagedLessonFacts={cagedLessonFacts(activeCagedLesson, cagedKey, cagedPositions)}
+          resolveCagedExercise={(lesson) => resolveCagedExercise(lesson, cagedTriadPositions, cagedKey)}
+          shapeShift={shapeShift}
           onCagedInversionStringSetChange={setCagedInversionStringSet}
           scalesLesson={scalesLesson}
           scalesProgress={scalesProgress}

@@ -149,18 +149,26 @@
   white-space: pre-line;
 }
 
-/* Same label-above-select look as ScalesView.css's .scales-field. */
-.studies-inversion-set {
+/* Key / string-set menus — same label-above-select look as ScalesView.css's
+   .scales-field. */
+.studies-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.studies-field {
   display: inline-flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: var(--space-4);
   font-size: 12px;
   font-weight: 590;
   color: var(--text-secondary);
 }
 
-.studies-inversion-set select {
+.studies-field select {
   font-size: 14px;
   font-weight: 590;
   color: var(--text);
@@ -168,6 +176,14 @@
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg);
+}
+
+/* The selected key's exact frets/strings for a shape lesson. */
+.studies-lesson-facts {
+  margin: var(--space-3) 0 0;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text);
 }
 
 .studies-exercise {

@@ -81,6 +81,7 @@ import {
 } from './music/cagedCurriculum';
 import { useShapeShift } from './hooks/useShapeShift';
 import { useShapeQuiz } from './hooks/useShapeQuiz';
+import { useLanguage } from './i18n/LanguageContext';
 import { SCALES_LESSONS, resolveScaleStageProps } from './music/scalesCurriculum';
 import { CIRCLE_LESSONS, keyByPosition, resolveCircleStageProps } from './music/circleOfFifthsCurriculum';
 import { HARMONY_LESSONS, resolveHarmonyStageProps } from './music/harmonyCurriculum';
@@ -94,6 +95,7 @@ import { fivePositionWindows } from './music/scaleShapes';
 import './App.css';
 
 function App() {
+  const { lang } = useLanguage();
   const { theme, setTheme } = useTheme();
   const {
     guitarProfile,
@@ -1541,12 +1543,47 @@ function App() {
     earTraining.open &&
     (earTraining.isFretQuestion || !!earTraining.question?.choices);
 
+  function stepComposeChord(delta) {
+    if (progression.length === 0) return;
+    setActiveIndex((i) => (i + delta + progression.length) % progression.length);
+  }
+
+  // The Next/Previous chord shortcut (arrow keys by default) is contextual:
+  // in Studies -> CAGED it steps whatever "next" the current lesson has — the
+  // chord in the Shape-Shift / I-IV-V players, otherwise the lesson itself —
+  // instead of silently changing Compose's chord behind the scenes.
+  // Everywhere else it keeps its original Compose behavior.
+  function stepStudies(delta) {
+    if (studiesCourse !== 'caged') return;
+    // A loaded drill owns the arrow keys (PracticeDrillPanel's own listener).
+    if (drill.exercise && activeCagedLesson.kind === 'exercise') return;
+    if (activeCagedLesson.kind === 'shapeShift') {
+      if (delta > 0) shapeShift.next();
+      else shapeShift.previous();
+      return;
+    }
+    if (activeCagedLesson.kind === 'progressionArea') {
+      if (delta > 0) progressionPlayer.next();
+      else progressionPlayer.previous();
+      return;
+    }
+    // Lesson navigation mirrors in Hebrew, where "Next" sits on the left
+    // (and its arrow points left) — so the arrow key always moves toward
+    // the button it matches.
+    const direction = lang === 'he' ? -delta : delta;
+    const index = CAGED_LESSONS.findIndex((l) => l.id === activeCagedLesson.id);
+    const target = CAGED_LESSONS[Math.max(0, Math.min(CAGED_LESSONS.length - 1, index + direction))];
+    if (target) setStudiesLessonId(target.id);
+  }
+
   function handlePrevChord() {
-    setActiveIndex((i) => (i - 1 + progression.length) % progression.length);
+    if (activeSection === 'studies') stepStudies(-1);
+    else stepComposeChord(-1);
   }
 
   function handleNextChord() {
-    setActiveIndex((i) => (i + 1) % progression.length);
+    if (activeSection === 'studies') stepStudies(1);
+    else stepComposeChord(1);
   }
 
   // Compose -> Transpose: actually rewrites the typed progression by a half

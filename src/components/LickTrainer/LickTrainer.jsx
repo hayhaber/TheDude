@@ -127,7 +127,7 @@ const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.gp7,.gp8';
 // Shown after a Guitar Pro file is picked: which track, how to split it,
 // and how to file it in the library.
 // Shared library: imported files on every device (api/library.js).
-function LibraryBar({ trainer, t }) {
+export function LibraryBar({ trainer, t }) {
   const { library } = trainer;
   const [code, setCode] = useState('');
   const needsCode = library.status === 'off' || library.status === 'bad-key';
@@ -186,12 +186,13 @@ function LibraryBar({ trainer, t }) {
   );
 }
 
-function ImportPanel({ trainer, t, lang }) {
+export function ImportPanel({ trainer, t, lang, forceSaveAs = null }) {
   const { info, fileName } = trainer.pendingImport;
   const firstPlayable = defaultTrackIndex(info);
   const [title, setTitle] = useState(info.title || fileName.replace(/\.[^.]+$/, ''));
   const [trackIndex, setTrackIndex] = useState(firstPlayable);
-  const [saveAs, setSaveAs] = useState(info.barCount > 4 ? 'solo' : 'lick');
+  const [chosenSaveAs, setSaveAs] = useState(info.barCount > 4 ? 'solo' : 'lick');
+  const saveAs = forceSaveAs ?? chosenSaveAs;
   const [barsPerSection, setBarsPerSection] = useState(2);
   const [genre, setGenre] = useState('rock');
   const [level, setLevel] = useState('intermediate');
@@ -217,6 +218,7 @@ function ImportPanel({ trainer, t, lang }) {
             ))}
           </select>
         </label>
+        {!forceSaveAs && (
         <label className="lt-field">
           <span>{t('lickTrainer.importSaveAs')}</span>
           <select value={saveAs} onChange={(e) => setSaveAs(e.target.value)}>
@@ -224,6 +226,7 @@ function ImportPanel({ trainer, t, lang }) {
             <option value="lick">{t('lickTrainer.saveAsLick')}</option>
           </select>
         </label>
+        )}
         {saveAs === 'solo' && (
           <label className="lt-field">
             <span>{t('lickTrainer.importSplit')}</span>
@@ -274,8 +277,15 @@ function ImportPanel({ trainer, t, lang }) {
   );
 }
 
-export function LickTrainer({ trainer }) {
+// variant 'licks' = Practice -> Lick Trainer (the lick library);
+// variant 'solos' = the practice part of the GuitarPro section, which
+// supplies the file choice, import and shared library itself.
+export function LickTrainer({ trainer, variant = 'licks' }) {
   const fileRef = useRef(null);
+  const { setMode } = trainer;
+  useEffect(() => {
+    setMode(variant);
+  }, [variant, setMode]);
   const [confirmDelete, setConfirmDelete] = useState(null);
   // Start decoding the guitar samples as soon as the trainer is opened.
   const { preloadSamples } = trainer;
@@ -284,38 +294,18 @@ export function LickTrainer({ trainer }) {
   }, [preloadSamples]);
   const { t, lang } = useLanguage();
   const { lick, phase, history } = trainer;
-  const busy = phase === 'countIn' || phase === 'recording' || phase === 'analyzing' || phase === 'calibrating';
+  const busy = phase === 'preparing' || phase === 'countIn' || phase === 'recording' || phase === 'analyzing' || phase === 'calibrating';
   const countdown =
     phase === 'countIn' && trainer.playheadBeat != null ? Math.max(1, Math.ceil(-trainer.playheadBeat)) : null;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
 
   return (
     <div className="lick-trainer" dir={dir}>
-      <p className="lt-intro">{t(trainer.mode === 'solos' ? 'lickTrainer.introSolos' : 'lickTrainer.intro')}</p>
-
-      <div className="mode-toggle lt-mode" role="group" aria-label={t('lickTrainer.modeLabel')}>
-        <button type="button" className={trainer.mode === 'licks' ? 'active' : ''} onClick={() => trainer.setMode('licks')} disabled={busy}>
-          {t('lickTrainer.modeLicks')}
-        </button>
-        <button type="button" className={trainer.mode === 'solos' ? 'active' : ''} onClick={() => trainer.setMode('solos')} disabled={busy}>
-          {t('lickTrainer.modeSolos')}
-        </button>
-      </div>
+      {variant === 'licks' && <p className="lt-intro">{t('lickTrainer.intro')}</p>}
 
       <div className="lt-filters">
         {trainer.mode === 'solos' ? (
           <>
-            <label className="lt-field lt-grow">
-              <span>{t('lickTrainer.solo')}</span>
-              <select value={trainer.activeSolo?.id ?? ''} onChange={(e) => trainer.selectSolo(e.target.value)} disabled={busy || trainer.solos.length === 0}>
-                {trainer.solos.map((so) => (
-                  <option key={so.id} value={so.id}>
-                    {localize(so.title, lang)}
-                    {so.artist ? ` — ${so.artist}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
             {trainer.activeSolo?.sections?.length > 0 && (
               <label className="lt-field">
                 <span>{t('lickTrainer.section')}</span>
@@ -357,6 +347,8 @@ export function LickTrainer({ trainer }) {
         </label>
           </>
         )}
+        {variant === 'licks' && (
+        <>
         <button type="button" className="lt-import-btn" onClick={() => fileRef.current?.click()} disabled={busy}>
           {t('lickTrainer.import')}
         </button>
@@ -371,13 +363,16 @@ export function LickTrainer({ trainer }) {
             e.target.value = '';
           }}
         />
+        </>
+        )}
       </div>
 
-      <LibraryBar trainer={trainer} t={t} />
+      {variant === 'licks' && <LibraryBar trainer={trainer} t={t} />}
 
-      {trainer.pendingImport && <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} />}
+      {variant === 'licks' && trainer.pendingImport && (
+        <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="lick" />
+      )}
 
-      {trainer.mode === 'solos' && trainer.solos.length === 0 && <p className="lt-muted">{t('lickTrainer.noSolos')}</p>}
 
       {trainer.mode === 'licks' && (
       <div className="lt-list" role="list">
@@ -434,7 +429,7 @@ export function LickTrainer({ trainer }) {
         </p>
         {lick.rhythmApprox && <p className="lt-muted">{t('lickTrainer.rhythmApprox')}</p>}
         {lick.simplified && <p className="lt-muted">{t('lickTrainer.simplified')}</p>}
-        {lick.source === 'import' && (
+        {lick.source === 'import' && variant === 'licks' && (
           <div className="lt-actions">
             {/* Two taps to delete: the whole imported file goes, so ask once. */}
             <button
@@ -513,6 +508,7 @@ export function LickTrainer({ trainer }) {
         </div>
 
         <div className="lt-status" aria-live="polite">
+          {phase === 'preparing' && <span>{t('lickTrainer.preparing')}</span>}
           {phase === 'countIn' && countdown != null && <span className="lt-countdown">{countdown}</span>}
           {phase === 'countIn' && <span>{t('lickTrainer.getReady')}</span>}
           {phase === 'recording' && <span className="lt-rec-dot" aria-hidden="true" />}

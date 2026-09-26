@@ -263,3 +263,19 @@ export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = 
     notes: clean(notes, offset),
   };
 }
+
+// The backing band that plays along by default: drums, bass and keys (the
+// rhythm section) — never vocals. Everything else is the player's choice.
+export function isRhythmSection(t) {
+  if (!t || t.noteCount === 0 || /voice|vocal|vox/i.test(t.name)) return false;
+  if (t.percussion || /drum|perc/i.test(t.name)) return true;
+  if (/bass/i.test(t.name) || (t.program != null && t.program >= 32 && t.program <= 39)) return true;
+  if (/piano|keys?\b|keyboard|organ|synth|rhodes|clav/i.test(t.name)) return true;
+  if (/guitar|gtr|git/i.test(t.name)) return false;
+  return t.program != null && ((t.program >= 0 && t.program <= 7) || (t.program >= 16 && t.program <= 23));
+}
+
+/** Track indexes that sound by default: the practiced track + the rhythm section. */
+export function defaultMix(tracks, practiceTrack) {
+  return tracks.filter((t) => t.index === practiceTrack || isRhythmSection(t)).map((t) => t.index);
+}

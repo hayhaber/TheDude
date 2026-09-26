@@ -6,7 +6,8 @@ import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrai
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
 import { getAudioContext } from '../audio/audioContext';
-import { playReference, stopReference, preloadReference } from '../audio/gpReferencePlayer';
+import { playReference, stopReference, preloadReference, referenceTracks, renderBacking } from '../audio/gpReferencePlayer';
+import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
 
@@ -21,6 +22,7 @@ const COUNT_IN_BEATS = 4;
 const TAIL_S = 0.8; // keep recording a little past the last note
 const LATENCY_KEY = 'lick-trainer-latency';
 const HISTORY_KEY = 'lick-trainer-history';
+const MIX_KEY = 'lick-trainer-gp-mix';
 const CALIBRATION_CLICKS = 8;
 const CALIBRATION_BPM = 90;
 
@@ -42,6 +44,7 @@ function writeJson(key, value) {
 }
 
 const TICKS_PER_BEAT = 960;
+const NO_TRACKS = [];
 
 // Where to play a lick/solo/section from in its Guitar Pro file, or null.
 function gpSourceOf(lick) {
@@ -137,10 +140,43 @@ export function useLickTrainer() {
   // Load the file (and alphaTab's soundfont) as soon as a file-based
   // solo/lick is on screen, so Listen starts immediately.
   const gpKey = lick.gpUrl ?? lick.importGroup ?? null;
+  // The file's tracks and which of them sound (the mixer), remembered per file.
+  const [gpTracks, setGpTracks] = useState({ key: null, tracks: [] });
+  const [mixes, setMixes] = useState(() => readJson(MIX_KEY, {}));
   useEffect(() => {
     const gp = gpSourceOf(lick);
-    if (gp) preloadReference(gp.source, gp.trackIndex);
+    if (!gp) return undefined;
+    let alive = true;
+    preloadReference(gp.source, gp.trackIndex);
+    referenceTracks(gp.source, gp.trackIndex)
+      .then((tracks) => alive && setGpTracks({ key: gpKey, tracks }))
+      .catch(() => alive && setGpTracks({ key: gpKey, tracks: [] }));
+    return () => {
+      alive = false;
+    };
   }, [gpKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const tracks = useMemo(() => (gpTracks.key === gpKey ? gpTracks.tracks : NO_TRACKS), [gpTracks, gpKey]);
+  const practiceTrack = lick.gpRef?.track ?? null;
+  const mixKey = gpKey ? `${gpKey}#${practiceTrack}` : null;
+  const mix = useMemo(
+    () => (mixKey && mixes[mixKey]) || defaultMix(tracks, practiceTrack),
+    [mixKey, mixes, tracks, practiceTrack]
+  );
+  const toggleTrack = useCallback(
+    (index) => {
+      if (!mixKey) return;
+      setMixes((m) => {
+        const current = m[mixKey] || mix;
+        const nextMix = current.includes(index) ? current.filter((i) => i !== index) : [...current, index];
+        const next = { ...m, [mixKey]: nextMix };
+        writeJson(MIX_KEY, next);
+        return next;
+      });
+    },
+    [mixKey, mix]
+  );
+  // The band under a take: everything in the mix except the part being played.
+  const backingTracks = useMemo(() => mix.filter((i) => i !== practiceTrack), [mix, practiceTrack]);
   const bpm = Math.round((lick.bpm * tempoPct) / 100);
 
   const visibleLicks = useMemo(
@@ -154,6 +190,8 @@ export function useLickTrainer() {
   );
 
   const scheduleRef = useRef(null);
+  const backingRef = useRef(null); // AudioBufferSourceNode of the backing band during a take
+  const backingCacheRef = useRef({ key: null, buffer: null });
   const inputRef = useRef(null);
   const rafRef = useRef(null);
   const timersRef = useRef([]);
@@ -170,6 +208,12 @@ export function useLickTrainer() {
     runIdRef.current += 1;
     clearTimers();
     stopReference();
+    try {
+      backingRef.current?.stop();
+    } catch {
+      // already stopped
+    }
+    backingRef.current = null;
     scheduleRef.current?.stop();
     scheduleRef.current = null;
     setPlayheadBeat(null);
@@ -252,6 +296,7 @@ export function useLickTrainer() {
       try {
         await playReference({
           ...gp,
+          tracks: mix,
           speed: tempoPct / 100,
           onTick: (tick) => {
             if (runIdRef.current === runId0) setPlayheadBeat((tick - gp.startTick) / TICKS_PER_BEAT);
@@ -290,7 +335,7 @@ export function useLickTrainer() {
         setPhase((p) => (p === 'listening' ? (result ? 'results' : 'idle') : p));
       }, (sched.endTime - ctx.currentTime + 0.4) * 1000)
     );
-  }, [bpm, lick, stop, result, tempoPct]);
+  }, [bpm, lick, stop, result, tempoPct, mix]);
 
   const ensureInput = useCallback(async () => {
     if (inputRef.current) return inputRef.current;
@@ -313,8 +358,35 @@ export function useLickTrainer() {
     }
     if (runIdRef.current !== runId) return;
     const ctx = getAudioContext();
+    // The backing band, rendered offline so it sits exactly on this clock.
+    const gp = gpSourceOf(lick);
+    let backing = null;
+    if (gp && backingTracks.length > 0) {
+      const key = JSON.stringify([gp.source.key, gp.trackIndex, gp.startTick, gp.endTick, tempoPct, backingTracks]);
+      if (backingCacheRef.current.key === key) backing = backingCacheRef.current.buffer;
+      else {
+        setPhase('preparing');
+        try {
+          backing = await renderBacking({ ctx, ...gp, tracks: backingTracks, speed: tempoPct / 100 });
+          backingCacheRef.current = { key, buffer: backing };
+        } catch {
+          backing = null; // take it without the band rather than not at all
+        }
+        if (runIdRef.current !== runId) return;
+      }
+    }
+    if (ctx.state === 'suspended') await ctx.resume();
     const spb = 60 / bpm;
     const startTime = ctx.currentTime + 0.25 + COUNT_IN_BEATS * spb;
+    if (backing) {
+      const node = ctx.createBufferSource();
+      node.buffer = backing;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.9;
+      node.connect(gain).connect(ctx.destination);
+      node.start(startTime);
+      backingRef.current = node;
+    }
     input.start();
     const sched = scheduleLick({
       notes: lick.notes,
@@ -377,7 +449,7 @@ export function useLickTrainer() {
         }, 30);
       }, (sched.endTime + TAIL_S - ctx.currentTime) * 1000)
     );
-  }, [bpm, clickDuring, ensureInput, latency, lick, stop, tempoPct]);
+  }, [bpm, clickDuring, ensureInput, latency, lick, stop, tempoPct, backingTracks]);
 
   // The player picks any note on each of 8 clicks; the median delay from
   // click to captured attack is this setup's round-trip latency.
@@ -528,6 +600,13 @@ export function useLickTrainer() {
     cancelImport,
     commitImport,
     deleteImport,
+    songSource: activeSolo ? gpSourceOf(activeSolo) : null,
+    tracks,
+    mix,
+    toggleTrack,
+    practiceTrack,
+    backingTracks,
+    followPlayhead: setPlayheadBeat,
     library,
     connectLibrary,
     disconnectLibrary,

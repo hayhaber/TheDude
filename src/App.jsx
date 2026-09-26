@@ -8,6 +8,7 @@ import { ImproviseView } from './components/ImproviseView/ImproviseView';
 import { PracticeView } from './components/PracticeView/PracticeView';
 import { StudiesSection } from './components/StudiesSection/StudiesSection';
 import { SongsView } from './components/SongsView/SongsView';
+import { GuitarProView } from './components/GuitarPro/GuitarProView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
 import { NoteColorLegend } from './components/NoteColorLegend/NoteColorLegend';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './music/chordSymbolParser';
@@ -246,7 +247,7 @@ function App() {
   // Practice -> Lick Trainer (the lick is drawn on the shared Stage Fretboard).
   const lickTrainer = useLickTrainer();
   const { stop: stopLickTrainer } = lickTrainer;
-  const lickTrainerVisible = activeSection === 'practice' && practiceTab === 'trainer';
+  const lickTrainerVisible = (activeSection === 'practice' && practiceTab === 'trainer') || activeSection === 'guitarpro';
   // A whole solo is far too many notes for one neck view (it covers the
   // entire fretboard and matches nothing in the tab on screen), so the neck
   // shows one practice section at a time: the one being played, or the last
@@ -294,6 +295,17 @@ function App() {
   useEffect(() => {
     if (!lickTrainerVisible) stopLickTrainer();
   }, [lickTrainerVisible, stopLickTrainer]);
+  // One marker per fret position (a lick revisits the same spots), labeled
+  // with the note name — the tab above already carries the order and
+  // rhythm. The marker for whatever note is sounding lights up. Used by
+  // Practice -> Lick Trainer and the GuitarPro section.
+  const lickTrainerStageProps = {
+    position: null,
+    lick: { notes: lickTrainerMarkers.markers },
+    ...(lickNeckTuning ? { tuning: lickNeckTuning } : {}),
+    playingNoteOrder:
+      lickTrainer.playingOrder != null ? lickTrainerMarkers.markerOf.get(lickTrainer.playingOrder) ?? null : null,
+  };
   const earTraining = useEarTraining();
   const rhythmGame = useRhythmGame(metronome);
   // Scale Practice reuses the EXACT same generic engine as Rhythm Practice
@@ -1329,17 +1341,7 @@ function App() {
             onQuizCellClick: earTraining.handleFretClick,
           }
         : practiceTab === 'trainer'
-        ? {
-            position: null,
-            // One marker per fret position (a lick revisits the same spots),
-            // labeled with the note name — the tab above already carries the
-            // order and rhythm. The marker for whatever note is sounding
-            // lights up.
-            lick: { notes: lickTrainerMarkers.markers },
-            ...(lickNeckTuning ? { tuning: lickNeckTuning } : {}),
-            playingNoteOrder:
-              lickTrainer.playingOrder != null ? lickTrainerMarkers.markerOf.get(lickTrainer.playingOrder) ?? null : null,
-          }
+        ? lickTrainerStageProps
         : practiceTab === 'rhythm'
         ? {
             position: null,
@@ -1437,6 +1439,8 @@ function App() {
             progressionStep: progressionPlayer.current,
             chordToneLabels: cagedChordToneLabels,
           })
+      : activeSection === 'guitarpro'
+      ? lickTrainerStageProps
       : activeSection === 'songs'
       ? songTabLick
         ? { position: null, lick: songTabLick, playingNoteOrder: songTabPlayingOrder }
@@ -1980,6 +1984,8 @@ function App() {
           onSongTabPlayingOrderChange={setSongTabPlayingOrder}
         />
       )}
+
+      {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} />}
 
       {activeSection === 'vocal' && <VocalTrainingView />}
     </AppShell>

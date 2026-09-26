@@ -19,5 +19,7 @@ export const SECTIONS = [
   { key: 'practice', labelKey: 'nav.practice', icon: TrainingIcon },
   { key: 'studies', labelKey: 'nav.studies', icon: '📖' },
   { key: 'songs', labelKey: 'nav.songs', icon: '🔍' },
+  // Guitar Pro files: play the song with its band, practice its solo.
+  { key: 'guitarpro', labelKey: 'nav.guitarpro', icon: '🎸' },
   { key: 'vocal', labelKey: 'nav.vocal', icon: '🎤' },
 ];

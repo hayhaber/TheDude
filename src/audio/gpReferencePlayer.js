@@ -1,4 +1,7 @@
 import * as alphaTab from '@coderline/alphatab';
+import { describeScore } from '../music/lickTrainer/gpImport';
+
+const TICKS_PER_BEAT = 960;
 
 // Reference playback of a Guitar Pro solo with alphaTab's own synthesizer —
 // the same engine (and SONiVOX soundfont) Guitar Pro web readers such as
@@ -89,9 +92,6 @@ function load(source, trackIndex) {
       a.load(bytes, [trackIndex]);
       const score = await scoreLoaded;
       await ready;
-      // Only the solo's own track sounds.
-      const track = score.tracks[trackIndex];
-      if (track) a.changeTrackSolo([track], true);
       return score;
     });
   // A failed load must not stick: the next request retries.
@@ -108,14 +108,30 @@ export function preloadReference(source, trackIndex) {
   return load(source, trackIndex).catch(() => null);
 }
 
+/** The loaded file's tracks: [{ index, name, program, percussion, noteCount }]. */
+export async function referenceTracks(source, trackIndex) {
+  const score = await load(source, trackIndex);
+  return describeScore(score).tracks;
+}
+
+// Which tracks sound: exactly `enabled` (track indexes), the rest muted.
+function applyMix(a, score, enabled) {
+  const on = new Set(enabled);
+  a.changeTrackSolo(score.tracks, false);
+  a.changeTrackMute(score.tracks.filter((t) => !on.has(t.index)), true);
+  a.changeTrackMute(score.tracks.filter((t) => on.has(t.index)), false);
+}
+
 /**
- * Plays ticks [startTick, endTick) of one track at `speed` (1 = original
- * tempo). onTick(tick) follows the playback; onEnd() fires once at the end.
+ * Plays ticks [startTick, endTick) at `speed` (1 = original tempo) with the
+ * tracks in `tracks` sounding (default: just the solo's own track).
+ * onTick(tick) follows the playback; onEnd() fires once at the end.
  */
-export async function playReference({ source, trackIndex, startTick, endTick, speed, onTick, onEnd }) {
+export async function playReference({ source, trackIndex, tracks, startTick, endTick, speed, onTick, onEnd }) {
   const a = ensureApi();
-  await load(source, trackIndex);
+  const score = await load(source, trackIndex);
   a.stop();
+  applyMix(a, score, tracks ?? [trackIndex]);
   listeners = { onTick, onEnd, endTick };
   a.playbackSpeed = speed;
   a.playbackRange = { startTick, endTick };
@@ -127,4 +143,66 @@ export function stopReference() {
   if (!api) return;
   listeners = { onTick: null, onEnd: null, endTick: Infinity };
   api.stop();
+}
+
+/**
+ * Renders ticks [startTick, endTick) of the `tracks` given — the backing
+ * band — offline, with alphaTab's own synth, into an AudioBuffer of `ctx`.
+ * Played with AudioBufferSourceNode.start(t) it lands sample-exactly on the
+ * trainer's own clock (the live player runs on a separate clock, which
+ * would smear the timing feedback). `speed` scales the file's tempo.
+ */
+export async function renderBacking({ ctx, source, trackIndex, tracks, startTick, endTick, speed }) {
+  const a = ensureApi();
+  const score = await load(source, trackIndex);
+  const options = new alphaTab.synth.AudioExportOptions();
+  options.sampleRate = ctx.sampleRate;
+  options.useSyncPoints = false;
+  options.masterVolume = 1;
+  options.metronomeVolume = 0;
+  options.playbackRange = { startTick, endTick };
+  const on = new Set(tracks);
+  for (const t of score.tracks) options.trackVolume.set(t.index, on.has(t.index) ? 1 : 0);
+
+  // The MIDI is generated from the score synchronously inside exportAudio():
+  // scale the tempo just for that call.
+  const first = score.masterBars[0];
+  const added = first.tempoAutomations.length === 0 ? alphaTab.model.Automation.buildTempoAutomation(false, 0, score.tempo, 2) : null;
+  if (added) first.tempoAutomations.push(added);
+  const originals = score.masterBars.flatMap((mb) => mb.tempoAutomations.map((au) => [au, au.value]));
+  for (const [au, v] of originals) au.value = v * speed;
+  let pending;
+  try {
+    pending = a.exportAudio(options);
+  } finally {
+    for (const [au, v] of originals) au.value = v;
+    if (added) first.tempoAutomations.splice(first.tempoAutomations.indexOf(added), 1);
+  }
+  const exporter = await pending;
+  const chunks = [];
+  let frames = 0;
+  const maxFrames = Math.ceil(((endTick - startTick) / TICKS_PER_BEAT) * (60 / (score.tempo * speed)) * ctx.sampleRate) + ctx.sampleRate * 4;
+  try {
+    for (;;) {
+      const chunk = await exporter.render(1000);
+      if (!chunk) break;
+      chunks.push(chunk.samples);
+      frames += chunk.samples.length / 2;
+      if (frames >= maxFrames || chunk.currentTick >= endTick) break;
+    }
+  } finally {
+    exporter.destroy();
+  }
+  // Interleaved stereo -> AudioBuffer.
+  const buffer = ctx.createBuffer(2, Math.max(1, frames), ctx.sampleRate);
+  const left = buffer.getChannelData(0);
+  const right = buffer.getChannelData(1);
+  let pos = 0;
+  for (const samples of chunks) {
+    for (let i = 0; i + 1 < samples.length && pos < frames; i += 2, pos++) {
+      left[pos] = samples[i];
+      right[pos] = samples[i + 1];
+    }
+  }
+  return buffer;
 }

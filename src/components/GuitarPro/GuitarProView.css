@@ -1,0 +1,161 @@
+.gp-view {
+  max-width: 980px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.gp-view h1 {
+  margin-bottom: var(--space-2);
+}
+
+.gp-view .subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 17px;
+}
+
+.gp-view > .mode-toggle {
+  margin: 0;
+}
+
+.gp-file-row {
+  align-items: flex-end;
+}
+
+.gp-delete {
+  font-size: 14px;
+  font-weight: 590;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.gp-delete.danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Track mixer */
+.gp-mixer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gp-mixer-label {
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.gp-mixer .mode-toggle {
+  margin: 0;
+}
+
+.gp-mixer .mode-toggle.wrap button {
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.gp-mixer .mode-toggle.wrap button.active {
+  color: var(--accent);
+}
+
+.gp-track-state {
+  display: inline-block;
+  width: 10px;
+  text-align: center;
+}
+
+.gp-track-you {
+  font-size: 11px;
+  font-weight: 650;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Song player */
+.gp-song {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gp-transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.gp-transport > button {
+  font-size: 15px;
+  font-weight: 590;
+  height: var(--control-height);
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.gp-transport > button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  min-width: 88px;
+}
+
+.gp-transport > button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* The score is drawn black-on-white like sheet music, in both themes. */
+.gp-score-scroll {
+  position: relative;
+  height: min(62vh, 640px);
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #000;
+}
+
+.gp-score {
+  padding: 8px 4px;
+}
+
+.gp-score-loading {
+  position: absolute;
+  inset: 16px auto auto 16px;
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* alphaTab's playback cursor/selection */
+.gp-score .at-cursor-bar {
+  background: rgba(10, 132, 255, 0.12);
+}
+
+.gp-score .at-cursor-beat {
+  background: rgba(10, 132, 255, 0.75);
+  width: 3px;
+}
+
+.gp-score .at-selection div {
+  background: rgba(10, 132, 255, 0.15);
+}
+
+.gp-score .at-highlight * {
+  fill: #0a84ff;
+  stroke: #0a84ff;
+}

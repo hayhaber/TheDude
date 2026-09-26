@@ -124,4 +124,19 @@ rosewood, below).
   copy; records marked `cloud: true` that vanish remotely were deleted on
   another device; unmarked local imports get uploaded. Needs
   `BLOB_READ_WRITE_TOKEN` (from connecting a Blob store to the project).
+- **GuitarPro section** (nav key `guitarpro`, guitar-only):
+  `components/GuitarPro/GuitarProView.jsx` — file select (built-in SOLOS +
+  imports), Import (always as a solo), shared library bar, Song | Practice.
+  Track mixer (`trainer.mix`, per file in localStorage; default = practiced
+  track + rhythm section via `defaultMix()`/`isRhythmSection()` in
+  gpImport.js — drums, bass, keys, never vocals). Song = `GpSongPlayer.jsx`
+  (visible alphaTab tab, own AlphaTabApi, mixer via changeTrackMute, drives
+  the Stage fretboard through `trainer.followPlayhead`). Practice = the
+  `LickTrainer` component with `variant="solos"` (Practice -> Lick Trainer is
+  `variant="licks"`, licks only). During a take the band (mix minus your
+  part) is rendered OFFLINE with `renderBacking()` (alphaTab `exportAudio`,
+  tempo scaled by patching tempo automations just for the MIDI generation)
+  into an AudioBuffer started on the trainer's own clock — sample-exact vs.
+  the analysis timeline. Never play the backing through the live alphaTab
+  player during a take (separate clock -> smeared timing feedback).
 

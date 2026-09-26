@@ -15,6 +15,7 @@
 // specific recording). `rhythmApprox` marks a lick whose source tab had no
 // rhythm, so the rhythm here is a reasonable reading, not the original.
 import { STANDARD_TUNING } from '../notes';
+import { comfortablyNumb } from './imports/comfortablyNumb';
 
 function n(beat, beats, string, fret, opts = {}) {
   return {
@@ -697,17 +698,25 @@ export function secondsPerBeat(bpm) {
   return 60 / bpm;
 }
 
-function withDerived(lick) {
+// Adds each note's play order and actual pitch. `tuningShift` covers licks
+// written for a detuned guitar (e.g. -1 = half a step down): the fret stays
+// what the player frets, the pitch is what actually sounds.
+export function withDerived(lick) {
+  const shift = lick.tuningShift ?? 0;
   const notes = lick.notes.map((note, i) => ({
     ...note,
     order: i + 1,
-    midi: STANDARD_TUNING[note.string].baseMidi + note.fret,
+    midi: STANDARD_TUNING[note.string].baseMidi + note.fret + shift,
   }));
   const lastEnd = Math.max(...notes.map((x) => x.start + x.duration));
   return { ...lick, notes, lengthBeats: Math.ceil(lastEnd) };
 }
 
-export const LICKS = RAW_LICKS.map(withDerived);
+// Licks generated from the user's Guitar Pro files (scripts/gp-to-licks.mjs).
+// The complete solo is harder than any single phrase of it.
+const IMPORTED_LICKS = [...comfortablyNumb].map((l) => (l.id.endsWith('-full') ? { ...l, level: 'advanced' } : l));
+
+export const LICKS = [...RAW_LICKS, ...IMPORTED_LICKS].map(withDerived);
 
 export function findLick(id) {
   return LICKS.find((l) => l.id === id) ?? null;

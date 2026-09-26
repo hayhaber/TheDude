@@ -96,3 +96,10 @@ rosewood, below).
   `audio/lickTrainerAudio.js`, state in `hooks/useLickTrainer.js`. Engine
   regression test on synthetic guitar audio: `scripts/lick-analysis-test.mjs`
   (bundle with esbuild, run with node) — run it after any analysis change.
+- **Guitar Pro licks**: `music/lickTrainer/gpImport.js` converts an alphaTab
+  Score to licks (exact rhythm/bends/slides/legato; chords reduced to the top
+  note). In-app "Import" saves to IndexedDB (`userLickStore.js`, this device
+  only). For the built-in library, the user drops files in
+  `C:\Users\hay\Downloads\GuitarPro` on their computer; convert with
+  `scripts/gp-to-licks.mjs` into `music/lickTrainer/imports/*.js` and add the
+  export to `IMPORTED_LICKS` in `library.js`.

@@ -623,7 +623,8 @@ export function analyzeTake({ samples, sampleRate, t0, latency = 0, expected, cl
       const rel = measureRelease(frames, start - 0.06, end, e.midi);
       if (rel) result.release = { ...rel, ok: Math.abs(rel.endHeight) <= BEND_TOLERANCE };
     }
-    if (e.vibrato) {
+    // Vibrato needs time to be heard (≈2 cycles); on a short note it's not judged.
+    if (e.vibrato && e.duration >= 0.35) {
       const depth = measureVibrato(frames, start, end);
       if (depth != null) result.vibrato = { depth: Math.round(depth * 100) / 100, ok: depth >= VIBRATO_MIN_DEPTH };
     }

@@ -470,3 +470,53 @@
   padding-top: 8px;
   border-top: 1px solid var(--border);
 }
+
+.lt-import-btn {
+  font-size: 14px;
+  font-weight: 590;
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.lt-import {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+}
+
+.lt-import h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.lt-field input[type='text'] {
+  font-size: 14px;
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  min-width: 220px;
+}
+
+.lt-grow {
+  flex: 1 1 220px;
+}
+
+.lt-actions button:not(.primary) {
+  background: var(--bg);
+}
+
+.lt-actions button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}

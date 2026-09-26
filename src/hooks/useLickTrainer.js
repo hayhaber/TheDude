@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { LICKS, findLick } from '../music/lickTrainer/library';
+import * as alphaTab from '@coderline/alphatab';
+import { LICKS, withDerived } from '../music/lickTrainer/library';
+import { scoreToLicks, describeScore } from '../music/lickTrainer/gpImport';
+import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency } from '../audio/lickTrainerAudio';
 import { getAudioContext } from '../audio/audioContext';
@@ -55,12 +58,29 @@ export function useLickTrainer() {
   });
   const [history, setHistory] = useState(() => readJson(HISTORY_KEY, {}));
 
-  const lick = findLick(lickId) ?? LICKS[0];
+  // Licks imported in the app from Guitar Pro files (this device).
+  const [userLicks, setUserLicks] = useState([]);
+  const [pendingImport, setPendingImport] = useState(null); // { fileName, info, score }
+  useEffect(() => {
+    let alive = true;
+    loadUserLicks().then((raw) => alive && setUserLicks(raw.map(withDerived)));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const allLicks = useMemo(() => [...LICKS, ...userLicks], [userLicks]);
+
+  const lick = allLicks.find((l) => l.id === lickId) ?? LICKS[0];
   const bpm = Math.round((lick.bpm * tempoPct) / 100);
 
   const visibleLicks = useMemo(
-    () => LICKS.filter((l) => (genre === 'all' || l.genre === genre) && (level === 'all' || l.level === level)),
-    [genre, level]
+    () =>
+      allLicks.filter(
+        (l) =>
+          (genre === 'all' || (genre === 'mine' ? l.source === 'import' : l.genre === genre)) &&
+          (level === 'all' || l.level === level)
+      ),
+    [allLicks, genre, level]
   );
 
   const scheduleRef = useRef(null);
@@ -280,7 +300,63 @@ export function useLickTrainer() {
     return note ? note.order : null;
   }, [playheadBeat, lick]);
 
+  // ---- Guitar Pro import ----
+  const readFile = useCallback(async (file) => {
+    setError(null);
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(bytes, new alphaTab.Settings());
+      setPendingImport({ fileName: file.name, info: describeScore(score), score });
+    } catch (err) {
+      setError({ key: 'import', message: err?.message ?? String(err) });
+    }
+  }, []);
+
+  const cancelImport = useCallback(() => setPendingImport(null), []);
+
+  const commitImport = useCallback(
+    async ({ title, trackIndex, barsPerPhrase, genre: g, level: lv }) => {
+      if (!pendingImport) return;
+      const stamp = Date.now();
+      const raw = scoreToLicks(pendingImport.score, {
+        trackIndex,
+        barsPerPhrase,
+        base: { idPrefix: `import-${stamp}`, title, genre: g, level: lv, source: 'import', credit: pendingImport.fileName },
+      }).map((l, i) => ({ ...l, importedAt: stamp + i, importGroup: `import-${stamp}` }));
+      if (raw.length === 0) {
+        setError({ key: 'importEmpty' });
+        return;
+      }
+      await saveUserLicks(raw);
+      const derived = raw.map(withDerived);
+      setUserLicks((u) => [...u, ...derived]);
+      setPendingImport(null);
+      setGenre('mine');
+      setLevel('all');
+      selectLick(derived[0].id);
+    },
+    [pendingImport, selectLick]
+  );
+
+  // Deletes every lick that came from the same imported file.
+  const deleteImport = useCallback(
+    async (id) => {
+      const target = userLicks.find((l) => l.id === id);
+      if (!target) return;
+      const ids = userLicks.filter((l) => l.importGroup === target.importGroup).map((l) => l.id);
+      await deleteUserLicks(ids);
+      setUserLicks((u) => u.filter((l) => !ids.includes(l.id)));
+      selectLick(LICKS[0].id);
+    },
+    [userLicks, selectLick]
+  );
+
   return {
+    pendingImport,
+    readFile,
+    cancelImport,
+    commitImport,
+    deleteImport,
     genre,
     setGenre,
     level,

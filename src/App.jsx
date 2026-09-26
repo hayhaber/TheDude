@@ -96,6 +96,21 @@ import { DRILLS } from './music/drills';
 import { fivePositionWindows } from './music/scaleShapes';
 import './App.css';
 
+
+// Lick Trainer: names/tuning for files in a lowered tuning (Eb, D ...),
+// spelled with flats as guitarists call them.
+const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+function flatNoteName(midi) {
+  return FLAT_NAMES[((midi % 12) + 12) % 12];
+}
+function shiftedTuning(shift) {
+  return STANDARD_TUNING.map((s) => {
+    const baseMidi = s.baseMidi + shift;
+    const pitchClass = ((baseMidi % 12) + 12) % 12;
+    return { ...s, baseMidi, pitchClass, openNote: shift < 0 ? FLAT_NAMES[pitchClass] : midiToNoteName(baseMidi).replace(/-?\d+$/, '') };
+  });
+}
+
 function App() {
   const { lang } = useLanguage();
   const { theme, setTheme } = useTheme();
@@ -232,11 +247,32 @@ function App() {
   const lickTrainer = useLickTrainer();
   const { stop: stopLickTrainer } = lickTrainer;
   const lickTrainerVisible = activeSection === 'practice' && practiceTab === 'trainer';
+  // A whole solo is far too many notes for one neck view (it covers the
+  // entire fretboard and matches nothing in the tab on screen), so the neck
+  // shows one practice section at a time: the one being played, or the last
+  // one played. A chosen section / a lick is shown whole.
+  const lickOnNeck = lickTrainer.lick;
+  const neckSections = lickOnNeck.sections && !lickOnNeck.sectionLabel ? lickOnNeck.sections : null;
+  const playheadSection =
+    neckSections && lickTrainer.playheadBeat != null
+      ? Math.max(0, neckSections.findLastIndex((sec) => sec.fromBeat <= lickTrainer.playheadBeat + 1e-6))
+      : null;
+  const [neckSection, setNeckSection] = useState({ lickId: null, index: 0 });
+  useEffect(() => {
+    if (playheadSection != null) setNeckSection({ lickId: lickOnNeck.id, index: playheadSection });
+  }, [playheadSection, lickOnNeck.id]);
+  const neckSectionIndex = neckSections ? (neckSection.lickId === lickOnNeck.id ? neckSection.index : 0) : -1;
+  // A file tuned down (e.g. Eb) gets a neck in that tuning, so every note
+  // name — and the pitch a tapped marker plays — matches the tab's frets.
+  const lickTuningShift = lickOnNeck.tuningShift ?? 0;
+  const lickNeckTuning = useMemo(() => (lickTuningShift ? shiftedTuning(lickTuningShift) : null), [lickTuningShift]);
   const lickTrainerMarkers = useMemo(() => {
     const markers = [];
     const byPos = new Map();
     const markerOf = new Map(); // note order -> marker order
-    for (const n of lickTrainer.lick.notes) {
+    const sec = neckSectionIndex >= 0 ? neckSections[neckSectionIndex] : null;
+    for (const n of lickOnNeck.notes) {
+      if (sec && (n.start < sec.fromBeat - 1e-6 || n.start >= sec.toBeat - 1e-6)) continue;
       const key = `${n.string}:${n.fret}`;
       let m = byPos.get(key);
       if (!m) {
@@ -245,7 +281,7 @@ function App() {
           fret: n.fret,
           order: n.order,
           technique: n.technique ?? (n.vibrato ? 'vibrato' : null),
-          label: midiToNoteName(n.midi).replace(/-?\d+$/, ''),
+          label: lickTuningShift < 0 ? flatNoteName(n.midi) : midiToNoteName(n.midi).replace(/-?\d+$/, ''),
         };
         m.displayLabel = m.label;
         byPos.set(key, m);
@@ -254,7 +290,7 @@ function App() {
       markerOf.set(n.order, m.order);
     }
     return { markers, markerOf };
-  }, [lickTrainer.lick]);
+  }, [lickOnNeck, neckSections, neckSectionIndex, lickTuningShift]);
   useEffect(() => {
     if (!lickTrainerVisible) stopLickTrainer();
   }, [lickTrainerVisible, stopLickTrainer]);
@@ -1300,6 +1336,7 @@ function App() {
             // order and rhythm. The marker for whatever note is sounding
             // lights up.
             lick: { notes: lickTrainerMarkers.markers },
+            ...(lickNeckTuning ? { tuning: lickNeckTuning } : {}),
             playingNoteOrder:
               lickTrainer.playingOrder != null ? lickTrainerMarkers.markerOf.get(lickTrainer.playingOrder) ?? null : null,
           }

@@ -37,7 +37,18 @@ export async function loadUserLicks() {
   }
 }
 
+// Ask the browser to keep this site's storage until the user clears it
+// (without this, e.g. Safari may drop it after a few weeks unused).
+function requestPersistence() {
+  try {
+    navigator.storage?.persist?.().catch(() => {});
+  } catch {
+    // not supported — nothing to do
+  }
+}
+
 export function saveUserLicks(licks) {
+  requestPersistence();
   return run('readwrite', (store) => licks.forEach((l) => store.put(l)));
 }
 

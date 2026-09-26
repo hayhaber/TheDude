@@ -4,7 +4,7 @@ import { LICKS, withDerived } from '../music/lickTrainer/library';
 import { scoreToLicks, describeScore } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
-import { scheduleLick, openInput, defaultLatency } from '../audio/lickTrainerAudio';
+import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
 import { getAudioContext } from '../audio/audioContext';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 
@@ -139,8 +139,13 @@ export function useLickTrainer() {
     rafRef.current = requestAnimationFrame(frame);
   }
 
-  const listen = useCallback(() => {
+  const listen = useCallback(async () => {
     stop();
+    const runId0 = runIdRef.current;
+    // Guitar samples (usually cached already); give them a moment on the
+    // very first listen, otherwise fall back to the synth voice.
+    await Promise.race([preloadTrainerSamples(), new Promise((r) => setTimeout(r, 4000))]);
+    if (runIdRef.current !== runId0) return;
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') ctx.resume();
     const spb = 60 / bpm;
@@ -352,6 +357,7 @@ export function useLickTrainer() {
   );
 
   return {
+    preloadSamples: preloadTrainerSamples,
     pendingImport,
     readFile,
     cancelImport,

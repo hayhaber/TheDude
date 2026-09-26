@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { LICK_GENRES, LICK_LEVELS } from '../../music/lickTrainer/library';
@@ -205,6 +205,11 @@ function ImportPanel({ trainer, t, lang }) {
 export function LickTrainer({ trainer }) {
   const fileRef = useRef(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  // Start decoding the guitar samples as soon as the trainer is opened.
+  const { preloadSamples } = trainer;
+  useEffect(() => {
+    preloadSamples();
+  }, [preloadSamples]);
   const { t, lang } = useLanguage();
   const { lick, phase, history } = trainer;
   const busy = phase === 'countIn' || phase === 'recording' || phase === 'analyzing' || phase === 'calibrating';

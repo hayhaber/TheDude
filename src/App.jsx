@@ -82,6 +82,7 @@ import {
 import { useShapeShift } from './hooks/useShapeShift';
 import { useShapeQuiz } from './hooks/useShapeQuiz';
 import { useLickTrainer } from './hooks/useLickTrainer';
+import { midiToNoteName } from './music/pitchUtils';
 import { useLanguage } from './i18n/LanguageContext';
 import { SCALES_LESSONS, resolveScaleStageProps } from './music/scalesCurriculum';
 import { CIRCLE_LESSONS, keyByPosition, resolveCircleStageProps } from './music/circleOfFifthsCurriculum';
@@ -231,6 +232,29 @@ function App() {
   const lickTrainer = useLickTrainer();
   const { stop: stopLickTrainer } = lickTrainer;
   const lickTrainerVisible = activeSection === 'practice' && practiceTab === 'trainer';
+  const lickTrainerMarkers = useMemo(() => {
+    const markers = [];
+    const byPos = new Map();
+    const markerOf = new Map(); // note order -> marker order
+    for (const n of lickTrainer.lick.notes) {
+      const key = `${n.string}:${n.fret}`;
+      let m = byPos.get(key);
+      if (!m) {
+        m = {
+          string: n.string,
+          fret: n.fret,
+          order: n.order,
+          technique: n.technique ?? (n.vibrato ? 'vibrato' : null),
+          label: midiToNoteName(n.midi).replace(/-?\d+$/, ''),
+        };
+        m.displayLabel = m.label;
+        byPos.set(key, m);
+        markers.push(m);
+      }
+      markerOf.set(n.order, m.order);
+    }
+    return { markers, markerOf };
+  }, [lickTrainer.lick]);
   useEffect(() => {
     if (!lickTrainerVisible) stopLickTrainer();
   }, [lickTrainerVisible, stopLickTrainer]);
@@ -1271,16 +1295,13 @@ function App() {
         : practiceTab === 'trainer'
         ? {
             position: null,
-            lick: {
-              notes: lickTrainer.lick.notes.map((n) => ({
-                string: n.string,
-                fret: n.fret,
-                order: n.order,
-                technique: n.technique ?? (n.vibrato ? 'vibrato' : null),
-                label: String(n.fret),
-              })),
-            },
-            playingNoteOrder: lickTrainer.playingOrder,
+            // One marker per fret position (a lick revisits the same spots),
+            // labeled with the note name — the tab above already carries the
+            // order and rhythm. The marker for whatever note is sounding
+            // lights up.
+            lick: { notes: lickTrainerMarkers.markers },
+            playingNoteOrder:
+              lickTrainer.playingOrder != null ? lickTrainerMarkers.markerOf.get(lickTrainer.playingOrder) ?? null : null,
           }
         : practiceTab === 'rhythm'
         ? {

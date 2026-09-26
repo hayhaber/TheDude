@@ -1032,7 +1032,7 @@ export function Fretboard({
               )}
               <circle cx={cx} cy={cy} r={LICK_DOT_RADIUS} fill={fill} className="lick-dot" />
               <text x={cx} y={cy + 3} className="lick-dot-label" textAnchor="middle">
-                {n.order}
+                {n.displayLabel ?? n.order}
               </text>
               {glyph && (
                 <text x={cx + LICK_DOT_RADIUS + 2} y={cy - LICK_DOT_RADIUS + 2} className="lick-technique-glyph">

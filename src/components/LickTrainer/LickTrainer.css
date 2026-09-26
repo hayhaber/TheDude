@@ -539,3 +539,81 @@
 .tt-note.is-dim {
   opacity: 0.35;
 }
+
+/* Shared library (imported files on every device) */
+.lt-library {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.lt-library-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 240px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.lt-library-text strong {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.lt-library.is-ok .lt-library-text span {
+  color: var(--accent);
+}
+
+.lt-library.is-bad-key .lt-library-text span,
+.lt-library.is-error .lt-library-text span,
+.lt-library.is-too-big .lt-library-text span {
+  color: var(--danger);
+}
+
+.lt-library-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lt-library-form input {
+  width: 150px;
+  font-size: 14px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.lt-library-form button {
+  font-size: 14px;
+  font-weight: 590;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.lt-library-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.lt-library-form button.lt-link {
+  border-color: transparent;
+  background: none;
+  color: var(--text-secondary);
+  padding: 7px 6px;
+}

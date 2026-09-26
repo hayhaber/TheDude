@@ -126,6 +126,66 @@ const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.gp7,.gp8';
 
 // Shown after a Guitar Pro file is picked: which track, how to split it,
 // and how to file it in the library.
+// Shared library: imported files on every device (api/library.js).
+function LibraryBar({ trainer, t }) {
+  const { library } = trainer;
+  const [code, setCode] = useState('');
+  const needsCode = library.status === 'off' || library.status === 'bad-key';
+  const message = {
+    off: t('lickTrainer.libOff'),
+    'bad-key': t('lickTrainer.libBadKey'),
+    syncing: t('lickTrainer.libSyncing'),
+    ok: t('lickTrainer.libOk', { n: library.count ?? 0 }),
+    'not-configured': t('lickTrainer.libNotConfigured'),
+    offline: t('lickTrainer.libOffline'),
+    'too-big': t('lickTrainer.libTooBig'),
+    error: t('lickTrainer.libError'),
+  }[library.status];
+  return (
+    <div className={`lt-library is-${library.status}`}>
+      <div className="lt-library-text">
+        <strong>{t('lickTrainer.libTitle')}</strong>
+        <span>{message}</span>
+      </div>
+      {needsCode ? (
+        <form
+          className="lt-library-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (code.trim()) trainer.connectLibrary(code);
+            setCode('');
+          }}
+        >
+          <input
+            type="password"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder={t('lickTrainer.libCode')}
+            aria-label={t('lickTrainer.libCode')}
+            autoComplete="current-password"
+          />
+          <button type="submit" disabled={!code.trim()}>
+            {t('lickTrainer.libConnect')}
+          </button>
+        </form>
+      ) : (
+        <div className="lt-library-form">
+          {['offline', 'error', 'too-big', 'not-configured'].includes(library.status) && (
+            <button type="button" onClick={trainer.syncLibrary}>
+              {t('lickTrainer.libRetry')}
+            </button>
+          )}
+          {library.status !== 'syncing' && (
+            <button type="button" className="lt-link" onClick={trainer.disconnectLibrary}>
+              {t('lickTrainer.libDisconnect')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ImportPanel({ trainer, t, lang }) {
   const { info, fileName } = trainer.pendingImport;
   const firstPlayable = defaultTrackIndex(info);
@@ -312,6 +372,8 @@ export function LickTrainer({ trainer }) {
           }}
         />
       </div>
+
+      <LibraryBar trainer={trainer} t={t} />
 
       {trainer.pendingImport && <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} />}
 

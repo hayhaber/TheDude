@@ -8,6 +8,7 @@ import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '
 import { getAudioContext } from '../audio/audioContext';
 import { playReference, stopReference, preloadReference } from '../audio/gpReferencePlayer';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
+import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
 
 // Practice -> Lick Trainer: pick a lick, hear it, play it back, get judged.
 //
@@ -80,12 +81,49 @@ export function useLickTrainer() {
   // Licks imported in the app from Guitar Pro files (this device).
   const [userLicks, setUserLicks] = useState([]);
   const [pendingImport, setPendingImport] = useState(null); // { fileName, info, score }
+  // Shared library (all devices): 'off' (no key on this device) | 'syncing' |
+  // 'ok' | 'bad-key' | 'not-configured' | 'offline' | 'error'.
+  const [library, setLibrary] = useState(() => ({ status: getLibraryKey() ? 'syncing' : 'off' }));
+  const syncingRef = useRef(false);
+  const sync = useCallback(async () => {
+    if (syncingRef.current) return;
+    syncingRef.current = true;
+    const local = await loadUserLicks();
+    setUserLicks(local.map(withDerived));
+    if (!getLibraryKey()) {
+      setLibrary({ status: 'off' });
+      syncingRef.current = false;
+      return;
+    }
+    setLibrary((l) => ({ ...l, status: 'syncing' }));
+    try {
+      const merged = await syncLibrary(local);
+      setUserLicks(merged.map(withDerived));
+      setLibrary({ status: 'ok', count: new Set(merged.map((r) => r.importGroup ?? r.id)).size });
+    } catch (err) {
+      if (err.code === 'bad-key') setLibraryKey('');
+      setLibrary({ status: err.code === 'bad-key' ? 'bad-key' : ['not-configured', 'offline'].includes(err.code) ? err.code : 'error' });
+    } finally {
+      syncingRef.current = false;
+    }
+  }, []);
   useEffect(() => {
-    let alive = true;
-    loadUserLicks().then((raw) => alive && setUserLicks(raw.map(withDerived)));
-    return () => {
-      alive = false;
-    };
+    sync();
+    // Pick up what was added/deleted on another device when coming back.
+    const onVisible = () => document.visibilityState === 'visible' && sync();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [sync]);
+  const connectLibrary = useCallback(
+    (key) => {
+      setLibraryKey(key.trim());
+      sync();
+    },
+    [sync]
+  );
+  const disconnectLibrary = useCallback(() => {
+    setLibraryKey('');
+    setLibrary({ status: 'off' });
   }, []);
   const allLicks = useMemo(() => [...LICKS, ...userLicks.filter((l) => l.kind !== 'solo')], [userLicks]);
   const allSolos = useMemo(() => [...SOLOS, ...userLicks.filter((l) => l.kind === 'solo')], [userLicks]);
@@ -428,6 +466,12 @@ export function useLickTrainer() {
       const derived = raw.map(withDerived);
       setUserLicks((u) => [...u, ...derived]);
       setPendingImport(null);
+      // Into the shared library, so it's on every device.
+      if (getLibraryKey()) {
+        uploadGroup(raw[0].importGroup, raw)
+          .then(() => sync())
+          .catch((err) => setLibrary({ status: err.code === 'too-big' ? 'too-big' : err.code === 'offline' ? 'offline' : 'error' }));
+      }
       if (saveAs === 'solo') {
         setMode('solos');
         selectSolo(derived[0].id);
@@ -438,7 +482,7 @@ export function useLickTrainer() {
         selectLick(derived[0].id);
       }
     },
-    [pendingImport, selectLick, selectSolo, setMode]
+    [pendingImport, selectLick, selectSolo, setMode, sync]
   );
 
   // Deletes every lick that came from the same imported file.
@@ -446,13 +490,28 @@ export function useLickTrainer() {
     async (id) => {
       const target = userLicks.find((l) => l.id === id);
       if (!target) return;
-      const ids = userLicks.filter((l) => l.importGroup === target.importGroup).map((l) => l.id);
+      const group = userLicks.filter((l) => l.importGroup === target.importGroup);
+      const ids = group.map((l) => l.id);
+      // Remove it from the shared library first — otherwise the next sync
+      // would bring it back from the cloud.
+      if (group.some((l) => l.cloud)) {
+        try {
+          await deleteGroup(target.importGroup);
+        } catch (err) {
+          // Can't reach the library right now: keep it, or it would return.
+          if (err.code === 'offline' || err.code === 'storage') {
+            setLibrary({ status: err.code === 'offline' ? 'offline' : 'error' });
+            return;
+          }
+        }
+      }
       await deleteUserLicks(ids);
       setUserLicks((u) => u.filter((l) => !ids.includes(l.id)));
+      if (getLibraryKey()) sync();
       if (target.kind === 'solo') selectSolo(SOLOS[0]?.id ?? null);
       else selectLick(LICKS[0].id);
     },
-    [userLicks, selectLick, selectSolo]
+    [userLicks, selectLick, selectSolo, sync]
   );
 
   return {
@@ -469,6 +528,10 @@ export function useLickTrainer() {
     cancelImport,
     commitImport,
     deleteImport,
+    library,
+    connectLibrary,
+    disconnectLibrary,
+    syncLibrary: sync,
     genre,
     setGenre,
     level,

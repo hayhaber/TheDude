@@ -116,3 +116,12 @@ rosewood, below).
   `isReadyForPlayback` stays true across loads — wait for the next
   `playerReady` after `load()`. Import defaults to `defaultTrackIndex()`
   (skips vocal/piano/bass/drum tracks).
+- **Shared library (all devices)**: `api/library.js` (Vercel function +
+  Vercel Blob, one JSON per imported file incl. the GP bytes as base64),
+  guarded by the `DUDESTAR_KEY` env var (the user types it once per device in
+  Lick Trainer's "Shared library" bar; kept in localStorage). Client sync in
+  `music/lickTrainer/cloudLibrary.js`: IndexedDB stays the local/offline
+  copy; records marked `cloud: true` that vanish remotely were deleted on
+  another device; unmarked local imports get uploaded. Needs
+  `BLOB_READ_WRITE_TOKEN` (from connecting a Blob store to the project).
+

@@ -5,7 +5,8 @@ import { useEffect, useRef } from 'react';
 // faint sustain bar showing how long it lasts, technique marks, a moving
 // playhead, and — after a take — each note colored by how it went, with a
 // tick where it was actually played.
-const PX_PER_BEAT = 92;
+const MIN_PX_PER_BEAT = 92;
+const MIN_NOTE_GAP_PX = 36; // room for a two-digit fret box plus a legato mark
 const LEFT = 30;
 const TOP = 30;
 const GAP = 22;
@@ -29,6 +30,10 @@ function vibratoPath(x0, x1, yy) {
 export function TabTimeline({ lick, playheadBeat, result }) {
   const scrollRef = useRef(null);
   const beats = lick.lengthBeats;
+  // Widen the grid for fast subdivisions so 16ths/sextuplets never overlap.
+  const starts = [...new Set(lick.notes.map((n) => Math.round(n.start * 1000) / 1000))].sort((a, b) => a - b);
+  const minGap = starts.slice(1).reduce((m, x, i) => Math.min(m, x - starts[i]), Infinity);
+  const PX_PER_BEAT = Math.max(MIN_PX_PER_BEAT, Number.isFinite(minGap) ? MIN_NOTE_GAP_PX / minGap : MIN_PX_PER_BEAT);
   const width = LEFT + beats * PX_PER_BEAT + 20;
   const height = TOP + 5 * GAP + BOTTOM;
   const xOf = (beat) => LEFT + NOTE_PAD + beat * PX_PER_BEAT;

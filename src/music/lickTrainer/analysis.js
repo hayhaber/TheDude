@@ -497,9 +497,12 @@ function framesBetween(frames, t0, t1) {
 }
 
 // How high a bend actually went (semitones above the fretted note).
-function measureBend(frames, t0, t1, baseMidi) {
+function measureBend(frames, t0, t1, baseMidi, withVibrato = false) {
   const fr = framesBetween(frames, t0, t1);
   if (fr.length < 3) return null;
+  // A bend held with vibrato oscillates around its target — its center
+  // (median of the settled second half), not its peak, is the bend height.
+  if (withVibrato && fr.length >= 12) return median(fr.slice(Math.floor(fr.length / 2)).map((f) => f.midi)) - baseMidi;
   // 3-frame running median, then the top — a sustained peak, not a spike.
   const sm = fr.map((f, i) => median([fr[i - 1]?.midi, f.midi, fr[i + 1]?.midi].filter((v) => v != null)));
   return Math.max(...sm) - baseMidi;
@@ -605,9 +608,12 @@ export function analyzeTake({ samples, sampleRate, t0, latency = 0, expected, cl
     };
     const start = ev.time;
     // Shifted by how early/late the note was actually played.
-    const end = Math.max(windowEnd + (ev.time - e.time), start + 0.1);
+    // Never past the start of whatever was actually played next.
+    const nextEv = matchOf[i + 1] != null && matchOf[i + 1] >= 0 ? events[matchOf[i + 1]] : null;
+    const hardEnd = nextEv ? nextEv.time - 0.01 : Infinity;
+    const end = Math.min(hardEnd, Math.max(windowEnd + (ev.time - e.time), start + 0.1));
     if (e.technique === 'bend') {
-      const height = measureBend(frames, start, end, e.midi);
+      const height = measureBend(frames, start, end, e.midi, e.vibrato);
       if (height != null) {
         result.bend = { target: e.bend ?? 2, reached: Math.round(height * 100) / 100 };
         result.bend.ok = Math.abs(height - result.bend.target) <= BEND_TOLERANCE;

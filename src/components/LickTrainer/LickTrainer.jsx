@@ -12,6 +12,11 @@ function labelOf(list, key, lang) {
   return localize(list.find((x) => x.key === key)?.label ?? { en: key, he: key }, lang);
 }
 
+// "80 BPM", or "60 BPM · 12/8" for licks counted in dotted quarters.
+function tempoLabel(lick, bpm) {
+  return lick.beatUnit === 'dotted' ? `${bpm} BPM · 12/8` : `${bpm} BPM`;
+}
+
 function pct(v) {
   return v == null ? '—' : `${Math.round(v * 100)}%`;
 }
@@ -70,7 +75,7 @@ function Results({ trainer, t, lang }) {
                   </span>
                 )}
                 <span className="lt-muted">
-                  {result.tempoPct}% · {result.bpm} BPM
+                  {result.tempoPct}% · {tempoLabel(lick, result.bpm)}
                 </span>
               </div>
             </div>
@@ -190,7 +195,7 @@ export function LickTrainer({ trainer }) {
         </div>
         <p className="lt-meta">
           <bdi dir="ltr">
-            {lick.scale} · {lick.bpm} BPM
+            {lick.scale} · {tempoLabel(lick, lick.bpm)}
           </bdi>{' '}
           · {labelOf(LICK_LEVELS, lick.level, lang)}
         </p>
@@ -198,6 +203,11 @@ export function LickTrainer({ trainer }) {
           {localize(lick.about, lang)}
         </p>
         {lick.rhythmApprox && <p className="lt-muted">{t('lickTrainer.rhythmApprox')}</p>}
+        {lick.credit && (
+          <p className="lt-muted lt-small" dir="ltr">
+            {lick.credit}
+          </p>
+        )}
 
         <TabTimeline lick={lick} playheadBeat={trainer.playheadBeat} result={trainer.result} />
 
@@ -207,7 +217,7 @@ export function LickTrainer({ trainer }) {
             <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))} disabled={busy}>
               {TEMPO_OPTIONS.map((v) => (
                 <option key={v} value={v}>
-                  {v}% · {Math.round((lick.bpm * v) / 100)} BPM
+                  {v}% · {tempoLabel(lick, Math.round((lick.bpm * v) / 100))}
                 </option>
               ))}
             </select>

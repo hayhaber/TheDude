@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { LICK_GENRES, LICK_LEVELS } from '../../music/lickTrainer/library';
+import { defaultTrackIndex } from '../../music/lickTrainer/gpImport';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { midiToNoteName } from '../../music/pitchUtils';
 import { TabTimeline } from './TabTimeline';
@@ -127,7 +128,7 @@ const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.gp7,.gp8';
 // and how to file it in the library.
 function ImportPanel({ trainer, t, lang }) {
   const { info, fileName } = trainer.pendingImport;
-  const firstPlayable = info.tracks.find((tr) => tr.noteCount > 0)?.index ?? 0;
+  const firstPlayable = defaultTrackIndex(info);
   const [title, setTitle] = useState(info.title || fileName.replace(/\.[^.]+$/, ''));
   const [trackIndex, setTrackIndex] = useState(firstPlayable);
   const [saveAs, setSaveAs] = useState(info.barCount > 4 ? 'solo' : 'lick');
@@ -150,8 +151,8 @@ function ImportPanel({ trainer, t, lang }) {
           <span>{t('lickTrainer.importTrack')}</span>
           <select value={trackIndex} onChange={(e) => setTrackIndex(Number(e.target.value))}>
             {info.tracks.map((tr) => (
-              <option key={tr.index} value={tr.index}>
-                {tr.name}
+              <option key={tr.index} value={tr.index} disabled={tr.noteCount === 0 || tr.percussion}>
+                {tr.name} ({tr.noteCount})
               </option>
             ))}
           </select>

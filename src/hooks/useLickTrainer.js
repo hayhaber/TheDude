@@ -6,6 +6,7 @@ import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrai
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
 import { getAudioContext } from '../audio/audioContext';
+import { playReference, stopReference, preloadReference } from '../audio/gpReferencePlayer';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 
 // Practice -> Lick Trainer: pick a lick, hear it, play it back, get judged.
@@ -37,6 +38,20 @@ function writeJson(key, value) {
   } catch {
     // storage full/blocked — history is a convenience, not critical
   }
+}
+
+const TICKS_PER_BEAT = 960;
+
+// Where to play a lick/solo/section from in its Guitar Pro file, or null.
+function gpSourceOf(lick) {
+  if (!lick?.gpRef || !(lick.gpUrl || lick.gpBytes)) return null;
+  const startTick = lick.gpRef.tickStart + (lick.view?.fromBeat ?? 0) * TICKS_PER_BEAT;
+  return {
+    source: { key: lick.gpUrl ?? lick.importGroup ?? lick.id, url: lick.gpUrl, bytes: lick.gpBytes },
+    trackIndex: lick.gpRef.track,
+    startTick,
+    endTick: startTick + lick.lengthBeats * TICKS_PER_BEAT,
+  };
 }
 
 export function useLickTrainer() {
@@ -80,6 +95,14 @@ export function useLickTrainer() {
   const sectionLick = useMemo(() => (activeSolo ? soloSection(activeSolo, sectionIndex) : null), [activeSolo, sectionIndex]);
   // What's being practiced right now: a lick, a whole solo, or one section.
   const lick = mode === 'solos' && sectionLick ? sectionLick : baseLick;
+
+  // Load the file (and alphaTab's soundfont) as soon as a file-based
+  // solo/lick is on screen, so Listen starts immediately.
+  const gpKey = lick.gpUrl ?? lick.importGroup ?? null;
+  useEffect(() => {
+    const gp = gpSourceOf(lick);
+    if (gp) preloadReference(gp.source, gp.trackIndex);
+  }, [gpKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const bpm = Math.round((lick.bpm * tempoPct) / 100);
 
   const visibleLicks = useMemo(
@@ -108,6 +131,7 @@ export function useLickTrainer() {
   const stop = useCallback(() => {
     runIdRef.current += 1;
     clearTimers();
+    stopReference();
     scheduleRef.current?.stop();
     scheduleRef.current = null;
     setPlayheadBeat(null);
@@ -182,6 +206,32 @@ export function useLickTrainer() {
   const listen = useCallback(async () => {
     stop();
     const runId0 = runIdRef.current;
+    // Anything that came from a Guitar Pro file is played from the file
+    // itself by alphaTab's synth, exactly as the file sounds.
+    const gp = gpSourceOf(lick);
+    if (gp) {
+      setPhase('listening');
+      try {
+        await playReference({
+          ...gp,
+          speed: tempoPct / 100,
+          onTick: (tick) => {
+            if (runIdRef.current === runId0) setPlayheadBeat((tick - gp.startTick) / TICKS_PER_BEAT);
+          },
+          onEnd: () => {
+            if (runIdRef.current !== runId0) return;
+            setPlayheadBeat(null);
+            setPhase((p) => (p === 'listening' ? (result ? 'results' : 'idle') : p));
+          },
+        });
+      } catch (err) {
+        if (runIdRef.current === runId0) {
+          setError({ key: 'import', message: err?.message ?? String(err) });
+          setPhase('idle');
+        }
+      }
+      return;
+    }
     // Guitar samples (usually cached already); give them a moment on the
     // very first listen, otherwise fall back to the synth voice.
     await Promise.race([preloadTrainerSamples(), new Promise((r) => setTimeout(r, 4000))]);
@@ -202,7 +252,7 @@ export function useLickTrainer() {
         setPhase((p) => (p === 'listening' ? (result ? 'results' : 'idle') : p));
       }, (sched.endTime - ctx.currentTime + 0.4) * 1000)
     );
-  }, [bpm, lick, stop, result]);
+  }, [bpm, lick, stop, result, tempoPct]);
 
   const ensureInput = useCallback(async () => {
     if (inputRef.current) return inputRef.current;
@@ -349,9 +399,9 @@ export function useLickTrainer() {
   const readFile = useCallback(async (file) => {
     setError(null);
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(bytes, new alphaTab.Settings());
-      setPendingImport({ fileName: file.name, info: describeScore(score), score });
+      const buffer = await file.arrayBuffer();
+      const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(new Uint8Array(buffer), new alphaTab.Settings());
+      setPendingImport({ fileName: file.name, info: describeScore(score), score, buffer });
     } catch (err) {
       setError({ key: 'import', message: err?.message ?? String(err) });
     }
@@ -368,7 +418,8 @@ export function useLickTrainer() {
         saveAs === 'solo'
           ? [scoreToSolo(pendingImport.score, { trackIndex, barsPerSection, base })].filter(Boolean)
           : scoreToLicks(pendingImport.score, { trackIndex, barsPerPhrase: 0, base });
-      const raw = made.map((l, i) => ({ ...l, importedAt: stamp + i, importGroup: `import-${stamp}` }));
+      // Keep the original file with the import so its reference plays from it.
+      const raw = made.map((l, i) => ({ ...l, importedAt: stamp + i, importGroup: `import-${stamp}`, gpBytes: pendingImport.buffer }));
       if (raw.length === 0) {
         setError({ key: 'importEmpty' });
         return;

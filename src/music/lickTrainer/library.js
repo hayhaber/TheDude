@@ -16,6 +16,7 @@
 // rhythm, so the rhythm here is a reasonable reading, not the original.
 import { STANDARD_TUNING } from '../notes';
 import { comfortablyNumb } from './imports/comfortablyNumb';
+import { novemberRain } from './imports/novemberRain';
 
 function n(beat, beats, string, fret, opts = {}) {
   return {
@@ -716,7 +717,7 @@ export const LICKS = RAW_LICKS.map(withDerived);
 
 // Full solos generated from the user's Guitar Pro files
 // (scripts/gp-to-licks.mjs with solo: true). Each has practice `sections`.
-export const SOLOS = [...comfortablyNumb].map(withDerived);
+export const SOLOS = [...comfortablyNumb, ...novemberRain].map(withDerived);
 
 /**
  * The part of a solo to practice: sectionIndex -1 = the whole solo;

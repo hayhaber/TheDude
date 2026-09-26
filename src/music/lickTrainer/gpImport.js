@@ -117,8 +117,30 @@ export function describeScore(score) {
     artist: score.artist || '',
     tempo: Math.round(score.tempo) || 90,
     barCount: score.masterBars.length,
-    tracks: score.tracks.map((t, i) => ({ index: i, name: t.name || `Track ${i + 1}`, noteCount: t.staves[0].bars.reduce((a, b) => a + b.voices[0].beats.filter((x) => !x.isRest).length, 0) })),
+    tracks: score.tracks.map((t, i) => ({
+      index: i,
+      name: t.name || `Track ${i + 1}`,
+      program: t.playbackInfo?.program ?? null,
+      percussion: !!t.staves[0].isPercussion,
+      noteCount: t.staves[0].bars.reduce((a, b) => a + b.voices[0].beats.filter((x) => !x.isRest).length, 0),
+    })),
   };
+}
+
+// The track a guitarist most likely wants from a full-band file: not the
+// vocal/piano/bass/drums tracks (they come first in many files — importing
+// "Voice" by default plays the vocal melody instead of the solo), preferring
+// a lead/solo guitar, then any guitar (GM programs 24-31), then the busiest.
+export function defaultTrackIndex(info) {
+  const notGuitar = /voice|vocal|vox|piano|key|string|bass|drum|perc|synth|organ|pad|brass|sax|flute/i;
+  const candidates = info.tracks.filter((t) => t.noteCount > 0 && !t.percussion);
+  const score = (t) =>
+    (/lead|solo/i.test(t.name) ? 4 : 0) +
+    (/guitar|gtr|git/i.test(t.name) ? 2 : 0) +
+    (t.program != null && t.program >= 24 && t.program <= 31 ? 2 : 0) -
+    (notGuitar.test(t.name) ? 5 : 0);
+  const ranked = [...candidates].sort((a, b) => score(b) - score(a) || b.noteCount - a.noteCount);
+  return ranked[0]?.index ?? 0;
 }
 
 /**
@@ -156,6 +178,7 @@ export function scoreToLicks(score, { trackIndex = 0, barsPerPhrase = 0, base = 
       simplified,
       tuningShift,
       barPhase,
+      gpRef: { track: trackIndex, tickStart: offset * TICKS_PER_BEAT },
       notes: lickNotes,
     };
   };
@@ -220,7 +243,7 @@ export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = 
     kind: 'solo',
     id: `${base.idPrefix ?? 'solo'}-solo`,
     title: { en: title, he: title },
-    artist: info.artist,
+    artist: base.artist || info.artist,
     genre: base.genre ?? 'rock',
     level: base.level ?? 'advanced',
     key: base.key ?? '',
@@ -233,6 +256,10 @@ export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = 
     tuningShift,
     sections,
     barPhase,
+    // Where this solo sits in the original file, so the reference can be
+    // played by alphaTab's own synth straight from the file (see
+    // audio/gpReferencePlayer.js). The file itself is attached by the caller.
+    gpRef: { track: trackIndex, tickStart: offset * TICKS_PER_BEAT },
     notes: clean(notes, offset),
   };
 }

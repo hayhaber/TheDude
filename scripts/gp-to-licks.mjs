@@ -2,7 +2,7 @@
 // Usage (bundle first, alphaTab needs it):
 //   npx esbuild scripts/gp-to-licks.mjs --bundle --platform=node --format=esm --outfile=/tmp/gp2l.mjs
 //   node /tmp/gp2l.mjs <file.gp*> <out.js> '<json options>'
-// options: { solo, barsPerSection, trackIndex, barsPerPhrase, base: { idPrefix, title, genre, level, key, scale, credit, about } }
+// options: { solo, barsPerSection, gpUrl, trackIndex, barsPerPhrase, base: { idPrefix, title, genre, level, key, scale, credit, about } }
 // The output module is added to SOLOS (solo) or IMPORTED_LICKS (licks) in src/music/lickTrainer/library.js.
 import * as alphaTab from '@coderline/alphatab';
 import fs from 'fs';
@@ -13,7 +13,10 @@ const opts = JSON.parse(optsJson ?? '{}');
 const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(new Uint8Array(fs.readFileSync(file)), new alphaTab.Settings());
 // opts.solo = true -> one solo with sections (opts.barsPerSection), else licks.
 const base = { source: 'user', ...(opts.base ?? {}) };
-const licks = opts.solo ? [scoreToSolo(score, { ...opts, base })] : scoreToLicks(score, { ...opts, base });
+const made = opts.solo ? [scoreToSolo(score, { ...opts, base })] : scoreToLicks(score, { ...opts, base });
+// opts.gpUrl: the copy of the file under public/ — the reference is then
+// played from it by alphaTab (audio/gpReferencePlayer.js).
+const licks = made.map((l) => (opts.gpUrl ? { ...l, gpUrl: opts.gpUrl } : l));
 const name = (opts.base?.idPrefix ?? 'imported').replace(/[^a-zA-Z0-9]/g, '_');
 fs.writeFileSync(
   out,

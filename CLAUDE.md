@@ -107,3 +107,12 @@ rosewood, below).
   Licks | Solos switch; a solo is practiced whole or per section
   (`soloSection()`), with the whole solo shown in the tab and the section
   highlighted. `barPhase` marks where bar lines fall when beat 0 is a pickup.
+  **Listen** for anything from a GP file (built-in solos carry `gpUrl` ->
+  `public/gp/`, in-app imports store the file's `gpBytes` in IndexedDB, both
+  plus `gpRef {track, tickStart}`) plays the file itself through alphaTab's
+  synth (`audio/gpReferencePlayer.js`, one hidden AlphaTabApi) so it sounds
+  exactly like the original; licks without a file use `lickTrainerAudio.js`.
+  alphaTab gotchas: `scoreLoaded`/`midiLoaded` replay to new listeners and
+  `isReadyForPlayback` stays true across loads — wait for the next
+  `playerReady` after `load()`. Import defaults to `defaultTrackIndex()`
+  (skips vocal/piano/bass/drum tracks).

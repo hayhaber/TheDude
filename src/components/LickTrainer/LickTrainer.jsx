@@ -130,7 +130,8 @@ function ImportPanel({ trainer, t, lang }) {
   const firstPlayable = info.tracks.find((tr) => tr.noteCount > 0)?.index ?? 0;
   const [title, setTitle] = useState(info.title || fileName.replace(/\.[^.]+$/, ''));
   const [trackIndex, setTrackIndex] = useState(firstPlayable);
-  const [split, setSplit] = useState(2);
+  const [saveAs, setSaveAs] = useState(info.barCount > 4 ? 'solo' : 'lick');
+  const [barsPerSection, setBarsPerSection] = useState(2);
   const [genre, setGenre] = useState('rock');
   const [level, setLevel] = useState('intermediate');
   return (
@@ -156,14 +157,24 @@ function ImportPanel({ trainer, t, lang }) {
           </select>
         </label>
         <label className="lt-field">
-          <span>{t('lickTrainer.importSplit')}</span>
-          <select value={split} onChange={(e) => setSplit(Number(e.target.value))}>
-            <option value={0}>{t('lickTrainer.importSplitNone')}</option>
-            <option value={1}>{t('lickTrainer.importSplitBars', { count: 1 })}</option>
-            <option value={2}>{t('lickTrainer.importSplitBars', { count: 2 })}</option>
-            <option value={4}>{t('lickTrainer.importSplitBars', { count: 4 })}</option>
+          <span>{t('lickTrainer.importSaveAs')}</span>
+          <select value={saveAs} onChange={(e) => setSaveAs(e.target.value)}>
+            <option value="solo">{t('lickTrainer.saveAsSolo')}</option>
+            <option value="lick">{t('lickTrainer.saveAsLick')}</option>
           </select>
         </label>
+        {saveAs === 'solo' && (
+          <label className="lt-field">
+            <span>{t('lickTrainer.importSplit')}</span>
+            <select value={barsPerSection} onChange={(e) => setBarsPerSection(Number(e.target.value))}>
+              {[1, 2, 4].map((n) => (
+                <option key={n} value={n}>
+                  {t('lickTrainer.importSplitBars', { count: n })}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="lt-field">
           <span>{t('lickTrainer.genre')}</span>
           <select value={genre} onChange={(e) => setGenre(e.target.value)}>
@@ -190,7 +201,7 @@ function ImportPanel({ trainer, t, lang }) {
         <button
           type="button"
           className="primary"
-          onClick={() => trainer.commitImport({ title: title.trim() || info.title || fileName, trackIndex, barsPerPhrase: split, genre, level })}
+          onClick={() => trainer.commitImport({ title: title.trim() || info.title || fileName, trackIndex, saveAs, barsPerSection, genre, level })}
         >
           {t('lickTrainer.save')}
         </button>
@@ -219,9 +230,47 @@ export function LickTrainer({ trainer }) {
 
   return (
     <div className="lick-trainer" dir={dir}>
-      <p className="lt-intro">{t('lickTrainer.intro')}</p>
+      <p className="lt-intro">{t(trainer.mode === 'solos' ? 'lickTrainer.introSolos' : 'lickTrainer.intro')}</p>
+
+      <div className="mode-toggle lt-mode" role="group" aria-label={t('lickTrainer.modeLabel')}>
+        <button type="button" className={trainer.mode === 'licks' ? 'active' : ''} onClick={() => trainer.setMode('licks')} disabled={busy}>
+          {t('lickTrainer.modeLicks')}
+        </button>
+        <button type="button" className={trainer.mode === 'solos' ? 'active' : ''} onClick={() => trainer.setMode('solos')} disabled={busy}>
+          {t('lickTrainer.modeSolos')}
+        </button>
+      </div>
 
       <div className="lt-filters">
+        {trainer.mode === 'solos' ? (
+          <>
+            <label className="lt-field lt-grow">
+              <span>{t('lickTrainer.solo')}</span>
+              <select value={trainer.activeSolo?.id ?? ''} onChange={(e) => trainer.selectSolo(e.target.value)} disabled={busy || trainer.solos.length === 0}>
+                {trainer.solos.map((so) => (
+                  <option key={so.id} value={so.id}>
+                    {localize(so.title, lang)}
+                    {so.artist ? ` — ${so.artist}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {trainer.activeSolo?.sections?.length > 0 && (
+              <label className="lt-field">
+                <span>{t('lickTrainer.section')}</span>
+                <select value={trainer.sectionIndex} onChange={(e) => trainer.setSectionIndex(Number(e.target.value))} disabled={busy}>
+                  <option value={-1}>{t('lickTrainer.wholeSolo')}</option>
+                  {trainer.activeSolo.sections.map((sec, k) => (
+                    <option key={k} value={k}>
+                      {t('lickTrainer.sectionOption', { n: k + 1, bars: localize(sec.label, lang) })}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </>
+        ) : (
+          <>
         <label className="lt-field">
           <span>{t('lickTrainer.genre')}</span>
           <select value={trainer.genre} onChange={(e) => trainer.setGenre(e.target.value)}>
@@ -245,6 +294,8 @@ export function LickTrainer({ trainer }) {
             ))}
           </select>
         </label>
+          </>
+        )}
         <button type="button" className="lt-import-btn" onClick={() => fileRef.current?.click()} disabled={busy}>
           {t('lickTrainer.import')}
         </button>
@@ -263,6 +314,9 @@ export function LickTrainer({ trainer }) {
 
       {trainer.pendingImport && <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} />}
 
+      {trainer.mode === 'solos' && trainer.solos.length === 0 && <p className="lt-muted">{t('lickTrainer.noSolos')}</p>}
+
+      {trainer.mode === 'licks' && (
       <div className="lt-list" role="list">
         {trainer.visibleLicks.length === 0 && <p className="lt-muted">{t('lickTrainer.none')}</p>}
         {trainer.visibleLicks.map((l) => {
@@ -292,9 +346,15 @@ export function LickTrainer({ trainer }) {
         })}
       </div>
 
+      )}
+
+      {(trainer.mode === 'licks' || trainer.activeSolo) && (
       <section className="lt-lick">
         <div className="lt-lick-head">
-          <h3 dir="auto">{localize(lick.title, lang)}</h3>
+          <h3 dir="auto">
+            {localize(lick.title, lang)}
+            {lick.sectionLabel && <span className="lt-section-label"> · {localize(lick.sectionLabel, lang)}</span>}
+          </h3>
           <span className={'lt-badge' + (lick.source === 'user' || lick.source === 'import' ? ' verified' : '')}>
             {t(lick.source === 'import' ? 'lickTrainer.sourceImport' : lick.source === 'user' ? 'lickTrainer.sourceUser' : 'lickTrainer.sourceApp')}
           </span>
@@ -320,7 +380,7 @@ export function LickTrainer({ trainer }) {
               onClick={() => {
                 if (confirmDelete === lick.id) {
                   setConfirmDelete(null);
-                  trainer.deleteImport(lick.id);
+                  trainer.deleteImport(trainer.mode === 'solos' ? trainer.activeSolo.id : lick.id);
                 } else setConfirmDelete(lick.id);
               }}
               disabled={busy}
@@ -335,7 +395,21 @@ export function LickTrainer({ trainer }) {
           </p>
         )}
 
-        <TabTimeline lick={lick} playheadBeat={trainer.playheadBeat} result={trainer.result} />
+        {trainer.mode === 'solos' && trainer.activeSolo ? (
+          // The whole solo stays on screen; the chosen section is
+          // highlighted and the playhead/results are placed inside it.
+          <TabTimeline
+            lick={trainer.activeSolo}
+            playheadBeat={trainer.playheadBeat == null ? null : trainer.playheadBeat + (lick.view?.fromBeat ?? 0)}
+            result={trainer.result}
+            resultOffset={lick.view?.firstIndex ?? 0}
+            highlight={
+              trainer.sectionIndex >= 0 ? trainer.activeSolo.sections[trainer.sectionIndex] : null
+            }
+          />
+        ) : (
+          <TabTimeline lick={lick} playheadBeat={trainer.playheadBeat} result={trainer.result} />
+        )}
 
         <div className="lt-controls">
           <label className="lt-field">
@@ -415,6 +489,7 @@ export function LickTrainer({ trainer }) {
         </div>
         <p className="lt-muted lt-small">{t('lickTrainer.calibrateHow')}</p>
       </section>
+      )}
     </div>
   );
 }

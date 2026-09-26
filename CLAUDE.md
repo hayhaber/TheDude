@@ -102,4 +102,8 @@ rosewood, below).
   only). For the built-in library, the user drops files in
   `C:\Users\hay\Downloads\GuitarPro` on their computer; convert with
   `scripts/gp-to-licks.mjs` into `music/lickTrainer/imports/*.js` and add the
-  export to `IMPORTED_LICKS` in `library.js`.
+  export to `SOLOS` (full solos, `solo: true` -> one entry with bar-based
+  `sections`) or to the licks list in `library.js`. The trainer has a
+  Licks | Solos switch; a solo is practiced whole or per section
+  (`soloSection()`), with the whole solo shown in the tab and the section
+  highlighted. `barPhase` marks where bar lines fall when beat 0 is a pickup.

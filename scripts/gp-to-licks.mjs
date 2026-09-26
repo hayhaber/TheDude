@@ -2,16 +2,18 @@
 // Usage (bundle first, alphaTab needs it):
 //   npx esbuild scripts/gp-to-licks.mjs --bundle --platform=node --format=esm --outfile=/tmp/gp2l.mjs
 //   node /tmp/gp2l.mjs <file.gp*> <out.js> '<json options>'
-// options: { trackIndex, barsPerPhrase, base: { idPrefix, title, genre, level, key, scale, credit, about } }
-// The output module is added to IMPORTED_LICKS in src/music/lickTrainer/library.js.
+// options: { solo, barsPerSection, trackIndex, barsPerPhrase, base: { idPrefix, title, genre, level, key, scale, credit, about } }
+// The output module is added to SOLOS (solo) or IMPORTED_LICKS (licks) in src/music/lickTrainer/library.js.
 import * as alphaTab from '@coderline/alphatab';
 import fs from 'fs';
-import { scoreToLicks, describeScore } from '../src/music/lickTrainer/gpImport.js';
+import { scoreToLicks, scoreToSolo, describeScore } from '../src/music/lickTrainer/gpImport.js';
 
 const [file, out, optsJson] = process.argv.slice(2);
 const opts = JSON.parse(optsJson ?? '{}');
 const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(new Uint8Array(fs.readFileSync(file)), new alphaTab.Settings());
-const licks = scoreToLicks(score, { ...opts, base: { source: 'user', ...(opts.base ?? {}) } });
+// opts.solo = true -> one solo with sections (opts.barsPerSection), else licks.
+const base = { source: 'user', ...(opts.base ?? {}) };
+const licks = opts.solo ? [scoreToSolo(score, { ...opts, base })] : scoreToLicks(score, { ...opts, base });
 const name = (opts.base?.idPrefix ?? 'imported').replace(/[^a-zA-Z0-9]/g, '_');
 fs.writeFileSync(
   out,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
-import { LICKS, withDerived } from '../music/lickTrainer/library';
-import { scoreToLicks, describeScore } from '../music/lickTrainer/gpImport';
+import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
+import { scoreToLicks, scoreToSolo, describeScore } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
@@ -40,6 +40,10 @@ function writeJson(key, value) {
 }
 
 export function useLickTrainer() {
+  // 'licks' = the lick library; 'solos' = full solos with practice sections.
+  const [mode, setModeState] = useState('licks');
+  const [soloId, setSoloId] = useState(SOLOS[0]?.id ?? null);
+  const [sectionIndex, setSectionIndexState] = useState(-1); // -1 = whole solo
   const [genre, setGenre] = useState('all');
   const [level, setLevel] = useState('all');
   const [lickId, setLickId] = useState(LICKS[0].id);
@@ -68,9 +72,14 @@ export function useLickTrainer() {
       alive = false;
     };
   }, []);
-  const allLicks = useMemo(() => [...LICKS, ...userLicks], [userLicks]);
+  const allLicks = useMemo(() => [...LICKS, ...userLicks.filter((l) => l.kind !== 'solo')], [userLicks]);
+  const allSolos = useMemo(() => [...SOLOS, ...userLicks.filter((l) => l.kind === 'solo')], [userLicks]);
 
-  const lick = allLicks.find((l) => l.id === lickId) ?? LICKS[0];
+  const baseLick = allLicks.find((l) => l.id === lickId) ?? LICKS[0];
+  const activeSolo = allSolos.find((l) => l.id === soloId) ?? allSolos[0] ?? null;
+  const sectionLick = useMemo(() => (activeSolo ? soloSection(activeSolo, sectionIndex) : null), [activeSolo, sectionIndex]);
+  // What's being practiced right now: a lick, a whole solo, or one section.
+  const lick = mode === 'solos' && sectionLick ? sectionLick : baseLick;
   const bpm = Math.round((lick.bpm * tempoPct) / 100);
 
   const visibleLicks = useMemo(
@@ -121,6 +130,37 @@ export function useLickTrainer() {
     (id) => {
       stop();
       setLickId(id);
+      setResult(null);
+      setPhase('idle');
+    },
+    [stop]
+  );
+
+  const setMode = useCallback(
+    (m) => {
+      stop();
+      setModeState(m);
+      setResult(null);
+      setPhase('idle');
+    },
+    [stop]
+  );
+
+  const selectSolo = useCallback(
+    (id) => {
+      stop();
+      setSoloId(id);
+      setSectionIndexState(-1);
+      setResult(null);
+      setPhase('idle');
+    },
+    [stop]
+  );
+
+  const setSectionIndex = useCallback(
+    (k) => {
+      stop();
+      setSectionIndexState(k);
       setResult(null);
       setPhase('idle');
     },
@@ -320,14 +360,15 @@ export function useLickTrainer() {
   const cancelImport = useCallback(() => setPendingImport(null), []);
 
   const commitImport = useCallback(
-    async ({ title, trackIndex, barsPerPhrase, genre: g, level: lv }) => {
+    async ({ title, trackIndex, saveAs, barsPerSection, genre: g, level: lv }) => {
       if (!pendingImport) return;
       const stamp = Date.now();
-      const raw = scoreToLicks(pendingImport.score, {
-        trackIndex,
-        barsPerPhrase,
-        base: { idPrefix: `import-${stamp}`, title, genre: g, level: lv, source: 'import', credit: pendingImport.fileName },
-      }).map((l, i) => ({ ...l, importedAt: stamp + i, importGroup: `import-${stamp}` }));
+      const base = { idPrefix: `import-${stamp}`, title, genre: g, level: lv, source: 'import', credit: pendingImport.fileName };
+      const made =
+        saveAs === 'solo'
+          ? [scoreToSolo(pendingImport.score, { trackIndex, barsPerSection, base })].filter(Boolean)
+          : scoreToLicks(pendingImport.score, { trackIndex, barsPerPhrase: 0, base });
+      const raw = made.map((l, i) => ({ ...l, importedAt: stamp + i, importGroup: `import-${stamp}` }));
       if (raw.length === 0) {
         setError({ key: 'importEmpty' });
         return;
@@ -336,11 +377,17 @@ export function useLickTrainer() {
       const derived = raw.map(withDerived);
       setUserLicks((u) => [...u, ...derived]);
       setPendingImport(null);
-      setGenre('mine');
-      setLevel('all');
-      selectLick(derived[0].id);
+      if (saveAs === 'solo') {
+        setMode('solos');
+        selectSolo(derived[0].id);
+      } else {
+        setMode('licks');
+        setGenre('mine');
+        setLevel('all');
+        selectLick(derived[0].id);
+      }
     },
-    [pendingImport, selectLick]
+    [pendingImport, selectLick, selectSolo, setMode]
   );
 
   // Deletes every lick that came from the same imported file.
@@ -351,12 +398,20 @@ export function useLickTrainer() {
       const ids = userLicks.filter((l) => l.importGroup === target.importGroup).map((l) => l.id);
       await deleteUserLicks(ids);
       setUserLicks((u) => u.filter((l) => !ids.includes(l.id)));
-      selectLick(LICKS[0].id);
+      if (target.kind === 'solo') selectSolo(SOLOS[0]?.id ?? null);
+      else selectLick(LICKS[0].id);
     },
-    [userLicks, selectLick]
+    [userLicks, selectLick, selectSolo]
   );
 
   return {
+    mode,
+    setMode,
+    solos: allSolos,
+    activeSolo,
+    selectSolo,
+    sectionIndex,
+    setSectionIndex,
     preloadSamples: preloadTrainerSamples,
     pendingImport,
     readFile,

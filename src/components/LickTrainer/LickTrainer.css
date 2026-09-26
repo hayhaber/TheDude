@@ -520,3 +520,22 @@
   border-color: var(--danger);
   color: #fff;
 }
+
+.lt-mode {
+  align-self: flex-start;
+  min-width: 220px;
+}
+
+.lt-section-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.tt-highlight {
+  fill: var(--accent);
+  opacity: 0.08;
+}
+
+.tt-note.is-dim {
+  opacity: 0.35;
+}

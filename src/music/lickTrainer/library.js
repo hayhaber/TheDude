@@ -712,11 +712,33 @@ export function withDerived(lick) {
   return { ...lick, notes, lengthBeats: Math.ceil(lastEnd) };
 }
 
-// Licks generated from the user's Guitar Pro files (scripts/gp-to-licks.mjs).
-// The complete solo is harder than any single phrase of it.
-const IMPORTED_LICKS = [...comfortablyNumb].map((l) => (l.id.endsWith('-full') ? { ...l, level: 'advanced' } : l));
+export const LICKS = RAW_LICKS.map(withDerived);
 
-export const LICKS = [...RAW_LICKS, ...IMPORTED_LICKS].map(withDerived);
+// Full solos generated from the user's Guitar Pro files
+// (scripts/gp-to-licks.mjs with solo: true). Each has practice `sections`.
+export const SOLOS = [...comfortablyNumb].map(withDerived);
+
+/**
+ * The part of a solo to practice: sectionIndex -1 = the whole solo;
+ * otherwise the notes starting inside that section, re-timed so the
+ * section starts at beat 0 (sections start on a bar line, so the rhythm's
+ * place in the bar is kept). `view` tells the tab where it sits in the solo.
+ */
+export function soloSection(solo, sectionIndex) {
+  const sec = solo.sections?.[sectionIndex];
+  if (!sec) return { ...solo, view: { fromBeat: 0, firstIndex: 0 } };
+  const eps = 1e-6;
+  const firstIndex = solo.notes.findIndex((n) => n.start >= sec.fromBeat - eps);
+  const picked = solo.notes.filter((n) => n.start >= sec.fromBeat - eps && n.start < sec.toBeat - eps);
+  const raw = {
+    ...solo,
+    id: `${solo.id}#${sectionIndex + 1}`,
+    sectionLabel: sec.label,
+    barPhase: 0, // sections start on a bar line
+    notes: picked.map(({ order, midi, ...n }) => ({ ...n, start: n.start - sec.fromBeat })), // eslint-disable-line no-unused-vars
+  };
+  return { ...withDerived(raw), view: { fromBeat: sec.fromBeat, firstIndex: Math.max(0, firstIndex) } };
+}
 
 export function findLick(id) {
   return LICKS.find((l) => l.id === id) ?? null;

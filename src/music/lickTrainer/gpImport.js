@@ -140,6 +140,8 @@ export function scoreToLicks(score, { trackIndex = 0, barsPerPhrase = 0, base = 
     // naturally and a long pickup rest isn't waited out.
     const offset = Math.floor(group[0].start);
     const lickNotes = clean(group, offset);
+    const barLine = score.masterBars[group[0].barIndex].start / TICKS_PER_BEAT;
+    const barPhase = (((barLine - offset) % 4) + 4) % 4;
     return {
       id: `${base.idPrefix ?? 'import'}-${suffix}`,
       title: { en, he },
@@ -153,6 +155,7 @@ export function scoreToLicks(score, { trackIndex = 0, barsPerPhrase = 0, base = 
       about: base.about ?? { en: '', he: '' },
       simplified,
       tuningShift,
+      barPhase,
       notes: lickNotes,
     };
   };
@@ -173,6 +176,63 @@ export function scoreToLicks(score, { trackIndex = 0, barsPerPhrase = 0, base = 
       part += 1;
     }
   }
-  licks.push(make(notes, [`${title} — full`, `${title} — מלא`], 'full'));
+  // A lone lick (no split) is just the title; with phrases, the complete
+  // piece is marked as such.
+  licks.push(make(notes, barsPerPhrase > 0 ? [`${title} — full`, `${title} — מלא`] : [title, title], 'full'));
   return licks;
+}
+
+/**
+ * The whole track as ONE solo, with practice sections every
+ * `barsPerSection` bars (only sections that contain notes). Section
+ * boundaries are in beats on the solo's own timeline.
+ */
+export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = {} } = {}) {
+  const info = describeScore(score);
+  const { notes, simplified, tuningShift } = trackNotes(score, trackIndex);
+  if (notes.length === 0) return null;
+  const offset = Math.floor(notes[0].start);
+  const barStart = (i) => (i < score.masterBars.length ? score.masterBars[i].start / TICKS_PER_BEAT : notes[notes.length - 1].start + notes[notes.length - 1].duration + 1);
+  const sections = [];
+  const lastBar = notes[notes.length - 1].barIndex;
+  for (let b = notes[0].barIndex - (notes[0].barIndex % barsPerSection); b <= lastBar; b += barsPerSection) {
+    const inSection = notes.some((n) => n.barIndex >= b && n.barIndex < b + barsPerSection);
+    if (!inSection) continue;
+    const from = Math.max(0, barStart(b) - offset);
+    const to = barStart(b + barsPerSection) - offset;
+    const barFrom = b + 1;
+    const barTo = Math.min(info.barCount, b + barsPerSection);
+    sections.push({
+      fromBeat: +from.toFixed(4),
+      toBeat: +to.toFixed(4),
+      label: {
+        en: barFrom === barTo ? `Bar ${barFrom}` : `Bars ${barFrom}–${barTo}`,
+        he: barFrom === barTo ? `תיבה ${barFrom}` : `תיבות ${barFrom}–${barTo}`,
+      },
+    });
+  }
+  const title = base.title || info.title || 'Imported solo';
+  // Beat 0 is the beat just before the first note, not necessarily a bar
+  // line: barPhase says where the bar lines fall (4/4) so the tab draws them
+  // in the right place.
+  const barPhase = (((barStart(notes[0].barIndex) - offset) % 4) + 4) % 4;
+  return {
+    kind: 'solo',
+    id: `${base.idPrefix ?? 'solo'}-solo`,
+    title: { en: title, he: title },
+    artist: info.artist,
+    genre: base.genre ?? 'rock',
+    level: base.level ?? 'advanced',
+    key: base.key ?? '',
+    scale: base.scale ?? '',
+    bpm: info.tempo,
+    source: base.source ?? 'import',
+    credit: base.credit,
+    about: base.about ?? { en: '', he: '' },
+    simplified,
+    tuningShift,
+    sections,
+    barPhase,
+    notes: clean(notes, offset),
+  };
 }

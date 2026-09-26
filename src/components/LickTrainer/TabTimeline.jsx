@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 // playhead, and — after a take — each note colored by how it went, with a
 // tick where it was actually played.
 const MIN_PX_PER_BEAT = 92;
+const MAX_PX_PER_BEAT = 220;
 const MIN_NOTE_GAP_PX = 36; // room for a two-digit fret box plus a legato mark
 const LEFT = 30;
 const TOP = 30;
@@ -27,13 +28,18 @@ function vibratoPath(x0, x1, yy) {
   return d;
 }
 
-export function TabTimeline({ lick, playheadBeat, result }) {
+export function TabTimeline({ lick, playheadBeat, result, resultOffset = 0, highlight = null }) {
   const scrollRef = useRef(null);
   const beats = lick.lengthBeats;
+  const phase = Math.round(lick.barPhase ?? 0); // where bar lines fall (beat 0 isn't always a bar line)
   // Widen the grid for fast subdivisions so 16ths/sextuplets never overlap.
   const starts = [...new Set(lick.notes.map((n) => Math.round(n.start * 1000) / 1000))].sort((a, b) => a - b);
-  const minGap = starts.slice(1).reduce((m, x, i) => Math.min(m, x - starts[i]), Infinity);
-  const PX_PER_BEAT = Math.max(MIN_PX_PER_BEAT, Number.isFinite(minGap) ? MIN_NOTE_GAP_PX / minGap : MIN_PX_PER_BEAT);
+  // Sized for the typical short gap (10th percentile), not the single
+  // shortest one — one fast 32nd-note flourish in a long solo shouldn't
+  // stretch the whole tab — and capped so a solo stays navigable.
+  const gaps = starts.slice(1).map((x, i) => x - starts[i]).sort((a, b) => a - b);
+  const typicalGap = gaps.length ? gaps[Math.floor(gaps.length * 0.1)] : null;
+  const PX_PER_BEAT = Math.min(MAX_PX_PER_BEAT, Math.max(MIN_PX_PER_BEAT, typicalGap ? MIN_NOTE_GAP_PX / typicalGap : MIN_PX_PER_BEAT));
   const width = LEFT + beats * PX_PER_BEAT + 20;
   const height = TOP + 5 * GAP + BOTTOM;
   const xOf = (beat) => LEFT + NOTE_PAD + beat * PX_PER_BEAT;
@@ -47,7 +53,21 @@ export function TabTimeline({ lick, playheadBeat, result }) {
     if (x < el.scrollLeft + 40 || x > el.scrollLeft + el.clientWidth - 60) el.scrollLeft = Math.max(0, x - 60);
   }, [playheadBeat]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const status = (i) => result?.notes[i]?.status ?? null;
+  // With a section of a longer piece, result note j is the piece's note
+  // resultOffset + j; notes outside the section have no result.
+  const resultFor = (i) => {
+    const j = i - resultOffset;
+    return result && j >= 0 && j < result.notes.length ? result.notes[j] : null;
+  };
+  const status = (i) => resultFor(i)?.status ?? null;
+  const inHighlight = (n) => !highlight || (n.start >= highlight.fromBeat - 1e-6 && n.start < highlight.toBeat - 1e-6);
+
+  // Bring the selected section into view.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !highlight) return;
+    el.scrollLeft = Math.max(0, xOf(highlight.fromBeat) - 40);
+  }, [highlight?.fromBeat]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="tab-timeline" ref={scrollRef} dir="ltr">
@@ -60,15 +80,25 @@ export function TabTimeline({ lick, playheadBeat, result }) {
               x2={xOf(b) - NOTE_PAD / 2}
               y1={TOP}
               y2={TOP + 5 * GAP}
-              className={b % 4 === 0 ? 'tt-bar' : 'tt-beat'}
+              className={(((b - phase) % 4) + 4) % 4 === 0 ? 'tt-bar' : 'tt-beat'}
             />
             {b < beats && (
               <text x={xOf(b) - NOTE_PAD / 2 + 4} y={TOP - 14} className="tt-beat-num">
-                {(b % 4) + 1}
+                {((((b - phase) % 4) + 4) % 4) + 1}
               </text>
             )}
           </g>
         ))}
+        {highlight && (
+          <rect
+            x={xOf(highlight.fromBeat) - NOTE_PAD / 2}
+            y={TOP - 22}
+            width={(highlight.toBeat - highlight.fromBeat) * PX_PER_BEAT}
+            height={5 * GAP + 30}
+            rx={6}
+            className="tt-highlight"
+          />
+        )}
         {/* strings */}
         {STRING_LABELS.map((label, s) => (
           <g key={`s${s}`}>
@@ -124,10 +154,10 @@ export function TabTimeline({ lick, playheadBeat, result }) {
           const st = status(i);
           const label = String(n.fret);
           const w = label.length > 1 ? 20 : 14;
-          const noteRes = result?.notes[i];
+          const noteRes = resultFor(i);
           const offsetBeats = noteRes?.offsetMs != null ? noteRes.offsetMs / 1000 / spb : null;
           return (
-            <g key={`n${i}`} className={'tt-note' + (st ? ` is-${st}` : '')}>
+            <g key={`n${i}`} className={'tt-note' + (st ? ` is-${st}` : '') + (inHighlight(n) ? '' : ' is-dim')}>
               <rect x={x - w / 2} y={yy - 9} width={w} height={18} rx={5} className="tt-note-box" />
               <text x={x} y={yy + 4} textAnchor="middle" className="tt-fret">
                 {label}

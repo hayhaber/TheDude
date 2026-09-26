@@ -2,7 +2,7 @@ import { ExerciseDrawer } from '../ExerciseDrawer/ExerciseDrawer';
 import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { EarTrainingModal } from '../EarTrainingModal/EarTrainingModal';
 import { PracticeStatsBar } from '../PracticeStatsBar/PracticeStatsBar';
-import { GuitarPracticeTrainer } from '../GuitarPracticeTrainer/GuitarPracticeTrainer';
+import { LickTrainer } from '../LickTrainer/LickTrainer';
 import { RhythmGamePanel } from '../RhythmGamePanel/RhythmGamePanel';
 import { BendingPracticePanel } from '../BendingPracticePanel/BendingPracticePanel';
 import { SoloOpenerPanel } from '../SoloOpenerPanel/SoloOpenerPanel';
@@ -61,6 +61,7 @@ export function PracticeView({
   practiceHistory,
   practiceCatalog,
   onSelectRecommendation,
+  lickTrainer,
 }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
@@ -97,7 +98,7 @@ export function PracticeView({
 
       {activeTab === 'ear-training' && <EarTrainingModal earTraining={earTraining} onClose={earTraining.exit} variant="inline" />}
 
-      {activeTab === 'trainer' && <GuitarPracticeTrainer />}
+      {activeTab === 'trainer' && <LickTrainer trainer={lickTrainer} />}
 
       {activeTab === 'rhythm' && <RhythmGamePanel rhythmGame={rhythmGame} metronome={metronome} />}
 

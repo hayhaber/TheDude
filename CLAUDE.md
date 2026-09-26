@@ -88,3 +88,11 @@ rosewood, below).
   (`npm run build` + `vite preview`), not the dev server — the dev server has
   a known pre-existing, unrelated React StrictMode console error that
   doesn't reproduce in production and isn't worth chasing.
+- **Lick Trainer** (Practice -> Lick Trainer): library with exact rhythm in
+  `music/lickTrainer/library.js` (tab-style authoring; `source: 'user'` =
+  licks the user supplied as verified), offline take analysis in
+  `music/lickTrainer/analysis.js` (spectral-flux onsets + pitchy pitch track
+  + DP alignment + bend/vibrato checks), playback/capture in
+  `audio/lickTrainerAudio.js`, state in `hooks/useLickTrainer.js`. Engine
+  regression test on synthetic guitar audio: `scripts/lick-analysis-test.mjs`
+  (bundle with esbuild, run with node) — run it after any analysis change.

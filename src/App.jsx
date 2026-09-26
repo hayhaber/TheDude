@@ -81,6 +81,7 @@ import {
 } from './music/cagedCurriculum';
 import { useShapeShift } from './hooks/useShapeShift';
 import { useShapeQuiz } from './hooks/useShapeQuiz';
+import { useLickTrainer } from './hooks/useLickTrainer';
 import { useLanguage } from './i18n/LanguageContext';
 import { SCALES_LESSONS, resolveScaleStageProps } from './music/scalesCurriculum';
 import { CIRCLE_LESSONS, keyByPosition, resolveCircleStageProps } from './music/circleOfFifthsCurriculum';
@@ -226,6 +227,13 @@ function App() {
   const practiceHistory = usePracticeHistory();
   const savedProgressions = useSavedProgressions();
   const drill = usePracticeDrill(metronome, practiceHistory.logSession);
+  // Practice -> Lick Trainer (the lick is drawn on the shared Stage Fretboard).
+  const lickTrainer = useLickTrainer();
+  const { stop: stopLickTrainer } = lickTrainer;
+  const lickTrainerVisible = activeSection === 'practice' && practiceTab === 'trainer';
+  useEffect(() => {
+    if (!lickTrainerVisible) stopLickTrainer();
+  }, [lickTrainerVisible, stopLickTrainer]);
   const earTraining = useEarTraining();
   const rhythmGame = useRhythmGame(metronome);
   // Scale Practice reuses the EXACT same generic engine as Rhythm Practice
@@ -1261,7 +1269,19 @@ function App() {
             onQuizCellClick: earTraining.handleFretClick,
           }
         : practiceTab === 'trainer'
-        ? { position: null }
+        ? {
+            position: null,
+            lick: {
+              notes: lickTrainer.lick.notes.map((n) => ({
+                string: n.string,
+                fret: n.fret,
+                order: n.order,
+                technique: n.technique ?? (n.vibrato ? 'vibrato' : null),
+                label: String(n.fret),
+              })),
+            },
+            playingNoteOrder: lickTrainer.playingOrder,
+          }
         : practiceTab === 'rhythm'
         ? {
             position: null,
@@ -1833,6 +1853,7 @@ function App() {
           practiceHistory={practiceHistory}
           practiceCatalog={practiceCatalog}
           onSelectRecommendation={handleSelectRecommendation}
+          lickTrainer={lickTrainer}
         />
       )}
 

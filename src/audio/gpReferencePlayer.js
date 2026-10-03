@@ -1,5 +1,6 @@
 import * as alphaTab from '@coderline/alphatab';
 import { describeScore } from '../music/lickTrainer/gpImport';
+import { loadGpSoundFont, tuneVibrato } from './alphaTabSound';
 
 const TICKS_PER_BEAT = 960;
 
@@ -27,8 +28,9 @@ function ensureApi() {
   document.body.appendChild(host);
   api = new alphaTab.AlphaTabApi(host, {
     core: { engine: 'svg', fontDirectory: '/font/' },
-    player: { enablePlayer: true, enableCursor: false, soundFont: '/soundfont/sonivox.sf2' },
+    player: { enablePlayer: true, enableCursor: false },
   });
+  loadGpSoundFont(api).catch(() => {});
   // Finish once: detach the listeners first, since stopping makes alphaTab
   // report the position again (back at the range start).
   const finish = () => {
@@ -131,6 +133,9 @@ export async function playReference({ source, trackIndex, tracks, startTick, end
   const a = ensureApi();
   const score = await load(source, trackIndex);
   a.stop();
+  // Vibrato at a real-time rate for this speed (regenerates the MIDI).
+  // (The synth worker handles messages in order: no need to wait.)
+  if (tuneVibrato(a.settings, score.tempo, speed)) a.loadMidiForScore();
   applyMix(a, score, tracks ?? [trackIndex]);
   listeners = { onTick, onEnd, endTick };
   a.playbackSpeed = speed;
@@ -166,6 +171,9 @@ export async function renderBacking({ ctx, source, trackIndex, tracks, startTick
 
   // The MIDI is generated from the score synchronously inside exportAudio():
   // scale the tempo just for that call.
+  // Vibrato for the scaled tempo — just for this export.
+  const liveVibrato = { ...a.settings.player.vibrato };
+  tuneVibrato(a.settings, score.tempo, speed);
   const first = score.masterBars[0];
   const added = first.tempoAutomations.length === 0 ? alphaTab.model.Automation.buildTempoAutomation(false, 0, score.tempo, 2) : null;
   if (added) first.tempoAutomations.push(added);
@@ -177,6 +185,7 @@ export async function renderBacking({ ctx, source, trackIndex, tracks, startTick
   } finally {
     for (const [au, v] of originals) au.value = v;
     if (added) first.tempoAutomations.splice(first.tempoAutomations.indexOf(added), 1);
+    Object.assign(a.settings.player.vibrato, liveVibrato);
   }
   const exporter = await pending;
   const chunks = [];

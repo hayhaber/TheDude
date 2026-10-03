@@ -186,6 +186,25 @@ export function LibraryBar({ trainer, t }) {
   );
 }
 
+// What the fretboard markers show: note names or left-hand fingers.
+export function NeckLabelToggle({ trainer, t }) {
+  const auto = trainer.neckLabel === 'finger' && trainer.lick.notes.some((n) => n.fingerAuto);
+  return (
+    <div className="lt-necklabel">
+      <span className="lt-necklabel-title">{t('lickTrainer.neckLabel')}</span>
+      <div className="mode-toggle" role="group" aria-label={t('lickTrainer.neckLabel')}>
+        <button type="button" className={trainer.neckLabel === 'note' ? 'active' : ''} onClick={() => trainer.setNeckLabel('note')}>
+          {t('lickTrainer.neckNote')}
+        </button>
+        <button type="button" className={trainer.neckLabel === 'finger' ? 'active' : ''} onClick={() => trainer.setNeckLabel('finger')}>
+          {t('lickTrainer.neckFinger')}
+        </button>
+      </div>
+      {auto && <span className="lt-muted lt-small">{t('lickTrainer.fingerAuto')}</span>}
+    </div>
+  );
+}
+
 export function ImportPanel({ trainer, t, lang, forceSaveAs = null }) {
   const { info, fileName } = trainer.pendingImport;
   const firstPlayable = defaultTrackIndex(info);
@@ -368,6 +387,8 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
       </div>
 
       {variant === 'licks' && <LibraryBar trainer={trainer} t={t} />}
+
+      {variant === 'licks' && <NeckLabelToggle trainer={trainer} t={t} />}
 
       {variant === 'licks' && trainer.pendingImport && (
         <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="lick" />

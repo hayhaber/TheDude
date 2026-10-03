@@ -42,6 +42,30 @@
    while a vertical swipe still scrolls the page normally. `cursor: grab`
    only on the bare neck — `.playable-note` keeps its own `cursor: pointer`
    for the dots. Not applied in quiz mode (camera is locked there). */
+/* Compact neck (screens with a tab): 20% smaller on every screen size —
+   on a phone the width attribute alone wouldn't shrink it (max-width:100%
+   already caps it), so cap it at 80% of the row there too. */
+.fretboard-scroll-compact .fretboard-svg {
+  max-width: 80%;
+}
+
+/* A phone's neck is already as small as it can usefully be: it stays full
+   width there (the larger markers below just read better). */
+@media (max-width: 480px) {
+  .fretboard-scroll-compact .fretboard-svg {
+    max-width: 100%;
+  }
+}
+
+/* Markers keep their on-screen size on the smaller neck (r is scaled in JSX). */
+.fretboard-scroll-compact .lick-dot-label {
+  font-size: 15px;
+}
+
+.fretboard-scroll-compact .lick-technique-glyph {
+  font-size: 13.5px;
+}
+
 .fretboard-svg-pannable {
   touch-action: pan-y;
   cursor: grab;
@@ -259,6 +283,32 @@
     r: 22px;
     opacity: 0;
   }
+}
+
+/* Lick Trainer / GuitarPro: light-blue markers with dark labels; the
+   sounding note turns green with a soft glow. */
+.trainer-marker .lick-dot-label,
+.trainer-marker .lick-technique-glyph {
+  fill: #08304a;
+}
+
+.trainer-marker .lick-technique-glyph {
+  fill: #5ac8fa;
+}
+
+.trainer-marker.playing .lick-dot {
+  stroke: #c8f7d3;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px rgba(52, 199, 89, 0.95)) drop-shadow(0 0 9px rgba(52, 199, 89, 0.6));
+}
+
+.trainer-marker.playing .lick-dot-label {
+  fill: #fff;
+}
+
+.trainer-marker .lick-dot-playing-ring {
+  stroke: #34c759;
+  opacity: 0.8;
 }
 
 .playable-note:hover .chord-dot,

@@ -283,6 +283,7 @@ function App() {
           order: n.order,
           technique: n.technique ?? (n.vibrato ? 'vibrato' : null),
           label: lickTuningShift < 0 ? flatNoteName(n.midi) : midiToNoteName(n.midi).replace(/-?\d+$/, ''),
+          finger: n.finger,
         };
         m.displayLabel = m.label;
         byPos.set(key, m);
@@ -299,9 +300,23 @@ function App() {
   // with the note name — the tab above already carries the order and
   // rhythm. The marker for whatever note is sounding lights up. Used by
   // Practice -> Lick Trainer and the GuitarPro section.
+  // Markers show the note name or the left-hand finger (0 = open string);
+  // a spot played with different fingers shows the sounding note's finger.
+  const playingLickNote =
+    lickTrainer.playingOrder != null ? lickOnNeck.notes.find((n) => n.order === lickTrainer.playingOrder) : null;
+  const playingMarkerOrder = playingLickNote ? lickTrainerMarkers.markerOf.get(playingLickNote.order) ?? null : null;
+  const lickTrainerNeckNotes =
+    lickTrainer.neckLabel === 'finger'
+      ? lickTrainerMarkers.markers.map((m) => ({
+          ...m,
+          displayLabel: String(m.order === playingMarkerOrder && playingLickNote ? playingLickNote.finger ?? '' : m.finger ?? ''),
+        }))
+      : lickTrainerMarkers.markers;
+  const [songsTabMode, setSongsTabMode] = useState(false);
+  const stageCompact = lickTrainerVisible || (activeSection === 'songs' && songsTabMode);
   const lickTrainerStageProps = {
     position: null,
-    lick: { notes: lickTrainerMarkers.markers },
+    lick: { notes: lickTrainerNeckNotes, style: 'trainer' },
     ...(lickNeckTuning ? { tuning: lickNeckTuning } : {}),
     playingNoteOrder:
       lickTrainer.playingOrder != null ? lickTrainerMarkers.markerOf.get(lickTrainer.playingOrder) ?? null : null,
@@ -1788,7 +1803,7 @@ function App() {
       stage={
         earTrainingOwnsInstrument ? null : (
           <Stage
-            fretboardProps={stageFretboardProps}
+            fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
             pianoProps={stagePianoProps}
             legendSlot={activeSection === 'compose' && colorMode === 'function' ? <NoteColorLegend /> : null}
           />
@@ -1982,6 +1997,7 @@ function App() {
           onSongActiveChordChange={setSongActiveChord}
           onSongTabLickChange={setSongTabLick}
           onSongTabPlayingOrderChange={setSongTabPlayingOrder}
+          onTabModeChange={setSongsTabMode}
         />
       )}
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SECTIONS } from './sections';
 import { InstrumentToggle } from '../InstrumentToggle/InstrumentToggle';
 import { TunerBar } from '../TunerBar/TunerBar';
@@ -32,6 +32,16 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
   // all in that mode — clicking through to a "not available" message is
   // worse than never seeing the option in the first place.
   const visibleSections = SECTIONS.filter((s) => supportsInstrument(s.key, instrument));
+  // The pinned instrument's height, as --stage-height on the root, so a
+  // section can size a panel to exactly the room left above it.
+  const stageRef = useRef(null);
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--stage-height', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [stage != null]); // eslint-disable-line react-hooks/exhaustive-deps
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   // Wraps the trigger button too (not just the drawer itself) so clicking
@@ -157,7 +167,7 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
 
       <main className="app-content">
         <div className="app-section-content">{children}</div>
-        {stage && <div className="app-stage-anchor">{stage}</div>}
+        {stage && <div className="app-stage-anchor" ref={stageRef}>{stage}</div>}
       </main>
 
       <div className="app-mobile-metronome">

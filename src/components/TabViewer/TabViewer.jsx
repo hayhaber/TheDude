@@ -3,6 +3,7 @@ import * as alphaTab from '@coderline/alphatab';
 import { scoreToChordTimeline } from '../../music/parseGpChords';
 import { activeChordEntry } from '../../hooks/useSongChordTimeline';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { loadGpSoundFont } from '../../audio/alphaTabSound';
 import './TabViewer.css';
 
 // Songs -> Guitar Pro import: upload a .gp3/.gp4/.gp5/.gpx file and render
@@ -48,12 +49,12 @@ export function TabViewer({ onActiveChordChange, externalFile, hideUpload }) {
       player: {
         enablePlayer: true,
         enableCursor: true,
-        // Bundled SONiVOX soundfont — copied to /soundfont/ at build time by
-        // the @coderline/alphatab-vite plugin (see vite.config.js).
-        soundFont: '/soundfont/sonivox.sf2',
+        // Soundfont: the shared GeneralUser GS set (audio/alphaTabSound.js),
+        // loaded below.
       },
     });
     apiRef.current = api;
+    loadGpSoundFont(api).catch(() => {});
 
     api.scoreLoaded.on((score) => {
       setMeta({ title: score.title || null, artist: score.artist || null });

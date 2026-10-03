@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { SongVideoPlayer } from '../SongVideoPlayer/SongVideoPlayer';
@@ -69,8 +69,13 @@ const SEARCH_MODE_TEXT = {
   gpFiles: { fieldLabelKey: 'songs.gpFilesFieldLabel', placeholderKey: 'songs.gpFilesPlaceholder', emptyHintKey: 'songs.emptyHintGpFiles' },
 };
 
-export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSongTabPlayingOrderChange }) {
+export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSongTabPlayingOrderChange, onTabModeChange }) {
   const [mode, setMode] = useState('song');
+  // Tells App when a tab is on screen (the neck is drawn smaller then).
+  useEffect(() => {
+    onTabModeChange?.(mode === 'tabUpload');
+    return () => onTabModeChange?.(false);
+  }, [mode, onTabModeChange]);
   const [query, setQuery] = useState('');
   const { t } = useLanguage();
   const { instrument } = useInstrument();

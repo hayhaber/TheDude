@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { STANDARD_TUNING, MAX_FRET, FRET_MARKERS, DOUBLE_DOT_FRETS } from '../../music/notes';
-import { MUTED_DOT_COLOR, LICK_MARKER_COLOR, NOTE_FUNCTION_COLORS, TECHNIQUE_ACTION_COLOR, VOICE_LEADING_PIVOT_COLOR, VOICE_LEADING_MOVING_COLOR, DEFAULT_CHORD_COLOR, colorForChord } from '../../styles/colors';
+import { MUTED_DOT_COLOR, LICK_MARKER_COLOR, TRAINER_MARKER_COLOR, TRAINER_PLAYING_COLOR, NOTE_FUNCTION_COLORS, TECHNIQUE_ACTION_COLOR, VOICE_LEADING_PIVOT_COLOR, VOICE_LEADING_MOVING_COLOR, DEFAULT_CHORD_COLOR, colorForChord } from '../../styles/colors';
 import { assignFingers } from '../../music/fingering';
 import { playNote } from '../../audio/chordPlayer';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -27,6 +27,7 @@ const NUT_WIDTH = 8 * NECK_SCALE;
 const FRET_WIRE_WIDTH = 3 * NECK_SCALE;
 const DOT_RADIUS = 12 * NECK_WIDTH_SCALE;
 const LICK_DOT_RADIUS = 9 * NECK_WIDTH_SCALE;
+const COMPACT_SCALE = 0.8;
 const SURFACE_MARGIN = 16 * NECK_WIDTH_SCALE; // wood/binding overhang above/below the outer strings
 // Position Roadmap track, in the margin above the nut (NECK_TOP ≈ 53) —
 // spaced out further than a first pass (12/21/31) so the chord label, pin,
@@ -215,6 +216,9 @@ export function Fretboard({
   // instead; every layout calc below already derives from `tuning.length`
   // rather than a hardcoded 6, so a shorter array just draws a shorter neck.
   tuning = STANDARD_TUNING,
+  // Screens that also show a tab (Lick Trainer, GuitarPro, Songs -> Tab)
+  // draw the neck 20% smaller so the tab gets the room.
+  compact = false,
 }) {
   const { t } = useLanguage();
   const baseWindowFrets = useWindowFrets();
@@ -491,7 +495,7 @@ export function Fretboard({
   }, [roadmap]);
 
   return (
-    <div className={`fretboard-scroll${isQuizMode ? ' fretboard-scroll-quiz' : ''}`}>
+    <div className={`fretboard-scroll${isQuizMode ? ' fretboard-scroll-quiz' : ''}${compact ? ' fretboard-scroll-compact' : ''}`}>
       {!isQuizMode && windowStart > 0 && (
         <button type="button" className="fretboard-page-btn fretboard-page-prev" onClick={() => pageWindow(-1)} aria-label={t('fretboard.pageDown')}>
           ‹
@@ -506,8 +510,8 @@ export function Fretboard({
         ref={svgRef}
         className={`fretboard-svg${panEnabled ? ' fretboard-svg-pannable' : ''}`}
         viewBox={`${viewBoxX0} ${-VIEWBOX_TOP_MARGIN} ${viewBoxWidth} ${neckHeight + VIEWBOX_TOP_MARGIN}`}
-        width={viewBoxWidth}
-        height={neckHeight + VIEWBOX_TOP_MARGIN}
+        width={viewBoxWidth * (compact ? COMPACT_SCALE : 1)}
+        height={(neckHeight + VIEWBOX_TOP_MARGIN) * (compact ? COMPACT_SCALE : 1)}
         role="img"
         aria-label={t('fretboard.aria')}
         onPointerDown={handlePanPointerDown}
@@ -1011,16 +1015,23 @@ export function Fretboard({
             played at (same coordinates as chord dots), numbered in play
             order with a small technique glyph when one applies. */}
         {lick?.notes.map((n) => {
+          // A compact neck keeps its markers readable (same on-screen size).
+          const dotR = compact ? LICK_DOT_RADIUS / COMPACT_SCALE : LICK_DOT_RADIUS;
           const cx = n.fret === 0 ? fretX(0) : fretX(n.fret) - FRET_WIDTH / 2;
           const cy = stringY(n.string);
           const glyph = TECHNIQUE_GLYPH[n.technique];
           const isPlaying = playingNoteOrder === n.order;
-          const fill = colorForRole(n.role, LICK_MARKER_COLOR);
+          const trainerStyle = lick.style === 'trainer';
+          const fill = trainerStyle
+            ? isPlaying
+              ? TRAINER_PLAYING_COLOR
+              : TRAINER_MARKER_COLOR
+            : colorForRole(n.role, LICK_MARKER_COLOR);
           const noteInfo = { label: n.label, role: n.role, degree: n.degree };
           return (
             <g
               key={`lick-${n.order}`}
-              className={'playable-note' + (isPlaying ? ' playing' : '')}
+              className={'playable-note' + (isPlaying ? ' playing' : '') + (trainerStyle ? ' trainer-marker' : '')}
               role="button"
               tabIndex={0}
               aria-label={t('fretboard.playNote', { note: n.label })}
@@ -1028,14 +1039,14 @@ export function Fretboard({
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && playStringNote(n.string, n.fret, noteInfo)}
             >
               {isPlaying && (
-                <circle cx={cx} cy={cy} r={LICK_DOT_RADIUS + 5} fill="none" className="lick-dot-playing-ring" />
+                <circle cx={cx} cy={cy} r={dotR + 5} fill="none" className="lick-dot-playing-ring" />
               )}
-              <circle cx={cx} cy={cy} r={LICK_DOT_RADIUS} fill={fill} className="lick-dot" />
+              <circle cx={cx} cy={cy} r={dotR} fill={fill} className="lick-dot" />
               <text x={cx} y={cy + 3} className="lick-dot-label" textAnchor="middle">
                 {n.displayLabel ?? n.order}
               </text>
               {glyph && (
-                <text x={cx + LICK_DOT_RADIUS + 2} y={cy - LICK_DOT_RADIUS + 2} className="lick-technique-glyph">
+                <text x={cx + dotR + 2} y={cy - dotR + 2} className="lick-technique-glyph">
                   {glyph}
                 </text>
               )}

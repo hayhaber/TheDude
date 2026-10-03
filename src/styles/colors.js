@@ -63,6 +63,9 @@ export const MUTED_DOT_COLOR = '#8e8e93'; // systemGray
 // Doesn't collide with any PALETTE entry or MUTED_DOT_COLOR — used for lick
 // note markers so they read as distinct from chord-tone dots.
 export const LICK_MARKER_COLOR = '#a2845e'; // systemBrown
+// Lick Trainer / GuitarPro markers: light blue, the sounding note green.
+export const TRAINER_MARKER_COLOR = '#5ac8fa'; // systemTeal (light blue)
+export const TRAINER_PLAYING_COLOR = '#34c759'; // systemGreen
 
 // Studies -> Technique & Guitar Masters fretboard overlay (Note/Chord dots,
 // Slide/HammerOn/PullOff arrows, Bend arcs) — distinct from every other

@@ -87,7 +87,14 @@
   gap: 10px;
 }
 
+/* Stays at the top while the score is scrolled into view, so Play/Pause is
+   always at hand and the score gets the rest of the screen. */
 .gp-transport {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 0;
+  background: var(--bg);
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -121,7 +128,10 @@
 /* The score is drawn black-on-white like sheet music, in both themes. */
 .gp-score-scroll {
   position: relative;
-  height: min(62vh, 640px);
+  z-index: 0; /* own stacking context: alphaTab's cursor can't paint over the sticky transport */
+  /* Exactly the room left above the pinned neck (--stage-height is set by
+     AppShell), so scrolled into view the score fills the screen. */
+  height: max(320px, calc(100dvh - var(--stage-height, 260px) - 92px));
   overflow: auto;
   border-radius: 14px;
   border: 1px solid var(--border);
@@ -158,4 +168,24 @@
 .gp-score .at-highlight * {
   fill: #0a84ff;
   stroke: #0a84ff;
+}
+
+@media (max-width: 899px) {
+  .gp-score-scroll {
+    height: max(
+      260px,
+      calc(
+        100dvh - var(--stage-height, 160px) - var(--bottom-tabs-height, 64px) - var(--mobile-metronome-height, 56px) -
+          env(safe-area-inset-bottom, 0px) - 20px
+      )
+    );
+  }
+}
+
+@media (max-width: 899px) {
+  /* Too little height on a phone/tablet for a pinned bar: it scrolls with the page. */
+  .gp-transport {
+    position: static;
+    padding: 0;
+  }
 }

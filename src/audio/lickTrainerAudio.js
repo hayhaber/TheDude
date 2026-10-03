@@ -23,7 +23,7 @@ const TICK_MS = 25;
 const BEND_RISE_MAX = 0.15; // seconds to reach a bend's target
 const GLIDE_TIME = 0.07; // slide / release glide
 const VIBRATO_HZ = 5.5;
-const VIBRATO_DEPTH = 0.3; // semitones
+const VIBRATO_DEPTH = 0.45; // semitones, peak — the pitch only rises (a string is pushed, never pulled flat)
 const LEGATO = new Set(['hammer', 'pull', 'slide', 'release']);
 
 // ---- Reference voice ------------------------------------------------------
@@ -143,7 +143,7 @@ function contour(note, prevNote, t, dur) {
   }
   if (note.vibrato) {
     const settle = note.technique === 'bend' ? Math.min(BEND_RISE_MAX, dur * 0.4) : 0.12;
-    if (t > settle) m += VIBRATO_DEPTH * Math.sin(2 * Math.PI * VIBRATO_HZ * (t - settle)) * Math.min(1, (t - settle) / 0.15);
+    if (t > settle) m += (VIBRATO_DEPTH * (1 - Math.cos(2 * Math.PI * VIBRATO_HZ * (t - settle))) / 2) * Math.min(1, (t - settle) / 0.15);
   }
   return m;
 }

@@ -139,4 +139,24 @@ rosewood, below).
   into an AudioBuffer started on the trainer's own clock — sample-exact vs.
   the analysis timeline. Never play the backing through the live alphaTab
   player during a take (separate clock -> smeared timing feedback).
+- **GP sound**: every alphaTab player (hidden reference, GuitarPro song view,
+  Songs -> Tab) uses GeneralUser GS v2.0.3 converted to SF3
+  (`public/soundfont/generaluser-gs.sf3`, ~9 MB, license next to it),
+  fetched ONCE and shared via `loadGpSoundFont(api)` in
+  `audio/alphaTabSound.js` (don't give an api a `player.soundFont` URL — each
+  would download it). alphaTab only plays mono samples (sampleType & 1).
+  `alphaTabSound.js` also patches MidiFileGenerator's note vibrato to a
+  finger vibrato (pitch only rises, ~5.5 Hz real time) and `tuneVibrato()`
+  sets its tick length for tempo x speed — after changing it call
+  `loadMidiForScore()` (no need to wait for playerReady: the worker
+  processes messages in order; playerReady does NOT refire for a reload
+  while playing).
+- **Trainer neck**: lick markers with `lick.style === 'trainer'` are light
+  blue, the sounding note green with a glow. Markers show note names or
+  left-hand fingers (`trainer.neckLabel`): fingers come from the GP file
+  (`leftHandFinger`) or `music/lickTrainer/fingering.js` (DP over hand
+  positions; `fingerAuto`), assigned in `withDerived()`. Screens with a tab
+  (Lick Trainer, GuitarPro, Songs -> Tab) pass `compact` to the Fretboard:
+  20% smaller (not on phones <=480px), markers scaled back up. AppShell
+  publishes `--stage-height` for panels that fill the space above the neck.
 

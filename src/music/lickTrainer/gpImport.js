@@ -89,6 +89,8 @@ function trackNotes(score, trackIndex) {
         technique,
         bend,
         vibrato: note.vibrato !== 0 || beat.vibrato !== 0,
+        // Left-hand finger written in the file (1 index .. 4 pinky), if any.
+        ...(note.leftHandFinger >= 1 && note.leftHandFinger <= 4 ? { finger: note.leftHandFinger } : {}),
         barIndex: bar.index,
         _slideOut: note.slideOutType === SLIDE_SHIFT || note.slideOutType === SLIDE_LEGATO,
         _hammerOrigin: note.isHammerPullOrigin,

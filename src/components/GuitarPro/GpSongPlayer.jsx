@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
+import { loadGpSoundFont, tuneVibrato } from '../../audio/alphaTabSound';
 
 const TICKS_PER_BEAT = 960;
 
@@ -13,6 +14,7 @@ export function GpSongPlayer({ trainer, t }) {
   const scrollRef = useRef(null);
   const apiRef = useRef(null);
   const [ready, setReady] = useState(false);
+  const [midiVersion, setMidiVersion] = useState(0); // bumps on every (re)loaded MIDI
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [looping, setLooping] = useState(false);
@@ -35,14 +37,17 @@ export function GpSongPlayer({ trainer, t }) {
         enablePlayer: true,
         enableCursor: true,
         enableUserInteraction: true,
-        soundFont: '/soundfont/sonivox.sf2',
         scrollElement: scrollRef.current,
       },
     });
     apiRef.current = api;
+    loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     const tickStart = song.startTick;
     api.renderFinished.on(() => setLoading(false));
-    api.playerReady.on(() => setReady(true));
+    api.playerReady.on(() => {
+      setReady(true);
+      setMidiVersion((v) => v + 1);
+    });
     api.playerStateChanged.on((e) => {
       const isPlaying = e.state === alphaTab.synth.PlayerState.Playing;
       setPlaying(isPlaying);
@@ -80,10 +85,24 @@ export function GpSongPlayer({ trainer, t }) {
     const tracks = api.score.tracks;
     api.changeTrackMute(tracks.filter((tr) => !on.has(tr.index)), true);
     api.changeTrackMute(tracks.filter((tr) => on.has(tr.index)), false);
-  }, [ready, mixKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready, mixKey, midiVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (apiRef.current) apiRef.current.playbackSpeed = trainer.tempoPct / 100;
+    const api = apiRef.current;
+    if (!api || !ready || !api.score) return;
+    api.playbackSpeed = trainer.tempoPct / 100;
+    // Keep the vibrato at a real-time rate at this speed (regenerating the
+    // MIDI stops playback, so carry on from the same spot).
+    if (tuneVibrato(api.settings, api.score.tempo, trainer.tempoPct / 100)) {
+      const resumeAt = api.playerState === alphaTab.synth.PlayerState.Playing ? api.tickPosition : null;
+      api.loadMidiForScore();
+      // The synth worker handles messages in order, so the new MIDI is in
+      // place before these run.
+      if (resumeAt != null) {
+        api.tickPosition = resumeAt;
+        api.play();
+      }
+    }
   }, [trainer.tempoPct, ready]);
 
   useEffect(() => {

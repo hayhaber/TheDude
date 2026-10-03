@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { getAudioInputSettings } from '../../audio/audioInputSettingsStore';
-import { LickTrainer, LibraryBar, ImportPanel } from '../LickTrainer/LickTrainer';
+import { LickTrainer, LibraryBar, ImportPanel, NeckLabelToggle } from '../LickTrainer/LickTrainer';
 import { GpSongPlayer } from './GpSongPlayer';
 import './GuitarProView.css';
 
@@ -147,6 +147,7 @@ export function GuitarProView({ trainer }) {
             </button>
           </div>
 
+          <NeckLabelToggle trainer={trainer} t={t} />
           <TrackMixer trainer={trainer} t={t} busy={busy} />
           {view === 'practice' && trainer.tracks.length > 0 && (
             <p className="lt-muted lt-small">{t('gp.practiceMixHint')}</p>

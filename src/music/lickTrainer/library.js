@@ -14,6 +14,7 @@
 // rock/blues vocabulary (common teaching licks, not transcriptions of a
 // specific recording). `rhythmApprox` marks a lick whose source tab had no
 // rhythm, so the rhythm here is a reasonable reading, not the original.
+import { assignFingers } from './fingering';
 import { STANDARD_TUNING } from '../notes';
 import { comfortablyNumb } from './imports/comfortablyNumb';
 import { novemberRain } from './imports/novemberRain';
@@ -704,10 +705,14 @@ export function secondsPerBeat(bpm) {
 // what the player frets, the pitch is what actually sounds.
 export function withDerived(lick) {
   const shift = lick.tuningShift ?? 0;
+  // Left-hand fingers: the file's own where written, suggested elsewhere
+  // (fingering.js). A section of a solo keeps the whole solo's fingering.
+  const fingers = lick.notes.some((n) => n.fingerAuto === undefined) ? assignFingers(lick.notes) : null;
   const notes = lick.notes.map((note, i) => ({
     ...note,
     order: i + 1,
     midi: STANDARD_TUNING[note.string].baseMidi + note.fret + shift,
+    ...(fingers ? { finger: fingers[i].finger, fingerAuto: fingers[i].auto } : {}),
   }));
   const lastEnd = Math.max(...notes.map((x) => x.start + x.duration));
   return { ...lick, notes, lengthBeats: Math.ceil(lastEnd) };

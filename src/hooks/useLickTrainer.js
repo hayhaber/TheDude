@@ -23,6 +23,7 @@ const TAIL_S = 0.8; // keep recording a little past the last note
 const LATENCY_KEY = 'lick-trainer-latency';
 const HISTORY_KEY = 'lick-trainer-history';
 const MIX_KEY = 'lick-trainer-gp-mix';
+const NECK_LABEL_KEY = 'lick-trainer-neck-label';
 const CALIBRATION_CLICKS = 8;
 const CALIBRATION_BPM = 90;
 
@@ -80,6 +81,12 @@ export function useLickTrainer() {
     return typeof v === 'number' ? v : null;
   });
   const [history, setHistory] = useState(() => readJson(HISTORY_KEY, {}));
+  // What the fretboard markers show: the note name or the left-hand finger.
+  const [neckLabel, setNeckLabelState] = useState(() => (readJson(NECK_LABEL_KEY, 'note') === 'finger' ? 'finger' : 'note'));
+  const setNeckLabel = useCallback((v) => {
+    setNeckLabelState(v);
+    writeJson(NECK_LABEL_KEY, v);
+  }, []);
 
   // Licks imported in the app from Guitar Pro files (this device).
   const [userLicks, setUserLicks] = useState([]);
@@ -601,6 +608,8 @@ export function useLickTrainer() {
     commitImport,
     deleteImport,
     songSource: activeSolo ? gpSourceOf(activeSolo) : null,
+    neckLabel,
+    setNeckLabel,
     tracks,
     mix,
     toggleTrack,

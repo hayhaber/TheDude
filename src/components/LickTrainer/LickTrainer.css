@@ -617,3 +617,21 @@
   color: var(--text-secondary);
   padding: 7px 6px;
 }
+
+/* Fretboard marker labels: note / finger */
+.lt-necklabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.lt-necklabel .mode-toggle {
+  margin: 0;
+}
+
+.lt-necklabel-title {
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}

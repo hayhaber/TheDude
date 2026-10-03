@@ -175,6 +175,15 @@ rosewood, below).
   can reach.
   Tracks are a rail on the LEFT of the score (`TrackRail` in
   GpSongPlayer.jsx, icon per kind, tap = mute/unmute; icons only on phones);
-  the pill mixer is shown only in Practice. The view is full width (controls
+  the pill mixer is shown only in Practice.
+  Rail row = tap the name to SHOW that track (score + neck + the practiced
+  part; `trainer.setDisplayTrack`, per solo in localStorage, unmutes it),
+  the speaker icon mutes. Another guitar track is rebuilt with
+  `scoreToSolo` (`soloForTrack()` in useLickTrainer, id `<soloId>@t<n>`;
+  `activeSoloId` = the base id); non-guitar tracks (`isGuitarTrack()` false:
+  bass/keys/vocals/drums) are `displayOnly` — notation only (Score/Default
+  stave profile), empty neck, no Practice. Song view keeps ONE AlphaTabApi
+  per file and switches with `renderTracks()` (no MIDI reload). The mix is
+  per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls
   above capped at 980px).
 

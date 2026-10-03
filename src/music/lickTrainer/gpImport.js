@@ -124,6 +124,7 @@ export function describeScore(score) {
       name: t.name || `Track ${i + 1}`,
       program: t.playbackInfo?.program ?? null,
       percussion: !!t.staves[0].isPercussion,
+      strings: t.staves[0].tuning?.length ?? 0,
       noteCount: t.staves[0].bars.reduce((a, b) => a + b.voices[0].beats.filter((x) => !x.isRest).length, 0),
     })),
   };
@@ -264,6 +265,24 @@ export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = 
     gpRef: { track: trackIndex, tickStart: offset * TICKS_PER_BEAT },
     notes: clean(notes, offset),
   };
+}
+
+// What kind of instrument a track (from describeScore) is.
+export function trackKind(tr) {
+  const name = tr.name || '';
+  if (tr.percussion || /drum|perc/i.test(name)) return 'drums';
+  if (/voice|vocal|vox|sing/i.test(name)) return 'vocal';
+  if (/bass/i.test(name) || (tr.program >= 32 && tr.program <= 39)) return 'bass';
+  if (/piano|key|organ|synth|rhodes|clav/i.test(name) || (tr.program >= 0 && tr.program <= 23 && !/guitar|gtr/i.test(name))) return 'keys';
+  if (/string|violin|cello|viola|orch/i.test(name) || (tr.program >= 40 && tr.program <= 55)) return 'strings';
+  return 'guitar';
+}
+
+// A part that can be played on a 6-string guitar (shown on the neck,
+// practiced in the trainer). Anything else is shown as notation only.
+export function isGuitarTrack(tr) {
+  if (!tr || tr.noteCount === 0 || tr.strings !== 6 || trackKind(tr) !== 'guitar') return false;
+  return tr.program == null || (tr.program >= 24 && tr.program <= 31) || /guitar|gtr|git|lead|rhythm|solo/i.test(tr.name);
 }
 
 // The backing band that plays along by default: drums, bass and keys (the

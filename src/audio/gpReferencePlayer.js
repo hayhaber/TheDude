@@ -72,8 +72,10 @@ function nextEvent(emitter, armed, timeoutMs) {
 
 // source: { key, url } (a file under /public) or { key, bytes } (imported).
 // Loads are chained so two quick selections can never interleave.
+// One load per file: every track's MIDI is in it whichever track is drawn
+// (the hidden instance only draws `trackIndex` because it must draw one).
 function load(source, trackIndex) {
-  const key = `${source.key}#${trackIndex}`;
+  const key = source.key;
   if (loadedKey === key && loading) return loading;
   loadedKey = key;
   const previous = loading ?? Promise.resolve();
@@ -109,6 +111,11 @@ function load(source, trackIndex) {
 
 export function preloadReference(source, trackIndex) {
   return load(source, trackIndex).catch(() => null);
+}
+
+/** The file's alphaTab Score (loaded once, shared with playback). */
+export function referenceScore(source, trackIndex) {
+  return load(source, trackIndex);
 }
 
 /** The loaded file's tracks: [{ index, name, program, percussion, noteCount }]. */

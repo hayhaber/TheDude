@@ -2,24 +2,28 @@ import { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
+import { describeScore, isGuitarTrack, trackKind } from '../../music/lickTrainer/gpImport';
 
 const TICKS_PER_BEAT = 960;
 
-// What kind of instrument a track is, for its icon in the rail.
-function trackKind(tr) {
-  const name = tr.name || '';
-  if (tr.percussion || /drum|perc/i.test(name)) return 'drums';
-  if (/voice|vocal|vox|sing/i.test(name)) return 'vocal';
-  if (/bass/i.test(name) || (tr.program >= 32 && tr.program <= 39)) return 'bass';
-  if (/piano|key|organ|synth|rhodes|clav/i.test(name) || (tr.program >= 0 && tr.program <= 23 && !/guitar|gtr/i.test(name))) return 'keys';
-  if (/string|violin|cello|viola|orch/i.test(name) || (tr.program >= 40 && tr.program <= 55)) return 'strings';
-  return 'guitar';
-}
 const KIND_ICON = { drums: '🥁', vocal: '🎤', bass: '🎸', keys: '🎹', strings: '🎻', guitar: '🎸' };
 
+function SpeakerIcon({ on }) {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path d="M2 6h2.5L8 3v10L4.5 10H2z" fill="currentColor" />
+      {on ? (
+        <path d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.3 6.3 0 0 1 0 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      ) : (
+        <path d="M10.5 6l4 4M14.5 6l-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      )}
+    </svg>
+  );
+}
+
 // The file's tracks down the left side of the score (like Songsterr /
-// Guitar Pro): tap a track to mute or unmute it. Leaves the score the full
-// height and nearly the full width.
+// Guitar Pro): tap a track to show its part (score + neck, and it's the one
+// practiced); the speaker beside it mutes / unmutes it.
 function TrackRail({ trainer, t }) {
   const tracks = trainer.tracks.filter((tr) => tr.noteCount > 0);
   if (tracks.length === 0) return null;
@@ -28,29 +32,50 @@ function TrackRail({ trainer, t }) {
     <div className="gp-rail" role="group" aria-label={t('gp.tracks')}>
       <span className="gp-rail-title">{t('gp.tracksShort')}</span>
       {tracks.map((tr) => {
-        const active = on.has(tr.index);
+        const sounding = on.has(tr.index);
+        const shown = tr.index === trainer.displayTrack;
         const kind = trackKind(tr);
         return (
-          <button
-            key={tr.index}
-            type="button"
-            className={'gp-rail-track' + (active ? ' active' : '') + (tr.index === trainer.practiceTrack ? ' yours' : '')}
-            aria-pressed={active}
-            title={`${tr.name} — ${t(active ? 'gp.trackOn' : 'gp.trackOff')}`}
-            onClick={() => trainer.toggleTrack(tr.index)}
-          >
-            <span className={'gp-rail-icon kind-' + kind} aria-hidden="true">
-              {KIND_ICON[kind]}
-            </span>
-            <span className="gp-rail-name" dir="auto">
-              {tr.name}
-            </span>
-            {tr.index === trainer.practiceTrack && <span className="gp-track-you">{t('gp.yourPart')}</span>}
-          </button>
+          <div key={tr.index} className={'gp-rail-row' + (shown ? ' shown' : '') + (sounding ? '' : ' muted')}>
+            <button
+              type="button"
+              className="gp-rail-track"
+              aria-pressed={shown}
+              title={`${tr.name} — ${t('gp.trackShow')}`}
+              onClick={() => !shown && trainer.setDisplayTrack(tr.index)}
+            >
+              <span className={'gp-rail-icon kind-' + kind} aria-hidden="true">
+                {KIND_ICON[kind]}
+              </span>
+              <span className="gp-rail-name" dir="auto">
+                {tr.name}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="gp-rail-mute"
+              aria-pressed={!sounding}
+              aria-label={`${tr.name} — ${t(sounding ? 'gp.trackOn' : 'gp.trackOff')}`}
+              title={`${tr.name} — ${t(sounding ? 'gp.trackOn' : 'gp.trackOff')}`}
+              onClick={() => trainer.toggleTrack(tr.index)}
+            >
+              <SpeakerIcon on={sounding} />
+            </button>
+          </div>
         );
       })}
     </div>
   );
+}
+
+// How a track's part is drawn: guitar as tab, bass as notation + tab,
+// everything else (keys, vocals, drums…) as notation.
+function staveProfileFor(tr) {
+  if (!tr) return alphaTab.StaveProfile.Tab;
+  const kind = trackKind(tr);
+  if (isGuitarTrack(tr)) return alphaTab.StaveProfile.Tab;
+  if (kind === 'bass' && tr.strings > 0) return alphaTab.StaveProfile.Default;
+  return alphaTab.StaveProfile.Score;
 }
 
 // Small transport glyphs (drawn, so they look the same on every device).
@@ -96,8 +121,14 @@ export function GpSongPlayer({ trainer, t }) {
   const [looping, setLooping] = useState(false);
   const [error, setError] = useState(null);
   const song = trainer.songSource;
-  const songKey = song ? `${song.source.key}#${song.trackIndex}` : null;
+  // One alphaTab instance per FILE: switching the shown track just redraws.
+  const songKey = song ? song.source.key : null;
+  const trackIndex = song?.trackIndex ?? null;
+  const [scoreVersion, setScoreVersion] = useState(0);
   const { followPlayhead } = trainer;
+  // Where the shown part's beat 0 is (changes with the shown track).
+  const tickStartRef = useRef(0);
+  tickStartRef.current = song?.startTick ?? 0;
 
   // One alphaTab instance per file shown.
   useEffect(() => {
@@ -121,12 +152,15 @@ export function GpSongPlayer({ trainer, t }) {
     apiRef.current = api;
     api.masterVolume = GP_MASTER_VOLUME;
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
-    const tickStart = song.startTick;
-    api.renderFinished.on(() => setLoading(false));
+    let lastSystem = -1;
+    api.scoreLoaded.on(() => setScoreVersion((v) => v + 1));
+    api.renderFinished.on(() => {
+      lastSystem = -1;
+      setLoading(false);
+    });
     // Page-turn scrolling: whenever playback reaches a new line, that line
     // goes to the top of the score area, so the line being played and the
     // next one are always fully in view.
-    let lastSystem = -1;
     api.playedBeatChanged.on((beat) => {
       const sys = api.boundsLookup?.findBeat(beat)?.barBounds?.masterBarBounds?.staffSystemBounds;
       const box = scrollRef.current;
@@ -167,7 +201,7 @@ export function GpSongPlayer({ trainer, t }) {
       if (!isPlaying && e.stopped) followPlayhead(null);
     });
     api.playerPositionChanged.on((e) => {
-      if (api.playerState === alphaTab.synth.PlayerState.Playing) followPlayhead((e.currentTick - tickStart) / TICKS_PER_BEAT);
+      if (api.playerState === alphaTab.synth.PlayerState.Playing) followPlayhead((e.currentTick - tickStartRef.current) / TICKS_PER_BEAT);
     });
     api.error.on((e) => setError(e?.message ?? String(e)));
     let alive = true;
@@ -190,6 +224,21 @@ export function GpSongPlayer({ trainer, t }) {
       apiRef.current = null;
     };
   }, [songKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Draw the shown track (and in the right notation for its instrument).
+  useEffect(() => {
+    const api = apiRef.current;
+    const score = api?.score;
+    if (!score || trackIndex == null || !score.tracks[trackIndex]) return;
+    const profile = staveProfileFor(describeScore(score).tracks[trackIndex]);
+    const drawn = api.tracks?.length === 1 && api.tracks[0].index === trackIndex;
+    if (drawn && api.settings.display.staveProfile === profile) return;
+    setLoading(true);
+    api.settings.display.staveProfile = profile;
+    api.updateSettings();
+    api.renderTracks([score.tracks[trackIndex]]);
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [scoreVersion, trackIndex]);
 
   // The mixer: exactly the checked tracks sound.
   const mixKey = trainer.mix.join(',');
@@ -287,6 +336,9 @@ export function GpSongPlayer({ trainer, t }) {
           {t('gp.loop')}
         </button>
       </div>
+      {trainer.activeSolo?.displayOnly && !trainer.activeSolo.pending && (
+        <p className="lt-muted lt-small">{t('gp.notationOnly')}</p>
+      )}
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
       <div className="gp-song-body" dir="ltr">
         <TrackRail trainer={trainer} t={t} />

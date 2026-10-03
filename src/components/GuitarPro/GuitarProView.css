@@ -280,7 +280,19 @@
   color: var(--text-secondary);
 }
 
+.gp-rail-row {
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.gp-rail-row.shown {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
 .gp-rail-track {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -288,21 +300,50 @@
   gap: 3px;
   padding: 6px 3px;
   border-radius: 10px;
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text);
   cursor: pointer;
   text-align: center;
 }
 
-.gp-rail-track:hover {
+.gp-rail-row:not(.shown) .gp-rail-track:hover {
   background: rgba(120, 120, 128, 0.12);
 }
 
-.gp-rail-track.active {
-  background: var(--accent-bg);
-  border-color: var(--accent);
+.gp-rail-row.shown .gp-rail-track {
   color: var(--accent);
+  cursor: default;
+}
+
+.gp-rail-row.muted .gp-rail-track {
+  color: var(--text-secondary);
+}
+
+/* Mute / unmute: a small speaker in the row's corner. */
+.gp-rail-mute {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.gp-rail-mute:hover {
+  background: rgba(120, 120, 128, 0.16);
+}
+
+.gp-rail-row.muted .gp-rail-mute {
+  color: var(--text-secondary);
 }
 
 .gp-rail-icon {
@@ -312,7 +353,7 @@
   opacity: 0.45;
 }
 
-.gp-rail-track.active .gp-rail-icon {
+.gp-rail-row:not(.muted) .gp-rail-icon {
   filter: none;
   opacity: 1;
 }
@@ -360,12 +401,14 @@
   }
 
   .gp-rail-track {
-    padding: 8px 2px;
+    padding: 8px 2px 4px;
   }
 
-  .gp-rail-track .gp-track-you {
-    font-size: 9px;
-    padding: 0 4px;
+  /* The speaker sits under the icon on the narrow rail. */
+  .gp-rail-mute {
+    position: static;
+    width: 100%;
+    height: 22px;
   }
 }
 

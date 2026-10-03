@@ -102,7 +102,7 @@ export function GuitarProView({ trainer }) {
         <label className="lt-field lt-grow">
           <span>{t('gp.file')}</span>
           <select
-            value={solo?.id ?? ''}
+            value={trainer.activeSoloId ?? ''}
             onChange={(e) => {
               setConfirmDelete(null);
               trainer.selectSolo(e.target.value);
@@ -222,7 +222,13 @@ export function GuitarProView({ trainer }) {
           )}
           {micWithBand && <p className="lt-warning">{t('gp.micHint')}</p>}
 
-          {view === 'song' ? <GpSongPlayer trainer={trainer} t={t} /> : <LickTrainer trainer={trainer} variant="solos" />}
+          {view === 'song' ? (
+            <GpSongPlayer trainer={trainer} t={t} />
+          ) : solo.displayOnly ? (
+            <p className="lt-muted">{t(solo.pending ? 'gp.buildingPart' : 'gp.practiceGuitarOnly')}</p>
+          ) : (
+            <LickTrainer trainer={trainer} variant="solos" />
+          )}
         </>
       )}
     </div>

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
-import { scoreToLicks, scoreToSolo, describeScore } from '../music/lickTrainer/gpImport';
+import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
 import { getAudioContext } from '../audio/audioContext';
-import { playReference, stopReference, preloadReference, referenceTracks, renderBacking } from '../audio/gpReferencePlayer';
+import { playReference, stopReference, preloadReference, referenceTracks, referenceScore, renderBacking } from '../audio/gpReferencePlayer';
 import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
@@ -24,6 +24,7 @@ const LATENCY_KEY = 'lick-trainer-latency';
 const HISTORY_KEY = 'lick-trainer-history';
 const MIX_KEY = 'lick-trainer-gp-mix';
 const NECK_LABEL_KEY = 'lick-trainer-neck-label';
+const DISPLAY_KEY = 'lick-trainer-gp-display'; // { [soloId]: track shown/practiced }
 const CALIBRATION_CLICKS = 8;
 const CALIBRATION_BPM = 90;
 
@@ -57,6 +58,33 @@ function gpSourceOf(lick) {
     startTick,
     endTick: startTick + lick.lengthBeats * TICKS_PER_BEAT,
   };
+}
+
+// The solo as another track of the same file shows it: that track's notes,
+// rebuilt into sections the same size as the original's. A track that isn't
+// a 6-string guitar part (bass, keys, vocals, drums) is notation only:
+// no notes on the neck, nothing to practice.
+function soloForTrack(base, score, track) {
+  const id = `${base.id}@t${track}`;
+  const shell = { ...base, id, notes: [], sections: [], gpRef: { track, tickStart: base.gpRef.tickStart }, displayOnly: true };
+  const tr = describeScore(score).tracks[track];
+  if (!isGuitarTrack(tr)) return shell;
+  const first = base.sections?.[0];
+  const mb = score.masterBars[0];
+  const beatsPerBar = mb ? (mb.timeSignatureNumerator * 4) / mb.timeSignatureDenominator : 4;
+  const barsPerSection = first ? Math.max(1, Math.round((first.toBeat - first.fromBeat) / beatsPerBar)) : 2;
+  const made = scoreToSolo(score, { trackIndex: track, barsPerSection });
+  if (!made) return shell;
+  return withDerived({
+    ...base,
+    id,
+    notes: made.notes,
+    sections: made.sections,
+    gpRef: made.gpRef,
+    tuningShift: made.tuningShift,
+    barPhase: made.barPhase,
+    simplified: made.simplified,
+  });
 }
 
 export function useLickTrainer() {
@@ -139,7 +167,41 @@ export function useLickTrainer() {
   const allSolos = useMemo(() => [...SOLOS, ...userLicks.filter((l) => l.kind === 'solo')], [userLicks]);
 
   const baseLick = allLicks.find((l) => l.id === lickId) ?? LICKS[0];
-  const activeSolo = allSolos.find((l) => l.id === soloId) ?? allSolos[0] ?? null;
+  const baseSolo = allSolos.find((l) => l.id === soloId) ?? allSolos[0] ?? null;
+  // Which of the file's tracks is shown (score + neck) and practiced,
+  // remembered per solo. Default: the solo's own track.
+  const [displayTracks, setDisplayTracks] = useState(() => readJson(DISPLAY_KEY, {}));
+  const baseTrack = baseSolo?.gpRef?.track ?? null;
+  const displayTrack = baseSolo && baseTrack != null ? displayTracks[baseSolo.id] ?? baseTrack : null;
+  const otherTrack = displayTrack != null && displayTrack !== baseTrack;
+  const derivedKey = otherTrack ? `${baseSolo.id}@t${displayTrack}` : null;
+  const [derived, setDerived] = useState({ key: null, solo: null });
+  useEffect(() => {
+    if (!derivedKey) return undefined;
+    const gp = gpSourceOf(baseSolo);
+    if (!gp) return undefined;
+    let alive = true;
+    referenceScore(gp.source, gp.trackIndex)
+      .then((score) => alive && setDerived({ key: derivedKey, solo: soloForTrack(baseSolo, score, displayTrack) }))
+      .catch(() => alive && setDerived({ key: derivedKey, solo: null }));
+    return () => {
+      alive = false;
+    };
+  }, [derivedKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const activeSolo = useMemo(() => {
+    if (!otherTrack) return baseSolo;
+    if (derived.key === derivedKey && derived.solo) return derived.solo;
+    // Still building (or failed): the score switches, the neck stays empty.
+    return {
+      ...baseSolo,
+      id: derivedKey,
+      notes: [],
+      sections: [],
+      gpRef: { track: displayTrack, tickStart: baseSolo.gpRef.tickStart },
+      displayOnly: true,
+      pending: derived.key !== derivedKey,
+    };
+  }, [otherTrack, baseSolo, derived, derivedKey, displayTrack]);
   const sectionLick = useMemo(() => (activeSolo ? soloSection(activeSolo, sectionIndex) : null), [activeSolo, sectionIndex]);
   // What's being practiced right now: a lick, a whole solo, or one section.
   const lick = mode === 'solos' && sectionLick ? sectionLick : baseLick;
@@ -164,10 +226,11 @@ export function useLickTrainer() {
   }, [gpKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const tracks = useMemo(() => (gpTracks.key === gpKey ? gpTracks.tracks : NO_TRACKS), [gpTracks, gpKey]);
   const practiceTrack = lick.gpRef?.track ?? null;
-  const mixKey = gpKey ? `${gpKey}#${practiceTrack}` : null;
+  // One mix per file, whichever track is shown (older saves were per track).
+  const mixKey = gpKey;
   const mix = useMemo(
-    () => (mixKey && mixes[mixKey]) || defaultMix(tracks, practiceTrack),
-    [mixKey, mixes, tracks, practiceTrack]
+    () => (mixKey && (mixes[mixKey] || mixes[`${gpKey}#${practiceTrack}`])) || defaultMix(tracks, practiceTrack),
+    [mixKey, mixes, tracks, practiceTrack, gpKey]
   );
   const toggleTrack = useCallback(
     (index) => {
@@ -268,6 +331,31 @@ export function useLickTrainer() {
       setPhase('idle');
     },
     [stop]
+  );
+
+  // Show (and practice) another track of the file. It's unmuted too: you
+  // hear what you see.
+  const setDisplayTrack = useCallback(
+    (index) => {
+      if (!baseSolo) return;
+      stop();
+      setDisplayTracks((d) => {
+        const next = { ...d, [baseSolo.id]: index };
+        writeJson(DISPLAY_KEY, next);
+        return next;
+      });
+      setSectionIndexState(-1);
+      setResult(null);
+      setPhase('idle');
+      if (mixKey && !mix.includes(index)) {
+        setMixes((m) => {
+          const next = { ...m, [mixKey]: [...mix, index] };
+          writeJson(MIX_KEY, next);
+          return next;
+        });
+      }
+    },
+    [baseSolo, stop, mixKey, mix]
   );
 
   const setSectionIndex = useCallback(
@@ -567,7 +655,8 @@ export function useLickTrainer() {
   // Deletes every lick that came from the same imported file.
   const deleteImport = useCallback(
     async (id) => {
-      const target = userLicks.find((l) => l.id === id);
+      // A solo shown on another track has "@t<n>" on its id.
+      const target = userLicks.find((l) => l.id === id || l.id === String(id).replace(/@t\d+$/, ''));
       if (!target) return;
       const group = userLicks.filter((l) => l.importGroup === target.importGroup);
       const ids = group.map((l) => l.id);
@@ -598,7 +687,10 @@ export function useLickTrainer() {
     setMode,
     solos: allSolos,
     activeSolo,
+    activeSoloId: baseSolo?.id ?? null,
     selectSolo,
+    displayTrack,
+    setDisplayTrack,
     sectionIndex,
     setSectionIndex,
     preloadSamples: preloadTrainerSamples,

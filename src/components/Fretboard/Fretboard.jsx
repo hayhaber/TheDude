@@ -3,6 +3,7 @@ import { STANDARD_TUNING, MAX_FRET, FRET_MARKERS, DOUBLE_DOT_FRETS } from '../..
 import { MUTED_DOT_COLOR, LICK_MARKER_COLOR, TRAINER_MARKER_COLOR, TRAINER_PLAYING_COLOR, NOTE_FUNCTION_COLORS, TECHNIQUE_ACTION_COLOR, VOICE_LEADING_PIVOT_COLOR, VOICE_LEADING_MOVING_COLOR, DEFAULT_CHORD_COLOR, colorForChord } from '../../styles/colors';
 import { assignFingers } from '../../music/fingering';
 import { playNote } from '../../audio/chordPlayer';
+import { playBassNote, preloadBassSamples } from '../../audio/bassPlayer';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { translateTransitionLabel } from '../../i18n/roadmapLabels';
 import './Fretboard.css';
@@ -219,6 +220,8 @@ export function Fretboard({
   // Screens that also show a tab (Lick Trainer, GuitarPro, Songs -> Tab)
   // draw the neck 20% smaller so the tab gets the room.
   compact = false,
+  // 'bass': tapped notes sound with the bass voice (GuitarPro bass parts).
+  noteSound = null,
 }) {
   const { t } = useLanguage();
   const baseWindowFrets = useWindowFrets();
@@ -268,8 +271,12 @@ export function Fretboard({
   // itself (labelFor, below) actually depends on labelMode.
   const fingers = useMemo(() => (position ? assignFingers(position) : null), [position]);
 
+  useEffect(() => {
+    if (noteSound === 'bass') preloadBassSamples();
+  }, [noteSound]);
+
   function playStringNote(stringIndex, fret, info) {
-    playNote(tuning[stringIndex].baseMidi + fret);
+    (noteSound === 'bass' ? playBassNote : playNote)(tuning[stringIndex].baseMidi + fret);
     if (onNoteClick && info) onNoteClick({ string: stringIndex, fret, ...info });
   }
 

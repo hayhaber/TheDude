@@ -71,6 +71,8 @@ export function GuitarProView({ trainer }) {
   const busy = ['preparing', 'countIn', 'recording', 'analyzing', 'calibrating'].includes(phase);
   const solo = trainer.activeSolo;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
+  // Bass / keys / vocals / drums are shown, not practiced.
+  const canPractice = !!solo && !solo.displayOnly && !solo.practiceOff;
   const micWithBand =
     view === 'practice' && trainer.backingTracks.length > 0 && getAudioInputSettings().inputMode === 'microphone';
 
@@ -216,15 +218,15 @@ export function GuitarProView({ trainer }) {
 
           <NeckLabelToggle trainer={trainer} t={t} />
           {/* Song view has its tracks in a rail beside the score. */}
-          {view === 'practice' && <TrackMixer trainer={trainer} t={t} busy={busy} />}
-          {view === 'practice' && trainer.tracks.length > 0 && (
+          {view === 'practice' && canPractice && <TrackMixer trainer={trainer} t={t} busy={busy} />}
+          {view === 'practice' && canPractice && trainer.tracks.length > 0 && (
             <p className="lt-muted lt-small">{t('gp.practiceMixHint')}</p>
           )}
           {micWithBand && <p className="lt-warning">{t('gp.micHint')}</p>}
 
           {view === 'song' ? (
             <GpSongPlayer trainer={trainer} t={t} />
-          ) : solo.displayOnly ? (
+          ) : !canPractice ? (
             <p className="lt-muted">{t(solo.pending ? 'gp.buildingPart' : 'gp.practiceGuitarOnly')}</p>
           ) : (
             <LickTrainer trainer={trainer} variant="solos" />

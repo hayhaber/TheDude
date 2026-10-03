@@ -273,8 +273,47 @@ export function GpSongPlayer({ trainer, t }) {
     if (apiRef.current) apiRef.current.isLooping = looping;
   }, [looping, ready]);
 
+  // Space bar = Play / Pause (as in Guitar Pro), unless typing in a field.
+  const playPauseRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.code !== 'Space' && e.key !== ' ') return;
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target;
+      if (el?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName ?? '')) return;
+      if (!playPauseRef.current) return;
+      // Also stops a focused button from "clicking" itself and the page scrolling.
+      e.preventDefault();
+      playPauseRef.current();
+    };
+    // A focused button would also "click" on the space's key-up.
+    const onKeyUp = (e) => {
+      if ((e.code === 'Space' || e.key === ' ') && e.target?.tagName === 'BUTTON' && playPauseRef.current) e.preventDefault();
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, []);
+
   if (!song) return null;
   const api = apiRef.current;
+  const togglePlay = () => {
+    if (!api) return;
+    // A real tap: make sure the player's audio is awake.
+    wakeAudio();
+    // Starting: bring the player to the top of the screen, so the
+    // whole score area (which auto-scrolls with the cursor) is in view.
+    if (!playing) {
+      const bring = () => songRef.current?.scrollIntoView({ block: 'start' });
+      bring();
+      setTimeout(bring, 250); // again, once anything above has settled
+    }
+    api.playPause();
+  };
+  playPauseRef.current = ready ? togglePlay : null;
 
   return (
     <section className="gp-song" ref={songRef}>
@@ -282,19 +321,7 @@ export function GpSongPlayer({ trainer, t }) {
         <button
           type="button"
           className="primary"
-          onClick={() => {
-            if (!api) return;
-            // A real tap: make sure the player's audio is awake.
-            wakeAudio();
-            // Starting: bring the player to the top of the screen, so the
-            // whole score area (which auto-scrolls with the cursor) is in view.
-            if (!playing) {
-              const bring = () => songRef.current?.scrollIntoView({ block: 'start' });
-              bring();
-              setTimeout(bring, 250); // again, once anything above has settled
-            }
-            api.playPause();
-          }}
+          onClick={togglePlay}
           disabled={!ready}
         >
           <TransportIcon kind={playing ? 'pause' : 'play'} />

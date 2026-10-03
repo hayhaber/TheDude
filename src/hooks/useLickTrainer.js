@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
-import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, chordNotesByTick, withChordNotes } from '../music/lickTrainer/gpImport';
+import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
@@ -68,12 +68,13 @@ function soloForTrack(base, score, track) {
   const id = `${base.id}@t${track}`;
   const shell = { ...base, id, notes: [], sections: [], gpRef: { track, tickStart: base.gpRef.tickStart }, displayOnly: true };
   const tr = describeScore(score).tracks[track];
-  if (!isGuitarTrack(tr)) return shell;
+  const bass = isBassTrack(tr);
+  if (!bass && !isGuitarTrack(tr)) return shell;
   const first = base.sections?.[0];
   const mb = score.masterBars[0];
   const beatsPerBar = mb ? (mb.timeSignatureNumerator * 4) / mb.timeSignatureDenominator : 4;
   const barsPerSection = first ? Math.max(1, Math.round((first.toBeat - first.fromBeat) / beatsPerBar)) : 2;
-  const made = scoreToSolo(score, { trackIndex: track, barsPerSection });
+  const made = scoreToSolo(score, { trackIndex: track, barsPerSection, bass });
   if (!made) return shell;
   return withDerived({
     ...base,
@@ -84,6 +85,9 @@ function soloForTrack(base, score, track) {
     tuningShift: made.tuningShift,
     barPhase: made.barPhase,
     simplified: made.simplified,
+    // Bass: on the bass neck in Song view; practice is for guitar parts.
+    neck: made.neck,
+    ...(bass ? { practiceOff: true } : {}),
   });
 }
 

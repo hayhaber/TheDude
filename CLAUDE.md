@@ -185,7 +185,11 @@ rosewood, below).
   `scoreToSolo` (`soloForTrack()` in useLickTrainer, id `<soloId>@t<n>`;
   `activeSoloId` = the base id); non-guitar tracks (`isGuitarTrack()` false:
   bass/keys/vocals/drums) are `displayOnly` — notation only (Score/Default
-  stave profile), empty neck, no Practice. Song view keeps ONE AlphaTabApi
+  stave profile), empty neck, no Practice. A 4-string bass track (`isBassTrack()`) is
+  built with `scoreToSolo({bass: true})` -> `neck: 'bass'` (BASS_TUNING strings),
+  `practiceOff`; App draws it on the bass neck (`tuning` = shifted BASS_TUNING)
+  and passes `noteSound: 'bass'` so tapped markers use `playBassNote`.
+  Space bar = Play/Pause in Song view (GpSongPlayer keydown, skips form fields). Song view keeps ONE AlphaTabApi
   per file and switches with `renderTracks()` (no MIDI reload). The mix is
   per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls
   above capped at 980px).

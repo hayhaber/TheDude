@@ -104,8 +104,8 @@ const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 
 function flatNoteName(midi) {
   return FLAT_NAMES[((midi % 12) + 12) % 12];
 }
-function shiftedTuning(shift) {
-  return STANDARD_TUNING.map((s) => {
+function shiftedTuning(shift, base = STANDARD_TUNING) {
+  return base.map((s) => {
     const baseMidi = s.baseMidi + shift;
     const pitchClass = ((baseMidi % 12) + 12) % 12;
     return { ...s, baseMidi, pitchClass, openNote: shift < 0 ? FLAT_NAMES[pitchClass] : midiToNoteName(baseMidi).replace(/-?\d+$/, '') };
@@ -266,7 +266,12 @@ function App() {
   // A file tuned down (e.g. Eb) gets a neck in that tuning, so every note
   // name — and the pitch a tapped marker plays — matches the tab's frets.
   const lickTuningShift = lickOnNeck.tuningShift ?? 0;
-  const lickNeckTuning = useMemo(() => (lickTuningShift ? shiftedTuning(lickTuningShift) : null), [lickTuningShift]);
+  // A bass part (GuitarPro) is drawn on the bass neck and sounds as a bass.
+  const lickOnBass = lickOnNeck.neck === 'bass';
+  const lickNeckTuning = useMemo(
+    () => (lickOnBass ? shiftedTuning(lickTuningShift, BASS_TUNING) : lickTuningShift ? shiftedTuning(lickTuningShift) : null),
+    [lickTuningShift, lickOnBass]
+  );
   const lickTrainerMarkers = useMemo(() => {
     const markers = [];
     const byPos = new Map();
@@ -338,6 +343,7 @@ function App() {
     position: null,
     lick: { notes: lickTrainerNeckNotes, style: 'trainer' },
     ...(lickNeckTuning ? { tuning: lickNeckTuning } : {}),
+    ...(lickOnBass ? { noteSound: 'bass' } : {}),
     playingNoteOrder:
       lickTrainer.playingOrder != null ? lickTrainerMarkers.markerOf.get(lickTrainer.playingOrder) ?? null : null,
   };

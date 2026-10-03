@@ -12,7 +12,7 @@
 //   - time in ticks, 960 per quarter note                       -> beats = ticks / 960
 // The Lick Trainer's analysis is monophonic, so a chord/double-stop keeps
 // only its highest note and the lick is flagged `simplified`.
-import { STANDARD_TUNING } from '../notes';
+import { STANDARD_TUNING, BASS_TUNING } from '../notes';
 
 const TICKS_PER_BEAT = 960;
 const SLIDE_SHIFT = 1;
@@ -31,7 +31,7 @@ function bendInfo(note) {
 }
 
 // One track's playable notes as a flat, time-ordered list.
-function trackNotes(score, trackIndex) {
+function trackNotes(score, trackIndex, tuning = STANDARD_TUNING) {
   const track = score.tracks[trackIndex];
   const staff = track.staves[0];
   const out = [];
@@ -49,8 +49,8 @@ function trackNotes(score, trackIndex) {
       const start = (master.start + beat.playbackStart) / TICKS_PER_BEAT;
       const duration = beat.playbackDuration / TICKS_PER_BEAT;
       const stringIndex = note.string - 1;
-      if (stringIndex < 0 || stringIndex > 5) continue;
-      const shift = note.realValue - (STANDARD_TUNING[stringIndex].baseMidi + note.fret);
+      if (stringIndex < 0 || stringIndex >= tuning.length) continue;
+      const shift = note.realValue - (tuning[stringIndex].baseMidi + note.fret);
       shifts.set(shift, (shifts.get(shift) ?? 0) + 1);
 
       const prev = out[out.length - 1];
@@ -213,9 +213,9 @@ export function scoreToLicks(score, { trackIndex = 0, barsPerPhrase = 0, base = 
  * `barsPerSection` bars (only sections that contain notes). Section
  * boundaries are in beats on the solo's own timeline.
  */
-export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = {} } = {}) {
+export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = {}, bass = false } = {}) {
   const info = describeScore(score);
-  const { notes, simplified, tuningShift } = trackNotes(score, trackIndex);
+  const { notes, simplified, tuningShift } = trackNotes(score, trackIndex, bass ? BASS_TUNING : STANDARD_TUNING);
   if (notes.length === 0) return null;
   const offset = Math.floor(notes[0].start);
   const barStart = (i) => (i < score.masterBars.length ? score.masterBars[i].start / TICKS_PER_BEAT : notes[notes.length - 1].start + notes[notes.length - 1].duration + 1);
@@ -244,6 +244,8 @@ export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = 
   const barPhase = (((barStart(notes[0].barIndex) - offset) % 4) + 4) % 4;
   return {
     kind: 'solo',
+    // A 4-string bass part: drawn on the bass neck (notes' strings are bass strings).
+    ...(bass ? { neck: 'bass' } : {}),
     id: `${base.idPrefix ?? 'solo'}-solo`,
     title: { en: title, he: title },
     artist: base.artist || info.artist,
@@ -323,6 +325,11 @@ export function trackKind(tr) {
 export function isGuitarTrack(tr) {
   if (!tr || tr.noteCount === 0 || tr.strings !== 6 || trackKind(tr) !== 'guitar') return false;
   return tr.program == null || (tr.program >= 24 && tr.program <= 31) || /guitar|gtr|git|lead|rhythm|solo/i.test(tr.name);
+}
+
+// A 4-string bass part: shown on the bass neck (not practiced).
+export function isBassTrack(tr) {
+  return !!tr && tr.noteCount > 0 && tr.strings === 4 && trackKind(tr) === 'bass';
 }
 
 // The backing band that plays along by default: drums, bass and keys (the

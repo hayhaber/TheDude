@@ -48,6 +48,13 @@ export function GuitarProView({ trainer }) {
   const fileRef = useRef(null);
   const [view, setView] = useState('song'); // 'song' | 'practice'
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  // A chosen file opens its "add" form: bring it into view.
+  const importRef = useRef(null);
+  const pendingName = trainer.pendingImport?.fileName;
+  useEffect(() => {
+    if (pendingName) importRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [pendingName]);
   const { setMode } = trainer;
   useEffect(() => {
     setMode('solos');
@@ -68,7 +75,24 @@ export function GuitarProView({ trainer }) {
     view === 'practice' && trainer.backingTracks.length > 0 && getAudioInputSettings().inputMode === 'microphone';
 
   return (
-    <div className="gp-view" dir={dir}>
+    <div
+      className="gp-view"
+      dir={dir}
+      onDragOver={(e) => {
+        if (busy || !e.dataTransfer?.types?.includes('Files')) return;
+        e.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target || !e.currentTarget.contains(e.relatedTarget)) setDragging(false);
+      }}
+      onDrop={(e) => {
+        if (!e.dataTransfer?.files?.length) return;
+        e.preventDefault();
+        setDragging(false);
+        if (!busy) trainer.readFile(e.dataTransfer.files[0]);
+      }}
+    >
       <div>
         <h1>{t('gp.title')}</h1>
         <p className="subtitle">{t('gp.subtitle')}</p>
@@ -109,9 +133,6 @@ export function GuitarProView({ trainer }) {
             {t(confirmDelete === solo?.id ? 'lickTrainer.deleteConfirm' : 'lickTrainer.delete')}
           </button>
         )}
-        <button type="button" className="lt-import-btn" onClick={() => fileRef.current?.click()} disabled={busy}>
-          {t('lickTrainer.import')}
-        </button>
         <input
           ref={fileRef}
           type="file"
@@ -124,6 +145,23 @@ export function GuitarProView({ trainer }) {
           }}
         />
       </div>
+
+      {/* Adding a file: one obvious target — click it, or drop a file on it
+          (or anywhere on this page). */}
+      <button
+        type="button"
+        className={'gp-drop' + (dragging ? ' is-dragging' : '')}
+        onClick={() => fileRef.current?.click()}
+        disabled={busy}
+      >
+        <svg className="gp-drop-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+          <path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span className="gp-drop-text">
+          <strong>{t(dragging ? 'gp.dropHere' : 'gp.addTitle')}</strong>
+          <span>{t('gp.addHint')}</span>
+        </span>
+      </button>
 
       {soundProgress === -1 && (
         <p className="lt-warning" role="alert">
@@ -150,7 +188,9 @@ export function GuitarProView({ trainer }) {
         <p className="lt-warning">{t('lickTrainer.error.import', { message: trainer.error.message })}</p>
       )}
       {trainer.pendingImport && (
-        <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="solo" />
+        <div ref={importRef}>
+          <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="solo" />
+        </div>
       )}
 
       {!solo ? (

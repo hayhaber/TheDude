@@ -635,3 +635,11 @@
   font-weight: 590;
   color: var(--text-secondary);
 }
+
+.lt-library.is-collapsed {
+  padding: 6px 12px;
+}
+
+.lt-library.is-collapsed .lt-library-text span {
+  color: var(--text-secondary);
+}

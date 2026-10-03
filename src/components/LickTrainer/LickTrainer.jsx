@@ -130,6 +130,9 @@ const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.gp7,.gp8';
 export function LibraryBar({ trainer, t }) {
   const { library } = trainer;
   const [code, setCode] = useState('');
+  // Off: just a one-line note with a button; the explanation and the code
+  // field only appear when the player asks for them.
+  const [open, setOpen] = useState(false);
   const needsCode = library.status === 'off' || library.status === 'bad-key';
   const message = {
     off: t('lickTrainer.libOff'),
@@ -141,6 +144,22 @@ export function LibraryBar({ trainer, t }) {
     'too-big': t('lickTrainer.libTooBig'),
     error: t('lickTrainer.libError'),
   }[library.status];
+  if (library.status === 'off' && !open) {
+    return (
+      <div className="lt-library is-off is-collapsed">
+        <div className="lt-library-text">
+          <span>
+            <strong>{t('lickTrainer.libTitle')}</strong> · {t('lickTrainer.libOffShort')}
+          </span>
+        </div>
+        <div className="lt-library-form">
+          <button type="button" onClick={() => setOpen(true)}>
+            {t('lickTrainer.libSetup')}
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`lt-library is-${library.status}`}>
       <div className="lt-library-text">

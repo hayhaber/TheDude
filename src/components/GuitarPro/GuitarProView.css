@@ -383,3 +383,53 @@
 .gp-icon {
   flex: 0 0 auto;
 }
+
+/* Add a file: a clear drop target */
+.gp-drop {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.gp-drop:hover {
+  background: color-mix(in srgb, var(--accent-bg) 70%, var(--accent) 12%);
+}
+
+.gp-drop.is-dragging {
+  border-style: solid;
+  transform: scale(1.01);
+}
+
+.gp-drop:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.gp-drop-icon {
+  flex: 0 0 auto;
+}
+
+.gp-drop-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gp-drop-text strong {
+  font-size: 15px;
+}
+
+.gp-drop-text span {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}

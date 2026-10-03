@@ -143,7 +143,10 @@
   /* Exactly the room left above the pinned neck (--stage-height is set by
      AppShell), so scrolled into view the score fills the screen. */
   height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 34px));
-  overflow: auto;
+  /* The score is laid out to this width: never a sideways scrollbar. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   border-radius: 14px;
   border: 1px solid var(--border);
   background: #fff;
@@ -151,7 +154,7 @@
 }
 
 .gp-score {
-  padding: 8px 4px;
+  padding: 8px 0;
 }
 
 .gp-score-loading {

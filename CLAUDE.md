@@ -166,7 +166,10 @@ rosewood, below).
 - **GuitarPro Song view layout**: no sticky bar. Play scrolls `.gp-song` to
   the top (scroll-margin) and `.gp-score-scroll` is sized to the room left
   above the neck (`--stage-height`); alphaTab auto-scrolls inside it
-  (`player.scrollElement`). Phones get extra bottom padding so the scroll
+  with OUR page-turn scrolling (`scrollMode: Off`; on `playedBeatChanged`, a
+  new staff system is scrolled to the top via `boundsLookup.findBeat()`), and
+  a ResizeObserver re-renders the score to the box width (overflow-x hidden,
+  no sideways scrollbar). Phones get extra bottom padding so the scroll
   can reach.
   Tracks are a rail on the LEFT of the score (`TrackRail` in
   GpSongPlayer.jsx, icon per kind, tap = mute/unmute; icons only on phones);

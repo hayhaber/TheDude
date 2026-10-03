@@ -87,12 +87,48 @@ export function GpSongPlayer({ trainer, t }) {
         enableCursor: true,
         enableUserInteraction: true,
         scrollElement: scrollRef.current,
+        // Scrolling is ours (below): line by line, current line on top.
+        scrollMode: alphaTab.ScrollMode.Off,
       },
     });
     apiRef.current = api;
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     const tickStart = song.startTick;
     api.renderFinished.on(() => setLoading(false));
+    // Page-turn scrolling: whenever playback reaches a new line, that line
+    // goes to the top of the score area, so the line being played and the
+    // next one are always fully in view.
+    let lastSystem = -1;
+    api.playedBeatChanged.on((beat) => {
+      const sys = api.boundsLookup?.findBeat(beat)?.barBounds?.masterBarBounds?.staffSystemBounds;
+      const box = scrollRef.current;
+      const host = hostRef.current;
+      if (!sys || !box || !host || sys.index === lastSystem) return;
+      lastSystem = sys.index;
+      const hostTop = host.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+      const padTop = parseFloat(getComputedStyle(host).paddingTop) || 0;
+      box.scrollTo({ top: Math.max(0, hostTop + padTop + sys.realBounds.y - 6), behavior: 'smooth' });
+    });
+    // Re-lay the score out to the box's width whenever it changes (track
+    // rail appearing, window resize…), so it never needs sideways scrolling.
+    let lastWidth = 0;
+    let relayout = null;
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(([entry]) => {
+            const w = Math.round(entry.contentRect.width);
+            if (Math.abs(w - lastWidth) < 4) return;
+            const first = lastWidth === 0;
+            lastWidth = w;
+            if (first) return;
+            clearTimeout(relayout);
+            relayout = setTimeout(() => {
+              lastSystem = -1;
+              if (api.score) api.render();
+            }, 150);
+          });
+    resizeObserver?.observe(scrollRef.current);
     api.playerReady.on(() => {
       setReady(true);
       setMidiVersion((v) => v + 1);
@@ -119,6 +155,8 @@ export function GpSongPlayer({ trainer, t }) {
     })();
     return () => {
       alive = false;
+      resizeObserver?.disconnect();
+      clearTimeout(relayout);
       followPlayhead(null);
       api.destroy();
       apiRef.current = null;

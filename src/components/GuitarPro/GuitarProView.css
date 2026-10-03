@@ -22,45 +22,52 @@
 }
 
 .gp-file-row {
-  /* File select and "add a file" side by side; stacked on narrow screens. */
-  align-items: stretch;
+  /* File select (wide) and a compact "add a file" button of the same
+     height on one row; stacked on narrow screens. */
+  align-items: flex-end;
 }
 
 .gp-file-field {
-  flex: 0 1 360px;
+  flex: 1 1 420px;
   min-width: 220px;
-  justify-content: flex-end;
 }
 
-.gp-file-row .gp-delete {
-  align-self: flex-end;
+.gp-file-row .gp-file-field select,
+.gp-file-row .gp-delete,
+.gp-file-row .gp-drop {
+  height: var(--control-height, 36px);
+  box-sizing: border-box;
 }
 
 .gp-file-row .gp-drop {
-  flex: 1 1 280px;
+  flex: 0 0 auto;
   width: auto;
-  padding: 8px 14px;
-  gap: 10px;
+  min-width: 0;
+  padding: 0 14px;
+  gap: 8px;
+  border-radius: 8px;
 }
 
 .gp-file-row .gp-drop-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
+/* Compact: just the title (the formats are in the tooltip); while
+   dragging, "drop the file to add it" takes its place. */
 .gp-file-row .gp-drop-text {
   min-width: 0;
+  white-space: nowrap;
 }
 
 .gp-file-row .gp-drop-text strong {
   font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gp-file-row .gp-drop-text span {
-  font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none;
 }
 
 .gp-delete {
@@ -513,4 +520,11 @@
 .gp-drop-text span {
   font-size: 12.5px;
   color: var(--text-secondary);
+}
+
+/* Phones: the row stacks; the add button takes the full width. */
+@media (max-width: 600px) {
+  .gp-file-row .gp-drop {
+    flex: 1 1 100%;
+  }
 }

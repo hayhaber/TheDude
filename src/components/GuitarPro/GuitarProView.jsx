@@ -141,6 +141,7 @@ export function GuitarProView({ trainer }) {
           type="button"
           className={'gp-drop' + (dragging ? ' is-dragging' : '')}
           onClick={() => fileRef.current?.click()}
+          title={t('gp.addHint')}
           disabled={busy}
         >
           <svg className="gp-drop-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">

@@ -5,6 +5,54 @@ import { loadGpSoundFont, tuneVibrato } from '../../audio/alphaTabSound';
 
 const TICKS_PER_BEAT = 960;
 
+// What kind of instrument a track is, for its icon in the rail.
+function trackKind(tr) {
+  const name = tr.name || '';
+  if (tr.percussion || /drum|perc/i.test(name)) return 'drums';
+  if (/voice|vocal|vox|sing/i.test(name)) return 'vocal';
+  if (/bass/i.test(name) || (tr.program >= 32 && tr.program <= 39)) return 'bass';
+  if (/piano|key|organ|synth|rhodes|clav/i.test(name) || (tr.program >= 0 && tr.program <= 23 && !/guitar|gtr/i.test(name))) return 'keys';
+  if (/string|violin|cello|viola|orch/i.test(name) || (tr.program >= 40 && tr.program <= 55)) return 'strings';
+  return 'guitar';
+}
+const KIND_ICON = { drums: '🥁', vocal: '🎤', bass: '🎸', keys: '🎹', strings: '🎻', guitar: '🎸' };
+
+// The file's tracks down the left side of the score (like Songsterr /
+// Guitar Pro): tap a track to mute or unmute it. Leaves the score the full
+// height and nearly the full width.
+function TrackRail({ trainer, t }) {
+  const tracks = trainer.tracks.filter((tr) => tr.noteCount > 0);
+  if (tracks.length === 0) return null;
+  const on = new Set(trainer.mix);
+  return (
+    <div className="gp-rail" role="group" aria-label={t('gp.tracks')}>
+      <span className="gp-rail-title">{t('gp.tracksShort')}</span>
+      {tracks.map((tr) => {
+        const active = on.has(tr.index);
+        const kind = trackKind(tr);
+        return (
+          <button
+            key={tr.index}
+            type="button"
+            className={'gp-rail-track' + (active ? ' active' : '') + (tr.index === trainer.practiceTrack ? ' yours' : '')}
+            aria-pressed={active}
+            title={`${tr.name} — ${t(active ? 'gp.trackOn' : 'gp.trackOff')}`}
+            onClick={() => trainer.toggleTrack(tr.index)}
+          >
+            <span className={'gp-rail-icon kind-' + kind} aria-hidden="true">
+              {KIND_ICON[kind]}
+            </span>
+            <span className="gp-rail-name" dir="auto">
+              {tr.name}
+            </span>
+            {tr.index === trainer.practiceTrack && <span className="gp-track-you">{t('gp.yourPart')}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // GuitarPro -> Song: the whole file, rendered as tab by alphaTab and played
 // by its own synth with the track mixer applied — play along with the band.
 // The practiced part's current note also lights up on the shared Stage
@@ -164,9 +212,12 @@ export function GpSongPlayer({ trainer, t }) {
         </label>
       </div>
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
-      <div className="gp-score-scroll" ref={scrollRef} dir="ltr">
-        {loading && <p className="gp-score-loading">{t('gp.loading')}</p>}
-        <div className="gp-score" ref={hostRef} />
+      <div className="gp-song-body" dir="ltr">
+        <TrackRail trainer={trainer} t={t} />
+        <div className="gp-score-scroll" ref={scrollRef}>
+          {loading && <p className="gp-score-loading">{t('gp.loading')}</p>}
+          <div className="gp-score" ref={hostRef} />
+        </div>
       </div>
       <p className="lt-muted lt-small">{t('gp.songHint')}</p>
     </section>

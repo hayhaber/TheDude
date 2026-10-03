@@ -168,4 +168,8 @@ rosewood, below).
   above the neck (`--stage-height`); alphaTab auto-scrolls inside it
   (`player.scrollElement`). Phones get extra bottom padding so the scroll
   can reach.
+  Tracks are a rail on the LEFT of the score (`TrackRail` in
+  GpSongPlayer.jsx, icon per kind, tap = mute/unmute; icons only on phones);
+  the pill mixer is shown only in Practice. The view is full width (controls
+  above capped at 980px).
 

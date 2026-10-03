@@ -175,7 +175,8 @@ export function GuitarProView({ trainer }) {
           </div>
 
           <NeckLabelToggle trainer={trainer} t={t} />
-          <TrackMixer trainer={trainer} t={t} busy={busy} />
+          {/* Song view has its tracks in a rail beside the score. */}
+          {view === 'practice' && <TrackMixer trainer={trainer} t={t} busy={busy} />}
           {view === 'practice' && trainer.tracks.length > 0 && (
             <p className="lt-muted lt-small">{t('gp.practiceMixHint')}</p>
           )}

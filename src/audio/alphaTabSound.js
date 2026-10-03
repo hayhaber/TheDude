@@ -8,7 +8,9 @@ import * as alphaTab from '@coderline/alphatab';
 // so it downloads as ~9 MB instead of 32 MB — far better guitars, bass and
 // drums than alphaTab's bundled 1.3 MB SONiVOX set. Fetched only when a
 // Guitar Pro file is played, then cached by the browser.
-export const GP_SOUNDFONT_URL = '/soundfont/generaluser-gs.sf3';
+// Versioned name: the file is cached for 30 days (vercel.json), so a new
+// voicing needs a new name.
+export const GP_SOUNDFONT_URL = '/soundfont/generaluser-gs-v2.sf3';
 
 // Downloaded once and shared by every alphaTab instance (the hidden
 // reference player, the song view, Songs -> Tab) — handing each its own URL

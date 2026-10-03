@@ -13,6 +13,7 @@ export function GpSongPlayer({ trainer, t }) {
   const hostRef = useRef(null);
   const scrollRef = useRef(null);
   const apiRef = useRef(null);
+  const songRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [midiVersion, setMidiVersion] = useState(0); // bumps on every (re)loaded MIDI
   const [loading, setLoading] = useState(true);
@@ -113,9 +114,24 @@ export function GpSongPlayer({ trainer, t }) {
   const api = apiRef.current;
 
   return (
-    <section className="gp-song">
+    <section className="gp-song" ref={songRef}>
       <div className="gp-transport">
-        <button type="button" className="primary" onClick={() => api?.playPause()} disabled={!ready}>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => {
+            if (!api) return;
+            // Starting: bring the player to the top of the screen, so the
+            // whole score area (which auto-scrolls with the cursor) is in view.
+            if (!playing) {
+              const bring = () => songRef.current?.scrollIntoView({ block: 'start' });
+              bring();
+              setTimeout(bring, 250); // again, once anything above has settled
+            }
+            api.playPause();
+          }}
+          disabled={!ready}
+        >
           {t(playing ? 'gp.pause' : 'gp.play')}
         </button>
         <button type="button" onClick={() => api?.stop()} disabled={!ready}>
@@ -132,7 +148,7 @@ export function GpSongPlayer({ trainer, t }) {
         >
           {t('gp.toSolo')}
         </button>
-        <label className="lt-field">
+        <label className="gp-inline-field">
           <span>{t('lickTrainer.tempo')}</span>
           <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))}>
             {TEMPO_OPTIONS.map((v) => (
@@ -147,12 +163,12 @@ export function GpSongPlayer({ trainer, t }) {
           {t('gp.loop')}
         </label>
       </div>
-      <p className="lt-muted lt-small">{t('gp.songHint')}</p>
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
       <div className="gp-score-scroll" ref={scrollRef} dir="ltr">
         {loading && <p className="gp-score-loading">{t('gp.loading')}</p>}
         <div className="gp-score" ref={hostRef} />
       </div>
+      <p className="lt-muted lt-small">{t('gp.songHint')}</p>
     </section>
   );
 }

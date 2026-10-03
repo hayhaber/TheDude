@@ -87,18 +87,27 @@
   gap: 10px;
 }
 
-/* Stays at the top while the score is scrolled into view, so Play/Pause is
-   always at hand and the score gets the rest of the screen. */
+/* Pressing Play scrolls this block to the top of the screen (no sticky bar
+   overlapping the score): one compact row of controls, then the score
+   filling exactly the rest of the room above the neck. */
+.gp-song {
+  scroll-margin-top: 8px;
+}
+
 .gp-transport {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding: 8px 0;
-  background: var(--bg);
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   gap: 10px;
+}
+
+.gp-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
 }
 
 .gp-transport > button {
@@ -131,7 +140,7 @@
   z-index: 0; /* own stacking context: alphaTab's cursor can't paint over the sticky transport */
   /* Exactly the room left above the pinned neck (--stage-height is set by
      AppShell), so scrolled into view the score fills the screen. */
-  height: max(320px, calc(100dvh - var(--stage-height, 260px) - 92px));
+  height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 34px));
   overflow: auto;
   border-radius: 14px;
   border: 1px solid var(--border);
@@ -176,17 +185,18 @@
       260px,
       calc(
         100dvh - var(--stage-height, 160px) - var(--bottom-tabs-height, 64px) - var(--mobile-metronome-height, 56px) -
-          env(safe-area-inset-bottom, 0px) - 20px
+          env(safe-area-inset-bottom, 0px) - var(--control-height, 36px) - 112px
       )
     );
   }
 }
 
 @media (max-width: 899px) {
-  /* Too little height on a phone/tablet for a pinned bar: it scrolls with the page. */
-  .gp-transport {
-    position: static;
-    padding: 0;
+  /* Clear the floating brand/settings buttons at the top of the phone screen. */
+  .gp-song {
+    scroll-margin-top: 60px;
+    /* Room below the score so Play can scroll the player all the way up. */
+    padding-bottom: 50vh;
   }
 }
 

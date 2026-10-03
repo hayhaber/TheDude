@@ -141,7 +141,11 @@ rosewood, below).
   player during a take (separate clock -> smeared timing feedback).
 - **GP sound**: every alphaTab player (hidden reference, GuitarPro song view,
   Songs -> Tab) uses GeneralUser GS v2.0.3 converted to SF3
-  (`public/soundfont/generaluser-gs.sf3`, ~9 MB, license next to it),
+  (`public/soundfont/generaluser-gs-v2.sf3`, ~9 MB, license next to it; built
+  with `scripts/soundfont/` — sf2to3.py, then sftone.py which gives the GM
+  guitar presets a static "cab" low-pass and drops their filter envelopes,
+  which alphaTab plays wide open = fizzy/metallic. Cached 30 days by
+  vercel.json, so a changed file needs a new name),
   fetched ONCE and shared via `loadGpSoundFont(api)` in
   `audio/alphaTabSound.js` (don't give an api a `player.soundFont` URL — each
   would download it). alphaTab only plays mono samples (sampleType & 1).
@@ -159,4 +163,9 @@ rosewood, below).
   (Lick Trainer, GuitarPro, Songs -> Tab) pass `compact` to the Fretboard:
   20% smaller (not on phones <=480px), markers scaled back up. AppShell
   publishes `--stage-height` for panels that fill the space above the neck.
+- **GuitarPro Song view layout**: no sticky bar. Play scrolls `.gp-song` to
+  the top (scroll-margin) and `.gp-score-scroll` is sized to the room left
+  above the neck (`--stage-height`); alphaTab auto-scrolls inside it
+  (`player.scrollElement`). Phones get extra bottom padding so the scroll
+  can reach.
 

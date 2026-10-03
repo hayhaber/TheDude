@@ -4,6 +4,7 @@ import { localize } from '../../i18n/localize';
 import { getAudioInputSettings } from '../../audio/audioInputSettingsStore';
 import { LickTrainer, LibraryBar, ImportPanel, NeckLabelToggle } from '../LickTrainer/LickTrainer';
 import { GpSongPlayer } from './GpSongPlayer';
+import { onSoundFontProgress, prefetchGpSoundFont } from '../../audio/alphaTabSound';
 import './GuitarProView.css';
 
 const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx';
@@ -51,6 +52,13 @@ export function GuitarProView({ trainer }) {
   useEffect(() => {
     setMode('solos');
   }, [setMode]);
+  // The guitar/band sounds (~9 MB the first time): fetch as soon as the
+  // section opens, and show the progress — Play waits for them.
+  const [soundProgress, setSoundProgress] = useState(0);
+  useEffect(() => {
+    prefetchGpSoundFont();
+    return onSoundFontProgress(setSoundProgress);
+  }, []);
 
   const phase = trainer.phase;
   const busy = ['preparing', 'countIn', 'recording', 'analyzing', 'calibrating'].includes(phase);
@@ -116,6 +124,25 @@ export function GuitarProView({ trainer }) {
           }}
         />
       </div>
+
+      {soundProgress === -1 && (
+        <p className="lt-warning" role="alert">
+          {t('gp.soundFailed')}{' '}
+          <button type="button" className="gp-retry" onClick={() => window.location.reload()}>
+            {t('lickTrainer.libRetry')}
+          </button>
+        </p>
+      )}
+      {soundProgress !== 1 && soundProgress !== -1 && (
+        <p className="gp-sound-loading" role="status">
+          <span className="gp-sound-bar" aria-hidden="true">
+            <span style={{ width: `${Math.round((soundProgress ?? 0.5) * 100)}%` }} />
+          </span>
+          {soundProgress == null
+            ? t('gp.soundLoading')
+            : t('gp.soundLoadingPct', { pct: Math.round(soundProgress * 100) })}
+        </p>
+      )}
 
       <LibraryBar trainer={trainer} t={t} />
 

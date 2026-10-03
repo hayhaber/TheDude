@@ -14,27 +14,118 @@ export const GP_SOUNDFONT_URL = '/soundfont/generaluser-gs.sf3';
 // reference player, the song view, Songs -> Tab) — handing each its own URL
 // made each one download the 9 MB file itself.
 let soundFontBytes = null;
+// Download progress 0..1 (null = size unknown, -1 = failed), for a "Loading sounds…" line:
+// the first visit downloads ~9 MB and Play stays disabled until it's in.
+let progress = 0;
+const progressListeners = new Set();
+function setProgress(p) {
+  progress = p;
+  progressListeners.forEach((cb) => cb(p));
+}
+
+/** Subscribes to the soundfont download progress; returns an unsubscribe. */
+export function onSoundFontProgress(cb) {
+  progressListeners.add(cb);
+  cb(progress);
+  return () => progressListeners.delete(cb);
+}
+
+async function download() {
+  const r = await fetch(GP_SOUNDFONT_URL);
+  if (!r.ok) throw new Error(`soundfont ${r.status}`);
+  const total = Number(r.headers.get('content-length')) || 0;
+  if (!r.body || !total) {
+    setProgress(null);
+    const buffer = await r.arrayBuffer();
+    setProgress(1);
+    return buffer;
+  }
+  const reader = r.body.getReader();
+  const out = new Uint8Array(total);
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (got + value.length > out.length) {
+      // Content-Length was off (e.g. re-encoded): fall back to collecting.
+      const grown = new Uint8Array(Math.max(out.length * 2, got + value.length));
+      grown.set(out.subarray(0, got));
+      return finishGrowing(reader, grown, got, value);
+    }
+    out.set(value, got);
+    got += value.length;
+    setProgress(Math.min(0.99, got / total));
+  }
+  setProgress(1);
+  return out.buffer.slice(0, got);
+}
+
+async function finishGrowing(reader, buf, got, first) {
+  let out = buf;
+  let n = got;
+  const push = (chunk) => {
+    if (n + chunk.length > out.length) {
+      const g = new Uint8Array(Math.max(out.length * 2, n + chunk.length));
+      g.set(out.subarray(0, n));
+      out = g;
+    }
+    out.set(chunk, n);
+    n += chunk.length;
+  };
+  push(first);
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    push(value);
+  }
+  setProgress(1);
+  return out.buffer.slice(0, n);
+}
+
 function soundFontPromise() {
   if (!soundFontBytes) {
-    soundFontBytes = fetch(GP_SOUNDFONT_URL)
-      .then((r) => {
-        if (!r.ok) throw new Error(`soundfont ${r.status}`);
-        return r.arrayBuffer();
-      })
-      .catch((err) => {
-        soundFontBytes = null; // let a later attempt retry
-        throw err;
-      });
+    soundFontBytes = download().catch((err) => {
+      soundFontBytes = null; // let a later attempt retry
+      setProgress(-1); // failed
+      throw err;
+    });
   }
   return soundFontBytes;
 }
 
-/** Loads the shared soundfont into an AlphaTabApi created with enablePlayer and no soundFont URL. */
+/** Starts the download early (e.g. when the GuitarPro section opens). */
+export function prefetchGpSoundFont() {
+  soundFontPromise().catch(() => {});
+}
+
+/**
+ * Loads the shared soundfont into an AlphaTabApi created with enablePlayer
+ * and no soundFont URL. alphaTab creates its synth only some time after the
+ * api (once it's set up), and before that loadSoundFont() returns false and
+ * DROPS the data — so when the file was already cached (fast), Play stayed
+ * disabled. Keep offering it until the player takes it.
+ */
 export function loadGpSoundFont(api) {
-  return soundFontPromise().then((buffer) => {
-    // A copy each time: the bytes are posted to the synth worker.
-    api.loadSoundFont(new Uint8Array(buffer.slice(0)), false);
-  });
+  return soundFontPromise().then(
+    (buffer) =>
+      new Promise((resolve, reject) => {
+        const started = Date.now();
+        const attempt = () => {
+          // A copy each time: the bytes are posted to the synth worker.
+          let taken = false;
+          try {
+            taken = api.loadSoundFont(new Uint8Array(buffer.slice(0)), false) !== false;
+          } catch (err) {
+            reject(err);
+            return;
+          }
+          if (taken) resolve();
+          else if (Date.now() - started > 60000) reject(new Error('player did not start'));
+          else setTimeout(attempt, 100);
+        };
+        attempt();
+      })
+  );
 }
 
 // Finger vibrato, as a guitarist does it: the string is pushed and let back,

@@ -12,6 +12,26 @@ import { unlockAudioContextOnFirstGesture } from './audio/audioContext.js'
 // later .resume() call from inside a note-playing handler.
 unlockAudioContextOnFirstGesture()
 
+// A new deploy must reach the user on their next visit, not the one after.
+// The service worker (vite-plugin-pwa, skipWaiting + clientsClaim) serves the
+// cached old build first and installs the new one in the background; when
+// the new one takes over, reload once so the page actually runs it. Also
+// look for a new deploy whenever the app comes back to the foreground (a
+// PWA on a phone/tablet is rarely reloaded otherwise).
+if ('serviceWorker' in navigator) {
+  const hadController = !!navigator.serviceWorker.controller
+  let reloading = false
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return
+    reloading = true
+    window.location.reload()
+  })
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return
+    navigator.serviceWorker.getRegistration().then((r) => r?.update()).catch(() => {})
+  })
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <LanguageProvider>

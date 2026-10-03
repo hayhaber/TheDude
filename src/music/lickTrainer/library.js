@@ -708,12 +708,28 @@ export function withDerived(lick) {
   // Left-hand fingers: the file's own where written, suggested elsewhere
   // (fingering.js). A section of a solo keeps the whole solo's fingering.
   const fingers = lick.notes.some((n) => n.fingerAuto === undefined) ? assignFingers(lick.notes) : null;
-  const notes = lick.notes.map((note, i) => ({
-    ...note,
-    order: i + 1,
-    midi: STANDARD_TUNING[note.string].baseMidi + note.fret + shift,
-    ...(fingers ? { finger: fingers[i].finger, fingerAuto: fingers[i].auto } : {}),
-  }));
+  const notes = lick.notes.map((note, i) => {
+    const finger = fingers ? fingers[i].finger : note.finger;
+    return {
+      ...note,
+      order: i + 1,
+      midi: STANDARD_TUNING[note.string].baseMidi + note.fret + shift,
+      ...(fingers ? { finger, fingerAuto: fingers[i].auto } : {}),
+      // A chord's other notes: the file's finger, else one finger per fret
+      // from the played note's (same fret = a barre), 0 on an open string.
+      ...(note.also
+        ? {
+            also: note.also.map((a) => ({
+              ...a,
+              midi: STANDARD_TUNING[a.string].baseMidi + a.fret + shift,
+              finger:
+                a.finger ??
+                (a.fret === 0 ? 0 : finger ? Math.min(4, Math.max(1, finger + a.fret - note.fret)) : undefined),
+            })),
+          }
+        : {}),
+    };
+  });
   const lastEnd = Math.max(...notes.map((x) => x.start + x.duration));
   return { ...lick, notes, lengthBeats: Math.ceil(lastEnd) };
 }

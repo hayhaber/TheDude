@@ -98,7 +98,10 @@ rosewood, below).
   (bundle with esbuild, run with node) — run it after any analysis change.
 - **Guitar Pro licks**: `music/lickTrainer/gpImport.js` converts an alphaTab
   Score to licks (exact rhythm/bends/slides/legato; chords reduced to the top
-  note). In-app "Import" saves to IndexedDB (`userLickStore.js`, this device
+  note; the other notes of a double stop/chord are attached at runtime as
+  `note.also` via `chordNotesByTick()`/`withChordNotes()` from the loaded
+  score — the neck lights the whole shape, TabTimeline draws it; analysis
+  still follows the top note). In-app "Import" saves to IndexedDB (`userLickStore.js`, this device
   only). For the built-in library, the user drops files in
   `C:\Users\hay\Downloads\GuitarPro` on their computer; convert with
   `scripts/gp-to-licks.mjs` into `music/lickTrainer/imports/*.js` and add the

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
-import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack } from '../music/lickTrainer/gpImport';
+import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, chordNotesByTick, withChordNotes } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
@@ -175,33 +175,45 @@ export function useLickTrainer() {
   const displayTrack = baseSolo && baseTrack != null ? displayTracks[baseSolo.id] ?? baseTrack : null;
   const otherTrack = displayTrack != null && displayTrack !== baseTrack;
   const derivedKey = otherTrack ? `${baseSolo.id}@t${displayTrack}` : null;
-  const [derived, setDerived] = useState({ key: null, solo: null });
+  // The file's score (shared with playback): another track's part is built
+  // from it, and every part gets its chords' full shapes from it.
+  const baseGp = baseSolo ? gpSourceOf(baseSolo) : null;
+  const scoreKey = baseGp?.source.key ?? null;
+  const [gpScore, setGpScore] = useState({ key: null, score: null });
   useEffect(() => {
-    if (!derivedKey) return undefined;
-    const gp = gpSourceOf(baseSolo);
-    if (!gp) return undefined;
+    if (!baseGp) return undefined;
     let alive = true;
-    referenceScore(gp.source, gp.trackIndex)
-      .then((score) => alive && setDerived({ key: derivedKey, solo: soloForTrack(baseSolo, score, displayTrack) }))
-      .catch(() => alive && setDerived({ key: derivedKey, solo: null }));
+    referenceScore(baseGp.source, baseGp.trackIndex)
+      .then((score) => alive && setGpScore({ key: scoreKey, score }))
+      .catch(() => alive && setGpScore({ key: scoreKey, score: null }));
     return () => {
       alive = false;
     };
-  }, [derivedKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scoreKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const score = gpScore.key === scoreKey ? gpScore.score : null;
+  const scoreSettled = gpScore.key === scoreKey;
   const activeSolo = useMemo(() => {
-    if (!otherTrack) return baseSolo;
-    if (derived.key === derivedKey && derived.solo) return derived.solo;
-    // Still building (or failed): the score switches, the neck stays empty.
-    return {
-      ...baseSolo,
-      id: derivedKey,
-      notes: [],
-      sections: [],
-      gpRef: { track: displayTrack, tickStart: baseSolo.gpRef.tickStart },
-      displayOnly: true,
-      pending: derived.key !== derivedKey,
-    };
-  }, [otherTrack, baseSolo, derived, derivedKey, displayTrack]);
+    if (!baseSolo) return null;
+    let solo = baseSolo;
+    if (otherTrack) {
+      if (!score) {
+        // Still loading (or failed): the score switches, the neck stays empty.
+        return {
+          ...baseSolo,
+          id: derivedKey,
+          notes: [],
+          sections: [],
+          gpRef: { track: displayTrack, tickStart: baseSolo.gpRef.tickStart },
+          displayOnly: true,
+          pending: !scoreSettled,
+        };
+      }
+      solo = soloForTrack(baseSolo, score, displayTrack);
+    }
+    if (!score || solo.displayOnly) return solo;
+    const withChords = withChordNotes(solo, chordNotesByTick(score, solo.gpRef.track));
+    return withChords === solo ? solo : withDerived(withChords);
+  }, [otherTrack, baseSolo, score, scoreSettled, derivedKey, displayTrack]);
   const sectionLick = useMemo(() => (activeSolo ? soloSection(activeSolo, sectionIndex) : null), [activeSolo, sectionIndex]);
   // What's being practiced right now: a lick, a whole solo, or one section.
   const lick = mode === 'solos' && sectionLick ? sectionLick : baseLick;

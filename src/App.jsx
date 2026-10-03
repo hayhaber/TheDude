@@ -272,26 +272,33 @@ function App() {
     const byPos = new Map();
     const markerOf = new Map(); // note order -> marker order
     const sec = neckSectionIndex >= 0 ? neckSections[neckSectionIndex] : null;
-    for (const n of lickOnNeck.notes) {
-      if (sec && (n.start < sec.fromBeat - 1e-6 || n.start >= sec.toBeat - 1e-6)) continue;
-      const key = `${n.string}:${n.fret}`;
+    const markerAt = (p, order, technique) => {
+      const key = `${p.string}:${p.fret}`;
       let m = byPos.get(key);
       if (!m) {
         m = {
-          string: n.string,
-          fret: n.fret,
-          order: n.order,
-          technique: n.technique ?? (n.vibrato ? 'vibrato' : null),
-          label: lickTuningShift < 0 ? flatNoteName(n.midi) : midiToNoteName(n.midi).replace(/-?\d+$/, ''),
-          finger: n.finger,
+          string: p.string,
+          fret: p.fret,
+          order,
+          technique,
+          label: lickTuningShift < 0 ? flatNoteName(p.midi) : midiToNoteName(p.midi).replace(/-?\d+$/, ''),
+          finger: p.finger,
         };
         m.displayLabel = m.label;
         byPos.set(key, m);
         markers.push(m);
       }
+      return m;
+    };
+    for (const n of lickOnNeck.notes) {
+      if (sec && (n.start < sec.fromBeat - 1e-6 || n.start >= sec.toBeat - 1e-6)) continue;
+      const m = markerAt(n, n.order, n.technique ?? (n.vibrato ? 'vibrato' : null));
       markerOf.set(n.order, m.order);
+      // A double stop / chord: its other notes get markers too (an order
+      // of their own, between this note's and the next one's).
+      n.also?.forEach((a, k) => markerAt(a, n.order + (k + 1) / 10, null));
     }
-    return { markers, markerOf };
+    return { markers, markerOf, byPos };
   }, [lickOnNeck, neckSections, neckSectionIndex, lickTuningShift]);
   useEffect(() => {
     if (!lickTrainerVisible) stopLickTrainer();
@@ -304,13 +311,26 @@ function App() {
   // a spot played with different fingers shows the sounding note's finger.
   const playingLickNote =
     lickTrainer.playingOrder != null ? lickOnNeck.notes.find((n) => n.order === lickTrainer.playingOrder) : null;
-  const playingMarkerOrder = playingLickNote ? lickTrainerMarkers.markerOf.get(playingLickNote.order) ?? null : null;
+  // Everything sounding now: the note and, in a chord, the rest of it —
+  // all lit, each showing the finger it's played with right now.
+  const playingChord = useMemo(() => {
+    const now = new Map();
+    if (playingLickNote) {
+      for (const p of [playingLickNote, ...(playingLickNote.also ?? [])]) now.set(`${p.string}:${p.fret}`, p);
+    }
+    return now;
+  }, [playingLickNote]);
   const lickTrainerNeckNotes =
-    lickTrainer.neckLabel === 'finger'
-      ? lickTrainerMarkers.markers.map((m) => ({
-          ...m,
-          displayLabel: String(m.order === playingMarkerOrder && playingLickNote ? playingLickNote.finger ?? '' : m.finger ?? ''),
-        }))
+    lickTrainer.neckLabel === 'finger' || playingChord.size > 1
+      ? lickTrainerMarkers.markers.map((m) => {
+          const sounding = playingChord.get(`${m.string}:${m.fret}`);
+          return {
+            ...m,
+            ...(sounding && playingChord.size > 1 ? { playing: true } : {}),
+            displayLabel:
+              lickTrainer.neckLabel === 'finger' ? String((sounding ? sounding.finger : m.finger) ?? '') : m.displayLabel,
+          };
+        })
       : lickTrainerMarkers.markers;
   const [songsTabMode, setSongsTabMode] = useState(false);
   const stageCompact = lickTrainerVisible || (activeSection === 'songs' && songsTabMode);

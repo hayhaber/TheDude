@@ -162,6 +162,19 @@ export function TabTimeline({ lick, playheadBeat, result, resultOffset = 0, high
               <text x={x} y={yy + 4} textAnchor="middle" className="tt-fret">
                 {label}
               </text>
+              {/* the rest of a double stop / chord */}
+              {n.also?.map((c) => {
+                const cl = String(c.fret);
+                const cw = cl.length > 1 ? 20 : 14;
+                return (
+                  <g key={`c${c.string}`}>
+                    <rect x={x - cw / 2} y={y(c.string) - 9} width={cw} height={18} rx={5} className="tt-note-box" />
+                    <text x={x} y={y(c.string) + 4} textAnchor="middle" className="tt-fret">
+                      {cl}
+                    </text>
+                  </g>
+                );
+              })}
               {n.technique === 'bend' && (
                 <g>
                   <path d={`M ${x + w / 2} ${yy - 2} Q ${x + w / 2 + 12} ${yy - 4} ${x + w / 2 + 12} ${yy - 20}`} className="tt-bend" />

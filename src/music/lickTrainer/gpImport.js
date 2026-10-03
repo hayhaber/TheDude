@@ -267,6 +267,46 @@ export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = 
   };
 }
 
+// The trainer follows one note per beat (the top one: the melody), but a
+// beat can be a double stop or chord. All of a beat's notes, by tick, for
+// the neck and tab to show the full shape.
+export function chordNotesByTick(score, trackIndex) {
+  const map = new Map();
+  const staff = score?.tracks[trackIndex]?.staves[0];
+  if (!staff) return map;
+  for (const bar of staff.bars) {
+    const master = score.masterBars[bar.index];
+    for (const beat of bar.voices[0].beats) {
+      if (beat.isRest || beat.graceType !== 0) continue;
+      const notes = beat.notes.filter((n) => !n.isDead && n.fret >= 0 && n.string >= 1 && n.string <= 6);
+      if (notes.length < 2) continue;
+      map.set(
+        master.start + beat.playbackStart,
+        notes.map((n) => ({
+          string: n.string - 1,
+          fret: n.fret,
+          ...(n.leftHandFinger >= 1 && n.leftHandFinger <= 4 ? { finger: n.leftHandFinger } : {}),
+        }))
+      );
+    }
+  }
+  return map;
+}
+
+/** Adds `also` (the beat's other notes) to every note that's part of a chord. */
+export function withChordNotes(solo, chords) {
+  if (!solo?.gpRef || chords.size === 0) return solo;
+  let changed = false;
+  const notes = solo.notes.map((n) => {
+    const all = chords.get(Math.round(solo.gpRef.tickStart + n.start * TICKS_PER_BEAT));
+    const also = all?.filter((x) => !(x.string === n.string && x.fret === n.fret));
+    if (!also?.length) return n;
+    changed = true;
+    return { ...n, also };
+  });
+  return changed ? { ...solo, notes } : solo;
+}
+
 // What kind of instrument a track (from describeScore) is.
 export function trackKind(tr) {
   const name = tr.name || '';

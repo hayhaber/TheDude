@@ -1020,7 +1020,8 @@ export function Fretboard({
           const cx = n.fret === 0 ? fretX(0) : fretX(n.fret) - FRET_WIDTH / 2;
           const cy = stringY(n.string);
           const glyph = TECHNIQUE_GLYPH[n.technique];
-          const isPlaying = playingNoteOrder === n.order;
+          // `playing`: a marker lit along with it (the rest of a chord).
+          const isPlaying = playingNoteOrder === n.order || n.playing === true;
           const trainerStyle = lick.style === 'trainer';
           const fill = trainerStyle
             ? isPlaying

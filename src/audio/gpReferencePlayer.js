@@ -1,6 +1,6 @@
 import * as alphaTab from '@coderline/alphatab';
 import { describeScore } from '../music/lickTrainer/gpImport';
-import { loadGpSoundFont, tuneVibrato } from './alphaTabSound';
+import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from './alphaTabSound';
 
 const TICKS_PER_BEAT = 960;
 
@@ -30,6 +30,7 @@ function ensureApi() {
     core: { engine: 'svg', fontDirectory: '/font/' },
     player: { enablePlayer: true, enableCursor: false },
   });
+  api.masterVolume = GP_MASTER_VOLUME;
   loadGpSoundFont(api).catch(() => {});
   // Finish once: detach the listeners first, since stopping makes alphaTab
   // report the position again (back at the range start).
@@ -141,6 +142,7 @@ export async function playReference({ source, trackIndex, tracks, startTick, end
   a.playbackSpeed = speed;
   a.playbackRange = { startTick, endTick };
   a.tickPosition = startTick;
+  wakeAudio();
   a.play();
 }
 
@@ -163,7 +165,7 @@ export async function renderBacking({ ctx, source, trackIndex, tracks, startTick
   const options = new alphaTab.synth.AudioExportOptions();
   options.sampleRate = ctx.sampleRate;
   options.useSyncPoints = false;
-  options.masterVolume = 1;
+  options.masterVolume = GP_MASTER_VOLUME;
   options.metronomeVolume = 0;
   options.playbackRange = { startTick, endTick };
   const on = new Set(tracks);

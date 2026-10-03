@@ -113,6 +113,9 @@
 }
 
 .gp-transport > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-size: 15px;
   font-weight: 590;
   height: var(--control-height);
@@ -368,4 +371,15 @@
 
 .gp-view > :not(.gp-song):not(.lick-trainer) {
   max-width: 980px;
+}
+
+/* Loop: a toggle button like the others, lit while on. */
+.gp-transport > button.gp-toggle.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gp-icon {
+  flex: 0 0 auto;
 }

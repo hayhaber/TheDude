@@ -12,6 +12,36 @@ import * as alphaTab from '@coderline/alphatab';
 // voicing needs a new name.
 export const GP_SOUNDFONT_URL = '/soundfont/generaluser-gs-v2.sf3';
 
+// alphaTab makes its own AudioContext (one per player). A browser may keep a
+// context created before any tap suspended — then playback runs silently.
+// Remember them, so a Play tap (a real user gesture) can wake them all.
+const alphaTabContexts = new Set();
+if (typeof window !== 'undefined' && window.AudioContext && !window.AudioContext.__dudestarTracked) {
+  const Native = window.AudioContext;
+  class TrackedAudioContext extends Native {
+    constructor(...args) {
+      super(...args);
+      alphaTabContexts.add(this);
+      this.addEventListener?.('statechange', () => {
+        if (this.state === 'closed') alphaTabContexts.delete(this);
+      });
+    }
+  }
+  TrackedAudioContext.__dudestarTracked = true;
+  window.AudioContext = TrackedAudioContext;
+}
+
+/** Resumes every suspended audio context — call from a click/tap handler. */
+export function wakeAudio() {
+  for (const ctx of alphaTabContexts) {
+    if (ctx.state === 'suspended' || ctx.state === 'interrupted') ctx.resume().catch(() => {});
+  }
+}
+
+// GeneralUser's mix runs quieter than the old bundled set; lift it so the
+// band is clearly audible (alphaTab range 0..3, 1 = unity).
+export const GP_MASTER_VOLUME = 1.8;
+
 // Downloaded once and shared by every alphaTab instance (the hidden
 // reference player, the song view, Songs -> Tab) — handing each its own URL
 // made each one download the 9 MB file itself.

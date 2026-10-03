@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
-import { loadGpSoundFont, tuneVibrato } from '../../audio/alphaTabSound';
+import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
 
 const TICKS_PER_BEAT = 960;
 
@@ -53,6 +53,33 @@ function TrackRail({ trainer, t }) {
   );
 }
 
+// Small transport glyphs (drawn, so they look the same on every device).
+function TransportIcon({ kind }) {
+  return (
+    <svg className="gp-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      {kind === 'play' && <path d="M4 2.5v11l9-5.5z" fill="currentColor" />}
+      {kind === 'pause' && (
+        <>
+          <rect x="3.5" y="2.5" width="3" height="11" rx="0.8" fill="currentColor" />
+          <rect x="9.5" y="2.5" width="3" height="11" rx="0.8" fill="currentColor" />
+        </>
+      )}
+      {kind === 'stop' && <rect x="3" y="3" width="10" height="10" rx="1.2" fill="currentColor" />}
+      {kind === 'solo' && <path d="M3 2.5v11M5.5 8l8-5.5v11z" stroke="currentColor" strokeWidth="1.6" fill="currentColor" strokeLinejoin="round" />}
+      {kind === 'loop' && (
+        <path
+          d="M4 6.5a3.5 3.5 0 0 1 3.5-3.5h4M10 1l2 2-2 2M12 9.5a3.5 3.5 0 0 1-3.5 3.5h-4M6 15l-2-2 2-2"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
+  );
+}
+
 // GuitarPro -> Song: the whole file, rendered as tab by alphaTab and played
 // by its own synth with the track mixer applied — play along with the band.
 // The practiced part's current note also lights up on the shared Stage
@@ -92,6 +119,7 @@ export function GpSongPlayer({ trainer, t }) {
       },
     });
     apiRef.current = api;
+    api.masterVolume = GP_MASTER_VOLUME;
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     const tickStart = song.startTick;
     api.renderFinished.on(() => setLoading(false));
@@ -207,6 +235,8 @@ export function GpSongPlayer({ trainer, t }) {
           className="primary"
           onClick={() => {
             if (!api) return;
+            // A real tap: make sure the player's audio is awake.
+            wakeAudio();
             // Starting: bring the player to the top of the screen, so the
             // whole score area (which auto-scrolls with the cursor) is in view.
             if (!playing) {
@@ -218,9 +248,11 @@ export function GpSongPlayer({ trainer, t }) {
           }}
           disabled={!ready}
         >
+          <TransportIcon kind={playing ? 'pause' : 'play'} />
           {t(playing ? 'gp.pause' : 'gp.play')}
         </button>
         <button type="button" onClick={() => api?.stop()} disabled={!ready}>
+          <TransportIcon kind="stop" />
           {t('gp.stop')}
         </button>
         <button
@@ -232,6 +264,7 @@ export function GpSongPlayer({ trainer, t }) {
           disabled={!ready}
           title={t('gp.toSoloHint')}
         >
+          <TransportIcon kind="solo" />
           {t('gp.toSolo')}
         </button>
         <label className="gp-inline-field">
@@ -244,10 +277,15 @@ export function GpSongPlayer({ trainer, t }) {
             ))}
           </select>
         </label>
-        <label className="lt-check">
-          <input type="checkbox" checked={looping} onChange={(e) => setLooping(e.target.checked)} />
+        <button
+          type="button"
+          className={'gp-toggle' + (looping ? ' active' : '')}
+          aria-pressed={looping}
+          onClick={() => setLooping((l) => !l)}
+        >
+          <TransportIcon kind="loop" />
           {t('gp.loop')}
-        </label>
+        </button>
       </div>
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
       <div className="gp-song-body" dir="ltr">

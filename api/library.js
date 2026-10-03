@@ -72,7 +72,10 @@ async function listAll() {
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const key = process.env.DUDESTAR_KEY;
-  if (!key || !process.env.BLOB_READ_WRITE_TOKEN) {
+  // A Blob store connects either with a read-write token or (newer
+  // projects) with BLOB_STORE_ID + the function's Vercel OIDC token, which
+  // @vercel/blob picks up by itself.
+  if (!key || !(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID)) {
     return res.status(503).json({ error: 'not-configured' });
   }
   if (!sameKey(req.headers['x-dudestar-key'] ?? '', key)) {

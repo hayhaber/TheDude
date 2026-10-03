@@ -123,7 +123,9 @@ rosewood, below).
   `music/lickTrainer/cloudLibrary.js`: IndexedDB stays the local/offline
   copy; records marked `cloud: true` that vanish remotely were deleted on
   another device; unmarked local imports get uploaded. Needs
-  `BLOB_READ_WRITE_TOKEN` (from connecting a Blob store to the project).
+  `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` (+ OIDC, how newer Vercel projects
+  connect a Blob store — the user's project uses this) from connecting the
+  `dudestar-library` Blob store; `DUDESTAR_KEY` is set for Production.
 - **GuitarPro section** (nav key `guitarpro`, guitar-only):
   `components/GuitarPro/GuitarProView.jsx` — file select (built-in SOLOS +
   imports), Import (always as a solo), shared library bar, Song | Practice.

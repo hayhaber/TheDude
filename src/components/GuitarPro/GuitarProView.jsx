@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { getAudioInputSettings } from '../../audio/audioInputSettingsStore';
-import { LickTrainer, LibraryBar, ImportPanel, NeckLabelToggle } from '../LickTrainer/LickTrainer';
+import { LickTrainer, ImportPanel, NeckLabelToggle } from '../LickTrainer/LickTrainer';
 import { GpSongPlayer } from './GpSongPlayer';
 import { onSoundFontProgress, prefetchGpSoundFont } from '../../audio/alphaTabSound';
 import './GuitarProView.css';
@@ -101,7 +101,7 @@ export function GuitarProView({ trainer }) {
       </div>
 
       <div className="lt-filters gp-file-row">
-        <label className="lt-field lt-grow">
+        <label className="lt-field gp-file-field">
           <span>{t('gp.file')}</span>
           <select
             value={trainer.activeSoloId ?? ''}
@@ -135,6 +135,22 @@ export function GuitarProView({ trainer }) {
             {t(confirmDelete === solo?.id ? 'lickTrainer.deleteConfirm' : 'lickTrainer.delete')}
           </button>
         )}
+        {/* Adding a file: one obvious target — click it, or drop a file on it
+            (or anywhere on this page). */}
+        <button
+          type="button"
+          className={'gp-drop' + (dragging ? ' is-dragging' : '')}
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+        >
+          <svg className="gp-drop-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="gp-drop-text">
+            <strong>{t(dragging ? 'gp.dropHere' : 'gp.addTitle')}</strong>
+            <span>{t('gp.addHint')}</span>
+          </span>
+        </button>
         <input
           ref={fileRef}
           type="file"
@@ -148,22 +164,6 @@ export function GuitarProView({ trainer }) {
         />
       </div>
 
-      {/* Adding a file: one obvious target — click it, or drop a file on it
-          (or anywhere on this page). */}
-      <button
-        type="button"
-        className={'gp-drop' + (dragging ? ' is-dragging' : '')}
-        onClick={() => fileRef.current?.click()}
-        disabled={busy}
-      >
-        <svg className="gp-drop-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
-          <path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span className="gp-drop-text">
-          <strong>{t(dragging ? 'gp.dropHere' : 'gp.addTitle')}</strong>
-          <span>{t('gp.addHint')}</span>
-        </span>
-      </button>
 
       {soundProgress === -1 && (
         <p className="lt-warning" role="alert">
@@ -184,7 +184,10 @@ export function GuitarProView({ trainer }) {
         </p>
       )}
 
-      <LibraryBar trainer={trainer} t={t} />
+      {/* Sync lives in Settings; here only a problem is mentioned. */}
+      {['bad-key', 'offline', 'error', 'too-big'].includes(trainer.library.status) && (
+        <p className="lt-warning lt-small">{t('gp.syncProblem')}</p>
+      )}
 
       {trainer.error?.key === 'import' && !trainer.pendingImport && (
         <p className="lt-warning">{t('lickTrainer.error.import', { message: trainer.error.message })}</p>

@@ -22,7 +22,45 @@
 }
 
 .gp-file-row {
-  align-items: flex-end;
+  /* File select and "add a file" side by side; stacked on narrow screens. */
+  align-items: stretch;
+}
+
+.gp-file-field {
+  flex: 0 1 360px;
+  min-width: 220px;
+  justify-content: flex-end;
+}
+
+.gp-file-row .gp-delete {
+  align-self: flex-end;
+}
+
+.gp-file-row .gp-drop {
+  flex: 1 1 280px;
+  width: auto;
+  padding: 8px 14px;
+  gap: 10px;
+}
+
+.gp-file-row .gp-drop-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.gp-file-row .gp-drop-text {
+  min-width: 0;
+}
+
+.gp-file-row .gp-drop-text strong {
+  font-size: 14px;
+}
+
+.gp-file-row .gp-drop-text span {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gp-delete {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LibraryBar } from '../LickTrainer/LickTrainer';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
@@ -31,6 +32,8 @@ export function SettingsPanel({
   bassProfile,
   onBassProfileChange,
   shortcuts,
+  // The Lick Trainer / GuitarPro state, for "Sync between devices".
+  syncTrainer = null,
 }) {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
@@ -141,6 +144,13 @@ export function SettingsPanel({
                   </select>
                   <span className="settings-attribution">{t('settings.audioAttribution')}</span>
                 </label>
+              )}
+
+              {syncTrainer && (
+                <>
+                  <h3 className="settings-drawer-subtitle">{t('lickTrainer.libTitle')}</h3>
+                  <LibraryBar trainer={syncTrainer} t={t} bare />
+                </>
               )}
 
               <h3 className="settings-drawer-subtitle">{t('settings.audioInput')}</h3>

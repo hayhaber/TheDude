@@ -127,7 +127,7 @@ const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.gp7,.gp8';
 // Shown after a Guitar Pro file is picked: which track, how to split it,
 // and how to file it in the library.
 // Shared library: imported files on every device (api/library.js).
-export function LibraryBar({ trainer, t }) {
+export function LibraryBar({ trainer, t, bare = false }) {
   const { library } = trainer;
   const [code, setCode] = useState('');
   // Off: just a one-line note with a button; the explanation and the code
@@ -149,7 +149,12 @@ export function LibraryBar({ trainer, t }) {
       <div className="lt-library is-off is-collapsed">
         <div className="lt-library-text">
           <span>
-            <strong>{t('lickTrainer.libTitle')}</strong> · {t('lickTrainer.libOffShort')}
+            {!bare && (
+              <>
+                <strong>{t('lickTrainer.libTitle')}</strong> ·{' '}
+              </>
+            )}
+            {t('lickTrainer.libOffShort')}
           </span>
         </div>
         <div className="lt-library-form">
@@ -163,7 +168,7 @@ export function LibraryBar({ trainer, t }) {
   return (
     <div className={`lt-library is-${library.status}`}>
       <div className="lt-library-text">
-        <strong>{t('lickTrainer.libTitle')}</strong>
+        {!bare && <strong>{t('lickTrainer.libTitle')}</strong>}
         <span>{message}</span>
       </div>
       {needsCode ? (
@@ -405,7 +410,6 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
         )}
       </div>
 
-      {variant === 'licks' && <LibraryBar trainer={trainer} t={t} />}
 
       {variant === 'licks' && <NeckLabelToggle trainer={trainer} t={t} />}
 

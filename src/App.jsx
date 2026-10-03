@@ -1823,6 +1823,7 @@ function App() {
           bassProfile={bassProfile}
           onBassProfileChange={setBassProfile}
           shortcuts={shortcuts}
+          syncTrainer={lickTrainer}
         />
       }
       metronomeSlot={<MetronomeBar metronome={metronome} drums={drums} />}

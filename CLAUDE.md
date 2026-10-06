@@ -203,6 +203,12 @@ rosewood, below).
   built with `scoreToSolo({bass: true})` -> `neck: 'bass'` (BASS_TUNING strings),
   `practiceOff`; App draws it on the bass neck (`tuning` = shifted BASS_TUNING)
   and passes `noteSound: 'bass'` so tapped markers use `playBassNote`.
+  Chord names: `labelChords(score, track)` (gpImport) writes a name above
+  the staff wherever 3+ pitch classes sound together (both hands), on each
+  change, unless the track already has the file's own chords; the song
+  view's api renders on the MAIN thread (`core.useWorkers: false`) so
+  `giveChordNamesTheirOwnRow()` can stop alphaTab sharing the chord row
+  with section markers (they overlapped); chord font is bold sans 13.
   Space bar = Play/Pause in Song view (GpSongPlayer keydown, skips form fields). Song view keeps ONE AlphaTabApi
   per file and switches with `renderTracks()` (no MIDI reload). The mix is
   per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls

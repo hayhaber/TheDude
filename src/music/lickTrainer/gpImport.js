@@ -13,6 +13,8 @@
 // The Lick Trainer's analysis is monophonic, so a chord/double-stop keeps
 // only its highest note and the lick is flagged `simplified`.
 import { STANDARD_TUNING, BASS_TUNING } from '../notes';
+import * as alphaTab from '@coderline/alphatab';
+import { identifyChord } from '../chordFromNotes';
 
 const TICKS_PER_BEAT = 960;
 const SLIDE_SHIFT = 1;
@@ -405,6 +407,62 @@ export function fileOnlySolo(score, trackIndex = 0, base = {}) {
     lengthBeats: Math.ceil(totalTicks / TICKS_PER_BEAT),
     practiceOff: true,
   };
+}
+
+/**
+ * Writes chord names above the score for a track: wherever 3+ different
+ * notes sound together (all staves/voices — both piano hands), the chord
+ * they make, shown each time it changes. A track that already carries
+ * chord names from the file is left as the file has it. Drums: nothing.
+ * Mutates the score (display only — the sound doesn't use chords).
+ * Returns how many names were added.
+ */
+export function labelChords(score, trackIndex) {
+  const track = score?.tracks[trackIndex];
+  if (!track || track.staves[0]?.isPercussion) return 0;
+  const byTick = new Map();
+  for (const [si, staff] of track.staves.entries()) {
+    for (const bar of staff.bars) {
+      const master = score.masterBars[bar.index];
+      for (const [vi, voice] of bar.voices.entries()) {
+        for (const beat of voice.beats) {
+          if (beat.chordId) return 0; // the file has its own chord names
+          if (beat.isRest || beat.graceType !== 0) continue;
+          const tick = master.start + beat.playbackStart;
+          let e = byTick.get(tick);
+          if (!e) byTick.set(tick, (e = { midis: [], anchor: null, rank: Infinity }));
+          for (const n of beat.notes) if (!n.isDead && n.realValue > 0) e.midis.push(n.realValue);
+          // Name goes on the top staff's main voice where there is one.
+          const rank = si * 10 + vi;
+          if (rank < e.rank) {
+            e.rank = rank;
+            e.anchor = beat;
+          }
+        }
+      }
+    }
+  }
+  let previous = null;
+  let added = 0;
+  for (const tick of [...byTick.keys()].sort((a, b) => a - b)) {
+    const { midis, anchor } = byTick.get(tick);
+    if (new Set(midis.map((m) => m % 12)).size < 3) continue;
+    const name = identifyChord(midis);
+    if (!name || name === previous) continue;
+    previous = name;
+    const id = `dudestar-${name}`;
+    const staff = anchor.voice.bar.staff;
+    if (!staff.chords?.has(id)) {
+      const chord = new alphaTab.model.Chord();
+      chord.name = name;
+      chord.showDiagram = false;
+      chord.showFingering = false;
+      staff.addChord(id, chord);
+    }
+    anchor.chordId = id;
+    added += 1;
+  }
+  return added;
 }
 
 // A 4-string bass part: shown on the bass neck (not practiced).

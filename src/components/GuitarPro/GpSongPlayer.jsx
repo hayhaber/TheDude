@@ -2,9 +2,26 @@ import { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
-import { describeScore, isGuitarTrack, trackKind } from '../../music/lickTrainer/gpImport';
+import { describeScore, isGuitarTrack, trackKind, labelChords } from '../../music/lickTrainer/gpImport';
 
 const TICKS_PER_BEAT = 960;
+
+// Chord names get a row of their own: alphaTab lets them share the top row
+// with section markers ("Guitar Solo 1") and the two then print on top of
+// each other. Patched on the main thread, so the song view renders there
+// (core.useWorkers: false) — the synth still runs in its own worker.
+let chordRowPatched = false;
+function giveChordNamesTheirOwnRow() {
+  if (chordRowPatched) return;
+  chordRowPatched = true;
+  for (const factory of alphaTab.Environment?.defaultRenderers ?? []) {
+    for (const band of factory.effectBands ?? []) {
+      if (band.effect?.notationElement === alphaTab.NotationElement.EffectChordNames) {
+        Object.defineProperty(band.effect, 'canShareBand', { get: () => false });
+      }
+    }
+  }
+}
 
 const KIND_ICON = { drums: '🥁', vocal: '🎤', bass: '🎸', keys: '🎹', strings: '🎻', guitar: '🎸' };
 
@@ -129,6 +146,10 @@ export function GpSongPlayer({ trainer, t }) {
   // Where the shown part's beat 0 is (changes with the shown track).
   const tickStartRef = useRef(0);
   tickStartRef.current = song?.startTick ?? 0;
+  const trackIndexRef = useRef(null);
+  trackIndexRef.current = trackIndex;
+  // Tracks whose chord names were already written into this file's score.
+  const labeledRef = useRef(new Set());
 
   // One alphaTab instance per file shown.
   useEffect(() => {
@@ -137,8 +158,9 @@ export function GpSongPlayer({ trainer, t }) {
     setLoading(true);
     setPlaying(false);
     setError(null);
+    giveChordNamesTheirOwnRow();
     const api = new alphaTab.AlphaTabApi(hostRef.current, {
-      core: { engine: 'svg', fontDirectory: '/font/' },
+      core: { engine: 'svg', fontDirectory: '/font/', useWorkers: false },
       display: { staveProfile: alphaTab.StaveProfile.Tab, scale: 0.95 },
       player: {
         enablePlayer: true,
@@ -150,10 +172,24 @@ export function GpSongPlayer({ trainer, t }) {
       },
     });
     apiRef.current = api;
+    // Chord names above the staff: upright and bold, so they read at a glance.
+    api.settings.display.resources.elementFonts.set(
+      alphaTab.NotationElement.EffectChordNames,
+      new alphaTab.model.Font('Arial, sans-serif', 13, alphaTab.model.FontStyle.Plain, alphaTab.model.FontWeight.Bold)
+    );
     api.masterVolume = GP_MASTER_VOLUME;
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     let lastSystem = -1;
-    api.scoreLoaded.on(() => setScoreVersion((v) => v + 1));
+    labeledRef.current = new Set();
+    api.scoreLoaded.on((score) => {
+      // Chord names for the first track shown, before it's drawn.
+      const t = trackIndexRef.current;
+      if (t != null && !labeledRef.current.has(t)) {
+        labeledRef.current.add(t);
+        labelChords(score, t);
+      }
+      setScoreVersion((v) => v + 1);
+    });
     api.renderFinished.on(() => {
       lastSystem = -1;
       setLoading(false);
@@ -231,8 +267,13 @@ export function GpSongPlayer({ trainer, t }) {
     const score = api?.score;
     if (!score || trackIndex == null || !score.tracks[trackIndex]) return;
     const profile = staveProfileFor(describeScore(score).tracks[trackIndex]);
+    let named = 0;
+    if (!labeledRef.current.has(trackIndex)) {
+      labeledRef.current.add(trackIndex);
+      named = labelChords(score, trackIndex);
+    }
     const drawn = api.tracks?.length === 1 && api.tracks[0].index === trackIndex;
-    if (drawn && api.settings.display.staveProfile === profile) return;
+    if (drawn && !named && api.settings.display.staveProfile === profile) return;
     setLoading(true);
     api.settings.display.staveProfile = profile;
     api.updateSettings();

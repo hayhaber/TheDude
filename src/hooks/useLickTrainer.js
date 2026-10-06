@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
-import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes } from '../music/lickTrainer/gpImport';
+import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes, pianoTrackIndex, pianoPartOf, fileOnlySolo } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
@@ -91,7 +91,10 @@ function soloForTrack(base, score, track) {
   });
 }
 
-export function useLickTrainer() {
+export function useLickTrainer({ instrument = 'guitar' } = {}) {
+  // Piano: the GuitarPro section shows a file's part on the keyboard (song
+  // view only), defaulting to the file's piano track.
+  const pianoMode = instrument === 'piano';
   // 'licks' = the lick library; 'solos' = full solos with practice sections.
   const [mode, setModeState] = useState('licks');
   const [soloId, setSoloId] = useState(SOLOS[0]?.id ?? null);
@@ -172,13 +175,6 @@ export function useLickTrainer() {
 
   const baseLick = allLicks.find((l) => l.id === lickId) ?? LICKS[0];
   const baseSolo = allSolos.find((l) => l.id === soloId) ?? allSolos[0] ?? null;
-  // Which of the file's tracks is shown (score + neck) and practiced,
-  // remembered per solo. Default: the solo's own track.
-  const [displayTracks, setDisplayTracks] = useState(() => readJson(DISPLAY_KEY, {}));
-  const baseTrack = baseSolo?.gpRef?.track ?? null;
-  const displayTrack = baseSolo && baseTrack != null ? displayTracks[baseSolo.id] ?? baseTrack : null;
-  const otherTrack = displayTrack != null && displayTrack !== baseTrack;
-  const derivedKey = otherTrack ? `${baseSolo.id}@t${displayTrack}` : null;
   // The file's score (shared with playback): another track's part is built
   // from it, and every part gets its chords' full shapes from it.
   const baseGp = baseSolo ? gpSourceOf(baseSolo) : null;
@@ -196,6 +192,19 @@ export function useLickTrainer() {
   }, [scoreKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const score = gpScore.key === scoreKey ? gpScore.score : null;
   const scoreSettled = gpScore.key === scoreKey;
+  // Which of the file's tracks is shown (score + neck) and practiced,
+  // remembered per solo. Default: the solo's own track.
+  const [displayTracks, setDisplayTracks] = useState(() => readJson(DISPLAY_KEY, {}));
+  const baseTrack = baseSolo?.gpRef?.track ?? null;
+  // Remembered separately for piano (its own default: the piano track).
+  const displayKey = baseSolo ? (pianoMode ? `${baseSolo.id}|piano` : baseSolo.id) : null;
+  const defaultTrack = useMemo(
+    () => (pianoMode && score ? pianoTrackIndex(describeScore(score)) ?? baseTrack : baseTrack),
+    [pianoMode, score, baseTrack]
+  );
+  const displayTrack = baseSolo && baseTrack != null ? displayTracks[displayKey] ?? defaultTrack : null;
+  const otherTrack = displayTrack != null && displayTrack !== baseTrack;
+  const derivedKey = otherTrack ? `${baseSolo.id}@t${displayTrack}` : null;
   const activeSolo = useMemo(() => {
     if (!baseSolo) return null;
     let solo = baseSolo;
@@ -356,7 +365,7 @@ export function useLickTrainer() {
       if (!baseSolo) return;
       stop();
       setDisplayTracks((d) => {
-        const next = { ...d, [baseSolo.id]: index };
+        const next = { ...d, [displayKey]: index };
         writeJson(DISPLAY_KEY, next);
         return next;
       });
@@ -371,7 +380,7 @@ export function useLickTrainer() {
         });
       }
     },
-    [baseSolo, stop, mixKey, mix]
+    [baseSolo, displayKey, stop, mixKey, mix]
   );
 
   const setSectionIndex = useCallback(
@@ -616,6 +625,23 @@ export function useLickTrainer() {
     return note ? note.order : null;
   }, [playheadBeat, lick]);
 
+  // Piano: every note of the shown track (both hands), and the keys
+  // sounding at the playhead.
+  const pianoPart = useMemo(
+    () => (pianoMode && score && displayTrack != null ? pianoPartOf(score, displayTrack) : []),
+    [pianoMode, score, displayTrack]
+  );
+  const pianoKeys = useMemo(() => {
+    if (!pianoMode || playheadBeat == null || !activeSolo?.gpRef || pianoPart.length === 0) return NO_TRACKS;
+    const tick = activeSolo.gpRef.tickStart + playheadBeat * TICKS_PER_BEAT;
+    const out = [];
+    for (const n of pianoPart) {
+      if (n.start > tick) break;
+      if (tick < n.end) out.push(n);
+    }
+    return out;
+  }, [pianoMode, playheadBeat, activeSolo, pianoPart]);
+
   // ---- Guitar Pro import ----
   const readFile = useCallback(async (file) => {
     setError(null);
@@ -637,7 +663,7 @@ export function useLickTrainer() {
       const base = { idPrefix: `import-${stamp}`, title, genre: g, level: lv, source: 'import', credit: pendingImport.fileName };
       const made =
         saveAs === 'solo'
-          ? [scoreToSolo(pendingImport.score, { trackIndex, barsPerSection, base })].filter(Boolean)
+          ? [scoreToSolo(pendingImport.score, { trackIndex, barsPerSection, base }) ?? fileOnlySolo(pendingImport.score, trackIndex, base)].filter(Boolean)
           : scoreToLicks(pendingImport.score, { trackIndex, barsPerPhrase: 0, base });
       // Keep the original file with the import so its reference plays from it.
       const raw = made.map((l, i) => ({ ...l, importedAt: stamp + i, importGroup: `import-${stamp}`, gpBytes: pendingImport.buffer }));
@@ -707,6 +733,8 @@ export function useLickTrainer() {
     selectSolo,
     displayTrack,
     setDisplayTrack,
+    pianoMode,
+    pianoKeys,
     sectionIndex,
     setSectionIndex,
     preloadSamples: preloadTrainerSamples,

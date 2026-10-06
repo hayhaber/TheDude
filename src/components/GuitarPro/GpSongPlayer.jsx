@@ -363,7 +363,7 @@ export function GpSongPlayer({ trainer, t }) {
           {t('gp.loop')}
         </button>
       </div>
-      {trainer.activeSolo?.displayOnly && !trainer.activeSolo.pending && (
+      {trainer.activeSolo?.displayOnly && !trainer.activeSolo.pending && !trainer.pianoMode && (
         <p className="lt-muted lt-small">{t('gp.notationOnly')}</p>
       )}
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}

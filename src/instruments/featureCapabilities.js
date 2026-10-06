@@ -23,7 +23,7 @@ export const FEATURE_CAPABILITIES = {
   scales: ['guitar', 'piano'],
   earTraining: ['guitar', 'piano'],
   songs: ['guitar', 'piano'],
-  guitarpro: ['guitar'], // Guitar Pro song player + solo trainer — guitar tab, mic-judged on guitar
+  guitarpro: ['guitar', 'piano'], // Guitar Pro song player (+ solo trainer on guitar; piano = song view on the keyboard)
   improvise: ['guitar'], // lick/phrase/solo-coach generation — guitar technique
   drills: ['guitar'], // picking/speed/position-switch drills
   caged: ['guitar'], // the CAGED system is guitar-specific by definition

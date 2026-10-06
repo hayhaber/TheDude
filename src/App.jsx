@@ -245,7 +245,7 @@ function App() {
   const savedProgressions = useSavedProgressions();
   const drill = usePracticeDrill(metronome, practiceHistory.logSession);
   // Practice -> Lick Trainer (the lick is drawn on the shared Stage Fretboard).
-  const lickTrainer = useLickTrainer();
+  const lickTrainer = useLickTrainer({ instrument });
   const { stop: stopLickTrainer } = lickTrainer;
   const lickTrainerVisible = (activeSection === 'practice' && practiceTab === 'trainer') || activeSection === 'guitarpro';
   // A whole solo is far too many notes for one neck view (it covers the
@@ -1549,7 +1549,9 @@ function App() {
   // active), so it always needs these two regardless of which branch's
   // notes/labelMode/etc. is in play.
   const stagePianoPropsBase =
-    activeSection === 'practice'
+    activeSection === 'guitarpro'
+      ? { notes: [], playNotes: lickTrainer.pianoKeys }
+      : activeSection === 'practice'
       ? practiceTab === 'ear-training'
         ? {
             notes: [],

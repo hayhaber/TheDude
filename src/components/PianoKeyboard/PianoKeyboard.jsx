@@ -67,6 +67,11 @@ function buildWhiteKeys() {
 const WHITE_KEYS = buildWhiteKeys();
 const TOTAL_WHITE_KEYS = WHITE_KEYS.length;
 const WHITE_INDEX_BY_MIDI = new Map(WHITE_KEYS.map((w) => [w.midi, w.index]));
+// GuitarPro playback: right hand / left hand (or a single-staff part).
+const PLAY_RIGHT_COLOR = '#34c759';
+const PLAY_LEFT_COLOR = '#0a84ff';
+// A black key sits on the white key just below it.
+const whiteIndexOf = (midi) => WHITE_INDEX_BY_MIDI.get(midi) ?? WHITE_INDEX_BY_MIDI.get(midi - 1) ?? 0;
 
 // "Default Visible Range" per spec — an asymmetric range (F2..C6 is not
 // centered on C4) is what was explicitly requested, so the initial scroll
@@ -124,6 +129,9 @@ export function PianoKeyboard({
   // own drillNotes prop. Independent of `notes`/quiz — a caller only ever
   // passes one of these three at a time (see App.jsx's stagePianoProps).
   drillNotes = [],
+  // GuitarPro song view: the keys sounding right now, `{midi, hand}`
+  // (hand 'right' | 'left', colored apart). The keyboard follows them.
+  playNotes = [],
   // Piano course's hand-position/five-finger-pattern lessons — `{midi,
   // finger}` (finger 1-5, thumb-to-pinky), shown as a small badge on the
   // key regardless of labelMode/showAllLabels, since it's teaching a
@@ -258,6 +266,12 @@ export function PianoKeyboard({
   const revealSet = useMemo(() => new Set(quizRevealKeys.map((n) => n.midi)), [quizRevealKeys]);
   const feedbackKeysByMidi = useMemo(() => new Map(quizFeedbackKeys.map((f) => [f.midi, f.state])), [quizFeedbackKeys]);
   const drillByMidi = useMemo(() => new Map(drillNotes.map((n) => [n.midi, n])), [drillNotes]);
+  // Right hand wins when both hands share a key.
+  const playByMidi = useMemo(() => {
+    const m = new Map();
+    for (const n of playNotes) if (!m.has(n.midi) || n.hand === 'right') m.set(n.midi, n.hand);
+    return m;
+  }, [playNotes]);
   const fingerByMidi = useMemo(() => new Map(fingerNumbers.map((f) => [f.midi, f.finger])), [fingerNumbers]);
   // Inverse lookup (midi -> key letter) for the on-key hint badges, only
   // built while the feature is actually on and recomputed when the octave
@@ -335,6 +349,24 @@ export function PianoKeyboard({
     updateScrollMetrics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewportWidth, isMobile, keyWidth]);
+
+  // Follow the music: when the sounding keys leave the visible range,
+  // scroll so they sit in the middle (only then — no constant drifting).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || playNotes.length === 0) return;
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const n of playNotes) {
+      lo = Math.min(lo, n.midi);
+      hi = Math.max(hi, n.midi);
+    }
+    const left = whiteIndexOf(lo) * keyWidth;
+    const right = (whiteIndexOf(hi) + 1) * keyWidth;
+    if (left >= el.scrollLeft && right <= el.scrollLeft + el.clientWidth) return;
+    const target = (left + right) / 2 - el.clientWidth / 2;
+    el.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }, [playNotes, keyWidth]);
 
   // Desktop mouse-drag panning — native overflow-x already gives touch
   // swipe/momentum and trackpad/wheel scrolling for free, but plain mouse
@@ -433,6 +465,7 @@ export function PianoKeyboard({
   }
 
   function keyFill(midi) {
+    if (playByMidi.has(midi)) return playByMidi.get(midi) === 'left' ? PLAY_LEFT_COLOR : PLAY_RIGHT_COLOR;
     if (drillByMidi.has(midi)) {
       return DRILL_TIER_COLOR[drillByMidi.get(midi).tier] ?? 'var(--accent)';
     }

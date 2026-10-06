@@ -70,10 +70,12 @@ export function GuitarProView({ trainer }) {
   const phase = trainer.phase;
   const busy = ['preparing', 'countIn', 'recording', 'analyzing', 'calibrating'].includes(phase);
   const solo = trainer.activeSolo;
+  const piano = trainer.pianoMode;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   // Bass / keys / vocals / drums are shown, not practiced.
   const canPractice = !!solo && !solo.displayOnly && !solo.practiceOff;
   const micWithBand =
+    !piano &&
     view === 'practice' && trainer.backingTracks.length > 0 && getAudioInputSettings().inputMode === 'microphone';
 
   return (
@@ -203,32 +205,37 @@ export function GuitarProView({ trainer }) {
         <p className="lt-muted">{t('lickTrainer.noSolos')}</p>
       ) : (
         <>
-          <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')}>
-            <button
-              type="button"
-              className={view === 'song' ? 'active' : ''}
-              onClick={() => {
-                trainer.stop();
-                setView('song');
-              }}
-              disabled={busy}
-            >
-              {t('gp.viewSong')}
-            </button>
-            <button type="button" className={view === 'practice' ? 'active' : ''} onClick={() => setView('practice')}>
-              {t('gp.viewPractice')}
-            </button>
-          </div>
+          {/* Piano: song view only (the keyboard lights up with the part). */}
+          {!piano && (
+            <>
+              <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')}>
+                <button
+                  type="button"
+                  className={view === 'song' ? 'active' : ''}
+                  onClick={() => {
+                    trainer.stop();
+                    setView('song');
+                  }}
+                  disabled={busy}
+                >
+                  {t('gp.viewSong')}
+                </button>
+                <button type="button" className={view === 'practice' ? 'active' : ''} onClick={() => setView('practice')}>
+                  {t('gp.viewPractice')}
+                </button>
+              </div>
 
-          <NeckLabelToggle trainer={trainer} t={t} />
-          {/* Song view has its tracks in a rail beside the score. */}
-          {view === 'practice' && canPractice && <TrackMixer trainer={trainer} t={t} busy={busy} />}
-          {view === 'practice' && canPractice && trainer.tracks.length > 0 && (
-            <p className="lt-muted lt-small">{t('gp.practiceMixHint')}</p>
+              <NeckLabelToggle trainer={trainer} t={t} />
+              {/* Song view has its tracks in a rail beside the score. */}
+              {view === 'practice' && canPractice && <TrackMixer trainer={trainer} t={t} busy={busy} />}
+              {view === 'practice' && canPractice && trainer.tracks.length > 0 && (
+                <p className="lt-muted lt-small">{t('gp.practiceMixHint')}</p>
+              )}
+              {micWithBand && <p className="lt-warning">{t('gp.micHint')}</p>}
+            </>
           )}
-          {micWithBand && <p className="lt-warning">{t('gp.micHint')}</p>}
 
-          {view === 'song' ? (
+          {view === 'song' || piano ? (
             <GpSongPlayer trainer={trainer} t={t} />
           ) : !canPractice ? (
             <p className="lt-muted">{t(solo.pending ? 'gp.buildingPart' : 'gp.practiceGuitarOnly')}</p>

@@ -327,6 +327,86 @@ export function isGuitarTrack(tr) {
   return tr.program == null || (tr.program >= 24 && tr.program <= 31) || /guitar|gtr|git|lead|rhythm|solo/i.test(tr.name);
 }
 
+// The file's piano track for the keyboard view: a piano by name or GM
+// program (0-7) first, then any keys track; null when there is none.
+export function pianoTrackIndex(info) {
+  const rank = (t) => {
+    if (t.noteCount === 0 || t.percussion) return 0;
+    if (/piano/i.test(t.name) || (t.program != null && t.program >= 0 && t.program <= 7 && !/guitar|gtr|bass|voice|vocal/i.test(t.name))) return 2;
+    return trackKind(t) === 'keys' ? 1 : 0;
+  };
+  let best = null;
+  for (const t of info.tracks) if (rank(t) > 0 && (best == null || rank(t) > rank(best))) best = t;
+  return best ? best.index : null;
+}
+
+/**
+ * Every note of a track for the piano keyboard, in ticks: [{ start, end,
+ * midi, hand }], sorted by start. A two-staff (grand staff) part marks the
+ * lower staff as the left hand (one-staff piano: below middle C). Drums give
+ * nothing.
+ */
+export function pianoPartOf(score, trackIndex) {
+  const track = score?.tracks[trackIndex];
+  if (!track || track.staves[0]?.isPercussion) return [];
+  const twoHands = track.staves.length >= 2;
+  // Older files (GP3-5) write a piano on ONE staff: split the hands at
+  // middle C. Any other instrument is one color.
+  const keys = !twoHands && trackKind(describeScore(score).tracks[trackIndex]) === 'keys';
+  const out = [];
+  track.staves.forEach((staff, si) => {
+    for (const bar of staff.bars) {
+      const master = score.masterBars[bar.index];
+      for (const voice of bar.voices) {
+        for (const beat of voice.beats) {
+          if (beat.isRest || beat.graceType !== 0) continue;
+          const start = master.start + beat.playbackStart;
+          const end = start + beat.playbackDuration;
+          for (const n of beat.notes) {
+            const midi = n.realValue;
+            if (n.isDead || !(midi >= 21 && midi <= 108)) continue;
+            out.push({ start, end, midi, hand: (twoHands ? si > 0 : keys && midi < 60) ? 'left' : 'right' });
+          }
+        }
+      }
+    }
+  });
+  return out.sort((a, b) => a.start - b.start);
+}
+
+/**
+ * A file with no guitar part to practice (e.g. piano only), kept as a
+ * "solo" so it can be opened, played and shown on the piano.
+ */
+export function fileOnlySolo(score, trackIndex = 0, base = {}) {
+  const info = describeScore(score);
+  const last = score.masterBars[score.masterBars.length - 1];
+  const totalTicks = last ? last.start + last.calculateDuration() : 0;
+  const title = base.title || info.title || 'Imported';
+  return {
+    kind: 'solo',
+    id: `${base.idPrefix ?? 'solo'}-solo`,
+    title: { en: title, he: title },
+    artist: base.artist || info.artist,
+    genre: base.genre ?? 'rock',
+    level: base.level ?? 'advanced',
+    key: '',
+    scale: '',
+    bpm: info.tempo,
+    source: base.source ?? 'import',
+    credit: base.credit,
+    about: base.about ?? { en: '', he: '' },
+    simplified: false,
+    tuningShift: 0,
+    sections: [],
+    barPhase: 0,
+    gpRef: { track: trackIndex, tickStart: 0 },
+    notes: [],
+    lengthBeats: Math.ceil(totalTicks / TICKS_PER_BEAT),
+    practiceOff: true,
+  };
+}
+
 // A 4-string bass part: shown on the bass neck (not practiced).
 export function isBassTrack(tr) {
   return !!tr && tr.noteCount > 0 && tr.strings === 4 && trackKind(tr) === 'bass';

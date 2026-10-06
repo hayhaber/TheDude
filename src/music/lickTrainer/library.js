@@ -732,7 +732,8 @@ export function withDerived(lick) {
     };
   });
   const lastEnd = Math.max(...notes.map((x) => x.start + x.duration));
-  return { ...lick, notes, lengthBeats: Math.ceil(lastEnd) };
+  // A file-only entry (no guitar part) keeps the length it was given.
+  return { ...lick, notes, lengthBeats: notes.length ? Math.ceil(lastEnd) : lick.lengthBeats ?? 0 };
 }
 
 export const LICKS = RAW_LICKS.map(withDerived);

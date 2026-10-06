@@ -131,7 +131,17 @@ rosewood, below).
   `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` (+ OIDC, how newer Vercel projects
   connect a Blob store — the user's project uses this) from connecting the
   `dudestar-library` Blob store; `DUDESTAR_KEY` is set for Production.
-- **GuitarPro section** (nav key `guitarpro`, guitar-only):
+- **GuitarPro on Piano**: the section is also enabled for piano
+  (featureCapabilities `guitarpro: ['guitar','piano']`). `useLickTrainer({instrument})`
+  -> `pianoMode`: Song view only (no Practice / neck-label toggles), the
+  display track defaults to `pianoTrackIndex()` (remembered under
+  `<soloId>|piano`), and `pianoKeys` (from `pianoPartOf()`: all notes of the
+  shown track in ticks, hands by staff, or split at middle C for one-staff
+  GP3-5 pianos) feed PianoKeyboard's `playNotes` prop (right green / left
+  blue, the keyboard scrolls to follow). Any pitched track shows on the
+  keys; drums show nothing. Importing a file with no guitar part makes a
+  `fileOnlySolo()` (no notes, `practiceOff`).
+- **GuitarPro section** (nav key `guitarpro`, guitar + piano):
   `components/GuitarPro/GuitarProView.jsx` — file select (built-in SOLOS +
   imports), Import (always as a solo), shared library bar, Song | Practice.
   Track mixer (`trainer.mix`, per file in localStorage; default = practiced

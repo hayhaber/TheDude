@@ -69,6 +69,11 @@
   min-width: 128px;
 }
 
+.piano-panel-chord-name {
+  font-size: 13.2px; /* 10% above the other readouts */
+  font-weight: 800;
+}
+
 .piano-panel-metronome {
   display: flex;
   align-items: stretch;

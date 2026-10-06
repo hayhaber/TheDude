@@ -810,8 +810,8 @@ export function PianoKeyboard({
         {chordReadout !== undefined && (
           <div className="piano-panel-chord">
             <div className="piano-panel-lcd" role="status" aria-live="off" aria-label={t('piano.chord.label')}>
-              <span className="piano-panel-lcd-value">
-                {t('piano.chord.word')} <bdi dir="ltr">{chordReadout ?? '—'}</bdi>
+              <span className="piano-panel-lcd-value piano-panel-chord-name" dir="ltr">
+                {chordReadout ?? '—'}
               </span>
             </div>
           </div>

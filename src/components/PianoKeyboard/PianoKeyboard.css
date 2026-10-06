@@ -59,6 +59,16 @@
   gap: 6px;
 }
 
+.piano-panel-chord {
+  display: flex;
+  align-items: stretch;
+}
+
+/* The chord readout keeps its width as names change length (C -> C#m7b5). */
+.piano-panel-chord .piano-panel-lcd {
+  min-width: 128px;
+}
+
 .piano-panel-metronome {
   display: flex;
   align-items: stretch;

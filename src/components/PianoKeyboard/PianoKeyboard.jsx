@@ -132,6 +132,9 @@ export function PianoKeyboard({
   // GuitarPro song view: the keys sounding right now, `{midi, hand}`
   // (hand 'right' | 'left', colored apart). The keyboard follows them.
   playNotes = [],
+  // GuitarPro: the chord being played, for its own LCD on the panel
+  // (null = none yet -> "—"). Left undefined everywhere else: no screen.
+  chordReadout,
   // Piano course's hand-position/five-finger-pattern lessons — `{midi,
   // finger}` (finger 1-5, thumb-to-pinky), shown as a small badge on the
   // key regardless of labelMode/showAllLabels, since it's teaching a
@@ -803,6 +806,16 @@ export function PianoKeyboard({
             aria-label={t('piano.volume.label')}
           />
         </div>
+
+        {chordReadout !== undefined && (
+          <div className="piano-panel-chord">
+            <div className="piano-panel-lcd" role="status" aria-live="off" aria-label={t('piano.chord.label')}>
+              <span className="piano-panel-lcd-value">
+                {t('piano.chord.word')} <bdi dir="ltr">{chordReadout ?? '—'}</bdi>
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className="piano-panel-metronome">
           <button

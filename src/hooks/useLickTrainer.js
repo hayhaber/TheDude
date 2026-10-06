@@ -6,6 +6,7 @@ import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrai
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
 import { getAudioContext } from '../audio/audioContext';
+import { identifyChord } from '../music/chordFromNotes';
 import { playReference, stopReference, preloadReference, referenceTracks, referenceScore, renderBacking } from '../audio/gpReferencePlayer';
 import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
@@ -641,6 +642,21 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     }
     return out;
   }, [pianoMode, playheadBeat, activeSolo, pianoPart]);
+  // The chord those keys make (3+ different notes), held until the next
+  // chord so the readout doesn't flicker between beats; cleared on Stop.
+  const lastChordRef = useRef(null);
+  const pianoChord = useMemo(() => {
+    if (!pianoMode || playheadBeat == null) {
+      lastChordRef.current = null;
+      return null;
+    }
+    const midis = pianoKeys.map((n) => n.midi);
+    if (new Set(midis.map((m) => m % 12)).size >= 3) {
+      const name = identifyChord(midis);
+      if (name) lastChordRef.current = name;
+    }
+    return lastChordRef.current;
+  }, [pianoMode, playheadBeat, pianoKeys]);
 
   // ---- Guitar Pro import ----
   const readFile = useCallback(async (file) => {
@@ -735,6 +751,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     setDisplayTrack,
     pianoMode,
     pianoKeys,
+    pianoChord,
     sectionIndex,
     setSectionIndex,
     preloadSamples: preloadTrainerSamples,

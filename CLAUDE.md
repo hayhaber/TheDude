@@ -138,7 +138,9 @@ rosewood, below).
   `<soloId>|piano`), and `pianoKeys` (from `pianoPartOf()`: all notes of the
   shown track in ticks, hands by staff, or split at middle C for one-staff
   GP3-5 pianos) feed PianoKeyboard's `playNotes` prop (right green / left
-  blue, the keyboard scrolls to follow). Any pitched track shows on the
+  blue, the keyboard scrolls to follow); `pianoChord` (identifyChord over
+  3+ pitch classes, held until the next chord, cleared on Stop) feeds the
+  panel's chord LCD via the `chordReadout` prop (undefined elsewhere = no LCD). Any pitched track shows on the
   keys; drums show nothing. Importing a file with no guitar part makes a
   `fileOnlySolo()` (no notes, `practiceOff`).
 - **GuitarPro section** (nav key `guitarpro`, guitar + piano):

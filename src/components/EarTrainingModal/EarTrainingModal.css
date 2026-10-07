@@ -391,3 +391,30 @@
   color: var(--text-secondary);
   line-height: 1.5;
 }
+
+/* Finish (summary) + Exit side by side in the header. */
+.ear-training-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ear-training-finish {
+  font-size: 13px;
+  font-weight: 590;
+  padding: 7px 16px;
+  border-radius: 980px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.ear-training-finish:hover {
+  background: var(--accent-bg);
+}
+
+.ear-training-finish:active {
+  transform: scale(0.96);
+}

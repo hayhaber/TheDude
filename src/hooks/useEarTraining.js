@@ -71,6 +71,9 @@ export function useEarTraining() {
   const [practiceMode, setPracticeMode] = useState(EAR_TRAINING_PRACTICE_MODES[0].key);
   const [timeRemaining, setTimeRemaining] = useState(TIMED_CHALLENGE_DURATION_S);
   const [isTimedOver, setIsTimedOver] = useState(false);
+  // "Finish" ends a session by choice and shows its summary.
+  const [isFinished, setIsFinished] = useState(false);
+  const [sessionBestStreak, setSessionBestStreak] = useState(0);
   // True once the current question has a terminal answer — in Standard mode
   // this holds the fretboard/feedback on screen until the player clicks
   // Next (see next() below); in Timed mode it's set and immediately
@@ -246,6 +249,8 @@ export function useEarTraining() {
     setScore({ correct: 0, total: 0 });
     setStreak(0);
     setIsTimedOver(false);
+    setIsFinished(false);
+    setSessionBestStreak(0);
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
@@ -256,6 +261,12 @@ export function useEarTraining() {
       setTimeRemaining(TIMED_CHALLENGE_DURATION_S);
       beginTimedCountdown();
     }
+  }
+
+  function finish() {
+    clearTimers();
+    timerIntervalRef.current = null;
+    setIsFinished(true);
   }
 
   function exit() {
@@ -332,6 +343,7 @@ export function useEarTraining() {
     setScore((s) => ({ correct: s.correct + (wasCorrect ? 1 : 0), total: s.total + 1 }));
     setStreak((s) => {
       const next = wasCorrect ? s + 1 : 0;
+      setSessionBestStreak((b) => Math.max(b, next));
       if (next > bestStreakRef.current) {
         bestStreakRef.current = next;
         setBestStreak(next);
@@ -525,6 +537,9 @@ export function useEarTraining() {
     timeRemaining,
     timedDurationS: TIMED_CHALLENGE_DURATION_S,
     isTimedOver,
+    isFinished,
+    finish,
+    sessionBestStreak,
     answered,
     autoAdvancePaused,
     next,

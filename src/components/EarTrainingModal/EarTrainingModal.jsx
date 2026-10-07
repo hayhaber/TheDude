@@ -88,6 +88,9 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     practiceModes,
     timeRemaining,
     isTimedOver,
+    isFinished,
+    finish,
+    sessionBestStreak,
     answered,
     autoAdvancePaused,
     next,
@@ -158,7 +161,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     </div>
   );
 
-  if (isTimed && isTimedOver) {
+  if ((isTimed && isTimedOver) || isFinished) {
     return (
       <div className={isInline ? 'ear-training-modal ear-training-modal-inline' : 'ear-training-modal'} onClick={(e) => e.stopPropagation()}>
         <div className="ear-training-header">
@@ -168,7 +171,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
           </button>
         </div>
         <div className="ear-training-summary">
-          <h3>{t('earTraining.timedSummary.title')}</h3>
+          <h3>{t(isFinished ? 'earTraining.summary.title' : 'earTraining.timedSummary.title')}</h3>
           <div className="ear-training-summary-stats">
             <span>
               {t('earTraining.timedSummary.correct')} <strong>{score.correct}</strong>
@@ -178,6 +181,9 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
             </span>
             <span>
               {t('earTraining.timedSummary.accuracy')} <strong>{accuracyPct === null ? '—' : `${accuracyPct}%`}</strong>
+            </span>
+            <span>
+              {t('earTraining.summary.bestStreak')} <strong>{sessionBestStreak}</strong>
             </span>
           </div>
           <button type="button" className="play-button" onClick={earTraining.start}>
@@ -192,9 +198,17 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     <div className={isInline ? 'ear-training-modal ear-training-modal-inline' : 'ear-training-modal'} onClick={(e) => e.stopPropagation()}>
         <div className="ear-training-header">
           <h2 className="ear-training-title">{t('earTraining.title')}</h2>
-          <button type="button" className="ear-training-exit" onClick={onClose}>
-            {t('earTraining.exit')}
-          </button>
+          <div className="ear-training-header-actions">
+            {/* Finish: end this session and see how it went. */}
+            {score.total > 0 && (
+              <button type="button" className="ear-training-finish" onClick={finish}>
+                {t('earTraining.finish')}
+              </button>
+            )}
+            <button type="button" className="ear-training-exit" onClick={onClose}>
+              {t('earTraining.exit')}
+            </button>
+          </div>
         </div>
 
         <div className="ear-training-controls">

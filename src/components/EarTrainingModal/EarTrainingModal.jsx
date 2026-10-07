@@ -13,7 +13,7 @@ import './EarTrainingModal.css';
 function promptFor(t, question) {
   if (question.kind === 'pitch') return t('earTraining.prompt.pitch');
   if (question.kind === 'chord') return t(question.needsRoot ? 'earTraining.prompt.chordRootQuality' : 'earTraining.prompt.chord');
-  if (question.kind === 'direction') return t('earTraining.prompt.direction');
+  if (question.kind === 'direction') return t(question.allowSame ? 'earTraining.prompt.directionSame' : 'earTraining.prompt.direction');
   if (question.kind === 'scaledegree') return t('earTraining.prompt.scaledegree');
   if (question.kind === 'interval') return t('earTraining.prompt.interval');
   if (question.kind === 'callresponse') return t('earTraining.prompt.callresponse', { length: question.targetMidiSequence.length });
@@ -301,6 +301,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                 {/* Names the actual note too — "That was: 3" alone doesn't
                     mean much; "3 (E — C Major)" ties the abstract degree
                     back to a real, nameable pitch. */}
+                {question.kind === 'direction' && question.correctChoiceKey === 'same' && ` (${noteNameForMidi(question.notesToPlay[0].midi)})`}
                 {question.kind === 'scaledegree' &&
                   ` (${noteNameForMidi(question.notesToPlay[0].midi)} — ${question.keyRootLetter} ${t(`quality.${question.keyMode}`)})`}
               </p>

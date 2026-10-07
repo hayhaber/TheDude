@@ -1025,6 +1025,7 @@ export const STRINGS = {
     'earTraining.prompt.chord': 'Listen to the chord — what quality is it?',
     'earTraining.prompt.chordRootQuality': 'Listen to the chord — what is its root note and quality?',
     'earTraining.prompt.direction': 'Listen — did the second note go higher or lower than the first?',
+    'earTraining.prompt.directionSame': 'Listen — was the second note higher, lower, or the same as the first?',
     'earTraining.prompt.scaledegree': 'A cadence sets the key — then listen to the note. Which scale degree is it?',
     'earTraining.prompt.interval': 'Listen to the interval — which one is it?',
     'earTraining.prompt.triad': 'Listen to the triad — what quality is it?',
@@ -1041,6 +1042,7 @@ export const STRINGS = {
     'earTraining.interval.melodic': 'melodic',
     'direction.Higher': 'Higher',
     'direction.Lower': 'Lower',
+    'direction.Same': 'Same',
     'earTraining.explain.label': 'What is this exercise?',
     'earTraining.explain.pitch':
       "You'll hear one note played somewhere on the neck. You're told which string it's on — the question is purely which fret. Example: on the low E string, the open string is E, the 3rd fret is G, and the 5th fret is A — the further right you tap, the higher the pitch should sound.",
@@ -1049,7 +1051,7 @@ export const STRINGS = {
     'earTraining.explain.triad':
       "Like Chord Recognition, but with two more qualities to tell apart: Diminished (the 3rd AND the 5th both lowered — tense, unstable, e.g. C–E♭–G♭) and Augmented (the 5th raised — floaty, unresolved, e.g. C–E–G♯), alongside the familiar Major (C–E–G) and Minor (C–E♭–G).",
     'earTraining.explain.direction':
-      "You'll hear two notes, one after the other. Just decide which way the pitch moved: did the second note sound higher or lower than the first? Example: E then G is higher (the pitch rose); E then C is lower (the pitch dropped). This is the most basic ear-training skill — the natural first step before Scale Degree and full Interval Recognition.",
+      "You'll hear two notes, one after the other. Just decide which way the pitch moved: did the second note sound higher or lower than the first? Example: E then G is higher (the pitch rose); E then C is lower (the pitch dropped). This is the most basic ear-training skill — the natural first step before Scale Degree and full Interval Recognition. Advanced adds a third answer, Same: sometimes the second note is the very same pitch — often played on another string (5th fret of the low E = the open A string), and the neck shows you both places afterwards.",
     'earTraining.explain.scaledegree':
       "You'll first hear a short cadence (a few chords) that plants a key in your ear — just let it settle in. Then you'll hear one melody note in that same key, and your job is to name its scale degree: 1 is the tonic (\"home\", the most stable note), 3 and 5 are the other two notes of the tonic chord, and so on up to 7. Example: after a cadence in C Major, hearing a G means degree 5 — the note that feels most stable right after the tonic itself. This is the real skill behind figuring out a melody by ear: you're recognizing each note's ROLE in the key, not measuring an exact distance.",
     'earTraining.explain.interval':
@@ -2154,6 +2156,7 @@ export const STRINGS = {
     'earTraining.prompt.chord': 'הקשב לאקורד — מהי איכותו?',
     'earTraining.prompt.chordRootQuality': 'הקשב לאקורד — מהו התו הבסיס ומהי האיכות?',
     'earTraining.prompt.direction': 'הקשב — האם הצליל השני היה גבוה יותר או נמוך יותר מהראשון?',
+    'earTraining.prompt.directionSame': 'הקשב — האם הצליל השני היה גבוה יותר, נמוך יותר או אותו צליל כמו הראשון?',
     'earTraining.prompt.scaledegree': 'קדנצה קובעת את המפתח — ואז הקשב לצליל. איזו דרגת סולם זו?',
     'earTraining.prompt.interval': 'הקשב לאינטרוול — איזה אינטרוול זהו?',
     'earTraining.prompt.triad': 'הקשב לטריאדה — מהי איכותה?',
@@ -2170,6 +2173,7 @@ export const STRINGS = {
     'earTraining.interval.melodic': 'מלודי',
     'direction.Higher': 'גבוה יותר',
     'direction.Lower': 'נמוך יותר',
+    'direction.Same': 'אותו צליל',
     'earTraining.explain.label': 'מה זה התרגיל הזה?',
     'earTraining.explain.pitch':
       'תשמע צליל בודד המתנגן איפשהו על הצוואר. נאמר לך על איזה מיתר — השאלה היא רק על איזה שריג. לדוגמה: על מיתר המי הנמוך, המיתר הפתוח הוא מי, השריג ה-3 הוא סול, והשריג ה-5 הוא לה — ככל שתקיש ימינה יותר, הצליל אמור להישמע גבוה יותר.',
@@ -2178,7 +2182,7 @@ export const STRINGS = {
     'earTraining.explain.triad':
       'כמו זיהוי אקורדים, אך עם שתי איכויות נוספות להבחין ביניהן: דימיניש (גם השלישית וגם החמישית מונמכות — מתוח ולא יציב, למשל דו–מי♭–סול♭) ואוגמנטד (החמישית מוגבהת — מרחף, לא פתור, למשל דו–מי–סול♯), לצד מאג\'ור (דו–מי–סול) ומינור (דו–מי♭–סול) המוכרים.',
     'earTraining.explain.direction':
-      'תשמע שני צלילים, בזה אחר זה. פשוט תחליט לאיזה כיוון הצליל זז: האם הצליל השני נשמע גבוה יותר או נמוך יותר מהראשון? לדוגמה: מי ואז סול — גבוה יותר (הצליל עלה); מי ואז דו — נמוך יותר (הצליל ירד). זהו כישור השמיעה הבסיסי ביותר — הצעד הראשון הטבעי לפני דרגת סולם וזיהוי אינטרוולים מלא.',
+      'תשמע שני צלילים, בזה אחר זה. פשוט תחליט לאיזה כיוון הצליל זז: האם הצליל השני נשמע גבוה יותר או נמוך יותר מהראשון? לדוגמה: מי ואז סול — גבוה יותר (הצליל עלה); מי ואז דו — נמוך יותר (הצליל ירד). זהו כישור השמיעה הבסיסי ביותר — הצעד הראשון הטבעי לפני דרגת סולם וזיהוי אינטרוולים מלא. ברמה מתקדמת יש תשובה שלישית, "אותו צליל": לפעמים הצליל השני הוא בדיוק אותו גובה — לרוב מנוגן על מיתר אחר (סריג 5 על מי הנמוך = מיתר לה פתוח), ואחרי התשובה הצוואר מראה את שני המקומות.',
     'earTraining.explain.scaledegree':
       'תחילה תשמע קדנצה קצרה (כמה אקורדים) שנוטעת מפתח באוזן שלך — פשוט תן לזה "להיכנס". אחר כך תשמע צליל מלודי אחד באותו מפתח, ועליך לזהות את דרגת הסולם שלו: 1 היא התו הבסיס ("הבית", התו היציב ביותר), 3 ו-5 הם שני התווים הנוספים של אקורד היסוד, וכך הלאה עד 7. לדוגמה: אחרי קדנצה בדו מאג\'ור, שמיעת סול משמעה דרגה 5 — התו שמרגיש הכי יציב מיד אחרי התו הבסיס עצמו. זהו הכישור האמיתי שמאחורי גילוי מלודיה לפי שמיעה: אתה מזהה את התפקיד של כל תו במפתח, לא מודד מרחק מדויק.',
     'earTraining.explain.interval':

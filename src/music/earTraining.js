@@ -303,9 +303,48 @@ const DIRECTION_SEMITONE_RANGE = {
   advanced: [1, 3],
 };
 
+// Advanced adds a third answer, "Same": about a quarter of the questions
+// repeat the pitch — on ANOTHER string where the neck allows (5th fret of
+// low E = open A), so the reveal shows two places that make one note.
+const DIRECTION_SAME_SHARE = 0.25;
+// Fixed order, "Same" in the middle — between up and down.
+const DIRECTION_CHOICES_WITH_SAME = [
+  { key: 'higher', label: 'Higher' },
+  { key: 'same', label: 'Same' },
+  { key: 'lower', label: 'Lower' },
+];
+
+// Another string/fret that sounds `midi`, preferring frets inside the
+// difficulty's range; null when only the given string can play it.
+function unisonCell(midi, cell, difficulty) {
+  const options = [];
+  for (let s = 0; s < STANDARD_TUNING.length; s += 1) {
+    if (s === cell.stringIndex) continue;
+    const fret = midi - STANDARD_TUNING[s].baseMidi;
+    if (fret >= 0 && fret <= MAX_FRET) options.push({ stringIndex: s, fret });
+  }
+  const inRange = options.filter((o) => o.fret >= difficulty.fretMin && o.fret <= difficulty.fretMax);
+  return pick(inRange.length ? inRange : options) ?? null;
+}
+
 function generateDirectionQuestion(difficulty) {
   const rootCell = randomCell(difficulty);
   const rootMidi = midiForCell(rootCell.stringIndex, rootCell.fret);
+  const allowSame = difficulty.key === 'advanced';
+  if (allowSame && Math.random() < DIRECTION_SAME_SHARE) {
+    const other = unisonCell(rootMidi, rootCell, difficulty) ?? rootCell;
+    return {
+      kind: 'direction',
+      allowSame,
+      prompt: 'Listen — was the second note higher, lower, or the same as the first?',
+      notesToPlay: [
+        { stringIndex: rootCell.stringIndex, fret: rootCell.fret, midi: rootMidi },
+        { stringIndex: other.stringIndex, fret: other.fret, midi: rootMidi },
+      ],
+      choices: DIRECTION_CHOICES_WITH_SAME,
+      correctChoiceKey: 'same',
+    };
+  }
   const [minGap, maxGap] = DIRECTION_SEMITONE_RANGE[difficulty.key] ?? DIRECTION_SEMITONE_RANGE.advanced;
   const gap = randomInt(minGap, maxGap);
   // Direction IS the question — genuinely random each time (unlike the
@@ -319,6 +358,19 @@ function generateDirectionQuestion(difficulty) {
   const secondMidi = rootMidi + delta;
   const secondCell = findCellForMidi(secondMidi) ?? { stringIndex: rootCell.stringIndex, fret: Math.max(0, rootCell.fret + delta) };
 
+  if (allowSame) {
+    return {
+      kind: 'direction',
+      allowSame,
+      prompt: 'Listen — was the second note higher, lower, or the same as the first?',
+      notesToPlay: [
+        { stringIndex: rootCell.stringIndex, fret: rootCell.fret, midi: rootMidi },
+        { stringIndex: secondCell.stringIndex, fret: secondCell.fret, midi: secondMidi },
+      ],
+      choices: DIRECTION_CHOICES_WITH_SAME,
+      correctChoiceKey: higher ? 'higher' : 'lower',
+    };
+  }
   return {
     kind: 'direction',
     prompt: 'Listen — did the second note go higher or lower than the first?',

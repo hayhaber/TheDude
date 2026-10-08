@@ -4,7 +4,6 @@ import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
 import { AppLogo } from '../AppLogo/AppLogo';
 import { INSTRUMENT_ART } from './instrumentArt';
-import { GuitarProIcon } from '../GuitarProIcon/GuitarProIcon';
 import './HomeMenu.css';
 
 // Line icons for the per-instrument shortcuts (24px grid).
@@ -39,6 +38,13 @@ const ICON_PATHS = {
     <>
       <circle cx="10.5" cy="10.5" r="6" />
       <path d="M15 15l5 5" />
+    </>
+  ),
+  guitarpro: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 9h18M3 12h18M3 15h18" opacity=".35" />
+      <path d="M8 7v10M15 7v10" />
     </>
   ),
   vocal: (
@@ -80,7 +86,6 @@ const ICON_PATHS = {
 };
 
 function LineIcon({ name }) {
-  if (name === 'guitarpro') return <GuitarProIcon size={34} />;
   return (
     <svg
       viewBox="0 0 24 24"

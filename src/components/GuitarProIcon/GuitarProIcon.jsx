@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { useInstrument } from '../../instruments/useInstrument';
 
 // The GuitarPro feature icon: a glossy red pick, tilted over three strings,
 // with "GP" on it. The strings follow the text colour (currentColor); the
@@ -39,4 +40,22 @@ export function GuitarProIcon({ size = 18 }) {
       </g>
     </svg>
   );
+}
+
+// The plain line icon (a tab page) the feature had before — used where the
+// pick doesn't fit: the piano pages (and the home cards).
+export function GuitarProLineIcon({ size = 18 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 9h18M3 12h18M3 15h18" opacity=".35" />
+      <path d="M8 7v10M15 7v10" />
+    </svg>
+  );
+}
+
+// The nav icon: the red pick inside guitar and bass, the line icon on piano.
+export function GuitarProNavIcon() {
+  const { instrument } = useInstrument();
+  return instrument === 'guitar' || instrument === 'bass' ? <GuitarProIcon /> : <GuitarProLineIcon />;
 }

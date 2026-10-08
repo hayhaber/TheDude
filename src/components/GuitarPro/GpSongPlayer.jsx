@@ -23,6 +23,10 @@ function giveChordNamesTheirOwnRow() {
   }
 }
 
+// The chord names' font carries this made-up family first, so they can be
+// told apart from every other text in the score's SVG (and styled/lit).
+const CHORD_FONT_TAG = 'DSChordName';
+
 const KIND_ICON = { drums: '🥁', vocal: '🎤', bass: '🎸', keys: '🎹', strings: '🎻', guitar: '🎸' };
 
 function SpeakerIcon({ on }) {
@@ -150,6 +154,11 @@ export function GpSongPlayer({ trainer, t }) {
   trackIndexRef.current = trackIndex;
   // Tracks whose chord names were already written into this file's score.
   const labeledRef = useRef(new Set());
+  // The chord names we wrote, per track ([{ tick, name }]), to light up the
+  // one being played (piano).
+  const chordLabelsRef = useRef(new Map());
+  const pianoRef = useRef(false);
+  pianoRef.current = !!trainer.pianoMode;
 
   // One alphaTab instance per file shown.
   useEffect(() => {
@@ -160,7 +169,9 @@ export function GpSongPlayer({ trainer, t }) {
     setError(null);
     giveChordNamesTheirOwnRow();
     const api = new alphaTab.AlphaTabApi(hostRef.current, {
-      core: { engine: 'svg', fontDirectory: '/font/', useWorkers: false },
+      // No lazy loading: every line is in the page, so the chord names can
+      // be found (and lit) in order.
+      core: { engine: 'svg', fontDirectory: '/font/', useWorkers: false, enableLazyLoading: false },
       display: { staveProfile: alphaTab.StaveProfile.Tab, scale: 0.95 },
       player: {
         enablePlayer: true,
@@ -175,23 +186,57 @@ export function GpSongPlayer({ trainer, t }) {
     // Chord names above the staff: upright and bold, so they read at a glance.
     api.settings.display.resources.elementFonts.set(
       alphaTab.NotationElement.EffectChordNames,
-      new alphaTab.model.Font('Arial, sans-serif', 13, alphaTab.model.FontStyle.Plain, alphaTab.model.FontWeight.Bold)
+      new alphaTab.model.Font(`${CHORD_FONT_TAG}, Arial, sans-serif`, 13, alphaTab.model.FontStyle.Plain, alphaTab.model.FontWeight.Bold)
     );
     api.masterVolume = GP_MASTER_VOLUME;
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     let lastSystem = -1;
     labeledRef.current = new Set();
+    chordLabelsRef.current = new Map();
+    // Lights the chord name in play: the last one at or before `tick`.
+    const lit = { index: -1, els: null };
+    const lightChord = (tick) => {
+      const labels = chordLabelsRef.current.get(trackIndexRef.current);
+      const host = hostRef.current;
+      if (!host) return;
+      if (!pianoRef.current || !labels?.length || tick == null) {
+        lit.els?.[lit.index]?.classList.remove('is-playing');
+        lit.index = -1;
+        return;
+      }
+      if (!lit.els || !lit.els[0]?.isConnected || lit.els.length !== labels.length) {
+        lit.els = [...host.querySelectorAll('text')].filter((el) => (el.getAttribute('style') || '').includes(CHORD_FONT_TAG));
+        lit.index = -1;
+      }
+      if (lit.els.length !== labels.length) return;
+      let lo = 0;
+      let hi = labels.length - 1;
+      let idx = -1;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (labels[mid].tick <= tick) {
+          idx = mid;
+          lo = mid + 1;
+        } else hi = mid - 1;
+      }
+      if (idx === lit.index) return;
+      lit.els[lit.index]?.classList.remove('is-playing');
+      lit.els[idx]?.classList.add('is-playing');
+      lit.index = idx;
+    };
     api.scoreLoaded.on((score) => {
       // Chord names for the first track shown, before it's drawn.
       const t = trackIndexRef.current;
       if (t != null && !labeledRef.current.has(t)) {
         labeledRef.current.add(t);
-        labelChords(score, t);
+        chordLabelsRef.current.set(t, labelChords(score, t));
       }
       setScoreVersion((v) => v + 1);
     });
     api.renderFinished.on(() => {
       lastSystem = -1;
+      lit.els = null; // redrawn: find the names again
+      lit.index = -1;
       setLoading(false);
     });
     // Page-turn scrolling: whenever playback reaches a new line, that line
@@ -234,10 +279,16 @@ export function GpSongPlayer({ trainer, t }) {
     api.playerStateChanged.on((e) => {
       const isPlaying = e.state === alphaTab.synth.PlayerState.Playing;
       setPlaying(isPlaying);
-      if (!isPlaying && e.stopped) followPlayhead(null);
+      if (!isPlaying && e.stopped) {
+        followPlayhead(null);
+        lightChord(null);
+      }
     });
     api.playerPositionChanged.on((e) => {
-      if (api.playerState === alphaTab.synth.PlayerState.Playing) followPlayhead((e.currentTick - tickStartRef.current) / TICKS_PER_BEAT);
+      if (api.playerState === alphaTab.synth.PlayerState.Playing) {
+        followPlayhead((e.currentTick - tickStartRef.current) / TICKS_PER_BEAT);
+        lightChord(e.currentTick);
+      }
     });
     api.error.on((e) => setError(e?.message ?? String(e)));
     let alive = true;
@@ -270,7 +321,9 @@ export function GpSongPlayer({ trainer, t }) {
     let named = 0;
     if (!labeledRef.current.has(trackIndex)) {
       labeledRef.current.add(trackIndex);
-      named = labelChords(score, trackIndex);
+      const labels = labelChords(score, trackIndex);
+      chordLabelsRef.current.set(trackIndex, labels);
+      named = labels.length;
     }
     const drawn = api.tracks?.length === 1 && api.tracks[0].index === trackIndex;
     if (drawn && !named && api.settings.display.staveProfile === profile) return;
@@ -357,7 +410,7 @@ export function GpSongPlayer({ trainer, t }) {
   playPauseRef.current = ready ? togglePlay : null;
 
   return (
-    <section className="gp-song" ref={songRef}>
+    <section className={'gp-song' + (trainer.pianoMode ? ' is-piano' : '')} ref={songRef}>
       <div className="gp-transport">
         <button
           type="button"

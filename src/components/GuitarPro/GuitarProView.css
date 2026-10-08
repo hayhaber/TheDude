@@ -528,3 +528,21 @@
     flex: 1 1 100%;
   }
 }
+
+/* Piano: chord names in blue; the one being played glows. */
+.gp-song.is-piano .gp-score text[style*='DSChordName'] {
+  fill: #2f6fd6;
+  transition: fill 0.12s ease;
+}
+
+.gp-song.is-piano .gp-score text[style*='DSChordName'].is-playing {
+  fill: #0a84ff;
+  paint-order: stroke;
+  stroke: rgba(10, 132, 255, 0.28) !important;
+  stroke-width: 7px;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(10, 132, 255, 0.85));
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(1.2);
+}

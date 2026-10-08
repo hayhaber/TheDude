@@ -219,7 +219,12 @@ rosewood, below).
   change, unless the track already has the file's own chords; the song
   view's api renders on the MAIN thread (`core.useWorkers: false`) so
   `giveChordNamesTheirOwnRow()` can stop alphaTab sharing the chord row
-  with section markers (they overlapped); chord font is bold sans 13.
+  with section markers (they overlapped); chord font is bold sans 13, family
+  starts with the tag `DSChordName` so the SVG <text> can be found; the
+  song view uses `enableLazyLoading: false` so all names are in the DOM in
+  time order. Piano mode (`.gp-song.is-piano`): names blue, the one in play
+  gets `.is-playing` (glow + scale) via `lightChord(tick)` against the
+  `[{tick,name}]` list labelChords returns.
   Space bar = Play/Pause in Song view (GpSongPlayer keydown, skips form fields). Song view keeps ONE AlphaTabApi
   per file and switches with `renderTracks()` (no MIDI reload). The mix is
   per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls

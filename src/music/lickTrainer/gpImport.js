@@ -415,18 +415,19 @@ export function fileOnlySolo(score, trackIndex = 0, base = {}) {
  * they make, shown each time it changes. A track that already carries
  * chord names from the file is left as the file has it. Drums: nothing.
  * Mutates the score (display only — the sound doesn't use chords).
- * Returns how many names were added.
+ * Returns the names added, in time order: [{ tick, name }] (empty when the
+ * file has its own).
  */
 export function labelChords(score, trackIndex) {
   const track = score?.tracks[trackIndex];
-  if (!track || track.staves[0]?.isPercussion) return 0;
+  if (!track || track.staves[0]?.isPercussion) return [];
   const byTick = new Map();
   for (const [si, staff] of track.staves.entries()) {
     for (const bar of staff.bars) {
       const master = score.masterBars[bar.index];
       for (const [vi, voice] of bar.voices.entries()) {
         for (const beat of voice.beats) {
-          if (beat.chordId) return 0; // the file has its own chord names
+          if (beat.chordId) return []; // the file has its own chord names
           if (beat.isRest || beat.graceType !== 0) continue;
           const tick = master.start + beat.playbackStart;
           let e = byTick.get(tick);
@@ -443,7 +444,7 @@ export function labelChords(score, trackIndex) {
     }
   }
   let previous = null;
-  let added = 0;
+  const added = [];
   for (const tick of [...byTick.keys()].sort((a, b) => a - b)) {
     const { midis, anchor } = byTick.get(tick);
     if (new Set(midis.map((m) => m % 12)).size < 3) continue;
@@ -460,7 +461,7 @@ export function labelChords(score, trackIndex) {
       staff.addChord(id, chord);
     }
     anchor.chordId = id;
-    added += 1;
+    added.push({ tick, name });
   }
   return added;
 }

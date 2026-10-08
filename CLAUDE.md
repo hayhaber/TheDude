@@ -50,6 +50,17 @@ rosewood, below).
 
 ## Architecture essentials
 
+- **Home screen** (`components/HomeMenu/`): opens first (App `home` state;
+  rendered INSTEAD of AppShell). A light carousel of instrument cards
+  (guitar, piano, bass, singing — art in `instrumentArt.js`, static SVG)
+  in the style of a GarageBand-like instrument browser: art + title +
+  description, shortcut row filtered by `supportsInstrument()`, swipe /
+  arrows / dots / arrow keys, scroll-snap (scrolled with `scrollBy`, not
+  scrollIntoView, so the page doesn't move). `onOpen({instrument, section,
+  practiceTab})` sets them in App. The logo (drawer header + phone brand,
+  AppShell `onHome`) returns to it; "Back to where I was" appears after the
+  first visit.
+
 - **Three instruments**: Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
   Compose-only for now). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each

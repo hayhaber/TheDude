@@ -24,7 +24,7 @@ function SectionIcon({ icon: Icon }) {
 // screen (Material Design's own guidance), so it isn't touched here.
 // `settingsSlot` is the existing SettingsPanel; LanguageToggle is
 // self-contained (reads/writes language via context).
-export function AppShell({ activeSection, onSectionChange, settingsSlot, metronomeSlot, stage, children }) {
+export function AppShell({ activeSection, onSectionChange, settingsSlot, metronomeSlot, stage, onHome, children }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
   // Sections whose entire feature isn't available on the current instrument
@@ -105,12 +105,21 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
           inert={!drawerOpen}
         >
           <div className="app-drawer-header">
-            <div className="app-sidebar-brand">
+            {/* The logo leads back to the home screen (instrument menu). */}
+            <button
+              type="button"
+              className="app-sidebar-brand app-brand-home"
+              onClick={() => {
+                closeDrawer();
+                onHome?.();
+              }}
+              aria-label={t('home.open')}
+            >
               <span className="app-sidebar-brand-icon" aria-hidden="true">
                 <AppLogo size={24} />
               </span>
               <span className="app-sidebar-brand-text">{t('app.name')}</span>
-            </div>
+            </button>
             <button type="button" className="app-drawer-close" onClick={closeDrawer} aria-label={t('nav.closeMenu')}>
               ×
             </button>
@@ -149,9 +158,9 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
       {/* Phone-only (hidden by default, see AppShell.css) — the mobile
           layout otherwise has no brand mark at all, unlike desktop's
           sidebar (.app-sidebar-brand). */}
-      <div className="app-mobile-brand" aria-hidden="true">
+      <button type="button" className="app-mobile-brand app-brand-home" onClick={() => onHome?.()} aria-label={t('home.open')}>
         <AppLogo size={26} />
-      </div>
+      </button>
 
       <div className="app-mobile-settings">
         <InstrumentToggle />

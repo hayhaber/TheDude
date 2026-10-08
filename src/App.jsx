@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
+import { HomeMenu } from './components/HomeMenu/HomeMenu';
 import { AppShell } from './components/AppShell/AppShell';
 import { Stage } from './components/Stage/Stage';
 import { MetronomeBar } from './components/MetronomeBar/MetronomeBar';
@@ -125,7 +126,10 @@ function App() {
     pianoVolume,
     setPianoVolume,
   } = useAudioSettings();
-  const { instrument } = useInstrument();
+  const { instrument, setInstrument } = useInstrument();
+  // The home screen (instrument menu) opens first; the logo leads back to it.
+  const [home, setHome] = useState(true);
+  const [leftHome, setLeftHome] = useState(false);
   // The 3 top-level destinations (Compose/Improvise/Practice) — see
   // components/AppShell for the nav shell that drives this.
   const [activeSection, setActiveSection] = useState('compose');
@@ -1810,8 +1814,24 @@ function App() {
     tempoDown: () => metronome.setBpm(metronome.bpm - 5),
   });
 
+  if (home) {
+    return (
+      <HomeMenu
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab }) => {
+          if (nextInstrument && nextInstrument !== instrument) setInstrument(nextInstrument);
+          if (tab) setPracticeTab(tab);
+          setActiveSection(section);
+          setHome(false);
+          setLeftHome(true);
+        }}
+        onContinue={leftHome ? () => setHome(false) : null}
+      />
+    );
+  }
+
   return (
     <AppShell
+      onHome={() => setHome(true)}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
       settingsSlot={

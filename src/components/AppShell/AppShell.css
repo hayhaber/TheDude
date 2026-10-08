@@ -483,3 +483,23 @@
     box-sizing: border-box;
   }
 }
+
+/* The logo is a button back to the home screen. */
+.app-brand-home {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  justify-content: flex-start;
+  padding: 4px var(--space-3);
+  border-radius: 10px;
+}
+
+.app-brand-home:hover {
+  background: rgba(120, 120, 128, 0.12);
+}
+
+.app-mobile-brand.app-brand-home {
+  padding: 2px;
+}

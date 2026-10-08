@@ -762,6 +762,22 @@ export function PianoKeyboard({
     };
   }, [computerKeyboardEnabled]);
 
+  // The panel is one row: its three buttons are icon + LED only, with the
+  // full text as tooltip / accessible name.
+  const midiText =
+    midiStatus === 'connected'
+      ? t('piano.midi.connected', { device: midiDeviceName })
+      : midiStatus === 'connecting'
+      ? t('piano.midi.connecting')
+      : midiStatus === 'denied'
+      ? t('piano.midi.denied')
+      : midiStatus === 'noDevice'
+      ? t('piano.midi.noDevice')
+      : t('piano.midi.connect');
+  const keysText = computerKeyboardEnabled
+    ? t('piano.computerKeys.onLabel', { offset: octaveOffset >= 0 ? `+${octaveOffset}` : String(octaveOffset) })
+    : t('piano.computerKeys.toggle');
+
   return (
     <div className="piano-keyboard">
       {/* Styled like a real electric piano's control strip (brushed dark
@@ -920,6 +936,8 @@ export function PianoKeyboard({
               className={'piano-panel-btn' + (midiStatus === 'connected' ? ' active' : '') + (midiStatus === 'denied' ? ' warn' : '')}
               onClick={connectMidi}
               disabled={midiStatus === 'connecting' || midiStatus === 'connected'}
+              title={midiText}
+              aria-label={midiText}
             >
               <span className="piano-panel-led" aria-hidden="true" />
               <span className="piano-panel-btn-icon" aria-hidden="true">
@@ -946,7 +964,8 @@ export function PianoKeyboard({
             className={'piano-panel-btn' + (computerKeyboardEnabled ? ' active' : '')}
             onClick={() => setComputerKeyboardEnabled((v) => !v)}
             aria-pressed={computerKeyboardEnabled}
-            title={t('piano.computerKeys.tooltip')}
+            title={`${keysText} — ${t('piano.computerKeys.tooltip')}`}
+            aria-label={keysText}
           >
             <span className="piano-panel-led" aria-hidden="true" />
             <span className="piano-panel-btn-icon" aria-hidden="true">
@@ -966,6 +985,8 @@ export function PianoKeyboard({
             className={'piano-panel-btn' + (showAllLabels ? ' active' : '')}
             onClick={() => setShowAllLabels((v) => !v)}
             aria-pressed={showAllLabels}
+            title={t('piano.labels')}
+            aria-label={t('piano.labels')}
           >
             <span className="piano-panel-led" aria-hidden="true" />
             <span className="piano-panel-btn-icon" aria-hidden="true">

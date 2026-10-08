@@ -25,11 +25,13 @@
    Only the top corners are rounded; the bottom is flat so it sits flush
    against .piano-keyboard-connector below with no gap or radius mismatch. */
 .piano-panel {
+  /* One row (wraps only if the screen is too narrow), so the score above
+     gets the height. */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   padding: 10px 14px;
   border-radius: 12px 12px 0 0;
   background: linear-gradient(115deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.05) 78%, rgba(255, 255, 255, 0) 92%),
@@ -66,7 +68,7 @@
 }
 
 .piano-panel-octave .piano-panel-lcd {
-  min-width: 96px;
+  min-width: 84px;
 }
 
 .piano-panel-octave .piano-panel-chevron:disabled {
@@ -81,7 +83,7 @@
 
 /* The chord readout keeps its width as names change length (C -> C#m7b5). */
 .piano-panel-chord .piano-panel-lcd {
-  min-width: 128px;
+  min-width: 96px;
 }
 
 .piano-panel-chord-name {
@@ -130,7 +132,7 @@
 .piano-panel-slider {
   appearance: none;
   -webkit-appearance: none;
-  width: 80px;
+  width: 72px;
   height: 4px;
   border-radius: 999px;
   background: linear-gradient(180deg, #111 0%, #000 100%);
@@ -206,8 +208,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 128px;
-  padding: 3px 10px;
+  min-width: 104px;
+  padding: 3px 8px;
   border-radius: 4px;
   background: linear-gradient(180deg, #1a2b1c 0%, #0e1c10 100%);
   border: 1px solid #060a06;
@@ -227,8 +229,17 @@
 
 .piano-panel-buttons {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
+}
+
+/* Icon + LED only (text in the tooltip): keeps the panel to one row. */
+.piano-panel-buttons .piano-panel-btn {
+  padding: 6px 9px 6px 8px;
+}
+
+.piano-panel-buttons .piano-panel-btn-label {
+  display: none;
 }
 
 /* The BPM screen doubles as a click-to-type field — a subtle hover state
@@ -713,5 +724,40 @@
 @media (max-width: 640px) {
   .piano-stable-label {
     display: none;
+  }
+}
+
+/* Mid-width screens: a little tighter so the panel still fits one row. */
+@media (min-width: 641px) and (max-width: 1100px) {
+  .piano-panel {
+    gap: 5px;
+    padding: 9px 10px;
+  }
+
+  .piano-panel-sound,
+  .piano-panel-octave,
+  .piano-panel-metronome {
+    gap: 4px;
+  }
+
+  .piano-panel-lcd {
+    min-width: 92px;
+    padding: 3px 6px;
+  }
+
+  .piano-panel-octave .piano-panel-lcd {
+    min-width: 76px;
+  }
+
+  .piano-panel-chord .piano-panel-lcd {
+    min-width: 80px;
+  }
+
+  .piano-panel-slider {
+    width: 56px;
+  }
+
+  .piano-panel-chevron {
+    min-width: 22px;
   }
 }

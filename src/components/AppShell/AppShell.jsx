@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { SECTIONS } from './sections';
-import { InstrumentToggle } from '../InstrumentToggle/InstrumentToggle';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
 import { AppLogo } from '../AppLogo/AppLogo';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
-import { usePopoverDismiss } from '../../hooks/usePopoverDismiss';
+import { INSTRUMENTS } from '../../instruments/instrumentRegistry';
+import '../ModeToggle/ModeToggle.css';
 import './AppShell.css';
 
 // A section's `icon` is either an emoji string (rendered as-is) or a
@@ -16,22 +16,22 @@ function SectionIcon({ icon: Icon }) {
   return typeof Icon === 'string' ? Icon : <Icon />;
 }
 
-// Persistent navigation chrome. ≥900px: a hamburger-triggered off-canvas
-// drawer (hidden by default, opens over the content with a scrim) instead
-// of a permanently-docked sidebar — the content column gets that width
-// back rather than always reserving it. <900px: unchanged bottom tab bar,
-// already the right pattern for 3-5 top-level destinations on a small
-// screen (Material Design's own guidance), so it isn't touched here.
-// `settingsSlot` is the existing SettingsPanel; LanguageToggle is
-// self-contained (reads/writes language via context).
+// Persistent navigation chrome — the inside of an instrument (the home
+// screen picks the instrument). >=900px: a top bar with the logo (home), the
+// instrument, its features and the tools. <900px: the logo + settings at the
+// top, metronome/tuner and the feature tabs at the bottom.
+// `settingsSlot` is the SettingsPanel (rendered twice — top bar and phone
+// corner; it portals its drawer to <body>).
 export function AppShell({ activeSection, onSectionChange, settingsSlot, metronomeSlot, stage, onHome, children }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const dir = lang === 'he' ? 'rtl' : 'ltr';
   const { instrument } = useInstrument();
   // Sections whose entire feature isn't available on the current instrument
   // (e.g. Improvise is guitar-only) shouldn't appear as a nav destination at
   // all in that mode — clicking through to a "not available" message is
   // worse than never seeing the option in the first place.
   const visibleSections = SECTIONS.filter((s) => supportsInstrument(s.key, instrument));
+  const inst = INSTRUMENTS.find((i) => i.key === instrument);
   // The pinned instrument's height, as --stage-height on the root, so a
   // section can size a panel to exactly the room left above it.
   const stageRef = useRef(null);
@@ -42,135 +42,15 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
     ro.observe(el);
     return () => ro.disconnect();
   }, [stage != null]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
-  // Wraps the trigger button too (not just the drawer itself) so clicking
-  // the hamburger to close doesn't register as an "outside click" and
-  // immediately reopen it.
-  const drawerAreaRef = usePopoverDismiss(drawerOpen, closeDrawer);
-
-  // A section change is itself a completed navigation action — close the
-  // drawer the same way a menu closes after picking an item.
-  function selectSection(key) {
-    onSectionChange(key);
-    closeDrawer();
-  }
-
-  // Body scroll would otherwise still work behind the scrim on touch
-  // devices (the scrim only stops clicks, not touch-scroll) — lock it
-  // while the drawer is open, same as any modal overlay.
-  useEffect(() => {
-    if (!drawerOpen) return undefined;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [drawerOpen]);
 
   return (
     <div className="app-shell">
-      <div
-        className="app-drawer-scrim"
-        style={{ opacity: drawerOpen ? 1 : 0, pointerEvents: drawerOpen ? 'auto' : 'none' }}
-        aria-hidden="true"
-      />
-
-      <div className="app-drawer-area" ref={drawerAreaRef}>
-        <button
-          type="button"
-          className="app-drawer-trigger"
-          // Fixed-positioned and left at the same x/y the open drawer's own
-          // header row sits at (left:20px, 44px wide) — with the drawer
-          // open, this button used to stay visible ON TOP of (higher
-          // z-index than) the drawer's brand icon/logo, visually
-          // overlapping it. The drawer already has its own × close button,
-          // so there's no need for this one to stay interactive/visible
-          // once the drawer is open — just fade it out of the way.
-          style={{ opacity: drawerOpen ? 0 : 1, pointerEvents: drawerOpen ? 'none' : 'auto' }}
-          onClick={() => setDrawerOpen((v) => !v)}
-          aria-label={drawerOpen ? t('nav.closeMenu') : t('nav.openMenu')}
-          aria-expanded={drawerOpen}
-          inert={drawerOpen}
-        >
-          <span className="app-drawer-trigger-bar" />
-          <span className="app-drawer-trigger-bar" />
-          <span className="app-drawer-trigger-bar" />
-        </button>
-
-        <nav
-          className="app-drawer"
-          style={{ transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)', pointerEvents: drawerOpen ? 'auto' : 'none' }}
-          aria-label={t('nav.mainLabel')}
-          inert={!drawerOpen}
-        >
-          <div className="app-drawer-header">
-            {/* The logo leads back to the home screen (instrument menu). */}
-            <button
-              type="button"
-              className="app-sidebar-brand app-brand-home"
-              onClick={() => {
-                closeDrawer();
-                onHome?.();
-              }}
-              aria-label={t('home.open')}
-            >
-              <span className="app-sidebar-brand-icon" aria-hidden="true">
-                <AppLogo size={24} />
-              </span>
-              <span className="app-sidebar-brand-text">{t('app.name')}</span>
-            </button>
-            <button type="button" className="app-drawer-close" onClick={closeDrawer} aria-label={t('nav.closeMenu')}>
-              ×
-            </button>
-          </div>
-
-          {/* No instrument switch here: the instrument is chosen on the home
-              screen (the logo above leads back to it). */}
-          <div className="app-sidebar-top-controls">
-            {settingsSlot}
-            <InfoTooltipsToggle />
-          </div>
-
-          <div className="app-sidebar-nav">
-            {visibleSections.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                className={'app-nav-item' + (activeSection === s.key ? ' active' : '')}
-                aria-current={activeSection === s.key ? 'page' : undefined}
-                onClick={() => selectSection(s.key)}
-              >
-                <span className="app-nav-item-icon" aria-hidden="true">
-                  <SectionIcon icon={s.icon} />
-                </span>
-                {t(s.labelKey)}
-              </button>
-            ))}
-          </div>
-        </nav>
-      </div>
-
-      {/* Desktop: metronome + tuner always in reach, top corner (tablet and
-          phone have them in the bar above the tabs). */}
-      <div className="app-desktop-tools">
-        {metronomeSlot}
-        <TunerBar />
-      </div>
-
-      {/* Phone-only (hidden by default, see AppShell.css) — the mobile
-          layout otherwise has no brand mark at all, unlike desktop's
-          sidebar (.app-sidebar-brand). */}
+      {/* Phone/tablet: the logo (back to the home screen), top-left. */}
       <button type="button" className="app-mobile-brand app-brand-home" onClick={() => onHome?.()} aria-label={t('home.open')}>
         <AppLogo size={26} />
       </button>
 
       <div className="app-mobile-settings">
-        <InstrumentToggle />
-        {/* Gear + info grouped so phone-only CSS can turn just this pair
-            into a horizontal row (see .app-mobile-settings-icons) without
-            touching the Guitar/Piano toggle above it or iPad's own
-            3-row-stacked layout, which stays exactly as it was. */}
         <div className="app-mobile-settings-icons">
           {settingsSlot}
           <InfoTooltipsToggle />
@@ -178,6 +58,46 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
       </div>
 
       <main className="app-content">
+        {/* Desktop: one bar — logo (home) + the instrument, the instrument's
+            features, and the tools. The instrument itself is chosen on the
+            home screen; there is no menu drawer any more. */}
+        <header className="app-topbar">
+          <button type="button" className="app-topbar-brand app-brand-home" onClick={() => onHome?.()} aria-label={t('home.open')}>
+            <AppLogo size={26} />
+            <span className="app-topbar-name">{t('app.name')}</span>
+          </button>
+          {inst && (
+            <span className="app-topbar-instrument">
+              <span className="app-topbar-instrument-icon" aria-hidden="true">
+                <SectionIcon icon={inst.icon} />
+              </span>
+              {t(inst.labelKey)}
+            </span>
+          )}
+          <nav className="app-topbar-nav mode-toggle wrap" dir={dir} aria-label={t('nav.mainLabel')}>
+            {visibleSections.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                className={activeSection === s.key ? 'active' : ''}
+                aria-current={activeSection === s.key ? 'page' : undefined}
+                onClick={() => onSectionChange(s.key)}
+                title={t(s.labelKey)}
+              >
+                <span className="app-topbar-nav-icon" aria-hidden="true">
+                  <SectionIcon icon={s.icon} />
+                </span>
+                <span className="app-topbar-nav-label">{t(s.labelKey)}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="app-topbar-tools" dir={dir}>
+            {metronomeSlot}
+            <TunerBar />
+            {settingsSlot}
+            <InfoTooltipsToggle />
+          </div>
+        </header>
         <div className="app-section-content">{children}</div>
         {stage && <div className="app-stage-anchor" ref={stageRef}>{stage}</div>}
       </main>

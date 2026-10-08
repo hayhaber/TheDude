@@ -73,7 +73,7 @@ rosewood, below).
   card's corner on iPhone) and no `background-clip: text` + filter titles
   (flicker) — dark titles use text-shadow. No WebKit in this container to
   test with; the user checks on his iPhone. `onOpen({instrument, section,
-  practiceTab})` sets them in App. The logo (drawer header + phone brand,
+  practiceTab})` sets them in App. The logo (desktop top bar + phone/tablet brand,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /
   Tuner shortcuts: `onOpen({tool})` opens `components/ToolScreen/` — the tool
@@ -94,15 +94,21 @@ rosewood, below).
   card's own Tuner shortcut was removed at the user's request — the
   plumbing for opening it in bass from a card is still there).
   Switching mode while listening restarts the mic.
+- **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
+  Guitar/Piano/Bass switch any more — the instrument is chosen on the home
+  screen (logo = back home). Desktop (>=900px): `.app-topbar` = logo +
+  current instrument | that instrument's features (`visibleSections`, as
+  `.mode-toggle.wrap` pills; icons only <=1240px) | metronome, tuner,
+  settings gear, info. Phone/tablet: logo top-left, gear+info top-right,
+  metronome/tuner bar + feature tabs at the bottom.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
-  pages: desktop (>=900px) fixed top-right (`.app-desktop-tools`, across from
-  the menu button — NOT in the nav drawer); tablet/phone in the bar above the
+  pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the
   bottom tabs. Each is mounted twice (one hidden by CSS), so anything that
   opens a drawer programmatically must pick the visible one. Home also
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
-  `.gp-song` scroll-margin-top is 60px on desktop to clear them.
+  score height subtracts the 64px top bar on desktop.
 
-- **Three instruments**: Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
+- **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
   Compose-only for now). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each
   instrument supports is declared in `src/instruments/featureCapabilities.js`

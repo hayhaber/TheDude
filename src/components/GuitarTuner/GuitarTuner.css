@@ -207,3 +207,96 @@
   color: #fff;
   cursor: pointer;
 }
+
+/* Which instrument the display is tuning — a small printed label in the
+   screen's corner, like a real tuner's mode legend. */
+.guitar-tuner-mode {
+  position: absolute;
+  top: 9px;
+  left: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #4a4f4a;
+}
+
+/* ---------- Bass display ----------
+   Its own backlight: a deep blue screen with ice-blue "in tune", amber
+   "close" and rose "off" — the same three-zone meaning, but clearly not the
+   guitar tuner at a glance. */
+.is-bass .guitar-tuner-screen {
+  background: radial-gradient(120% 140% at 50% 0%, #0f1b2e 0%, #050a14 70%);
+}
+
+.is-bass .guitar-tuner-screen.zone-in-tune {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 18px rgba(90, 200, 250, 0.4);
+}
+
+.is-bass .guitar-tuner-mode {
+  color: #3d5a80;
+}
+
+.is-bass .guitar-tuner-note {
+  color: #34465f;
+}
+
+.is-bass .guitar-tuner-segment {
+  background: #18243a;
+}
+
+.is-bass .guitar-tuner-segment.center {
+  background: #34465f;
+}
+
+.is-bass .guitar-tuner-flat-arrow,
+.is-bass .guitar-tuner-sharp-arrow {
+  color: #26354d;
+}
+
+.is-bass .zone-off .guitar-tuner-note,
+.is-bass .guitar-tuner-flat-arrow.active,
+.is-bass .guitar-tuner-sharp-arrow.active {
+  color: #ff5c8a;
+  text-shadow: 0 0 18px rgba(255, 92, 138, 0.65);
+}
+
+.is-bass .zone-close .guitar-tuner-note {
+  color: #ffb340;
+  text-shadow: 0 0 18px rgba(255, 179, 64, 0.6);
+}
+
+.is-bass .zone-in-tune .guitar-tuner-note {
+  color: #64d2ff;
+  text-shadow: 0 0 20px rgba(100, 210, 255, 0.8);
+}
+
+.is-bass .guitar-tuner-segment.lit {
+  background: #ff5c8a;
+  box-shadow: 0 0 6px rgba(255, 92, 138, 0.55);
+}
+
+/* Same specificity as the in-tune rule below, which wins by coming later. */
+.is-bass .guitar-tuner-segment.lit:nth-child(5),
+.is-bass .guitar-tuner-segment.lit:nth-child(6),
+.is-bass .guitar-tuner-segment.lit:nth-child(7),
+.is-bass .guitar-tuner-segment.lit:nth-child(8),
+.is-bass .guitar-tuner-segment.lit:nth-child(9),
+.is-bass .guitar-tuner-segment.lit:nth-child(10),
+.is-bass .guitar-tuner-segment.lit:nth-child(11) {
+  background: #ffb340;
+  box-shadow: 0 0 6px rgba(255, 179, 64, 0.55);
+}
+
+.is-bass .guitar-tuner-segment.center.lit,
+.is-bass .zone-in-tune .guitar-tuner-segment.lit {
+  background: #64d2ff;
+  box-shadow: 0 0 8px rgba(100, 210, 255, 0.75);
+}
+
+.is-bass .guitar-tuner-frequency {
+  color: #5a7090;
+}
+
+.is-bass .guitar-tuner-in-tune-badge {
+  color: #64d2ff;
+}

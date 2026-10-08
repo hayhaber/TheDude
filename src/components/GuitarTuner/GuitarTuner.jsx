@@ -1,4 +1,5 @@
-import { usePitchDetection } from '../../hooks/usePitchDetection';
+import { useEffect, useRef } from 'react';
+import { usePitchDetection, BASS_PITCH_RANGE } from '../../hooks/usePitchDetection';
 import { useInfoTooltipsEnabled } from '../../hooks/useInfoTooltipsEnabled';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './GuitarTuner.css';
@@ -29,10 +30,30 @@ function tuningZone(cents) {
 // music/pitchUtils.js, untouched here. Minimalist by design: no reference
 // list of open-string names — just the meter and whatever single note is
 // actually being heard right now, the same way a real clip-on tuner works.
-export function GuitarTuner() {
+//
+// `mode` 'bass' tunes a 4-string bass: a lower floor and a longer analysis
+// window (see BASS_PITCH_RANGE), and its own blue display. Switching mode
+// while listening restarts the mic so the new window size applies.
+export function GuitarTuner({ mode = 'guitar' }) {
   const { t } = useLanguage();
   const { enabled: infoTooltipsEnabled } = useInfoTooltipsEnabled();
-  const { isListening, startListening, stopListening, currentNote, frequency, error } = usePitchDetection();
+  const bass = mode === 'bass';
+  const { isListening, startListening, stopListening, currentNote, frequency, error } = usePitchDetection(
+    bass ? BASS_PITCH_RANGE : undefined
+  );
+  const listeningRef = useRef(isListening);
+  listeningRef.current = isListening;
+  const firstModeRef = useRef(true);
+  useEffect(() => {
+    if (firstModeRef.current) {
+      firstModeRef.current = false;
+      return;
+    }
+    if (listeningRef.current) {
+      stopListening();
+      startListening();
+    }
+  }, [bass]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cents = currentNote?.centsOff ?? 0;
   const zone = currentNote ? tuningZone(cents) : null;
@@ -54,8 +75,11 @@ export function GuitarTuner() {
   });
 
   return (
-    <div className="guitar-tuner">
+    <div className={'guitar-tuner' + (bass ? ' is-bass' : '')}>
       <div className={`guitar-tuner-screen${zone ? ` zone-${zone}` : ''}`}>
+        <span className="guitar-tuner-mode" aria-hidden="true">
+          {bass ? 'BASS' : 'GUITAR'}
+        </span>
         <div className="guitar-tuner-note-row">
           <span className={`guitar-tuner-flat-arrow${zone === 'off' && cents < 0 ? ' active' : ''}`} aria-hidden="true">
             ♭

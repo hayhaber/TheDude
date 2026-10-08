@@ -45,6 +45,11 @@
   min-width: 240px;
 }
 
+.tool-screen-mode {
+  min-width: 200px;
+  margin-top: -6px;
+}
+
 .tool-screen-brand {
   justify-self: end;
   display: inline-flex;

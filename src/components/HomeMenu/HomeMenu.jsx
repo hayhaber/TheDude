@@ -122,6 +122,7 @@ const CARDS = [
     options: [
       { section: 'compose', icon: 'compose' },
       { section: 'guitarpro', icon: 'guitarpro' },
+      { tool: 'tuner', tunerMode: 'bass', icon: 'tuner', labelKey: 'tunerBar.label' },
     ],
   },
   {
@@ -243,7 +244,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
   const open = (card, option) => {
     if (option.tool) {
       // The tool on its own screen.
-      onOpen({ tool: option.tool });
+      onOpen({ tool: option.tool, tunerMode: option.tunerMode, card: card.key });
       return;
     }
     onOpen({

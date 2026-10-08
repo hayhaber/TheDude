@@ -65,6 +65,14 @@ rosewood, below).
   AppShell; Metronome | Tuner switch, Back / logo / Escape -> home on the
   Tools card via `initialCard`; leaving stops the metronome). It uses the
   same `metronome`/`drums` instances as the app pills.
+- **Tuner, guitar + bass**: `GuitarTuner mode='guitar'|'bass'`. Bass =
+  `usePitchDetection(BASS_PITCH_RANGE)` (4096 window, 35–500 Hz; other
+  callers keep the guitar default 2048 / 60–1500) and its own blue display
+  (`.is-bass`: ice-blue in tune, amber close, rose off). The pill shows on
+  guitar AND bass pages (bass pages -> bass mode; piano hides it). Tool
+  screen: Guitar | Bass switch, default guitar; the Bass card's own Tuner
+  shortcut opens it in bass (App `tunerMode`, returns to that card).
+  Switching mode while listening restarts the mic.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop (>=900px) fixed top-right (`.app-desktop-tools`, across from
   the menu button — NOT in the nav drawer); tablet/phone in the bar above the

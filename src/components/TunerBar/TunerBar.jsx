@@ -45,10 +45,11 @@ export function TunerBar() {
     };
   }, [open]);
 
-  // Guitar-string tuner — hidden entirely in Piano mode rather than shown
-  // with an InstrumentGate "Guitar Mode only" message, since this is
-  // persistent nav chrome, not section content.
-  if (!supportsInstrument('pitchTrainer', instrument)) return null;
+  // Guitar and bass (bass pages tune a bass) — hidden entirely in Piano mode
+  // rather than shown with an InstrumentGate "Guitar Mode only" message,
+  // since this is persistent nav chrome, not section content.
+  const bass = instrument === 'bass';
+  if (!bass && !supportsInstrument('pitchTrainer', instrument)) return null;
 
   return (
     <>
@@ -72,7 +73,7 @@ export function TunerBar() {
                 ×
               </button>
             </div>
-            <div className="tuner-drawer-body">{open && <GuitarTuner />}</div>
+            <div className="tuner-drawer-body">{open && <GuitarTuner mode={bass ? 'bass' : 'guitar'} />}</div>
           </div>
         </>,
         document.body

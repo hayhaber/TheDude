@@ -4,10 +4,14 @@ import { getAudioContext } from '../audio/audioContext';
 import { frequencyToNote } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 
-const FFT_SIZE = 2048;
 const MIN_CLARITY = 0.9; // pitchy's clarity is 0-1; below this, treat as noise/no pitch
-const MIN_HZ = 60; // below the guitar's lowest open string (E2 ~= 82Hz) with headroom
-const MAX_HZ = 1500; // well above the guitar's practical fretted range
+// Defaults = guitar: floor below the lowest open string (E2 ~= 82Hz) with
+// headroom, ceiling well above the practical fretted range.
+const DEFAULT_RANGE = { fftSize: 2048, minHz: 60, maxHz: 1500 };
+// Bass: low E1 is ~41Hz (a 24ms period) — a longer window (4096 samples,
+// ~85ms) holds enough periods for a steady reading; the ceiling cuts off
+// stray upper harmonics.
+export const BASS_PITCH_RANGE = { fftSize: 4096, minHz: 35, maxHz: 500 };
 
 // Real-time mic pitch detection, built on an AnalyserNode + requestAnimationFrame
 // polling loop rather than a custom AudioWorkletProcessor. Pitchy's own analysis
@@ -17,7 +21,10 @@ const MAX_HZ = 1500; // well above the guitar's practical fretted range
 // latency win a tuner would notice (musical response time, not sample-accurate DSP).
 // Reuses the app's single shared AudioContext (audio/audioContext.js) so mic
 // analysis and note/chord playback never fight over separate contexts.
-export function usePitchDetection() {
+export function usePitchDetection(range = DEFAULT_RANGE) {
+  // Read at analysis time (a new window size applies on the next start).
+  const rangeRef = useRef(range);
+  rangeRef.current = range;
   const [isListening, setIsListening] = useState(false);
   const [frequency, setFrequency] = useState(null);
   const [currentNote, setCurrentNote] = useState(null); // { midi, name, centsOff }
@@ -58,7 +65,8 @@ export function usePitchDetection() {
     const [pitch, detectedClarity] = detector.findPitch(buffer, getAudioContext().sampleRate);
 
     setClarity(detectedClarity);
-    if (detectedClarity >= MIN_CLARITY && pitch >= MIN_HZ && pitch <= MAX_HZ) {
+    const { minHz, maxHz } = rangeRef.current;
+    if (detectedClarity >= MIN_CLARITY && pitch >= minHz && pitch <= maxHz) {
       setFrequency(pitch);
       setCurrentNote(frequencyToNote(pitch));
     } else {
@@ -113,7 +121,7 @@ export function usePitchDetection() {
       const gainNode = ctx.createGain();
       gainNode.gain.value = getAudioInputSettings().gain;
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = FFT_SIZE;
+      analyser.fftSize = rangeRef.current.fftSize;
       // source -> gain -> analyser; never connected to ctx.destination —
       // analysis only, no feedback loop through the speakers.
       source.connect(gainNode).connect(analyser);

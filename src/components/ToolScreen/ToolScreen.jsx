@@ -11,7 +11,7 @@ import './ToolScreen.css';
  * metronome or the tuner, no instrument page around it. The logo / Back /
  * Escape return to the home screen.
  */
-export function ToolScreen({ tool, onToolChange, onBack, metronome, drums }) {
+export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeChange, metronome, drums }) {
   const { t, lang } = useLanguage();
 
   useEffect(() => {
@@ -44,8 +44,17 @@ export function ToolScreen({ tool, onToolChange, onBack, metronome, drums }) {
 
       <main className="tool-screen-body">
         <h1 className="tool-screen-title">{t(tool === 'tuner' ? 'tunerBar.label' : 'metronome.title')}</h1>
+        {tool === 'tuner' && (
+          <div className="mode-toggle tool-screen-mode" role="group" aria-label={t('tunerBar.label')}>
+            {['guitar', 'bass'].map((m) => (
+              <button key={m} type="button" className={tunerMode === m ? 'active' : ''} onClick={() => onTunerModeChange(m)}>
+                {t(`instrument.${m}`)}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="tool-screen-card">
-          {tool === 'tuner' ? <GuitarTuner /> : <Metronome {...metronome} drums={drums} />}
+          {tool === 'tuner' ? <GuitarTuner mode={tunerMode} /> : <Metronome {...metronome} drums={drums} />}
         </div>
       </main>
     </div>

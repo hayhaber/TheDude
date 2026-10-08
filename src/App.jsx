@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
 import { HomeMenu } from './components/HomeMenu/HomeMenu';
 import { AppShell } from './components/AppShell/AppShell';
@@ -133,6 +133,10 @@ function App() {
   const [leftHome, setLeftHome] = useState(false);
   // A tool opened from the home screen's Tools card, on its own screen.
   const [toolScreen, setToolScreen] = useState(null);
+  // The tuner's guitar/bass setting there (bass only when opened from the
+  // Bass card), and the card to return to.
+  const [tunerMode, setTunerMode] = useState('guitar');
+  const toolCardRef = useRef('tools');
   const [homeCard, setHomeCard] = useState(null);
   // The 3 top-level destinations (Compose/Improvise/Practice) — see
   // components/AppShell for the nav shell that drives this.
@@ -1831,7 +1835,7 @@ function App() {
   const closeToolScreen = useCallback(() => {
     stopMetronome();
     setToolScreen(null);
-    setHomeCard('tools');
+    setHomeCard(toolCardRef.current);
   }, [stopMetronome]);
 
   if (toolScreen) {
@@ -1840,6 +1844,8 @@ function App() {
         tool={toolScreen}
         onToolChange={setToolScreen}
         onBack={closeToolScreen}
+        tunerMode={tunerMode}
+        onTunerModeChange={setTunerMode}
         metronome={metronome}
         drums={drums}
       />
@@ -1849,9 +1855,12 @@ function App() {
   if (home) {
     return (
       <HomeMenu
-        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool }) => {
-          // Tools card: the tool on its own screen (home stays underneath).
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card }) => {
+          // Tools card (or the Bass card's tuner): the tool on its own
+          // screen (home stays underneath).
           if (tool) {
+            setTunerMode(mode ?? 'guitar');
+            toolCardRef.current = card ?? 'tools';
             setToolScreen(tool);
             return;
           }

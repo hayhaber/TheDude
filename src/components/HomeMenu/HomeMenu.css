@@ -378,34 +378,34 @@
 :root[data-theme='dark'] .home-card {
   background: linear-gradient(180deg, #1b1b1e 0%, #111113 55%, #0c0c0e 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 0 0 1px rgba(255, 255, 255, 0.025);
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.066),
+    0 0 0 1px rgba(255, 255, 255, 0.028);
 }
 
 :root[data-theme='dark'] .home-card.is-active {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(160, 190, 255, 0.05),
-    0 0 30px rgba(140, 170, 255, 0.09),
-    0 28px 60px rgba(0, 0, 0, 0.6),
-    0 8px 18px rgba(0, 0, 0, 0.35);
+    inset 0 1px 0 rgba(255, 255, 255, 0.154),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.088),
+    0 0 0 1px rgba(160, 190, 255, 0.055),
+    0 0 30px rgba(140, 170, 255, 0.099),
+    0 28px 60px rgba(0, 0, 0, 0.66),
+    0 8px 18px rgba(0, 0, 0, 0.385);
 }
 
 :root[data-theme='dark'] .home-options {
-  border-top-color: rgba(255, 255, 255, 0.07);
+  border-top-color: rgba(255, 255, 255, 0.077);
 }
 
 :root[data-theme='dark'] .home-title {
-  background: linear-gradient(180deg, #ffffff 0%, #e6e6ea 55%, #b9b9c0 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #e6e6ea 55%, #a7a7ae 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 0 14px rgba(255, 255, 255, 0.06));
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.99)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.605))
+    drop-shadow(0 0 14px rgba(255, 255, 255, 0.066));
 }
 
 :root[data-theme='dark'] .home-option:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.055);
 }

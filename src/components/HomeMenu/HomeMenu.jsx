@@ -139,12 +139,6 @@ const CARDS = [
     options: [
       { section: 'compose', icon: 'compose' },
       { section: 'guitarpro', icon: 'guitarpro' },
-      {
-        tool: 'tuner',
-        tunerMode: 'bass',
-        icon: 'tuner',
-        labelKey: 'tunerBar.label',
-      },
     ],
   },
   {

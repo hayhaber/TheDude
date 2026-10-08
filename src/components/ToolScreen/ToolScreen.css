@@ -146,9 +146,9 @@
 }
 
 :root[data-theme='dark'] .tool-screen-title {
-  background: linear-gradient(180deg, #ffffff 0%, #e6e6ea 55%, #a7a7ae 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.99)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.605));
+  color: #ececf0;
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.95),
+    0 4px 9px rgba(0, 0, 0, 0.6);
 }

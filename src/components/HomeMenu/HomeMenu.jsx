@@ -266,13 +266,22 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
         bestDist = Math.abs(dist);
         best = pos;
       }
-      const d = Math.max(-1.5, Math.min(1.5, dist / (w + 28)));
+      const d = dist / (w + 28);
+      // Far off-screen copies: no transform at all (fewer GPU layers —
+      // matters on iPhone with 15 cards in the track).
+      if (Math.abs(d) > 2) {
+        if (el.style.transform) {
+          el.style.transform = '';
+          el.style.opacity = '';
+        }
+        return;
+      }
       const a = Math.min(1, Math.abs(d));
-      const turn = reduceMotion ? 0 : d * TURN_DEG;
+      const turn = reduceMotion ? 0 : Math.max(-1.5, Math.min(1.5, d)) * TURN_DEG;
       el.style.transform = `perspective(1600px) rotateY(${turn.toFixed(2)}deg) scale(${(1 - a * SHRINK).toFixed(4)})`;
       el.style.opacity = (1 - a * FADE).toFixed(3);
     });
-    setActivePos(best);
+    if (best !== activePosRef.current) setActivePos(best);
   }, [reduceMotion]);
 
   // Open on the card in use (middle copy).
@@ -293,7 +302,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       const pos = activePosRef.current;
       if (pos < N) scrollToPos(pos + N, false);
       else if (pos >= 2 * N) scrollToPos(pos - N, false);
-    }, 160);
+    }, 260); // after iOS momentum has fully settled
   };
   useEffect(
     () => () => {

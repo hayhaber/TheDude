@@ -62,7 +62,12 @@ rosewood, below).
   sits in an untransformed `.home-slot` (measured + snapped) and the card
   inside gets a per-frame "drum" transform from its distance to the centre
   (`applyDepth`: rotateY ±20°, scale, fade; no rotation with reduced
-  motion). `onOpen({instrument, section,
+  motion; copies >2 cards away get no transform). WebKit (iPhone/Safari)
+  rules for anything inside a card: NO nested 3D transforms (the piano art
+  is a 2D `scaleY rotate` — a perspective/rotateX there was thrown into the
+  card's corner on iPhone) and no `background-clip: text` + filter titles
+  (flicker) — dark titles use text-shadow. No WebKit in this container to
+  test with; the user checks on his iPhone. `onOpen({instrument, section,
   practiceTab})` sets them in App. The logo (drawer header + phone brand,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /

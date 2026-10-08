@@ -85,7 +85,9 @@
   /* transform/opacity are set per frame from the scroll position (the
      "wheel" in HomeMenu.jsx), so no transition on them. */
   transition: box-shadow 0.3s ease;
-  will-change: transform, opacity;
+  /* Keeps Safari/iOS from flashing the card while it turns. */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .home-card.is-active {
@@ -142,7 +144,10 @@
 
 .home-art-piano svg {
   width: 300px;
-  transform: perspective(700px) rotateX(36deg) rotateZ(-8deg);
+  /* A flat (2D) stand-in for tilting the keys back: a 3D transform here,
+     inside the card's own 3D turn, is mis-placed by Safari/iOS (WebKit
+     flattens nested 3D), which threw the piano into the card's corner. */
+  transform: scaleY(0.8) rotate(-8deg);
 }
 
 .home-art-vocal svg {
@@ -408,13 +413,15 @@
   border-top-color: rgba(255, 255, 255, 0.077);
 }
 
+/* Plain text + shadows (not a background-clip gradient with filters: that
+   flickers in Safari/iOS inside a transformed, scrolling card). */
 :root[data-theme='dark'] .home-title {
-  background: linear-gradient(180deg, #ffffff 0%, #e6e6ea 55%, #a7a7ae 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.99)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.605))
-    drop-shadow(0 0 14px rgba(255, 255, 255, 0.066));
+  color: #ececf0;
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.12),
+    0 1px 0 rgba(0, 0, 0, 0.95),
+    0 4px 9px rgba(0, 0, 0, 0.6),
+    0 0 16px rgba(255, 255, 255, 0.07);
 }
 
 :root[data-theme='dark'] .home-option:hover {

@@ -97,6 +97,13 @@
   transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Closed (inert), the drawer sits just off the left edge — without this its
+   shadow showed as a dark strip there. Dropped once the slide-out ends. */
+.app-drawer[inert] {
+  box-shadow: none;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0s linear 0.26s;
+}
+
 .app-drawer-header {
   display: flex;
   align-items: center;
@@ -317,6 +324,16 @@
 
   .app-stage-anchor {
     padding: var(--space-2) var(--space-4);
+  }
+
+  /* The logo = back to the home screen; tablets need it too (no drawer). */
+  .app-mobile-brand {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+    left: var(--space-4);
+    z-index: 6;
   }
 
   .app-mobile-settings {

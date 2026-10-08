@@ -142,6 +142,13 @@ rosewood, below).
   `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` (+ OIDC, how newer Vercel projects
   connect a Blob store — the user's project uses this) from connecting the
   `dudestar-library` Blob store; `DUDESTAR_KEY` is set for Production.
+- **Keys octave fix**: gp3-5 files have no piano staff; a keyboard part is
+  typed on guitar strings and transcribed an octave low (guitar writing).
+  `fixKeysOctave(score)` (gpImport) lowers `staff.transpositionPitch` by 12
+  for stringed tracks whose `trackKind` is 'keys' (realValue +12; the synth's
+  channel transposition follows) — called in scoreLoaded (before MIDI/render)
+  of the hidden reference api and the song view api. Real piano staves
+  (gp/gpx) are untouched.
 - **GuitarPro on Piano**: the section is also enabled for piano
   (featureCapabilities `guitarpro: ['guitar','piano']`). `useLickTrainer({instrument})`
   -> `pianoMode`: Song view only (no Practice / neck-label toggles), the

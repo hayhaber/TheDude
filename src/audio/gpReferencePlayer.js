@@ -1,5 +1,5 @@
 import * as alphaTab from '@coderline/alphatab';
-import { describeScore } from '../music/lickTrainer/gpImport';
+import { describeScore, fixKeysOctave } from '../music/lickTrainer/gpImport';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from './alphaTabSound';
 
 const TICKS_PER_BEAT = 960;
@@ -31,6 +31,9 @@ function ensureApi() {
     player: { enablePlayer: true, enableCursor: false },
   });
   api.masterVolume = GP_MASTER_VOLUME;
+  // Keyboard parts typed on guitar strings (gp3-5) sound an octave up, as
+  // written — fixed before the MIDI is made (scoreLoaded fires first).
+  api.scoreLoaded.on(fixKeysOctave);
   loadGpSoundFont(api).catch(() => {});
   // Finish once: detach the listeners first, since stopping makes alphaTab
   // report the position again (back at the range start).

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
-import { describeScore, isGuitarTrack, trackKind, labelChords } from '../../music/lickTrainer/gpImport';
+import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave } from '../../music/lickTrainer/gpImport';
 
 const TICKS_PER_BEAT = 960;
 
@@ -225,6 +225,7 @@ export function GpSongPlayer({ trainer, t }) {
       lit.index = idx;
     };
     api.scoreLoaded.on((score) => {
+      fixKeysOctave(score); // before the MIDI and the drawing
       // Chord names for the first track shown, before it's drawn.
       const t = trackIndexRef.current;
       if (t != null && !labeledRef.current.has(t)) {

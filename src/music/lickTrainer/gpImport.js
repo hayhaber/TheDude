@@ -311,6 +311,24 @@ export function withChordNotes(solo, chords) {
   return changed ? { ...solo, notes } : solo;
 }
 
+// Older Guitar Pro files (gp3-gp5) have no real piano staff: a piano part
+// is typed onto guitar strings, and transcribers write it the way guitar
+// music is written — an octave above how it sounds — so it plays (and
+// shows) an octave too low. Raise such keyboard tracks an octave, in
+// sound and notation. Real piano staves (gp/gpx) are left alone. Mutates
+// the score once; call when it's loaded, before it's played or drawn.
+export function fixKeysOctave(score) {
+  if (!score || score.__keysOctaveFixed) return;
+  score.__keysOctaveFixed = true;
+  const info = describeScore(score);
+  for (const t of score.tracks) {
+    const stringed = t.staves[0]?.tuning?.length > 0;
+    if (stringed && trackKind(info.tracks[t.index]) === 'keys') {
+      for (const staff of t.staves) staff.transpositionPitch -= 12; // realValue = fret + tuning - transpositionPitch
+    }
+  }
+}
+
 // What kind of instrument a track (from describeScore) is.
 export function trackKind(tr) {
   const name = tr.name || '';

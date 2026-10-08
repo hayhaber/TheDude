@@ -161,7 +161,25 @@ rosewood, below).
   panel's chord LCD via the `chordReadout` prop (undefined elsewhere = no LCD). Any pitched track shows on the
   keys; drums show nothing. Importing a file with no guitar part makes a
   `fileOnlySolo()` (no notes, `practiceOff`).
-- **GuitarPro section** (nav key `guitarpro`, guitar + piano):
+- **GuitarPro on Bass**: featureCapabilities `guitarpro: ['guitar','piano','bass']`.
+  `useLickTrainer` -> `bassMode`: Song view only (no Practice yet), neck-label
+  toggle shown, display track remembered under `<soloId>|bass`, default =
+  the file's bass track (`bassTrackIndex()`, prefers 4-string), drawn on the
+  bass neck with the panel's bass profile as GM program
+  (`BASS_PROFILE_GM_PROGRAM`, via the same debounced `applyOctave` reload).
+  A 5-string bass is folded an octave up onto the 4-string neck
+  (`trackNotes` -> `folded`, hint `gp.bassFolded`). No bass part in the file:
+  `suggestedBassLine(score)` (chord roots, one per quarter beat, from all
+  pitched non-drum/vocal tracks) -> `addSuggestedBassTrack()` appends a real
+  alphaTab track (`__suggestedBass`, F clef + tab) in the SONG VIEW's
+  scoreLoaded only (once per score); it is muted outside bass mode, so guitar/
+  piano never hear or list it. Its index = `trainer.suggestedBassIndex`
+  (= original track count); load the api with track 0 first, then
+  renderTracks — loading with a not-yet-existing index crashes alphaTab.
+  The hidden reference player always loads `[0]`. No chords found ->
+  notation-only "not a bass part" view. Bass-mode mix default: every track
+  except vocals.
+- **GuitarPro section** (nav key `guitarpro`, guitar + piano + bass):
   `components/GuitarPro/GuitarProView.jsx` — file select (built-in SOLOS +
   imports), Import (always as a solo), shared library bar, Song | Practice.
   Track mixer (`trainer.mix`, per file in localStorage; default = practiced

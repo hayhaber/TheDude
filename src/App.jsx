@@ -271,7 +271,9 @@ function App() {
   // name — and the pitch a tapped marker plays — matches the tab's frets.
   const lickTuningShift = lickOnNeck.tuningShift ?? 0;
   // A bass part (GuitarPro) is drawn on the bass neck and sounds as a bass.
-  const lickOnBass = lickOnNeck.neck === 'bass';
+  // In bass mode the GuitarPro neck is always the bass's (empty for a part
+  // that isn't bass).
+  const lickOnBass = lickOnNeck.neck === 'bass' || (instrument === 'bass' && activeSection === 'guitarpro');
   const lickNeckTuning = useMemo(
     () => (lickOnBass ? shiftedTuning(lickTuningShift, BASS_TUNING) : lickTuningShift ? shiftedTuning(lickTuningShift) : null),
     [lickTuningShift, lickOnBass]
@@ -2056,7 +2058,7 @@ function App() {
         />
       )}
 
-      {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} />}
+      {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} />}
 
       {activeSection === 'vocal' && <VocalTrainingView />}
     </AppShell>

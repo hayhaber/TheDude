@@ -43,7 +43,7 @@ function TrackMixer({ trainer, t, busy }) {
   );
 }
 
-export function GuitarProView({ trainer, pianoProfile }) {
+export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
   const { t, lang } = useLanguage();
   const fileRef = useRef(null);
   const [view, setView] = useState('song'); // 'song' | 'practice'
@@ -71,11 +71,13 @@ export function GuitarProView({ trainer, pianoProfile }) {
   const busy = ['preparing', 'countIn', 'recording', 'analyzing', 'calibrating'].includes(phase);
   const solo = trainer.activeSolo;
   const piano = trainer.pianoMode;
+  // Piano and bass: song view only.
+  const songOnly = piano || trainer.bassMode;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   // Bass / keys / vocals / drums are shown, not practiced.
   const canPractice = !!solo && !solo.displayOnly && !solo.practiceOff;
   const micWithBand =
-    !piano &&
+    !songOnly &&
     view === 'practice' && trainer.backingTracks.length > 0 && getAudioInputSettings().inputMode === 'microphone';
 
   return (
@@ -205,8 +207,10 @@ export function GuitarProView({ trainer, pianoProfile }) {
         <p className="lt-muted">{t('lickTrainer.noSolos')}</p>
       ) : (
         <>
-          {/* Piano: song view only (the keyboard lights up with the part). */}
-          {!piano && (
+          {/* Bass: the neck's note/finger labels; no Practice. */}
+          {trainer.bassMode && <NeckLabelToggle trainer={trainer} t={t} />}
+          {/* Piano and bass: song view only (the instrument lights up with the part). */}
+          {!songOnly && (
             <>
               <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')}>
                 <button
@@ -235,8 +239,8 @@ export function GuitarProView({ trainer, pianoProfile }) {
             </>
           )}
 
-          {view === 'song' || piano ? (
-            <GpSongPlayer trainer={trainer} t={t} pianoProfile={pianoProfile} />
+          {view === 'song' || songOnly ? (
+            <GpSongPlayer trainer={trainer} t={t} pianoProfile={pianoProfile} bassProfile={bassProfile} />
           ) : !canPractice ? (
             <p className="lt-muted">{t(solo.pending ? 'gp.buildingPart' : 'gp.practiceGuitarOnly')}</p>
           ) : (

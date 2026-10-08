@@ -81,6 +81,17 @@ export const BASS_SOUND_PROFILES = [
 
 export const DEFAULT_BASS_PROFILE = 'electricFinger';
 
+// The General MIDI program of each bass sound — for a Guitar Pro file's bass
+// part played (alphaTab's synth) in bass mode.
+export const BASS_PROFILE_GM_PROGRAM = {
+  acoustic: 32,
+  electricFinger: 33,
+  electricPick: 34,
+  fretless: 35,
+  slap: 36,
+  synth: 38,
+};
+
 export function resolveBassProfile(key) {
   return BASS_SOUND_PROFILES.find((p) => p.key === key) ?? BASS_SOUND_PROFILES.find((p) => p.key === DEFAULT_BASS_PROFILE);
 }

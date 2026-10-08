@@ -39,6 +39,11 @@ function trackNotes(score, trackIndex, tuning = STANDARD_TUNING) {
   const out = [];
   let simplified = false;
   let shifts = new Map();
+  // A 5-string bass (low B) on the 4-string neck: the other strings keep
+  // their places; notes on the B string go up an octave (folded).
+  const fiveString = tuning === BASS_TUNING && staff.tuning.length === 5;
+  const fiveShift = fiveString ? staff.tuning[3] - BASS_TUNING[0].baseMidi : 0; // the E string's detune
+  let folded = false;
   for (const bar of staff.bars) {
     const master = score.masterBars[bar.index];
     const voice = bar.voices[0];
@@ -50,14 +55,23 @@ function trackNotes(score, trackIndex, tuning = STANDARD_TUNING) {
       const note = notes.reduce((a, b) => (b.realValue > a.realValue ? b : a));
       const start = (master.start + beat.playbackStart) / TICKS_PER_BEAT;
       const duration = beat.playbackDuration / TICKS_PER_BEAT;
-      const stringIndex = note.string - 1;
+      let stringIndex = note.string - 1;
+      let fret = note.fret;
+      if (fiveString) {
+        if (note.string === 1) {
+          const pos = bassPosition(note.realValue + 12 - fiveShift);
+          stringIndex = pos.string;
+          fret = pos.fret;
+          folded = true;
+        } else stringIndex = note.string - 2;
+      }
       if (stringIndex < 0 || stringIndex >= tuning.length) continue;
-      const shift = note.realValue - (tuning[stringIndex].baseMidi + note.fret);
+      const shift = note.realValue + (fiveString && note.string === 1 ? 12 : 0) - (tuning[stringIndex].baseMidi + fret);
       shifts.set(shift, (shifts.get(shift) ?? 0) + 1);
 
       const prev = out[out.length - 1];
       // A tied note just lengthens the one before it.
-      if (note.isTieDestination && prev && prev.string === stringIndex && prev.fret === note.fret) {
+      if (note.isTieDestination && prev && prev.string === stringIndex && prev.fret === fret) {
         prev.duration = start + duration - prev.start;
         if (note.vibrato) prev.vibrato = true;
         continue;
@@ -65,7 +79,7 @@ function trackNotes(score, trackIndex, tuning = STANDARD_TUNING) {
       const b = bendInfo(note);
       // A bend held into the next beat (a "hold": starts and stays at the
       // height the previous bend reached) is the same sounding note.
-      if (b && prev && prev.string === stringIndex && prev.fret === note.fret && prev.technique === 'bend') {
+      if (b && prev && prev.string === stringIndex && prev.fret === fret && prev.technique === 'bend') {
         const pts = note.bendPoints.map((p) => p.value);
         if (pts.every((v) => v === pts[0]) && pts[0] / 2 === prev.bend) {
           prev.duration = start + duration - prev.start;
@@ -80,14 +94,14 @@ function trackNotes(score, trackIndex, tuning = STANDARD_TUNING) {
         bend = b.bend;
       } else if (prev && prev.string === stringIndex && prev._slideOut) {
         technique = 'slide';
-      } else if (prev && prev.string === stringIndex && prev._hammerOrigin && prev.fret !== note.fret) {
-        technique = note.fret > prev.fret ? 'hammer' : 'pull';
+      } else if (prev && prev.string === stringIndex && prev._hammerOrigin && prev.fret !== fret) {
+        technique = fret > prev.fret ? 'hammer' : 'pull';
       }
       out.push({
         start,
         duration,
         string: stringIndex,
-        fret: note.fret,
+        fret,
         technique,
         bend,
         vibrato: note.vibrato !== 0 || beat.vibrato !== 0,
@@ -108,7 +122,7 @@ function trackNotes(score, trackIndex, tuning = STANDARD_TUNING) {
       tuningShift = s;
     }
   }
-  return { notes: out, simplified, tuningShift };
+  return { notes: out, simplified, tuningShift, folded };
 }
 
 function clean(notes, offset) {
@@ -217,7 +231,7 @@ export function scoreToLicks(score, { trackIndex = 0, barsPerPhrase = 0, base = 
  */
 export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = {}, bass = false } = {}) {
   const info = describeScore(score);
-  const { notes, simplified, tuningShift } = trackNotes(score, trackIndex, bass ? BASS_TUNING : STANDARD_TUNING);
+  const { notes, simplified, tuningShift, folded } = trackNotes(score, trackIndex, bass ? BASS_TUNING : STANDARD_TUNING);
   if (notes.length === 0) return null;
   const offset = Math.floor(notes[0].start);
   const barStart = (i) => (i < score.masterBars.length ? score.masterBars[i].start / TICKS_PER_BEAT : notes[notes.length - 1].start + notes[notes.length - 1].duration + 1);
@@ -248,6 +262,7 @@ export function scoreToSolo(score, { trackIndex = 0, barsPerSection = 2, base = 
     kind: 'solo',
     // A 4-string bass part: drawn on the bass neck (notes' strings are bass strings).
     ...(bass ? { neck: 'bass' } : {}),
+    ...(folded ? { octaveFolded: true } : {}),
     id: `${base.idPrefix ?? 'solo'}-solo`,
     title: { en: title, he: title },
     artist: base.artist || info.artist,
@@ -484,9 +499,124 @@ export function labelChords(score, trackIndex) {
   return added;
 }
 
+// ---- Bass mode ----
+
+const PITCH_CLASS = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
+const BASS_OPEN = [28, 33, 38, 43]; // E1 A1 D2 G2 (string 1 = low E)
+
+/** The file's bass track for the bass view (a stringed bass part), or null. */
+export function bassTrackIndex(info) {
+  const basses = info.tracks.filter((t) => t.noteCount > 0 && t.strings >= 4 && trackKind(t) === 'bass');
+  const four = basses.find((t) => t.strings === 4);
+  return (four ?? basses[0])?.index ?? null;
+}
+
+/** Where a bass note sits on a 4-string neck: low frets, lowest string first. */
+export function bassPosition(midi) {
+  for (let s = 0; s < 4; s += 1) {
+    const fret = midi - BASS_OPEN[s];
+    if (fret >= 0 && fret <= 4) return { string: s, fret };
+  }
+  const fret = midi - BASS_OPEN[3];
+  return fret >= 0 ? { string: 3, fret } : { string: 0, fret: Math.max(0, midi - BASS_OPEN[0]) };
+}
+
+/**
+ * A suggested bass line for a file with no bass part: the root of the
+ * chord the band is playing, on every quarter beat (an eighth fills an odd
+ * half beat, e.g. 7/8). Chords come from all the pitched parts (not drums,
+ * vocals or bass), 3+ different notes sounding together; until the first
+ * one, rests. Returns [{ barIndex, slots: [{ tick, ticks, midi|null }] }],
+ * or [] when no chord is found at all (a solo-only file).
+ */
+export function suggestedBassLine(score) {
+  const info = describeScore(score);
+  const notes = [];
+  for (const t of info.tracks) {
+    const kind = trackKind(t);
+    if (t.percussion || t.noteCount === 0 || kind === 'vocal' || kind === 'bass' || kind === 'drums') continue;
+    notes.push(...pianoPartOf(score, t.index));
+  }
+  if (notes.length === 0) return [];
+  notes.sort((a, b) => a.start - b.start);
+  let next = 0;
+  let active = [];
+  let rootPc = null;
+  let found = false;
+  const bars = [];
+  for (const mb of score.masterBars) {
+    const quarters = (mb.timeSignatureNumerator * 4) / mb.timeSignatureDenominator;
+    const slots = [];
+    const whole = Math.floor(quarters + 1e-6);
+    const lens = Array(whole).fill(TICKS_PER_BEAT);
+    if (quarters - whole >= 0.5 - 1e-6) lens.push(TICKS_PER_BEAT / 2);
+    let tick = mb.start;
+    for (const len of lens) {
+      while (next < notes.length && notes[next].start <= tick) active.push(notes[next++]);
+      active = active.filter((n) => n.end > tick);
+      const midis = active.map((n) => n.midi);
+      if (new Set(midis.map((m) => m % 12)).size >= 3) {
+        const name = identifyChord(midis);
+        const m = name && /^[A-G]#?/.exec(name);
+        if (m) {
+          rootPc = PITCH_CLASS[m[0]];
+          found = true;
+        }
+      }
+      slots.push({ tick, ticks: len, midi: rootPc == null ? null : BASS_OPEN[0] + ((rootPc - 4 + 12) % 12) });
+      tick += len;
+    }
+    bars.push({ barIndex: mb.index, slots });
+  }
+  return found ? bars : [];
+}
+
+/**
+ * Appends the suggested line to a score as a real (4-string, fingered
+ * bass) track, so alphaTab draws and plays it like any other. Returns it.
+ */
+export function addSuggestedBassTrack(score, line, name, settings) {
+  const track = new alphaTab.model.Track();
+  track.name = name;
+  track.shortName = 'Bass';
+  const used = new Set(score.tracks.flatMap((t) => [t.playbackInfo.primaryChannel, t.playbackInfo.secondaryChannel]));
+  const free = [...Array(16).keys()].filter((c) => c !== 9 && !used.has(c));
+  track.playbackInfo.program = 33;
+  track.playbackInfo.primaryChannel = free[0] ?? 15;
+  track.playbackInfo.secondaryChannel = free[1] ?? free[0] ?? 15;
+  track.playbackInfo.volume = 15;
+  track.ensureStaveCount(1);
+  const staff = track.staves[0];
+  staff.stringTuning = new alphaTab.model.Tuning('Bass', [43, 38, 33, 28], true);
+  staff.displayTranspositionPitch = -12; // bass is written an octave above how it sounds
+  for (const bar of line) {
+    const b = new alphaTab.model.Bar();
+    b.clef = alphaTab.model.Clef.F4; // bass clef
+    staff.addBar(b);
+    const voice = new alphaTab.model.Voice();
+    b.addVoice(voice);
+    for (const slot of bar.slots) {
+      const beat = new alphaTab.model.Beat();
+      beat.duration = slot.ticks >= TICKS_PER_BEAT ? alphaTab.model.Duration.Quarter : alphaTab.model.Duration.Eighth;
+      if (slot.midi != null) {
+        const pos = bassPosition(slot.midi);
+        const note = new alphaTab.model.Note();
+        note.string = pos.string + 1;
+        note.fret = pos.fret;
+        beat.addNote(note);
+      }
+      voice.addBeat(beat);
+    }
+  }
+  score.addTrack(track);
+  track.finish(settings, new Map());
+  track.__suggestedBass = true;
+  return track;
+}
+
 // A 4-string bass part: shown on the bass neck (not practiced).
 export function isBassTrack(tr) {
-  return !!tr && tr.noteCount > 0 && tr.strings === 4 && trackKind(tr) === 'bass';
+  return !!tr && tr.noteCount > 0 && (tr.strings === 4 || tr.strings === 5) && trackKind(tr) === 'bass';
 }
 
 // The backing band that plays along by default: drums, bass and keys (the

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
-import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes, pianoTrackIndex, pianoPartOf, fileOnlySolo } from '../music/lickTrainer/gpImport';
+import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes, pianoTrackIndex, pianoPartOf, fileOnlySolo, bassTrackIndex, suggestedBassLine, bassPosition } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
@@ -91,7 +91,39 @@ function soloForTrack(base, score, track) {
     simplified: made.simplified,
     // Bass: on the bass neck in Song view; practice is for guitar parts.
     neck: made.neck,
+    ...(made.octaveFolded ? { octaveFolded: true } : {}),
     ...(bass ? { practiceOff: true } : {}),
+  });
+}
+
+// The suggested bass line (no bass part in the file) as a solo for the
+// bass neck: one note per beat it plays.
+function suggestedBassSolo(base, line, track) {
+  const notes = [];
+  for (const bar of line) {
+    for (const slot of bar.slots) {
+      if (slot.midi == null) continue;
+      const pos = bassPosition(slot.midi);
+      notes.push({ tick: slot.tick, ticks: slot.ticks, ...pos });
+    }
+  }
+  const tickStart = notes.length ? Math.floor(notes[0].tick / TICKS_PER_BEAT) * TICKS_PER_BEAT : 0;
+  return withDerived({
+    ...base,
+    id: `${base.id}@t${track}`,
+    neck: 'bass',
+    tuningShift: 0,
+    barPhase: 0,
+    sections: [],
+    practiceOff: true,
+    suggestedBass: true,
+    gpRef: { track, tickStart },
+    notes: notes.map((n) => ({
+      start: (n.tick - tickStart) / TICKS_PER_BEAT,
+      duration: (n.ticks * 0.9) / TICKS_PER_BEAT,
+      string: n.string,
+      fret: n.fret,
+    })),
   });
 }
 
@@ -99,6 +131,9 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   // Piano: the GuitarPro section shows a file's part on the keyboard (song
   // view only), defaulting to the file's piano track.
   const pianoMode = instrument === 'piano';
+  // Bass: the same, on the bass neck, defaulting to the file's bass part —
+  // or a suggested bass line when the file has none.
+  const bassMode = instrument === 'bass';
   // 'licks' = the lick library; 'solos' = full solos with practice sections.
   const [mode, setModeState] = useState('licks');
   const [soloId, setSoloId] = useState(SOLOS[0]?.id ?? null);
@@ -201,11 +236,20 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   const [displayTracks, setDisplayTracks] = useState(() => readJson(DISPLAY_KEY, {}));
   const baseTrack = baseSolo?.gpRef?.track ?? null;
   // Remembered separately for piano (its own default: the piano track).
-  const displayKey = baseSolo ? (pianoMode ? `${baseSolo.id}|piano` : baseSolo.id) : null;
-  const defaultTrack = useMemo(
-    () => (pianoMode && score ? pianoTrackIndex(describeScore(score)) ?? baseTrack : baseTrack),
-    [pianoMode, score, baseTrack]
+  const displayKey = baseSolo ? (pianoMode ? `${baseSolo.id}|piano` : bassMode ? `${baseSolo.id}|bass` : baseSolo.id) : null;
+  // Bass mode, no bass part in the file: a suggested line, as an extra
+  // track after the file's own (the song view adds it to its score too).
+  const fileBassTrack = useMemo(() => (bassMode && score ? bassTrackIndex(describeScore(score)) : null), [bassMode, score]);
+  const suggestedLine = useMemo(
+    () => (bassMode && score && fileBassTrack == null ? suggestedBassLine(score) : null),
+    [bassMode, score, fileBassTrack]
   );
+  const suggestedIndex = suggestedLine?.length ? score.tracks.length : null;
+  const defaultTrack = useMemo(() => {
+    if (pianoMode && score) return pianoTrackIndex(describeScore(score)) ?? baseTrack;
+    if (bassMode && score) return fileBassTrack ?? suggestedIndex ?? baseTrack;
+    return baseTrack;
+  }, [pianoMode, bassMode, score, baseTrack, fileBassTrack, suggestedIndex]);
   const displayTrack = baseSolo && baseTrack != null ? displayTracks[displayKey] ?? defaultTrack : null;
   const otherTrack = displayTrack != null && displayTrack !== baseTrack;
   const derivedKey = otherTrack ? `${baseSolo.id}@t${displayTrack}` : null;
@@ -225,12 +269,20 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
           pending: !scoreSettled,
         };
       }
-      solo = soloForTrack(baseSolo, score, displayTrack);
+      solo =
+        displayTrack === suggestedIndex
+          ? suggestedBassSolo(baseSolo, suggestedLine, displayTrack)
+          : soloForTrack(baseSolo, score, displayTrack);
     }
-    if (!score || solo.displayOnly) return solo;
+    // Bass mode: only a bass part goes on the bass neck; anything else is
+    // shown as notation.
+    if (bassMode && solo.neck !== 'bass') {
+      return { ...solo, id: `${baseSolo.id}@t${displayTrack}`, notes: [], sections: [], displayOnly: true, gpRef: { track: displayTrack, tickStart: baseSolo.gpRef.tickStart } };
+    }
+    if (!score || solo.displayOnly || solo.suggestedBass) return solo;
     const withChords = withChordNotes(solo, chordNotesByTick(score, solo.gpRef.track));
     return withChords === solo ? solo : withDerived(withChords);
-  }, [otherTrack, baseSolo, score, scoreSettled, derivedKey, displayTrack]);
+  }, [otherTrack, baseSolo, score, scoreSettled, derivedKey, displayTrack, bassMode, suggestedIndex, suggestedLine]);
   const sectionLick = useMemo(() => (activeSolo ? soloSection(activeSolo, sectionIndex) : null), [activeSolo, sectionIndex]);
   // What's being practiced right now: a lick, a whole solo, or one section.
   const lick = mode === 'solos' && sectionLick ? sectionLick : baseLick;
@@ -253,13 +305,21 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       alive = false;
     };
   }, [gpKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const tracks = useMemo(() => (gpTracks.key === gpKey ? gpTracks.tracks : NO_TRACKS), [gpTracks, gpKey]);
+  const tracks = useMemo(() => {
+    const list = gpTracks.key === gpKey ? gpTracks.tracks : NO_TRACKS;
+    // Bass mode: the suggested line is a track of its own (rail, mixer).
+    if (suggestedIndex == null || list.length === 0) return list;
+    return [...list, { index: suggestedIndex, name: '', suggested: true, program: 33, percussion: false, strings: 4, noteCount: 1 }];
+  }, [gpTracks, gpKey, suggestedIndex]);
   const practiceTrack = lick.gpRef?.track ?? null;
   // One mix per file, whichever track is shown (older saves were per track).
   const mixKey = gpKey;
   const mix = useMemo(
-    () => (mixKey && (mixes[mixKey] || mixes[`${gpKey}#${practiceTrack}`])) || defaultMix(tracks, practiceTrack),
-    [mixKey, mixes, tracks, practiceTrack, gpKey]
+    () =>
+      (mixKey && (mixes[mixKey] || mixes[`${gpKey}#${practiceTrack}`])) ||
+      // Bass mode: the whole band (not vocals) plays with the bass part.
+      (bassMode ? tracks.filter((t) => t.noteCount > 0 && !/voice|vocal|vox/i.test(t.name)).map((t) => t.index) : defaultMix(tracks, practiceTrack)),
+    [mixKey, mixes, tracks, practiceTrack, gpKey, bassMode]
   );
   const toggleTrack = useCallback(
     (index) => {
@@ -793,6 +853,8 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     displayTrack,
     setDisplayTrack,
     pianoMode,
+    bassMode,
+    suggestedBassIndex: suggestedIndex,
     pianoKeys,
     pianoChord,
     pianoOctave,

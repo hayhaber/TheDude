@@ -102,7 +102,10 @@ const CARDS = [
     instrument: 'bass',
     titleKey: 'home.bass.title',
     descKey: 'home.bass.desc',
-    options: [{ section: 'compose', icon: 'compose' }],
+    options: [
+      { section: 'compose', icon: 'compose' },
+      { section: 'guitarpro', icon: 'guitarpro' },
+    ],
   },
   {
     key: 'vocal',

@@ -97,7 +97,9 @@ function load(source, trackIndex) {
       const scoreLoaded = nextEvent(a.scoreLoaded, armed, 20000);
       const ready = nextEvent(a.playerReady, armed, 60000);
       sent = true;
-      a.load(bytes, [trackIndex]);
+      // It only has to draw something: the first track always exists (the
+      // part asked for may be one added later, e.g. a suggested bass line).
+      a.load(bytes, [0]);
       const score = await scoreLoaded;
       await ready;
       return score;

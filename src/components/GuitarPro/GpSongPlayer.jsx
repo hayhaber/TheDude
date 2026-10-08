@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
-import { PIANO_PROFILE_GM_PROGRAM } from '../../audio/instrumentProfiles';
-import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave } from '../../music/lickTrainer/gpImport';
+import { PIANO_PROFILE_GM_PROGRAM, BASS_PROFILE_GM_PROGRAM } from '../../audio/instrumentProfiles';
+import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave, bassTrackIndex, suggestedBassLine, addSuggestedBassTrack } from '../../music/lickTrainer/gpImport';
 
 const TICKS_PER_BEAT = 960;
 
@@ -85,7 +85,7 @@ function TrackRail({ trainer, t, open, onToggle, solo }) {
                 {KIND_ICON[kind]}
               </span>
               <span className="gp-rail-name" dir="auto">
-                {tr.name}
+                {tr.suggested ? t('gp.suggestedBass') : tr.name}
               </span>
             </button>
             <button
@@ -159,7 +159,7 @@ function TrackMixerPanel({ trainer, t, solo, onSolo, onClose, open }) {
                 <span className={'gp-rail-icon kind-' + kind} aria-hidden="true">
                   {KIND_ICON[kind]}
                 </span>
-                <span dir="auto">{tr.name}</span>
+                <span dir="auto">{tr.suggested ? t('gp.suggestedBass') : tr.name}</span>
               </button>
               <div className="gp-mix-controls">
                 <button
@@ -244,7 +244,7 @@ function TransportIcon({ kind }) {
 // by its own synth with the track mixer applied — play along with the band.
 // The practiced part's current note also lights up on the shared Stage
 // fretboard (through the trainer's playhead).
-export function GpSongPlayer({ trainer, t, pianoProfile }) {
+export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
   const hostRef = useRef(null);
   const scrollRef = useRef(null);
   const apiRef = useRef(null);
@@ -306,11 +306,20 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
     labeledRef.current = new Set();
     api.scoreLoaded.on((score) => {
       fixKeysOctave(score); // before the MIDI and the drawing
+      // No bass part: a suggested bass line as an extra track (heard and
+      // shown only in bass mode — muted otherwise, see the mixer effect).
+      if (!score.__bassChecked) {
+        score.__bassChecked = true;
+        if (bassTrackIndex(describeScore(score)) == null) {
+          const line = suggestedBassLine(score);
+          if (line.length) addSuggestedBassTrack(score, line, t('gp.suggestedBass'), api.settings);
+        }
+      }
       // Chord names for the first track shown, before it's drawn.
-      const t = trackIndexRef.current;
-      if (t != null && !labeledRef.current.has(t)) {
-        labeledRef.current.add(t);
-        labelChords(score, t);
+      const shownTrack = trackIndexRef.current;
+      if (shownTrack != null && !labeledRef.current.has(shownTrack) && score.tracks[shownTrack]) {
+        labeledRef.current.add(shownTrack);
+        labelChords(score, shownTrack);
       }
       setScoreVersion((v) => v + 1);
     });
@@ -370,7 +379,10 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
         const bytes = song.source.bytes
           ? new Uint8Array(song.source.bytes)
           : new Uint8Array(await (await fetch(song.source.url)).arrayBuffer());
-        if (alive) api.load(bytes, [song.trackIndex]);
+        // A track added on load (the suggested bass line) doesn't exist yet:
+        // start on the first and switch once it's there.
+        const first = song.trackIndex === trainer.suggestedBassIndex ? 0 : song.trackIndex;
+        if (alive) api.load(bytes, [first]);
       } catch (err) {
         if (alive) setError(err?.message ?? String(err));
       }
@@ -410,7 +422,14 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
   const octave = trainer.pianoMode ? trainer.pianoOctave ?? 0 : 0;
   // Piano: a keyboard part shown plays with the sound picked on the panel
   // (Rhodes, harpsichord…) — its GM program; null = the file's own.
-  const program = trainer.pianoMode && pianoProfile ? PIANO_PROFILE_GM_PROGRAM[pianoProfile] ?? null : null;
+  const program =
+    trainer.pianoMode && pianoProfile
+      ? PIANO_PROFILE_GM_PROGRAM[pianoProfile] ?? null
+      : trainer.bassMode && bassProfile
+      ? BASS_PROFILE_GM_PROGRAM[bassProfile] ?? null
+      : null;
+  // Which kind of part takes the panel's/settings' sound in this mode.
+  const programKind = trainer.pianoMode ? 'keys' : trainer.bassMode ? 'bass' : null;
   useEffect(() => {
     const api = apiRef.current;
     const score = api?.score;
@@ -432,7 +451,7 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
         }
       }
     }
-    const keysShown = trackKind(describeScore(score).tracks[trackIndex] ?? {}) === 'keys';
+    const keysShown = programKind != null && trackKind(describeScore(score).tracks[trackIndex] ?? {}) === programKind;
     for (const tr of score.tracks) {
       const info = tr.playbackInfo;
       if (info.__fileProgram === undefined) info.__fileProgram = info.program;
@@ -460,9 +479,11 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
     if (!ready || !api?.score) return;
     const on = new Set(trainer.mix);
     const tracks = api.score.tracks;
-    api.changeTrackMute(tracks.filter((tr) => !on.has(tr.index)), true);
-    api.changeTrackMute(tracks.filter((tr) => on.has(tr.index)), false);
-  }, [ready, mixKey, midiVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+    // The suggested bass line only plays in bass mode.
+    const hears = (tr) => on.has(tr.index) && (!tr.__suggestedBass || trainer.bassMode);
+    api.changeTrackMute(tracks.filter((tr) => !hears(tr)), true);
+    api.changeTrackMute(tracks.filter((tr) => hears(tr)), false);
+  }, [ready, mixKey, midiVersion, trainer.bassMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Solo (this view only) and each track's level.
   const soloKey = [...solo].join(',');
@@ -593,8 +614,10 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
         </button>
       </div>
       {trainer.activeSolo?.displayOnly && !trainer.activeSolo.pending && !trainer.pianoMode && (
-        <p className="lt-muted lt-small">{t('gp.notationOnly')}</p>
+        <p className="lt-muted lt-small">{t(trainer.bassMode ? 'gp.notBassPart' : 'gp.notationOnly')}</p>
       )}
+      {trainer.bassMode && trainer.activeSolo?.suggestedBass && <p className="lt-muted lt-small">{t('gp.suggestedBassHint')}</p>}
+      {trainer.bassMode && trainer.activeSolo?.octaveFolded && <p className="lt-muted lt-small">{t('gp.bassFolded')}</p>}
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
       <div className="gp-song-body" dir="ltr">
         <TrackRail trainer={trainer} t={t} open={mixerOpen} onToggle={() => setMixerOpen((o) => !o)} solo={solo} />

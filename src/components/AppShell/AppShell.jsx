@@ -125,8 +125,9 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
             </button>
           </div>
 
+          {/* No instrument switch here: the instrument is chosen on the home
+              screen (the logo above leads back to it). */}
           <div className="app-sidebar-top-controls">
-            <InstrumentToggle />
             {settingsSlot}
             <InfoTooltipsToggle />
           </div>

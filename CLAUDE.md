@@ -237,6 +237,10 @@ rosewood, below).
   `<file>#<track>` in localStorage); the song view sets the shown track's
   `staff.transpositionPitch` = base − 12·shift (debounced, reloads MIDI,
   re-renders, resumes); the keys add 12·shift in `pianoPart`.
+  Piano sound: the panel's piano profile (App `pianoProfile` -> GuitarProView
+  -> GpSongPlayer) sets the shown track's `playbackInfo.program` via
+  `PIANO_PROFILE_GM_PROGRAM` when that track is keys (file program kept as
+  `__fileProgram`), same debounced reload as the octave.
   Space bar = Play/Pause in Song view (GpSongPlayer keydown, skips form fields). Song view keeps ONE AlphaTabApi
   per file and switches with `renderTracks()` (no MIDI reload). The mix is
   per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls

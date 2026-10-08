@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
+import { PIANO_PROFILE_GM_PROGRAM } from '../../audio/instrumentProfiles';
 import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave } from '../../music/lickTrainer/gpImport';
 
 const TICKS_PER_BEAT = 960;
@@ -130,7 +131,7 @@ function TransportIcon({ kind }) {
 // by its own synth with the track mixer applied — play along with the band.
 // The practiced part's current note also lights up on the shared Stage
 // fretboard (through the trainer's playhead).
-export function GpSongPlayer({ trainer, t }) {
+export function GpSongPlayer({ trainer, t, pianoProfile }) {
   const hostRef = useRef(null);
   const scrollRef = useRef(null);
   const apiRef = useRef(null);
@@ -291,6 +292,9 @@ export function GpSongPlayer({ trainer, t }) {
   // Piano: the shown track an octave up/down (sound + notation). Every
   // staff keeps its loaded transposition (incl. fixKeysOctave) as the base.
   const octave = trainer.pianoMode ? trainer.pianoOctave ?? 0 : 0;
+  // Piano: a keyboard part shown plays with the sound picked on the panel
+  // (Rhodes, harpsichord…) — its GM program; null = the file's own.
+  const program = trainer.pianoMode && pianoProfile ? PIANO_PROFILE_GM_PROGRAM[pianoProfile] ?? null : null;
   useEffect(() => {
     const api = apiRef.current;
     const score = api?.score;
@@ -298,7 +302,7 @@ export function GpSongPlayer({ trainer, t }) {
     // Quick taps (−, −) settle into one reload.
     const timer = setTimeout(() => applyOctave(api, score), 220);
     return () => clearTimeout(timer);
-  }, [octave, trackIndex, ready, scoreVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [octave, program, trackIndex, ready, scoreVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function applyOctave(api, score) {
     let changed = false;
@@ -310,6 +314,16 @@ export function GpSongPlayer({ trainer, t }) {
           st.transpositionPitch = want;
           changed = true;
         }
+      }
+    }
+    const keysShown = trackKind(describeScore(score).tracks[trackIndex] ?? {}) === 'keys';
+    for (const tr of score.tracks) {
+      const info = tr.playbackInfo;
+      if (info.__fileProgram === undefined) info.__fileProgram = info.program;
+      const want = program != null && keysShown && tr.index === trackIndex ? program : info.__fileProgram;
+      if (info.program !== want) {
+        info.program = want;
+        changed = true;
       }
     }
     if (!changed) return;

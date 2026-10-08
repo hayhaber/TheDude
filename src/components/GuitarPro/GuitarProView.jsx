@@ -43,7 +43,7 @@ function TrackMixer({ trainer, t, busy }) {
   );
 }
 
-export function GuitarProView({ trainer }) {
+export function GuitarProView({ trainer, pianoProfile }) {
   const { t, lang } = useLanguage();
   const fileRef = useRef(null);
   const [view, setView] = useState('song'); // 'song' | 'practice'
@@ -236,7 +236,7 @@ export function GuitarProView({ trainer }) {
           )}
 
           {view === 'song' || piano ? (
-            <GpSongPlayer trainer={trainer} t={t} />
+            <GpSongPlayer trainer={trainer} t={t} pianoProfile={pianoProfile} />
           ) : !canPractice ? (
             <p className="lt-muted">{t(solo.pending ? 'gp.buildingPart' : 'gp.practiceGuitarOnly')}</p>
           ) : (

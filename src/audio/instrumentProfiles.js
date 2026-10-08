@@ -48,6 +48,21 @@ export const PIANO_SOUND_PROFILES = [
 
 export const DEFAULT_PIANO_PROFILE = 'acoustic';
 
+// The General MIDI program of each piano sound — used when a Guitar Pro
+// file's keyboard part is played (alphaTab's synth) on the piano.
+export const PIANO_PROFILE_GM_PROGRAM = {
+  acoustic: 0,
+  brightAcoustic: 1,
+  honkytonk: 3,
+  electric: 4,
+  rhodes: 5,
+  harpsichord: 6,
+  vibraphone: 11,
+  organ: 16,
+  churchOrgan: 19,
+  synth: 89,
+};
+
 export function resolvePianoProfile(key) {
   return PIANO_SOUND_PROFILES.find((p) => p.key === key) ?? PIANO_SOUND_PROFILES.find((p) => p.key === DEFAULT_PIANO_PROFILE);
 }

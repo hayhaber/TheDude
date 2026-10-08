@@ -2056,7 +2056,7 @@ function App() {
         />
       )}
 
-      {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} />}
+      {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} />}
 
       {activeSection === 'vocal' && <VocalTrainingView />}
     </AppShell>

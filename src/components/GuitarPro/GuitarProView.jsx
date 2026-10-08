@@ -100,8 +100,8 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
       }}
     >
       <div>
-        <h1>{t('gp.title')}</h1>
-        <p className="subtitle">{t('gp.subtitle')}</p>
+        <h1>{t(trainer.pianoMode ? 'nav.pianopro' : 'gp.title')}</h1>
+        <p className="subtitle">{t(trainer.pianoMode ? 'gp.pianoSubtitle' : 'gp.subtitle')}</p>
       </div>
 
       <div className="lt-filters gp-file-row">

@@ -128,7 +128,7 @@ const CARDS = [
       { section: 'compose', icon: 'compose' },
       { section: 'studies', icon: 'studies' },
       { section: 'practice', icon: 'practice' },
-      { section: 'guitarpro', icon: 'guitarpro' },
+      { section: 'guitarpro', icon: 'guitarpro', labelKey: 'nav.pianopro' },
     ],
   },
   {

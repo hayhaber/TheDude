@@ -54,8 +54,54 @@ export function GuitarProLineIcon({ size = 18 }) {
   );
 }
 
-// The nav icon: the red pick inside guitar and bass, the line icon on piano.
+// PianoPro (the same player on the piano): the GP icon's language — a glossy
+// red piece, tilted, with white italic letters — but a rounded key-cap
+// over a few piano keys instead of a pick over strings.
+export function PianoProIcon({ size = 18 }) {
+  const id = useId().replace(/:/g, '');
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      <defs>
+        <linearGradient id={`${id}r`} x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0" stopColor="#ff6a5c" />
+          <stop offset=".45" stopColor="#e3261b" />
+          <stop offset="1" stopColor="#9d0f0a" />
+        </linearGradient>
+      </defs>
+      {/* a strip of keys behind */}
+      <g opacity=".45">
+        <rect x="1.5" y="12.5" width="21" height="9" rx="1.2" fill="none" stroke="currentColor" strokeWidth=".9" />
+        <path d="M5.7 12.5v9M9.9 12.5v9M14.1 12.5v9M18.3 12.5v9" stroke="currentColor" strokeWidth=".8" />
+        <g fill="currentColor">
+          <rect x="4.6" y="12.5" width="2.2" height="5" rx=".4" />
+          <rect x="8.8" y="12.5" width="2.2" height="5" rx=".4" />
+          <rect x="17.2" y="12.5" width="2.2" height="5" rx=".4" />
+        </g>
+      </g>
+      <g transform="rotate(-12 12 11)">
+        <rect x="4" y="3.2" width="16" height="13" rx="3.6" fill={`url(#${id}r)`} />
+        <path d="M6.6 5.1c2.6-.8 7.6-.9 10.8-.2" stroke="#fff" strokeOpacity=".5" strokeWidth=".9" fill="none" strokeLinecap="round" />
+        <rect x="4" y="3.2" width="16" height="13" rx="3.6" fill="none" stroke="#6e0805" strokeOpacity=".35" strokeWidth=".5" />
+        <text
+          x="12"
+          y="12.6"
+          textAnchor="middle"
+          fontFamily="Helvetica Neue, Arial, sans-serif"
+          fontSize="7.4"
+          fontWeight="800"
+          fontStyle="italic"
+          fill="#fff"
+        >
+          PP
+        </text>
+      </g>
+    </svg>
+  );
+}
+
+// The nav icon: the red GP pick inside guitar and bass, the PianoPro key-cap
+// on the piano.
 export function GuitarProNavIcon() {
   const { instrument } = useInstrument();
-  return instrument === 'guitar' || instrument === 'bass' ? <GuitarProIcon /> : <GuitarProLineIcon />;
+  return instrument === 'piano' ? <PianoProIcon /> : <GuitarProIcon />;
 }

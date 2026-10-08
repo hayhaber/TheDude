@@ -29,6 +29,8 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   // all in that mode — clicking through to a "not available" message is
   // worse than never seeing the option in the first place.
   const visibleSections = SECTIONS.filter((s) => supportsInstrument(s.key, instrument));
+  // On the piano the Guitar Pro player is "PianoPro".
+  const label = (s) => t(s.key === 'guitarpro' && instrument === 'piano' ? 'nav.pianopro' : s.labelKey);
   // The pinned instrument's height, as --stage-height on the root, so a
   // section can size a panel to exactly the room left above it.
   const stageRef = useRef(null);
@@ -66,12 +68,12 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
                 className={activeSection === s.key ? 'active' : ''}
                 aria-current={activeSection === s.key ? 'page' : undefined}
                 onClick={() => onSectionChange(s.key)}
-                title={t(s.labelKey)}
+                title={label(s)}
               >
                 <span className="app-topbar-nav-icon" aria-hidden="true">
                   <SectionIcon icon={s.icon} />
                 </span>
-                <span className="app-topbar-nav-label">{t(s.labelKey)}</span>
+                <span className="app-topbar-nav-label">{label(s)}</span>
               </button>
             ))}
           </nav>
@@ -111,7 +113,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             <span className="app-bottom-tab-icon" aria-hidden="true">
               <SectionIcon icon={s.icon} />
             </span>
-            {t(s.labelKey)}
+            {label(s)}
           </button>
         ))}
       </nav>

@@ -200,6 +200,11 @@ rosewood, below).
   channel transposition follows) — called in scoreLoaded (before MIDI/render)
   of the hidden reference api and the song view api. Real piano staves
   (gp/gpx) are untouched.
+- **Feature icons/names**: `components/GuitarProIcon/` — `GuitarProNavIcon`
+  (nav: red glossy GP pick over strings on guitar/bass, red PP key-cap over
+  keys on piano); home cards keep the grey line icon. On the piano the
+  section is called **PianoPro** (`nav.pianopro`: AppShell `label()`, the
+  piano card's shortcut, GuitarProView h1 + `gp.pianoSubtitle`).
 - **GuitarPro on Piano**: the section is also enabled for piano
   (featureCapabilities `guitarpro: ['guitar','piano']`). `useLickTrainer({instrument})`
   -> `pianoMode`: Song view only (no Practice / neck-label toggles), the

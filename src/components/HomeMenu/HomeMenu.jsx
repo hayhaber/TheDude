@@ -157,6 +157,7 @@ export function HomeMenu({ onOpen, onContinue }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
   const scrollRef = useRef(null);
+  const rootRef = useRef(null);
   const cardRefs = useRef([]);
   const startIndex = Math.max(0, CARDS.findIndex((c) => c.instrument === instrument));
   const [active, setActive] = useState(startIndex);
@@ -207,6 +208,34 @@ export function HomeMenu({ onOpen, onContinue }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [active, scrollTo]);
 
+  // Mouse wheel (desktop): down = next card, up = previous — one card per
+  // flick. A trackpad sends a burst of small deltas, so they're summed and
+  // a step is followed by a short pause. Sideways trackpad swipes scroll
+  // natively and are left alone.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  useEffect(() => {
+    const box = rootRef.current; // anywhere on the home screen
+    if (!box) return undefined;
+    let sum = 0;
+    let lockedUntil = 0;
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      const now = performance.now();
+      if (now < lockedUntil) return;
+      sum += e.deltaY;
+      if (Math.abs(sum) < 40) return;
+      const step = sum > 0 ? 1 : -1;
+      sum = 0;
+      lockedUntil = now + 450;
+      const next = Math.min(CARDS.length - 1, Math.max(0, activeRef.current + step));
+      if (next !== activeRef.current) scrollTo(next);
+    };
+    box.addEventListener('wheel', onWheel, { passive: false });
+    return () => box.removeEventListener('wheel', onWheel);
+  }, [scrollTo]);
+
   const open = (card, option) => {
     if (option.tool) {
       // Stay in the current section; just open the tool over it.
@@ -221,7 +250,7 @@ export function HomeMenu({ onOpen, onContinue }) {
   };
 
   return (
-    <div className="home-menu" dir="rtl">
+    <div className="home-menu" dir="rtl" ref={rootRef}>
       <header className="home-top">
         <div className="home-brand">
           <AppLogo size={40} />

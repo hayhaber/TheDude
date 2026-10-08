@@ -12,12 +12,14 @@
 
 .home-top {
   display: flex;
+  flex-direction: row-reverse; /* logo on the left (the page is RTL) */
   align-items: center;
   justify-content: space-between;
   padding: 22px 40px 0;
 }
 
 .home-brand {
+  direction: ltr; /* star, then the name */
   display: flex;
   align-items: center;
   gap: 10px;

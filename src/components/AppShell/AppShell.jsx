@@ -19,9 +19,8 @@ function SectionIcon({ icon: Icon }) {
 // screen picks the instrument). >=900px: a top bar with the logo (home), the
 // instrument, its features and the tools. <900px: the logo + settings at the
 // top, metronome/tuner and the feature tabs at the bottom.
-// `settingsSlot` is the SettingsPanel (rendered twice — top bar and phone
-// corner; it portals its drawer to <body>).
-export function AppShell({ activeSection, onSectionChange, settingsSlot, metronomeSlot, stage, onHome, children }) {
+// Settings live only on the home screen's Tools card (no gear in here).
+export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage, onHome, children }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const { instrument } = useInstrument();
@@ -50,14 +49,13 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
 
       <div className="app-mobile-settings">
         <div className="app-mobile-settings-icons">
-          {settingsSlot}
           <InfoTooltipsToggle />
         </div>
       </div>
 
       <main className="app-content">
         {/* Desktop: one bar — the instrument's features, and the tools (home,
-            metronome, tuner, settings, info). The instrument itself is chosen
+            metronome, tuner, info). The instrument itself is chosen
             on the home screen; there is no menu drawer any more. */}
         <header className="app-topbar">
           <nav className="app-topbar-nav mode-toggle wrap" dir={dir} aria-label={t('nav.mainLabel')}>
@@ -88,7 +86,6 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
             </button>
             {metronomeSlot}
             <TunerBar />
-            {settingsSlot}
             <InfoTooltipsToggle />
           </div>
         </header>

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
 import { HomeMenu } from './components/HomeMenu/HomeMenu';
 import { AppShell } from './components/AppShell/AppShell';
 import { Stage } from './components/Stage/Stage';
@@ -1900,7 +1899,6 @@ function App() {
       }}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
-      settingsSlot={<SettingsPanel {...settingsProps} />}
       metronomeSlot={<MetronomeBar metronome={metronome} drums={drums} />}
       stage={
         earTrainingOwnsInstrument ? null : (

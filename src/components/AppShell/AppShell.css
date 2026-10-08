@@ -5,8 +5,7 @@
 }
 
 /* ---------- Desktop top bar (>=900px) ----------
-   The instrument's features | the tools (home, metronome, tuner, settings,
-   info). Replaces the old hamburger drawer: the instrument is picked on the
+   The instrument's features | the tools (home, metronome, tuner, info). Replaces the old hamburger drawer: the instrument is picked on the
    home screen, and everything for it is one tap away here. */
 .app-topbar {
   flex: 0 0 auto;
@@ -27,7 +26,9 @@
   flex: 1 1 auto;
   min-width: 0;
   margin: 0 auto;
-  justify-content: center;
+  /* Centred while it fits; when it doesn't, it scrolls from the start
+     instead of cutting the first pill off (plain `center` did). */
+  justify-content: safe center;
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
@@ -75,7 +76,7 @@
 }
 
 /* Narrower desktops: the features as icons only (name on hover). */
-@media (max-width: 1240px) {
+@media (max-width: 1360px) {
   .app-topbar-nav-label {
     display: none;
   }

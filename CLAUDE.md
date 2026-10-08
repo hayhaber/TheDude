@@ -98,9 +98,12 @@ rosewood, below).
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = that
   instrument's features (`visibleSections`, as `.mode-toggle.wrap` pills;
-  icons only <=1240px) | home button (the only way back on desktop — the
-  logo/instrument name were removed at the user's request), metronome,
-  tuner, settings gear, info. Phone/tablet: logo top-left, gear+info top-right,
+  icons only <=1360px; `justify-content: safe center` so an overflow
+  scrolls instead of clipping the first pill) | home button (the only way
+  back on desktop — the logo/instrument name were removed at the user's
+  request), metronome, tuner, info. NO settings gear inside the app —
+  Settings are only on the home screen's Tools card (user's request).
+  Phone/tablet: logo top-left, info top-right,
   metronome/tuner bar + feature tabs at the bottom.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the

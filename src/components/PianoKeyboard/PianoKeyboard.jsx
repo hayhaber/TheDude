@@ -106,6 +106,23 @@ function getInitialShowAllLabels() {
 // layout. `notes`/`colorMode`/`labelMode`/`onNoteClick` mirror Fretboard's
 // chord/scale display props; `quizKeys`/`quizRevealKeys`/`quizFeedbackKey`/
 // `onQuizKeyClick` mirror its Ear Training quiz props.
+// A button label whose width never changes with its state: it's as wide as
+// the widest of `sizes` (drawn invisibly underneath), so toggling a button
+// can't shift everything else on the panel. Longer texts (an error, a long
+// device name) are cut with an ellipsis; the full text is in the tooltip.
+function StableLabel({ text, sizes }) {
+  return (
+    <span className="piano-panel-btn-label piano-stable-label" title={text}>
+      {sizes.map((s) => (
+        <span key={s} className="piano-stable-sizer" aria-hidden="true">
+          {s}
+        </span>
+      ))}
+      <span className="piano-stable-text">{text}</span>
+    </span>
+  );
+}
+
 export function PianoKeyboard({
   notes = [],
   chordColor,
@@ -908,17 +925,20 @@ export function PianoKeyboard({
               <span className="piano-panel-btn-icon" aria-hidden="true">
                 🎹
               </span>
-              <span className="piano-panel-btn-label">
-                {midiStatus === 'connected'
-                  ? t('piano.midi.connected', { device: midiDeviceName })
-                  : midiStatus === 'connecting'
-                  ? t('piano.midi.connecting')
-                  : midiStatus === 'denied'
-                  ? t('piano.midi.denied')
-                  : midiStatus === 'noDevice'
-                  ? t('piano.midi.noDevice')
-                  : t('piano.midi.connect')}
-              </span>
+              <StableLabel
+                text={
+                  midiStatus === 'connected'
+                    ? t('piano.midi.connected', { device: midiDeviceName })
+                    : midiStatus === 'connecting'
+                    ? t('piano.midi.connecting')
+                    : midiStatus === 'denied'
+                    ? t('piano.midi.denied')
+                    : midiStatus === 'noDevice'
+                    ? t('piano.midi.noDevice')
+                    : t('piano.midi.connect')
+                }
+                sizes={[t('piano.midi.connect'), t('piano.midi.connecting')]}
+              />
             </button>
           )}
           <button
@@ -932,11 +952,14 @@ export function PianoKeyboard({
             <span className="piano-panel-btn-icon" aria-hidden="true">
               ⌨️
             </span>
-            <span className="piano-panel-btn-label">
-              {computerKeyboardEnabled
-                ? t('piano.computerKeys.onLabel', { offset: octaveOffset >= 0 ? `+${octaveOffset}` : String(octaveOffset) })
-                : t('piano.computerKeys.toggle')}
-            </span>
+            <StableLabel
+              text={
+                computerKeyboardEnabled
+                  ? t('piano.computerKeys.onLabel', { offset: octaveOffset >= 0 ? `+${octaveOffset}` : String(octaveOffset) })
+                  : t('piano.computerKeys.toggle')
+              }
+              sizes={[t('piano.computerKeys.toggle'), t('piano.computerKeys.onLabel', { offset: '+0' })]}
+            />
           </button>
           <button
             type="button"

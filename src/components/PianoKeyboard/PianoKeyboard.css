@@ -168,6 +168,10 @@
 
 .piano-panel-transport .piano-panel-btn-icon {
   font-size: 13px;
+  /* ▶ and ⏹ differ in width: a fixed box keeps the panel still. */
+  display: inline-block;
+  width: 16px;
+  text-align: center;
 }
 
 .piano-panel-chevron {
@@ -682,4 +686,32 @@
 
 .piano-keyboard-nav-right {
   right: 4px;
+}
+
+/* Fixed-width button labels (see StableLabel): the sizers share one grid
+   cell and set the width; the visible text sits on top of them. */
+.piano-stable-label {
+  position: relative;
+  display: inline-grid;
+}
+
+.piano-stable-sizer {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.piano-stable-text {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .piano-stable-label {
+    display: none;
+  }
 }

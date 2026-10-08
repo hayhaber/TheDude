@@ -163,12 +163,14 @@ export function loadGpSoundFont(api) {
 // Finger vibrato, as a guitarist does it: the string is pushed and let back,
 // so the pitch only ever rises ABOVE the fretted (or bent) note — alphaTab's
 // default swings a sine below it too, which is what sounded out of tune —
-// at a steady ~5.5 Hz in real time whatever the tempo or playback speed
+// at a steady ~5 Hz in real time whatever the tempo or playback speed
 // (alphaTab's default is a fixed tick length, so it crawled when slowed down).
-const VIBRATO_HZ_SLIGHT = 5.5;
-const VIBRATO_HZ_WIDE = 5.0;
-const DEPTH_SLIGHT = 0.8; // quarter tones (0.4 semitone) peak
-const DEPTH_WIDE = 1.6; // quarter tones (0.8 semitone) peak
+// Kept gentle (the user found the earlier 0.4 / 0.8-semitone depths too
+// wobbly): a soft, singing vibrato rather than a wide shake.
+const VIBRATO_HZ_SLIGHT = 5.0;
+const VIBRATO_HZ_WIDE = 4.6;
+const DEPTH_SLIGHT = 0.45; // quarter tones (~0.22 semitone) peak
+const DEPTH_WIDE = 0.9; // quarter tones (~0.45 semitone) peak
 const STEP_TICKS = 8;
 
 let patched = false;
@@ -193,7 +195,7 @@ function patchVibrato() {
     if (!this.__fingerVibrato || !(phaseLength > 0)) {
       return generic.call(this, noteStart, noteDuration, phaseLength, bendBase, bendAmplitude, addBend);
     }
-    const ramp = phaseLength * 0.75; // eases in over the first cycle
+    const ramp = phaseLength * 1.5; // eases in over the first cycle and a half
     for (let t = 0; t < noteDuration; t += STEP_TICKS) {
       const phase = (t % phaseLength) / phaseLength;
       const depth = bendAmplitude * Math.min(1, t / ramp);

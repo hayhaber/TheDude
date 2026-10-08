@@ -252,7 +252,7 @@ rosewood, below).
   `audio/alphaTabSound.js` (don't give an api a `player.soundFont` URL — each
   would download it). alphaTab only plays mono samples (sampleType & 1).
   `alphaTabSound.js` also patches MidiFileGenerator's note vibrato to a
-  finger vibrato (pitch only rises, ~5.5 Hz real time) and `tuneVibrato()`
+  finger vibrato (pitch only rises, gentle: ~5 Hz, 0.22/0.45-semitone peak, 1.5-cycle ease-in) and `tuneVibrato()`
   sets its tick length for tempo x speed — after changing it call
   `loadMidiForScore()` (no need to wait for playerReady: the worker
   processes messages in order; playerReady does NOT refire for a reload

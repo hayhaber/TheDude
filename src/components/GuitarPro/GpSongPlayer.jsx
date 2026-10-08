@@ -46,13 +46,26 @@ function SpeakerIcon({ on }) {
 // The file's tracks down the left side of the score (like Songsterr /
 // Guitar Pro): tap a track to show its part (score + neck, and it's the one
 // practiced); the speaker beside it mutes / unmutes it.
-function TrackRail({ trainer, t }) {
+function TrackRail({ trainer, t, open, onToggle }) {
   const tracks = trainer.tracks.filter((tr) => tr.noteCount > 0);
   if (tracks.length === 0) return null;
   const on = new Set(trainer.mix);
   return (
     <div className="gp-rail" role="group" aria-label={t('gp.tracks')}>
-      <span className="gp-rail-title">{t('gp.tracksShort')}</span>
+      <div className="gp-rail-head">
+        <span className="gp-rail-title">{t('gp.tracksShort')}</span>
+        {/* Opens the mixer (each track's level) to the right. */}
+        <button
+          type="button"
+          className={'gp-rail-expand' + (open ? ' is-open' : '')}
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-label={t(open ? 'gp.mixerClose' : 'gp.mixerOpen')}
+          title={t(open ? 'gp.mixerClose' : 'gp.mixerOpen')}
+        >
+          <MixerIcon />
+        </button>
+      </div>
       {tracks.map((tr) => {
         const sounding = on.has(tr.index);
         const shown = tr.index === trainer.displayTrack;
@@ -86,6 +99,87 @@ function TrackRail({ trainer, t }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function MixerIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <path d="M4 2v12M8 2v12M12 2v12" opacity=".45" />
+      <rect x="2.4" y="8.5" width="3.2" height="2.6" rx=".8" fill="currentColor" stroke="none" />
+      <rect x="6.4" y="4" width="3.2" height="2.6" rx=".8" fill="currentColor" stroke="none" />
+      <rect x="10.4" y="10" width="3.2" height="2.6" rx=".8" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// The mixer, opened to the right of the rail over the score: per track,
+// show it, mute, solo, and its level — to keep the band audible but quieter
+// under the part you're playing.
+function TrackMixerPanel({ trainer, t, solo, onSolo, onClose }) {
+  const tracks = trainer.tracks.filter((tr) => tr.noteCount > 0);
+  const on = new Set(trainer.mix);
+  return (
+    <div className="gp-mixer-panel" role="dialog" aria-label={t('gp.mixerTitle')} dir="auto">
+      <div className="gp-mixer-head">
+        <b>{t('gp.mixerTitle')}</b>
+        <button type="button" className="gp-mixer-close" onClick={onClose} aria-label={t('gp.mixerClose')}>
+          ‹
+        </button>
+      </div>
+      <div className="gp-mixer-rows">
+        {tracks.map((tr) => {
+          const kind = trackKind(tr);
+          const sounding = on.has(tr.index);
+          const shown = tr.index === trainer.displayTrack;
+          const level = trainer.volumes[tr.index] ?? 1;
+          return (
+            <div key={tr.index} className={'gp-mix-row' + (shown ? ' shown' : '') + (sounding ? '' : ' muted')}>
+              <button
+                type="button"
+                className="gp-mix-name"
+                onClick={() => !shown && trainer.setDisplayTrack(tr.index)}
+                title={`${tr.name} — ${t('gp.trackShow')}`}
+              >
+                <span className={'gp-rail-icon kind-' + kind} aria-hidden="true">
+                  {KIND_ICON[kind]}
+                </span>
+                <span dir="auto">{tr.name}</span>
+              </button>
+              <div className="gp-mix-controls">
+                <button
+                  type="button"
+                  className={'gp-mix-btn' + (solo.has(tr.index) ? ' on' : '')}
+                  aria-pressed={solo.has(tr.index)}
+                  onClick={() => onSolo(tr.index)}
+                >
+                  {t('gp.solo')}
+                </button>
+                <button
+                  type="button"
+                  className={'gp-mix-btn mute' + (sounding ? '' : ' on')}
+                  aria-pressed={!sounding}
+                  onClick={() => trainer.toggleTrack(tr.index)}
+                >
+                  {t('gp.mute')}
+                </button>
+                <input
+                  type="range"
+                  dir="ltr"
+                  className="gp-mix-level"
+                  min={0}
+                  max={100}
+                  value={Math.round(level * 100)}
+                  onChange={(e) => trainer.setTrackVolume(tr.index, Number(e.target.value) / 100)}
+                  aria-label={`${tr.name} — ${t('gp.volume')}`}
+                />
+                <span className="gp-mix-pct" dir="ltr">{Math.round(level * 100)}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -147,6 +241,8 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
   const songKey = song ? song.source.key : null;
   const trackIndex = song?.trackIndex ?? null;
   const [scoreVersion, setScoreVersion] = useState(0);
+  const [mixerOpen, setMixerOpen] = useState(false);
+  const [solo, setSolo] = useState(() => new Set());
   const { followPlayhead } = trainer;
   // Where the shown part's beat 0 is (changes with the shown track).
   const tickStartRef = useRef(0);
@@ -162,6 +258,7 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
     setReady(false);
     setLoading(true);
     setPlaying(false);
+    setSolo(new Set());
     setError(null);
     giveChordNamesTheirOwnRow();
     const api = new alphaTab.AlphaTabApi(hostRef.current, {
@@ -348,6 +445,22 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
     api.changeTrackMute(tracks.filter((tr) => on.has(tr.index)), false);
   }, [ready, mixKey, midiVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Solo (this view only) and each track's level.
+  const soloKey = [...solo].join(',');
+  useEffect(() => {
+    const api = apiRef.current;
+    if (!ready || !api?.score) return;
+    const tracks = api.score.tracks;
+    api.changeTrackSolo(tracks.filter((tr) => !solo.has(tr.index)), false);
+    api.changeTrackSolo(tracks.filter((tr) => solo.has(tr.index)), true);
+  }, [ready, soloKey, midiVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+  const volumesKey = JSON.stringify(trainer.volumes);
+  useEffect(() => {
+    const api = apiRef.current;
+    if (!ready || !api?.score) return;
+    for (const tr of api.score.tracks) api.changeTrackVolume([tr], trainer.volumes[tr.index] ?? 1);
+  }, [ready, volumesKey, midiVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const api = apiRef.current;
     if (!api || !ready || !api.score) return;
@@ -465,7 +578,23 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
       )}
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
       <div className="gp-song-body" dir="ltr">
-        <TrackRail trainer={trainer} t={t} />
+        <TrackRail trainer={trainer} t={t} open={mixerOpen} onToggle={() => setMixerOpen((o) => !o)} />
+        {mixerOpen && (
+          <TrackMixerPanel
+            trainer={trainer}
+            t={t}
+            solo={solo}
+            onSolo={(i) =>
+              setSolo((s) => {
+                const next = new Set(s);
+                if (next.has(i)) next.delete(i);
+                else next.add(i);
+                return next;
+              })
+            }
+            onClose={() => setMixerOpen(false)}
+          />
+        )}
         <div className="gp-score-scroll" ref={scrollRef}>
           {loading && <p className="gp-score-loading">{t('gp.loading')}</p>}
           <div className="gp-score" ref={hostRef} />

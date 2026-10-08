@@ -127,12 +127,14 @@ export async function referenceTracks(source, trackIndex) {
   return describeScore(score).tracks;
 }
 
-// Which tracks sound: exactly `enabled` (track indexes), the rest muted.
-function applyMix(a, score, enabled) {
+// Which tracks sound: exactly `enabled` (track indexes), the rest muted;
+// `volumes` ({ [track]: 0..1 }) sets each one's level.
+function applyMix(a, score, enabled, volumes = {}) {
   const on = new Set(enabled);
   a.changeTrackSolo(score.tracks, false);
   a.changeTrackMute(score.tracks.filter((t) => !on.has(t.index)), true);
   a.changeTrackMute(score.tracks.filter((t) => on.has(t.index)), false);
+  for (const t of score.tracks) a.changeTrackVolume([t], volumes[t.index] ?? 1);
 }
 
 /**
@@ -140,14 +142,14 @@ function applyMix(a, score, enabled) {
  * tracks in `tracks` sounding (default: just the solo's own track).
  * onTick(tick) follows the playback; onEnd() fires once at the end.
  */
-export async function playReference({ source, trackIndex, tracks, startTick, endTick, speed, onTick, onEnd }) {
+export async function playReference({ source, trackIndex, tracks, volumes, startTick, endTick, speed, onTick, onEnd }) {
   const a = ensureApi();
   const score = await load(source, trackIndex);
   a.stop();
   // Vibrato at a real-time rate for this speed (regenerates the MIDI).
   // (The synth worker handles messages in order: no need to wait.)
   if (tuneVibrato(a.settings, score.tempo, speed)) a.loadMidiForScore();
-  applyMix(a, score, tracks ?? [trackIndex]);
+  applyMix(a, score, tracks ?? [trackIndex], volumes);
   listeners = { onTick, onEnd, endTick };
   a.playbackSpeed = speed;
   a.playbackRange = { startTick, endTick };
@@ -169,7 +171,7 @@ export function stopReference() {
  * trainer's own clock (the live player runs on a separate clock, which
  * would smear the timing feedback). `speed` scales the file's tempo.
  */
-export async function renderBacking({ ctx, source, trackIndex, tracks, startTick, endTick, speed }) {
+export async function renderBacking({ ctx, source, trackIndex, tracks, volumes = {}, startTick, endTick, speed }) {
   const a = ensureApi();
   const score = await load(source, trackIndex);
   const options = new alphaTab.synth.AudioExportOptions();
@@ -179,7 +181,7 @@ export async function renderBacking({ ctx, source, trackIndex, tracks, startTick
   options.metronomeVolume = 0;
   options.playbackRange = { startTick, endTick };
   const on = new Set(tracks);
-  for (const t of score.tracks) options.trackVolume.set(t.index, on.has(t.index) ? 1 : 0);
+  for (const t of score.tracks) options.trackVolume.set(t.index, on.has(t.index) ? volumes[t.index] ?? 1 : 0);
 
   // The MIDI is generated from the score synchronously inside exportAudio():
   // scale the tempo just for that call.

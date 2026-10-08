@@ -24,6 +24,7 @@ const TAIL_S = 0.8; // keep recording a little past the last note
 const LATENCY_KEY = 'lick-trainer-latency';
 const HISTORY_KEY = 'lick-trainer-history';
 const MIX_KEY = 'lick-trainer-gp-mix';
+const VOLUME_KEY = 'lick-trainer-gp-volume'; // { [file]: { [track]: 0..1 } } per-track level
 const NECK_LABEL_KEY = 'lick-trainer-neck-label';
 const DISPLAY_KEY = 'lick-trainer-gp-display';
 const OCTAVE_KEY = 'lick-trainer-gp-octave'; // { ['<file>#<track>']: -2..2 } piano octave shift // { [soloId]: track shown/practiced }
@@ -49,6 +50,7 @@ function writeJson(key, value) {
 
 const TICKS_PER_BEAT = 960;
 const NO_TRACKS = [];
+const NO_VOLUMES = {};
 
 // Where to play a lick/solo/section from in its Guitar Pro file, or null.
 function gpSourceOf(lick) {
@@ -272,6 +274,25 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     },
     [mixKey, mix]
   );
+  // Each track's level (0..1, default 1), per file — e.g. the band quieter
+  // under the part you're playing.
+  const [volumeMap, setVolumeMap] = useState(() => readJson(VOLUME_KEY, {}));
+  const volumes = useMemo(() => (mixKey && volumeMap[mixKey]) || NO_VOLUMES, [mixKey, volumeMap]);
+  const setTrackVolume = useCallback(
+    (index, value) => {
+      if (!mixKey) return;
+      const v = Math.max(0, Math.min(1, value));
+      setVolumeMap((m) => {
+        const file = { ...(m[mixKey] || {}) };
+        if (v === 1) delete file[index];
+        else file[index] = v;
+        const next = { ...m, [mixKey]: file };
+        writeJson(VOLUME_KEY, next);
+        return next;
+      });
+    },
+    [mixKey]
+  );
   // The band under a take: everything in the mix except the part being played.
   const backingTracks = useMemo(() => mix.filter((i) => i !== practiceTrack), [mix, practiceTrack]);
   const bpm = Math.round((lick.bpm * tempoPct) / 100);
@@ -419,6 +440,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         await playReference({
           ...gp,
           tracks: mix,
+          volumes,
           speed: tempoPct / 100,
           onTick: (tick) => {
             if (runIdRef.current === runId0) setPlayheadBeat((tick - gp.startTick) / TICKS_PER_BEAT);
@@ -457,7 +479,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         setPhase((p) => (p === 'listening' ? (result ? 'results' : 'idle') : p));
       }, (sched.endTime - ctx.currentTime + 0.4) * 1000)
     );
-  }, [bpm, lick, stop, result, tempoPct, mix]);
+  }, [bpm, lick, stop, result, tempoPct, mix, volumes]);
 
   const ensureInput = useCallback(async () => {
     if (inputRef.current) return inputRef.current;
@@ -484,12 +506,12 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     const gp = gpSourceOf(lick);
     let backing = null;
     if (gp && backingTracks.length > 0) {
-      const key = JSON.stringify([gp.source.key, gp.trackIndex, gp.startTick, gp.endTick, tempoPct, backingTracks]);
+      const key = JSON.stringify([gp.source.key, gp.trackIndex, gp.startTick, gp.endTick, tempoPct, backingTracks, volumes]);
       if (backingCacheRef.current.key === key) backing = backingCacheRef.current.buffer;
       else {
         setPhase('preparing');
         try {
-          backing = await renderBacking({ ctx, ...gp, tracks: backingTracks, speed: tempoPct / 100 });
+          backing = await renderBacking({ ctx, ...gp, tracks: backingTracks, volumes, speed: tempoPct / 100 });
           backingCacheRef.current = { key, buffer: backing };
         } catch {
           backing = null; // take it without the band rather than not at all
@@ -571,7 +593,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         }, 30);
       }, (sched.endTime + TAIL_S - ctx.currentTime) * 1000)
     );
-  }, [bpm, clickDuring, ensureInput, latency, lick, stop, tempoPct, backingTracks]);
+  }, [bpm, clickDuring, ensureInput, latency, lick, stop, tempoPct, backingTracks, volumes]);
 
   // The player picks any note on each of 8 clicks; the median delay from
   // click to captured attack is this setup's round-trip latency.
@@ -789,6 +811,8 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     tracks,
     mix,
     toggleTrack,
+    volumes,
+    setTrackVolume,
     practiceTrack,
     backingTracks,
     followPlayhead: setPlayheadBeat,

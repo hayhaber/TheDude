@@ -2,7 +2,12 @@
    grey cards), each with shortcuts into the app. */
 .home-menu {
   --home-card-w: min(860px, calc(100vw - 220px));
-  min-height: 100dvh;
+  /* Pinned to the screen: the page can't be dragged up/down (iPhone's
+     rubber-band), only the cards move sideways (handled in JS). */
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overscroll-behavior: none;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -61,7 +66,8 @@
   align-items: stretch;
   width: 100%;
   padding: 24px 0 30px;
-  /* Vertical swipes still scroll the page; sideways ones are ours. */
+  /* Sideways swipes are ours; a vertical one has nothing to move (the
+     screen is fixed and can't scroll or bounce). */
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
@@ -466,4 +472,11 @@
 
 :root[data-theme='dark'] .home-option:hover {
   background: rgba(255, 255, 255, 0.055);
+}
+
+html.home-locked,
+html.home-locked body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
 }

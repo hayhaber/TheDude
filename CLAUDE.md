@@ -61,7 +61,10 @@ rosewood, below).
   "drum" rotateY ±33° (TURN_DEG; TURN_DEG_PHONE for <=640px, currently equal) / scale / fade; `animateTo()` eases `pos` to an
   integer target). Pointer drag follows the finger but is held to ±1 card
   and settles one card per swipe (share/velocity threshold); a drag
-  suppresses the click. Native scrolling was dropped because on iPhone it
+  suppresses the click. The home screen is pinned (`.home-menu` position:
+  fixed, `html.home-locked` = no document scroll/bounce while it's up) so a
+  vertical swipe moves nothing; the track keeps `touch-action: pan-y` — with
+  `touch-action: none` a vertical drag swallowed the NEXT tap's click. Native scrolling was dropped because on iPhone it
   flickered, skipped several cards on a fast swipe and the 3x-copies loop
   ran out. WebKit (iPhone/Safari)
   rules for anything inside a card: NO nested 3D transforms (the piano art

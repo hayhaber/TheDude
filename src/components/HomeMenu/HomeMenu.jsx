@@ -302,6 +302,14 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
   // A dot / a side card: the shortest way round to it.
   const goToCard = useCallback((i) => animateTo(targetRef.current + ringDist(i, targetRef.current)), [animateTo]);
 
+  // While the home screen is up, the document itself can't scroll or
+  // bounce either (iOS rubber-band).
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add('home-locked');
+    return () => root.classList.remove('home-locked');
+  }, []);
+
   useLayoutEffect(() => {
     draw();
     const onResize = () => draw();
@@ -341,7 +349,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
     if (!g.dragging) {
       if (Math.abs(dx) < 6) return;
       if (Math.abs(e.clientY - g.y0) > Math.abs(dx)) {
-        dragRef.current = null; // a vertical gesture: leave it to the page
+        dragRef.current = null; // a vertical gesture: nothing to do
         return;
       }
       g.dragging = true;

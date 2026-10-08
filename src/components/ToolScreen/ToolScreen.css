@@ -127,16 +127,22 @@
   }
 }
 
-/* Dark mode: the same floating card as the home screen's. */
+/* Dark mode: the same floating card (and darker page) as the home screen. */
+:root[data-theme='dark'] .tool-screen {
+  background:
+    radial-gradient(60% 55% at 50% 40%, rgba(120, 140, 190, 0.1) 0%, rgba(120, 140, 190, 0) 70%),
+    #0b0b0d;
+}
+
 :root[data-theme='dark'] .tool-screen-card {
-  background: linear-gradient(180deg, #1b1b1e 0%, #111113 55%, #0c0c0e 100%);
+  background: linear-gradient(180deg, #2a2a2f 0%, #1e1e22 50%, #161619 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.154),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.088),
-    0 0 0 1px rgba(160, 190, 255, 0.055),
-    0 0 30px rgba(140, 170, 255, 0.099),
-    0 28px 60px rgba(0, 0, 0, 0.66),
-    0 8px 18px rgba(0, 0, 0, 0.385);
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.13),
+    0 0 0 1px rgba(170, 195, 255, 0.1),
+    0 0 44px rgba(140, 170, 255, 0.16),
+    0 32px 70px rgba(0, 0, 0, 0.8),
+    0 10px 22px rgba(0, 0, 0, 0.5);
 }
 
 :root[data-theme='dark'] .tool-screen-title {

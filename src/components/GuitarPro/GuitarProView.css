@@ -677,6 +677,12 @@
   font-size: 17px;
 }
 
+/* Heard = icon in colour; muted (or silenced by a solo) = grey. */
+.gp-mix-row:not(.muted) .gp-rail-icon {
+  filter: none;
+  opacity: 1;
+}
+
 .gp-mix-controls {
   display: flex;
   align-items: center;

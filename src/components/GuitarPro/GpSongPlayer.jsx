@@ -46,7 +46,7 @@ function SpeakerIcon({ on }) {
 // The file's tracks down the left side of the score (like Songsterr /
 // Guitar Pro): tap a track to show its part (score + neck, and it's the one
 // practiced); the speaker beside it mutes / unmutes it.
-function TrackRail({ trainer, t, open, onToggle }) {
+function TrackRail({ trainer, t, open, onToggle, solo }) {
   const tracks = trainer.tracks.filter((tr) => tr.noteCount > 0);
   if (tracks.length === 0) return null;
   const on = new Set(trainer.mix);
@@ -68,10 +68,12 @@ function TrackRail({ trainer, t, open, onToggle }) {
       </div>
       {tracks.map((tr) => {
         const sounding = on.has(tr.index);
+        // Heard right now: in the mix, and not silenced by another track's solo.
+        const heard = sounding && (solo.size === 0 || solo.has(tr.index));
         const shown = tr.index === trainer.displayTrack;
         const kind = trackKind(tr);
         return (
-          <div key={tr.index} className={'gp-rail-row' + (shown ? ' shown' : '') + (sounding ? '' : ' muted')}>
+          <div key={tr.index} className={'gp-rail-row' + (shown ? ' shown' : '') + (heard ? '' : ' muted')}>
             <button
               type="button"
               className="gp-rail-track"
@@ -132,10 +134,15 @@ function TrackMixerPanel({ trainer, t, solo, onSolo, onClose }) {
         {tracks.map((tr) => {
           const kind = trackKind(tr);
           const sounding = on.has(tr.index);
+          // The icon is in colour while the track is heard, grey when it's
+          // muted or another track is soloed.
+          const heard = sounding && (solo.size === 0 || solo.has(tr.index));
           const shown = tr.index === trainer.displayTrack;
           const level = trainer.volumes[tr.index] ?? 1;
+          // Muted: the fader shows 0; unmuting brings back the level it had.
+          const shownLevel = sounding ? level : 0;
           return (
-            <div key={tr.index} className={'gp-mix-row' + (shown ? ' shown' : '') + (sounding ? '' : ' muted')}>
+            <div key={tr.index} className={'gp-mix-row' + (shown ? ' shown' : '') + (heard ? '' : ' muted')}>
               <button
                 type="button"
                 className="gp-mix-name"
@@ -170,11 +177,16 @@ function TrackMixerPanel({ trainer, t, solo, onSolo, onClose }) {
                   className="gp-mix-level"
                   min={0}
                   max={100}
-                  value={Math.round(level * 100)}
-                  onChange={(e) => trainer.setTrackVolume(tr.index, Number(e.target.value) / 100)}
+                  value={Math.round(shownLevel * 100)}
+                  onChange={(e) => {
+                    const v = Number(e.target.value) / 100;
+                    // Raising a muted track's fader unmutes it.
+                    if (!sounding && v > 0) trainer.toggleTrack(tr.index);
+                    if (sounding || v > 0) trainer.setTrackVolume(tr.index, v);
+                  }}
                   aria-label={`${tr.name} — ${t('gp.volume')}`}
                 />
-                <span className="gp-mix-pct" dir="ltr">{Math.round(level * 100)}</span>
+                <span className="gp-mix-pct" dir="ltr">{Math.round(shownLevel * 100)}</span>
               </div>
             </div>
           );
@@ -578,7 +590,7 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
       )}
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
       <div className="gp-song-body" dir="ltr">
-        <TrackRail trainer={trainer} t={t} open={mixerOpen} onToggle={() => setMixerOpen((o) => !o)} />
+        <TrackRail trainer={trainer} t={t} open={mixerOpen} onToggle={() => setMixerOpen((o) => !o)} solo={solo} />
         {mixerOpen && (
           <TrackMixerPanel
             trainer={trainer}

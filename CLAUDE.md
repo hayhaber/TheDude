@@ -247,6 +247,9 @@ rosewood, below).
   `setTrackVolume`) apply via `changeTrackVolume` in the song view, in
   `playReference` (applyMix) and in `renderBacking` (trackVolume); Solo is
   song-view state only (`changeTrackSolo`), reset per file.
+  Muted = fader shows 0 (the stored level is kept; unmute restores it;
+  raising a muted fader unmutes). Icons are in colour while a track is heard
+  (in the mix and not silenced by a solo), grey otherwise — rail and mixer.
   Space bar = Play/Pause in Song view (GpSongPlayer keydown, skips form fields). Song view keeps ONE AlphaTabApi
   per file and switches with `renderTracks()` (no MIDI reload). The mix is
   per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls

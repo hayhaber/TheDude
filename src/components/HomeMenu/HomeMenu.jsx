@@ -206,6 +206,8 @@ const N = CARDS.length;
 
 // The drum: cards beside the centre turn away and recede.
 const TURN_DEG = 20;
+const TURN_DEG_PHONE = 30; // phones (<=640px): a stronger turn
+const PHONE_MQ = '(max-width: 640px)';
 const SHRINK = 0.092;
 const FADE = 0.63;
 const ANIM_MS = 420;
@@ -253,6 +255,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
     const track = trackRef.current;
     if (!track) return;
     const pos = posRef.current;
+    const turnDeg = window.matchMedia?.(PHONE_MQ).matches ? TURN_DEG_PHONE : TURN_DEG;
     const first = cardRefs.current[0];
     const gap = parseFloat(getComputedStyle(track).getPropertyValue('--home-gap')) || 28;
     const step = (first?.offsetWidth || 1) + gap;
@@ -262,7 +265,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       const a = Math.min(1, Math.abs(d));
       // RTL: the next card waits on the left.
       const x = -d * step;
-      const turn = reduceMotion ? 0 : Math.max(-1.5, Math.min(1.5, d)) * TURN_DEG;
+      const turn = reduceMotion ? 0 : Math.max(-1.5, Math.min(1.5, d)) * turnDeg;
       el.style.transform = `translateX(${x.toFixed(1)}px) perspective(1600px) rotateY(${turn.toFixed(2)}deg) scale(${(1 - a * SHRINK).toFixed(4)})`;
       el.style.opacity = (1 - a * FADE).toFixed(3);
       el.style.visibility = Math.abs(d) > 2.2 ? 'hidden' : '';

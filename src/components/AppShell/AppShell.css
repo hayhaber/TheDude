@@ -5,8 +5,8 @@
 }
 
 /* ---------- Desktop top bar (>=900px) ----------
-   Logo (home) + the current instrument | the instrument's features | the
-   tools. Replaces the old hamburger drawer: the instrument is picked on the
+   The instrument's features | the tools (home, metronome, tuner, settings,
+   info). Replaces the old hamburger drawer: the instrument is picked on the
    home screen, and everything for it is one tap away here. */
 .app-topbar {
   flex: 0 0 auto;
@@ -17,44 +17,8 @@
   padding: 10px 24px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  /* LTR order: logo on the left, tools on the right, in both languages. */
+  /* LTR order: tools on the right, in both languages. */
   direction: ltr;
-}
-
-.app-topbar-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.app-topbar-name {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.app-topbar-instrument {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  padding-left: 14px;
-  border-left: 1px solid var(--border);
-  font-size: 15px;
-  font-weight: 650;
-  color: var(--text);
-}
-
-.app-topbar-instrument-icon {
-  display: inline-flex;
-  font-size: 17px;
-}
-
-.app-topbar-instrument-icon svg {
-  width: 20px;
-  height: 20px;
 }
 
 /* The features: .mode-toggle.wrap pills (shared tab styling), centred in
@@ -93,6 +57,10 @@
   height: 17px;
 }
 
+.app-topbar-home {
+  color: var(--text);
+}
+
 .app-topbar-tools {
   display: flex;
   align-items: center;
@@ -112,9 +80,6 @@
     display: none;
   }
 
-  .app-topbar-name {
-    display: none;
-  }
 }
 
 .app-mobile-brand {

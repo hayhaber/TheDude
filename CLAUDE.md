@@ -73,7 +73,7 @@ rosewood, below).
   card's corner on iPhone) and no `background-clip: text` + filter titles
   (flicker) — dark titles use text-shadow. No WebKit in this container to
   test with; the user checks on his iPhone. `onOpen({instrument, section,
-  practiceTab})` sets them in App. The logo (desktop top bar + phone/tablet brand,
+  practiceTab})` sets them in App. The home button (desktop top bar) / logo (phone/tablet,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /
   Tuner shortcuts: `onOpen({tool})` opens `components/ToolScreen/` — the tool
@@ -96,10 +96,11 @@ rosewood, below).
   Switching mode while listening restarts the mic.
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
-  screen (logo = back home). Desktop (>=900px): `.app-topbar` = logo +
-  current instrument | that instrument's features (`visibleSections`, as
-  `.mode-toggle.wrap` pills; icons only <=1240px) | metronome, tuner,
-  settings gear, info. Phone/tablet: logo top-left, gear+info top-right,
+  screen (logo = back home). Desktop (>=900px): `.app-topbar` = that
+  instrument's features (`visibleSections`, as `.mode-toggle.wrap` pills;
+  icons only <=1240px) | home button (the only way back on desktop — the
+  logo/instrument name were removed at the user's request), metronome,
+  tuner, settings gear, info. Phone/tablet: logo top-left, gear+info top-right,
   metronome/tuner bar + feature tabs at the bottom.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the

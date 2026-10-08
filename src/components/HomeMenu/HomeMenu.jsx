@@ -194,7 +194,7 @@ const SLIDES = [0, 1, 2].flatMap((copy) => CARDS.map((card, i) => ({ card, i, co
 
 // The "wheel": cards beside the centre turn away a little and recede, as if
 // mounted on a drum — kept subtle.
-const TURN_DEG = 18.4;
+const TURN_DEG = 20;
 const SHRINK = 0.092;
 const FADE = 0.63;
 

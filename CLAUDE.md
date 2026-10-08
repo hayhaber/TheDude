@@ -61,7 +61,7 @@ rosewood, below).
   copy it jumps instantly to the same card in the middle copy. Each card
   sits in an untransformed `.home-slot` (measured + snapped) and the card
   inside gets a per-frame "drum" transform from its distance to the centre
-  (`applyDepth`: rotateY ±16°, scale, fade; no rotation with reduced
+  (`applyDepth`: rotateY ±20°, scale, fade; no rotation with reduced
   motion). `onOpen({instrument, section,
   practiceTab})` sets them in App. The logo (drawer header + phone brand,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the

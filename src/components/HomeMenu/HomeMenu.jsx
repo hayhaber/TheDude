@@ -177,6 +177,15 @@ const CARDS = [
   },
 ];
 
+// Drawn, not a ‹ › character: those are mirrored in right-to-left text.
+function Chevron({ dir }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={dir === 'right' ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'} />
+    </svg>
+  );
+}
+
 // The carousel loops: the cards are rendered three times over and, once a
 // scroll settles in the first or last copy, it jumps (invisibly — the copies
 // are identical) to the same card in the middle copy.
@@ -185,9 +194,9 @@ const SLIDES = [0, 1, 2].flatMap((copy) => CARDS.map((card, i) => ({ card, i, co
 
 // The "wheel": cards beside the centre turn away a little and recede, as if
 // mounted on a drum — kept subtle.
-const TURN_DEG = 16;
-const SHRINK = 0.08;
-const FADE = 0.55;
+const TURN_DEG = 18.4;
+const SHRINK = 0.092;
+const FADE = 0.63;
 
 /**
  * The home screen: a looping carousel of instruments (swipe, wheel, arrows,
@@ -361,9 +370,6 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       </header>
 
       <div className="home-carousel">
-        <button type="button" className="home-arrow home-arrow-prev" onClick={() => step(-1)} aria-label={t('home.prev')}>
-          ›
-        </button>
         <div className="home-track" ref={scrollRef} onScroll={onScroll}>
           {SLIDES.map(({ card, copy, pos }) => {
             const opts = card.options.filter((o) => {
@@ -416,23 +422,29 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
             );
           })}
         </div>
-        <button type="button" className="home-arrow home-arrow-next" onClick={() => step(1)} aria-label={t('home.next')}>
-          ‹
-        </button>
       </div>
 
-      <div className="home-dots" role="tablist" aria-label={t('home.instruments')}>
-        {CARDS.map((card, i) => (
-          <button
-            key={card.key}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            aria-label={t(card.titleKey)}
-            className={i === active ? 'on' : ''}
-            onClick={() => goToCard(i)}
-          />
-        ))}
+      {/* Arrows flank the dots, under the cards (hidden on phones). */}
+      <div className="home-nav">
+        <button type="button" className="home-arrow home-arrow-prev" onClick={() => step(-1)} aria-label={t('home.prev')}>
+          <Chevron dir="right" />
+        </button>
+        <div className="home-dots" role="tablist" aria-label={t('home.instruments')}>
+          {CARDS.map((card, i) => (
+            <button
+              key={card.key}
+              type="button"
+              role="tab"
+              aria-selected={i === active}
+              aria-label={t(card.titleKey)}
+              className={i === active ? 'on' : ''}
+              onClick={() => goToCard(i)}
+            />
+          ))}
+        </div>
+        <button type="button" className="home-arrow home-arrow-next" onClick={() => step(1)} aria-label={t('home.next')}>
+          <Chevron dir="left" />
+        </button>
       </div>
     </div>
   );

@@ -138,7 +138,8 @@
    overlapping the score): one compact row of controls, then the score
    filling exactly the rest of the room above the neck. */
 .gp-song {
-  scroll-margin-top: 8px;
+  /* Clears the menu button and the metronome/tuner pills at the top. */
+  scroll-margin-top: 60px;
 }
 
 .gp-transport {
@@ -190,7 +191,7 @@
   z-index: 0; /* own stacking context: alphaTab's cursor can't paint over the sticky transport */
   /* Exactly the room left above the pinned neck (--stage-height is set by
      AppShell), so scrolled into view the score fills the screen. */
-  height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 34px));
+  height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 86px));
   /* The score is laid out to this width: never a sideways scrollbar. */
   overflow-x: hidden;
   overflow-y: auto;
@@ -308,7 +309,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 34px));
+  max-height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 86px));
   overflow-y: auto;
   padding: 6px;
   border-radius: 14px;
@@ -578,7 +579,7 @@
   left: 114px; /* just right of the rail */
   z-index: 5;
   width: min(440px, calc(100% - 124px));
-  max-height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 34px));
+  max-height: max(320px, calc(100dvh - var(--stage-height, 260px) - var(--control-height, 36px) - 86px));
   display: flex;
   flex-direction: column;
   border-radius: 14px;

@@ -205,29 +205,22 @@
   padding: 0 var(--space-3);
 }
 
-/* Pushed to the bottom of the column. min-height: 0 + overflow-y: auto is
-   the same "flex child can scroll within whatever space remains" pattern
-   .app-section-content uses — so if the expanded metronome panel (see
-   MetronomeBar.jsx) is ever taller than the space left under the nav items,
-   this slot scrolls internally instead of anything being cut off. */
-.app-sidebar-metronome {
-  margin-top: auto;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 0 var(--space-3);
-  /* MetronomeBar + TunerBar as an even side-by-side pair. flex-basis:0 +
-     min-width:0 on the children makes the two equal-width regardless of
-     their differing content, and lets a lone pill (TunerBar is hidden in
-     Piano mode) take the full width instead of a half. */
+/* Metronome + tuner, desktop: a pair of pills fixed in the top-right
+   corner, across from the menu button (same top offset). */
+.app-desktop-tools {
+  position: fixed;
+  top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  right: var(--space-8);
+  z-index: 30;
   display: flex;
-  flex-direction: row;
   align-items: stretch;
   gap: var(--space-2);
 }
 
-.app-sidebar-metronome > * {
-  flex: 1 1 0;
-  min-width: 0;
+.app-desktop-tools .metronome-bar,
+.app-desktop-tools .tuner-bar {
+  width: 124px;
+  height: 36px;
 }
 
 .app-mobile-brand {
@@ -303,7 +296,8 @@
 @media (max-width: 899px) {
   .app-drawer-trigger,
   .app-drawer-scrim,
-  .app-drawer {
+  .app-drawer,
+  .app-desktop-tools {
     display: none;
   }
 

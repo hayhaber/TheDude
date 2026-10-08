@@ -209,3 +209,13 @@
     opacity: 1;
   }
 }
+
+/* Closed, the drawer sits just off the right edge — without this its
+   shadow showed as a dark strip along that edge. Hidden once the slide-out
+   ends (phones fade it instead, unaffected). */
+@media (min-width: 481px) {
+  .metronome-drawer:not(.open) {
+    box-shadow: none;
+    transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0s linear 0.26s;
+  }
+}

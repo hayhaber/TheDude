@@ -4,6 +4,7 @@ import { HomeMenu } from './components/HomeMenu/HomeMenu';
 import { AppShell } from './components/AppShell/AppShell';
 import { Stage } from './components/Stage/Stage';
 import { MetronomeBar } from './components/MetronomeBar/MetronomeBar';
+import { requestTool } from './components/AppShell/toolRequest';
 import { ComposeView } from './components/ComposeView/ComposeView';
 import { ImproviseView } from './components/ImproviseView/ImproviseView';
 import { PracticeView } from './components/PracticeView/PracticeView';
@@ -1825,10 +1826,12 @@ function App() {
   if (home) {
     return (
       <HomeMenu
-        onOpen={({ instrument: nextInstrument, section, practiceTab: tab }) => {
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool }) => {
           if (nextInstrument && nextInstrument !== instrument) setInstrument(nextInstrument);
           if (tab) setPracticeTab(tab);
-          setActiveSection(section);
+          if (section) setActiveSection(section);
+          // Tools card: the pill of that tool opens its drawer once mounted.
+          if (tool) requestTool(tool);
           setHome(false);
           setLeftHome(true);
         }}

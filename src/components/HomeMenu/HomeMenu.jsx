@@ -53,6 +53,23 @@ const ICON_PATHS = {
       <path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" />
     </>
   ),
+  metronome: (
+    <>
+      <path d="M6.3 18.3 L9.8 4 L14.2 4 L17.7 18.3 Z" />
+      <path d="M4.6 20.7 H19.4" />
+      <path d="M12 16 L15.5 6.5" />
+      <circle cx="14.3" cy="9.8" r="1.3" fill="currentColor" stroke="none" />
+    </>
+  ),
+  tuner: (
+    <>
+      <path d="M4 16a8 8 0 0 1 16 0" />
+      <path d="M12 16l3-6" />
+      <path d="M12 8v1.5M6.3 10.3l1 1M17.7 10.3l-1 1" opacity=".5" />
+      <circle cx="12" cy="16" r="1.3" fill="currentColor" stroke="none" />
+      <path d="M8 20h8" />
+    </>
+  ),
   ear: (
     <>
       <path d="M7 9a5 5 0 1 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0" />
@@ -117,6 +134,18 @@ const CARDS = [
       { section: 'practice', practiceTab: 'ear-training', icon: 'ear', labelKey: 'practice.tab.earTraining' },
     ],
   },
+  {
+    // Not an instrument: opens the metronome / tuner drawer over the app
+    // (the tuner is a guitar tuner, so it switches to guitar).
+    key: 'tools',
+    instrument: null,
+    titleKey: 'home.tools.title',
+    descKey: 'home.tools.desc',
+    options: [
+      { tool: 'metronome', icon: 'metronome', labelKey: 'metronome.title' },
+      { tool: 'tuner', icon: 'tuner', labelKey: 'tunerBar.label', instrument: 'guitar' },
+    ],
+  },
 ];
 
 /**
@@ -179,6 +208,11 @@ export function HomeMenu({ onOpen, onContinue }) {
   }, [active, scrollTo]);
 
   const open = (card, option) => {
+    if (option.tool) {
+      // Stay in the current section; just open the tool over it.
+      onOpen({ instrument: option.instrument ?? instrument, section: null, practiceTab: null, tool: option.tool });
+      return;
+    }
     onOpen({
       instrument: card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument),
       section: option.section,
@@ -213,6 +247,7 @@ export function HomeMenu({ onOpen, onContinue }) {
         <div className="home-track" ref={scrollRef} onScroll={onScroll}>
           {CARDS.map((card, i) => {
             const opts = card.options.filter((o) => {
+              if (o.tool) return true;
               const inst = card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument);
               return supportsInstrument(o.section, inst);
             });
@@ -239,7 +274,7 @@ export function HomeMenu({ onOpen, onContinue }) {
                 <div className="home-options">
                   {opts.map((o) => (
                     <button
-                      key={o.section + (o.practiceTab ?? '')}
+                      key={o.tool ?? o.section + (o.practiceTab ?? '')}
                       type="button"
                       className="home-option"
                       onClick={() => (isActive ? open(card, o) : scrollTo(i))}

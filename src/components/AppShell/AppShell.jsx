@@ -147,12 +147,14 @@ export function AppShell({ activeSection, onSectionChange, settingsSlot, metrono
               </button>
             ))}
           </div>
-
-          <div className="app-sidebar-metronome">
-            {metronomeSlot}
-            <TunerBar />
-          </div>
         </nav>
+      </div>
+
+      {/* Desktop: metronome + tuner always in reach, top corner (tablet and
+          phone have them in the bar above the tabs). */}
+      <div className="app-desktop-tools">
+        {metronomeSlot}
+        <TunerBar />
       </div>
 
       {/* Phone-only (hidden by default, see AppShell.css) — the mobile

@@ -142,6 +142,10 @@
   transform: rotate(-24deg);
 }
 
+.home-art-tools svg {
+  height: 280px;
+}
+
 .home-text {
   flex: 1;
   display: flex;
@@ -300,6 +304,10 @@
     height: 190px;
   }
 
+  .home-art-tools svg {
+    height: 200px;
+  }
+
   .home-title {
     font-size: 32px;
   }
@@ -341,6 +349,10 @@
 
   .home-art-vocal svg {
     height: 340px;
+  }
+
+  .home-art-tools svg {
+    height: 360px;
   }
 }
 

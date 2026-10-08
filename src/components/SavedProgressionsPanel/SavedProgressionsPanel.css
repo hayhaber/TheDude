@@ -287,3 +287,11 @@
   background: rgba(120, 120, 128, 0.14);
   color: var(--text);
 }
+
+/* Closed, the drawer sits just off the right edge — without this its
+   shadow showed as a dark strip along that edge. Dropped once the
+   slide-out ends. */
+.saved-progressions-drawer:not(.open) {
+  box-shadow: none;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0s linear 0.26s;
+}

@@ -1,12 +1,26 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './BpmScroller.css';
 
 // An iPod click-wheel-style BPM control: drag your finger/pointer around the
 // ring and the angular motion scrolls the value, the way the iPod's
-// clickwheel scrolled menus. Mouse wheel and arrow keys work too.
+// clickwheel scrolled menus. Mouse wheel and arrow keys work too, and a tap
+// on the number in the middle lets you type the BPM (Enter / leaving the
+// field sets it, clamped to min..max; Escape cancels).
 export function BpmScroller({ value, onChange, min, max, defaultValue }) {
   const wheelRef = useRef(null);
   const dragRef = useRef(null);
+  const inputRef = useRef(null);
+  const [draft, setDraft] = useState(null); // string while typing, else null
+
+  useEffect(() => {
+    if (draft !== null) inputRef.current?.select();
+  }, [draft !== null]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function commitDraft() {
+    const n = parseInt(draft, 10);
+    if (Number.isFinite(n)) onChange(clamp(n));
+    setDraft(null);
+  }
 
   function clamp(n) {
     return Math.max(min, Math.min(max, n));
@@ -20,6 +34,7 @@ export function BpmScroller({ value, onChange, min, max, defaultValue }) {
   }
 
   function handleWheel(e) {
+    if (draft !== null) return;
     e.preventDefault();
     const direction = e.deltaY < 0 ? 1 : -1;
     onChange(clamp(value + direction));
@@ -72,7 +87,11 @@ export function BpmScroller({ value, onChange, min, max, defaultValue }) {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+    if (draft !== null) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setDraft(String(value));
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
       e.preventDefault();
       onChange(clamp(value + 1));
     } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
@@ -98,8 +117,35 @@ export function BpmScroller({ value, onChange, min, max, defaultValue }) {
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
     >
-      <div className="bpm-wheel-center">
-        <span className="bpm-wheel-value">{value}</span>
+      {/* The middle is for typing, not dragging. */}
+      <div
+        className={'bpm-wheel-center' + (draft !== null ? ' is-editing' : '')}
+        onPointerDown={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => e.stopPropagation()}
+        onClick={() => draft === null && setDraft(String(value))}
+        title={draft === null ? 'BPM' : undefined}
+      >
+        {draft === null ? (
+          <span className="bpm-wheel-value">{value}</span>
+        ) : (
+          <input
+            ref={inputRef}
+            className="bpm-wheel-input"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={3}
+            value={draft}
+            aria-label="BPM"
+            onChange={(e) => setDraft(e.target.value.replace(/\D/g, ''))}
+            onBlur={commitDraft}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') commitDraft();
+              else if (e.key === 'Escape') setDraft(null);
+            }}
+          />
+        )}
         <span className="bpm-wheel-unit">BPM</span>
       </div>
     </div>

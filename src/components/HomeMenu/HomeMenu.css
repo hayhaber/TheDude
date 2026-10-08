@@ -136,6 +136,11 @@
   transform: rotate(38deg);
 }
 
+/* The guitar is drawn to true proportions (long neck), so a little taller. */
+.home-art-guitar svg {
+  height: 352px;
+}
+
 .home-art-piano svg {
   width: 300px;
   /* A flat (2D) stand-in for tilting the keys back: a 3D transform here,
@@ -305,6 +310,10 @@
   .home-art-guitar svg,
   .home-art-bass svg {
     height: 230px;
+  }
+
+  .home-art-guitar svg {
+    height: 244px;
   }
 
   .home-art-piano svg {

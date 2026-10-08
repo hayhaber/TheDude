@@ -45,6 +45,10 @@
   min-width: 240px;
 }
 
+.tool-screen-switch.is-hidden {
+  visibility: hidden;
+}
+
 .tool-screen-mode {
   min-width: 200px;
   margin-top: -6px;

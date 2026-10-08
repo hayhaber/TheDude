@@ -3,15 +3,17 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { AppLogo } from '../AppLogo/AppLogo';
 import { Metronome } from '../Metronome/Metronome';
 import { GuitarTuner } from '../GuitarTuner/GuitarTuner';
+import { SettingsBody } from '../SettingsPanel/SettingsPanel';
+import '../SettingsPanel/SettingsPanel.css';
 import '../ModeToggle/ModeToggle.css';
 import './ToolScreen.css';
 
 /**
  * A tool on its own screen (from the home screen's Tools card): just the
- * metronome or the tuner, no instrument page around it. The logo / Back /
+ * metronome, the tuner or the settings, no instrument page around it. The logo / Back /
  * Escape return to the home screen.
  */
-export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeChange, metronome, drums }) {
+export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeChange, settingsProps, metronome, drums }) {
   const { t, lang } = useLanguage();
 
   useEffect(() => {
@@ -29,7 +31,13 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
           <span aria-hidden="true">{lang === 'he' ? '›' : '‹'}</span>
           {t('toolScreen.back')}
         </button>
-        <div className="mode-toggle tool-screen-switch" role="group" aria-label={t('home.tools.title')}>
+        {/* Metronome | Tuner (not on the Settings page). */}
+        <div
+          className={'mode-toggle tool-screen-switch' + (tool === 'settings' ? ' is-hidden' : '')}
+          role="group"
+          aria-label={t('home.tools.title')}
+          inert={tool === 'settings'}
+        >
           <button type="button" className={tool === 'metronome' ? 'active' : ''} onClick={() => onToolChange('metronome')}>
             {t('metronome.title')}
           </button>
@@ -43,7 +51,17 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
       </header>
 
       <main className="tool-screen-body">
-        <h1 className="tool-screen-title">{t(tool === 'tuner' ? 'tunerBar.label' : 'metronome.title')}</h1>
+        <h1 className="tool-screen-title">
+          {t(
+            tool === 'tuner'
+              ? tunerMode === 'bass'
+                ? 'toolScreen.bassTuner'
+                : 'toolScreen.guitarTuner'
+              : tool === 'settings'
+                ? 'settings.title'
+                : 'metronome.title'
+          )}
+        </h1>
         {tool === 'tuner' && (
           <div className="mode-toggle tool-screen-mode" role="group" aria-label={t('tunerBar.label')}>
             {['guitar', 'bass'].map((m) => (
@@ -54,7 +72,15 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
           </div>
         )}
         <div className="tool-screen-card">
-          {tool === 'tuner' ? <GuitarTuner mode={tunerMode} /> : <Metronome {...metronome} drums={drums} />}
+          {tool === 'tuner' ? (
+            <GuitarTuner mode={tunerMode} />
+          ) : tool === 'settings' ? (
+            <div className="settings-drawer-body">
+              <SettingsBody {...settingsProps} allSounds />
+            </div>
+          ) : (
+            <Metronome {...metronome} drums={drums} />
+          )}
         </div>
       </main>
     </div>

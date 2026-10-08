@@ -70,6 +70,13 @@ const ICON_PATHS = {
       <path d="M8 20h8" />
     </>
   ),
+  settings: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
+      <circle cx="12" cy="12" r="7" opacity=".35" />
+    </>
+  ),
   ear: (
     <>
       <path d="M7 9a5 5 0 1 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0" />
@@ -136,7 +143,8 @@ const CARDS = [
     ],
   },
   {
-    // Not an instrument: the metronome / tuner, each on a screen of its own.
+    // Not an instrument: the metronome / tuner / settings, each on a screen
+    // of its own.
     key: 'tools',
     instrument: null,
     titleKey: 'home.tools.title',
@@ -144,6 +152,7 @@ const CARDS = [
     options: [
       { tool: 'metronome', icon: 'metronome', labelKey: 'metronome.title' },
       { tool: 'tuner', icon: 'tuner', labelKey: 'tunerBar.label' },
+      { tool: 'settings', icon: 'settings', labelKey: 'settings.title' },
     ],
   },
 ];

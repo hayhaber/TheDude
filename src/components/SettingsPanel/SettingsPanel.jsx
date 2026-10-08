@@ -22,22 +22,9 @@ import './SettingsPanel.css';
 // This component is rendered TWICE by AppShell (once inside the off-canvas
 // nav drawer, once in the mobile top bar) — portaling to document.body means
 // both instances behave identically regardless of which triggered it.
-export function SettingsPanel({
-  theme,
-  onThemeChange,
-  guitarProfile,
-  onGuitarProfileChange,
-  pianoProfile,
-  onPianoProfileChange,
-  bassProfile,
-  onBassProfileChange,
-  shortcuts,
-  // The Lick Trainer / GuitarPro state, for "Sync between devices".
-  syncTrainer = null,
-}) {
+export function SettingsPanel(settings) {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
-  const { instrument } = useInstrument();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -83,89 +70,120 @@ export function SettingsPanel({
               </button>
             </div>
 
-            <div className="settings-drawer-body">
-              <div className="settings-field">
-                <span className="settings-field-label">{t('languageToggle.label')}</span>
-                <LanguageToggle />
-              </div>
-
-              <div className="settings-field">
-                <span className="settings-field-label">{t('settings.appearance')}</span>
-                <div className="mode-toggle" role="group" aria-label={t('settings.appearance')}>
-                  <button type="button" className={theme === 'light' ? 'active' : ''} onClick={() => onThemeChange('light')}>
-                    {t('settings.light')}
-                  </button>
-                  <button type="button" className={theme === 'dark' ? 'active' : ''} onClick={() => onThemeChange('dark')}>
-                    {t('settings.dark')}
-                  </button>
-                </div>
-              </div>
-
-              {/* Instrument-aware, per docs/PIANO_MODE_ARCHITECTURE.md's roadmap —
-                  one sound-profile field, showing whichever instrument's own
-                  profile list applies, rather than always showing Guitar Sound
-                  even while in Piano mode. Explicit per-instrument branches
-                  (not an `else` catch-all) — with Bass as a 3rd instrument
-                  value, an `else` here would have silently shown Guitar's
-                  own profile list/setter while in Bass mode. */}
-              {instrument === 'piano' ? (
-                <label className="settings-field">
-                  <span className="settings-field-label">{t('settings.pianoSound')}</span>
-                  <select value={pianoProfile} onChange={(e) => onPianoProfileChange(e.target.value)}>
-                    {PIANO_SOUND_PROFILES.map((p) => (
-                      <option key={p.key} value={p.key}>
-                        {t(p.labelKey)}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="settings-attribution">{t('settings.pianoAudioAttribution')}</span>
-                </label>
-              ) : instrument === 'bass' ? (
-                <label className="settings-field">
-                  <span className="settings-field-label">{t('settings.bassSound')}</span>
-                  <select value={bassProfile} onChange={(e) => onBassProfileChange(e.target.value)}>
-                    {BASS_SOUND_PROFILES.map((p) => (
-                      <option key={p.key} value={p.key}>
-                        {t(p.labelKey)}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="settings-attribution">{t('settings.audioAttribution')}</span>
-                </label>
-              ) : (
-                <label className="settings-field">
-                  <span className="settings-field-label">{t('settings.guitarSound')}</span>
-                  <select value={guitarProfile} onChange={(e) => onGuitarProfileChange(e.target.value)}>
-                    {GUITAR_SOUND_PROFILES.map((p) => (
-                      <option key={p.key} value={p.key}>
-                        {t(p.labelKey)}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="settings-attribution">{t('settings.audioAttribution')}</span>
-                </label>
-              )}
-
-              {syncTrainer && (
-                <>
-                  <h3 className="settings-drawer-subtitle">{t('lickTrainer.libTitle')}</h3>
-                  <LibraryBar trainer={syncTrainer} t={t} bare />
-                </>
-              )}
-
-              <h3 className="settings-drawer-subtitle">{t('settings.audioInput')}</h3>
-              <AudioInputSettings />
-
-              <h3 className="settings-drawer-subtitle">{t('settings.youtube')}</h3>
-              <YoutubeApiKeySettings />
-
-              <h3 className="settings-drawer-subtitle">{t('settings.shortcuts.title')}</h3>
-              <KeyboardShortcutsSettings shortcuts={shortcuts} />
-            </div>
+            <SettingsBody {...settings} />
           </div>
         </>,
         document.body
       )}
+    </div>
+  );
+}
+
+/**
+ * The settings themselves — in the app's side drawer (SettingsPanel) and on
+ * the home screen's Settings page (ToolScreen). `allSounds` shows every
+ * instrument's sound picker (the home screen has no "current" instrument
+ * page); otherwise only the instrument in use.
+ */
+export function SettingsBody({
+  theme,
+  onThemeChange,
+  guitarProfile,
+  onGuitarProfileChange,
+  pianoProfile,
+  onPianoProfileChange,
+  bassProfile,
+  onBassProfileChange,
+  shortcuts,
+  // The Lick Trainer / GuitarPro state, for "Sync between devices".
+  syncTrainer = null,
+  allSounds = false,
+}) {
+  const { t } = useLanguage();
+  const { instrument } = useInstrument();
+  const showSound = (key) => allSounds || (key === 'guitar' ? instrument !== 'piano' && instrument !== 'bass' : instrument === key);
+
+  return (
+    <div className="settings-drawer-body">
+      <div className="settings-field">
+        <span className="settings-field-label">{t('languageToggle.label')}</span>
+        <LanguageToggle />
+      </div>
+
+      <div className="settings-field">
+        <span className="settings-field-label">{t('settings.appearance')}</span>
+        <div className="mode-toggle" role="group" aria-label={t('settings.appearance')}>
+          <button type="button" className={theme === 'light' ? 'active' : ''} onClick={() => onThemeChange('light')}>
+            {t('settings.light')}
+          </button>
+          <button type="button" className={theme === 'dark' ? 'active' : ''} onClick={() => onThemeChange('dark')}>
+            {t('settings.dark')}
+          </button>
+        </div>
+      </div>
+
+      {/* Instrument-aware, per docs/PIANO_MODE_ARCHITECTURE.md's roadmap —
+          one sound-profile field, showing whichever instrument's own
+          profile list applies, rather than always showing Guitar Sound
+          even while in Piano mode. Explicit per-instrument checks
+          (not an `else` catch-all) — with Bass as a 3rd instrument
+          value, an `else` here would have silently shown Guitar's
+          own profile list/setter while in Bass mode. */}
+      {showSound('guitar') && (
+        <label className="settings-field">
+          <span className="settings-field-label">{t('settings.guitarSound')}</span>
+          <select value={guitarProfile} onChange={(e) => onGuitarProfileChange(e.target.value)}>
+            {GUITAR_SOUND_PROFILES.map((p) => (
+              <option key={p.key} value={p.key}>
+                {t(p.labelKey)}
+              </option>
+            ))}
+          </select>
+          <span className="settings-attribution">{t('settings.audioAttribution')}</span>
+        </label>
+      )}
+      {showSound('piano') && (
+        <label className="settings-field">
+          <span className="settings-field-label">{t('settings.pianoSound')}</span>
+          <select value={pianoProfile} onChange={(e) => onPianoProfileChange(e.target.value)}>
+            {PIANO_SOUND_PROFILES.map((p) => (
+              <option key={p.key} value={p.key}>
+                {t(p.labelKey)}
+              </option>
+            ))}
+          </select>
+          <span className="settings-attribution">{t('settings.pianoAudioAttribution')}</span>
+        </label>
+      )}
+      {showSound('bass') && (
+        <label className="settings-field">
+          <span className="settings-field-label">{t('settings.bassSound')}</span>
+          <select value={bassProfile} onChange={(e) => onBassProfileChange(e.target.value)}>
+            {BASS_SOUND_PROFILES.map((p) => (
+              <option key={p.key} value={p.key}>
+                {t(p.labelKey)}
+              </option>
+            ))}
+          </select>
+          <span className="settings-attribution">{t('settings.audioAttribution')}</span>
+        </label>
+      )}
+
+      {syncTrainer && (
+        <>
+          <h3 className="settings-drawer-subtitle">{t('lickTrainer.libTitle')}</h3>
+          <LibraryBar trainer={syncTrainer} t={t} bare />
+        </>
+      )}
+
+      <h3 className="settings-drawer-subtitle">{t('settings.audioInput')}</h3>
+      <AudioInputSettings />
+
+      <h3 className="settings-drawer-subtitle">{t('settings.youtube')}</h3>
+      <YoutubeApiKeySettings />
+
+      <h3 className="settings-drawer-subtitle">{t('settings.shortcuts.title')}</h3>
+      <KeyboardShortcutsSettings shortcuts={shortcuts} />
     </div>
   );
 }

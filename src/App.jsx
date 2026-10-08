@@ -1838,6 +1838,20 @@ function App() {
     setHomeCard(toolCardRef.current);
   }, [stopMetronome]);
 
+  // Shared by the app's settings drawer and the home screen's Settings page.
+  const settingsProps = {
+    theme,
+    onThemeChange: setTheme,
+    guitarProfile,
+    onGuitarProfileChange: setGuitarProfile,
+    pianoProfile,
+    onPianoProfileChange: setPianoProfile,
+    bassProfile,
+    onBassProfileChange: setBassProfile,
+    shortcuts,
+    syncTrainer: lickTrainer,
+  };
+
   if (toolScreen) {
     return (
       <ToolScreen
@@ -1846,6 +1860,7 @@ function App() {
         onBack={closeToolScreen}
         tunerMode={tunerMode}
         onTunerModeChange={setTunerMode}
+        settingsProps={settingsProps}
         metronome={metronome}
         drums={drums}
       />
@@ -1885,20 +1900,7 @@ function App() {
       }}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
-      settingsSlot={
-        <SettingsPanel
-          theme={theme}
-          onThemeChange={setTheme}
-          guitarProfile={guitarProfile}
-          onGuitarProfileChange={setGuitarProfile}
-          pianoProfile={pianoProfile}
-          onPianoProfileChange={setPianoProfile}
-          bassProfile={bassProfile}
-          onBassProfileChange={setBassProfile}
-          shortcuts={shortcuts}
-          syncTrainer={lickTrainer}
-        />
-      }
+      settingsSlot={<SettingsPanel {...settingsProps} />}
       metronomeSlot={<MetronomeBar metronome={metronome} drums={drums} />}
       stage={
         earTrainingOwnsInstrument ? null : (

@@ -64,7 +64,11 @@ rosewood, below).
   ALONE on its own screen (App `toolScreen` state, rendered instead of home /
   AppShell; Metronome | Tuner switch, Back / logo / Escape -> home on the
   Tools card via `initialCard`; leaving stops the metronome). It uses the
-  same `metronome`/`drums` instances as the app pills.
+  same `metronome`/`drums` instances as the app pills. The Tools card's 3rd
+  shortcut is Settings: the same `SettingsBody` (exported from
+  SettingsPanel.jsx, shared with the app's settings drawer via App's
+  `settingsProps`) on its own page, with `allSounds` (guitar/piano/bass
+  sound pickers all shown). Tuner title = "Guitar Tuner"/"Bass Tuner".
 - **Tuner, guitar + bass**: `GuitarTuner mode='guitar'|'bass'`. Bass =
   `usePitchDetection(BASS_PITCH_RANGE)` (4096 window, 35–500 Hz; other
   callers keep the guitar default 2048 / 60–1500) and its own blue display

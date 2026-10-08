@@ -24,7 +24,9 @@ export const STRINGS = {
     'home.vocal.desc': 'Real-time pitch-accuracy training for your voice, and ear training.',
     'home.tools.title': 'Tools',
     'toolScreen.back': 'Home',
-    'home.tools.desc': 'A metronome with a drum machine, and a guitar tuner.',
+    'toolScreen.guitarTuner': 'Guitar Tuner',
+    'toolScreen.bassTuner': 'Bass Tuner',
+    'home.tools.desc': 'A metronome with a drum machine, a guitar and bass tuner, and settings.',
 
     'instrument.label': 'Instrument',
     'instrument.guitar': 'Guitar',
@@ -1191,7 +1193,9 @@ export const STRINGS = {
     'home.vocal.desc': 'אימון דיוק בגובה הצליל של הקול בזמן אמת, ואימון שמיעה.',
     'home.tools.title': 'כלי עזר',
     'toolScreen.back': 'בית',
-    'home.tools.desc': 'מטרונום עם מכונת תופים, וטיונר לגיטרה.',
+    'toolScreen.guitarTuner': 'טיונר גיטרה',
+    'toolScreen.bassTuner': 'טיונר בס',
+    'home.tools.desc': 'מטרונום עם מכונת תופים, טיונר לגיטרה ולבס, והגדרות.',
 
     'instrument.label': 'כלי נגינה',
     'instrument.guitar': 'גיטרה',

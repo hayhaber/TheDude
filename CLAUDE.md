@@ -58,7 +58,7 @@ rosewood, below).
   arrows / dots / arrow keys / mouse wheel. NOT a scroll container: an
   endless ring drawn by JS (`draw()`: each card is translateX'd by its
   ring distance `ringDist(i, pos)` from one float position `pos`, plus the
-  "drum" rotateY ±20° (±30° on phones <=640px) / scale / fade; `animateTo()` eases `pos` to an
+  "drum" rotateY ±33° (TURN_DEG; TURN_DEG_PHONE for <=640px, currently equal) / scale / fade; `animateTo()` eases `pos` to an
   integer target). Pointer drag follows the finger but is held to ±1 card
   and settles one card per swipe (share/velocity threshold); a drag
   suppresses the click. Native scrolling was dropped because on iPhone it

@@ -205,8 +205,8 @@ function Chevron({ dir }) {
 const N = CARDS.length;
 
 // The drum: cards beside the centre turn away and recede.
-const TURN_DEG = 20;
-const TURN_DEG_PHONE = 30; // phones (<=640px): a stronger turn
+const TURN_DEG = 33;
+const TURN_DEG_PHONE = 33; // phones (<=640px) — same as desktop for now
 const PHONE_MQ = '(max-width: 640px)';
 const SHRINK = 0.092;
 const FADE = 0.63;

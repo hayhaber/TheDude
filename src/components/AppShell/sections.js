@@ -1,5 +1,6 @@
 import { TrainingIcon } from '../TrainingIcon/TrainingIcon';
 import { GuitarIcon } from '../GuitarIcon/GuitarIcon';
+import { GuitarProIcon } from '../GuitarProIcon/GuitarProIcon';
 
 // Top-level destinations — see the IA in the redesign plan: Compose (build
 // the progression), Improvise (generate over it), Practice (skill-building,
@@ -20,6 +21,6 @@ export const SECTIONS = [
   { key: 'studies', labelKey: 'nav.studies', icon: '📖' },
   { key: 'songs', labelKey: 'nav.songs', icon: '🔍' },
   // Guitar Pro files: play the song with its band, practice its solo.
-  { key: 'guitarpro', labelKey: 'nav.guitarpro', icon: '🎸' },
+  { key: 'guitarpro', labelKey: 'nav.guitarpro', icon: GuitarProIcon },
   { key: 'vocal', labelKey: 'nav.vocal', icon: '🎤' },
 ];

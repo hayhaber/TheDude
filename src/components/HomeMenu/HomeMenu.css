@@ -57,7 +57,8 @@
   --home-gap: 28px;
   display: grid;
   justify-items: center;
-  align-items: center;
+  /* Every card as tall as the tallest one (they share the grid cell). */
+  align-items: stretch;
   width: 100%;
   padding: 24px 0 30px;
   /* Vertical swipes still scroll the page; sideways ones are ours. */
@@ -174,6 +175,7 @@
 }
 
 .home-options {
+  margin-top: auto; /* shortcuts sit at the bottom of equal-height cards */
   display: flex;
   justify-content: center;
   gap: 8px;
@@ -328,8 +330,12 @@
   .home-options {
     flex-wrap: wrap;
     gap: 0;
-    margin: 14px 16px 0;
+    margin: auto 16px 0; /* bottom of the card, like the others */
     padding: 10px 0 16px;
+  }
+
+  .home-card-main {
+    padding-bottom: 14px;
   }
 
   .home-option {
@@ -338,6 +344,38 @@
 
   .home-arrow {
     display: none;
+  }
+}
+
+/* Short phones (e.g. iPhone SE): smaller art so the whole card fits. */
+@media (max-width: 640px) and (max-height: 740px) {
+  .home-top {
+    padding-top: 20px;
+  }
+
+  .home-art {
+    flex-basis: 150px;
+  }
+
+  .home-art-guitar svg,
+  .home-art-bass svg {
+    height: 170px;
+  }
+
+  .home-art-piano svg {
+    width: 180px;
+  }
+
+  .home-art-vocal svg {
+    height: 140px;
+  }
+
+  .home-art-tools svg {
+    height: 150px;
+  }
+
+  .home-title {
+    font-size: 28px;
   }
 }
 

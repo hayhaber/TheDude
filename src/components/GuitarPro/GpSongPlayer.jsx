@@ -119,11 +119,18 @@ function MixerIcon() {
 // The mixer, opened to the right of the rail over the score: per track,
 // show it, mute, solo, and its level — to keep the band audible but quieter
 // under the part you're playing.
-function TrackMixerPanel({ trainer, t, solo, onSolo, onClose }) {
+function TrackMixerPanel({ trainer, t, solo, onSolo, onClose, open }) {
   const tracks = trainer.tracks.filter((tr) => tr.noteCount > 0);
   const on = new Set(trainer.mix);
   return (
-    <div className="gp-mixer-panel" role="dialog" aria-label={t('gp.mixerTitle')} dir="auto">
+    <div
+      className={'gp-mixer-panel' + (open ? ' is-open' : '')}
+      role="dialog"
+      aria-label={t('gp.mixerTitle')}
+      aria-hidden={!open}
+      inert={!open}
+      dir="auto"
+    >
       <div className="gp-mixer-head">
         <b>{t('gp.mixerTitle')}</b>
         <button type="button" className="gp-mixer-close" onClick={onClose} aria-label={t('gp.mixerClose')}>
@@ -591,8 +598,9 @@ export function GpSongPlayer({ trainer, t, pianoProfile }) {
       {error && <p className="lt-warning">{t('lickTrainer.error.import', { message: error })}</p>}
       <div className="gp-song-body" dir="ltr">
         <TrackRail trainer={trainer} t={t} open={mixerOpen} onToggle={() => setMixerOpen((o) => !o)} solo={solo} />
-        {mixerOpen && (
+        {trainer.tracks.length > 0 && (
           <TrackMixerPanel
+            open={mixerOpen}
             trainer={trainer}
             t={t}
             solo={solo}

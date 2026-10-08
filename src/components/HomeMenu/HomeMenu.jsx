@@ -180,37 +180,60 @@ const CARDS = [
 // Drawn, not a ‹ › character: those are mirrored in right-to-left text.
 function Chevron({ dir }) {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d={dir === 'right' ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'} />
     </svg>
   );
 }
 
-// The carousel loops: the cards are rendered three times over and, once a
-// scroll settles in the first or last copy, it jumps (invisibly — the copies
-// are identical) to the same card in the middle copy.
+// The carousel is drawn, not scrolled: every card is placed by a transform
+// from one continuous position `pos` (in cards). That makes it truly endless
+// (each card sits at its distance from `pos` wrapped around the ring), moves
+// exactly one card per swipe, and keeps the "drum" in step with the finger —
+// native scrolling on iPhone (momentum, snap, a copy-jump for the loop)
+// flickered, skipped several cards and ran out of copies.
 const N = CARDS.length;
-const SLIDES = [0, 1, 2].flatMap((copy) => CARDS.map((card, i) => ({ card, i, copy, pos: copy * N + i })));
 
-// The "wheel": cards beside the centre turn away a little and recede, as if
-// mounted on a drum — kept subtle.
+// The drum: cards beside the centre turn away and recede.
 const TURN_DEG = 20;
 const SHRINK = 0.092;
 const FADE = 0.63;
+const ANIM_MS = 420;
+// A swipe past this share of a card, or this fast (px/ms), moves one card.
+const SWIPE_SHARE = 0.12;
+const SWIPE_SPEED = 0.35;
+
+// Signed distance on the ring, in -N/2..N/2.
+function ringDist(i, pos) {
+  let d = (i - pos) % N;
+  if (d < -N / 2) d += N;
+  if (d >= N / 2) d -= N;
+  return d;
+}
+
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 
 /**
- * The home screen: a looping carousel of instruments (swipe, wheel, arrows,
- * keys or the dots), each card with a short description and shortcuts into
- * the app. Tapping the card itself opens its first shortcut.
+ * The home screen: an endless carousel of instruments (swipe, wheel, arrows,
+ * keys or the dots — one card per step), each card with a short description
+ * and shortcuts into the app. Tapping the card itself opens its first
+ * shortcut.
  */
 export function HomeMenu({ onOpen, onContinue, initialCard }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
-  const scrollRef = useRef(null);
+  const trackRef = useRef(null);
   const rootRef = useRef(null);
-  // Each card sits in an untransformed slot (measured and snapped to); the
-  // card inside it gets the wheel transform.
-  const slotRefs = useRef([]);
   const cardRefs = useRef([]);
   // Back from a tool screen = back on the Tools card; otherwise the
   // instrument in use.
@@ -218,99 +241,136 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
     0,
     CARDS.findIndex((c) => (initialCard ? c.key === initialCard : c.instrument === instrument)),
   );
-  const [activePos, setActivePos] = useState(N + startIndex);
-  const active = activePos % N;
-  const activePosRef = useRef(activePos);
-  activePosRef.current = activePos;
-
-  const scrollToPos = useCallback((pos, smooth = true) => {
-    // Scroll the track only (scrollIntoView would also move the page), by
-    // the card's distance from the middle — works the same in RTL.
-    const card = slotRefs.current[pos];
-    const box = scrollRef.current;
-    if (!card || !box) return;
-    const c = card.getBoundingClientRect();
-    const b = box.getBoundingClientRect();
-    box.scrollBy({
-      left: c.left + c.width / 2 - (b.left + b.width / 2),
-      behavior: smooth ? 'smooth' : 'instant',
-    });
-  }, []);
-
-  // One step forward/back from wherever we are (wraps around).
-  const step = useCallback((dir) => scrollToPos(activePosRef.current + dir), [scrollToPos]);
-
-  // A dot: the nearest copy of that card.
-  const goToCard = (i) => {
-    const cur = activePosRef.current;
-    const best = [i, i + N, i + 2 * N].reduce((a, b) => (Math.abs(b - cur) < Math.abs(a - cur) ? b : a));
-    scrollToPos(best);
-  };
-
-  // Turn/shrink/fade each card by its distance from the centre.
+  const [active, setActive] = useState(startIndex);
+  const activeRef = useRef(startIndex);
+  const posRef = useRef(startIndex); // where the ring is drawn now
+  const targetRef = useRef(startIndex); // where it is heading (an integer)
+  const animRef = useRef(0);
   const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const applyDepth = useCallback(() => {
-    const box = scrollRef.current;
-    if (!box) return;
-    const b = box.getBoundingClientRect();
-    const mid = b.left + b.width / 2;
-    let best = 0;
-    let bestDist = Infinity;
-    slotRefs.current.forEach((slot, pos) => {
-      const el = cardRefs.current[pos];
-      if (!slot || !el) return;
-      const r = slot.getBoundingClientRect();
-      const w = r.width || 1;
-      const dist = r.left + w / 2 - mid;
-      if (Math.abs(dist) < bestDist) {
-        bestDist = Math.abs(dist);
-        best = pos;
-      }
-      const d = dist / (w + 28);
-      // Far off-screen copies: no transform at all (fewer GPU layers —
-      // matters on iPhone with 15 cards in the track).
-      if (Math.abs(d) > 2) {
-        if (el.style.transform) {
-          el.style.transform = '';
-          el.style.opacity = '';
-        }
-        return;
-      }
+
+  // Place every card for the current position.
+  const draw = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const pos = posRef.current;
+    const first = cardRefs.current[0];
+    const gap = parseFloat(getComputedStyle(track).getPropertyValue('--home-gap')) || 28;
+    const step = (first?.offsetWidth || 1) + gap;
+    cardRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const d = ringDist(i, pos);
       const a = Math.min(1, Math.abs(d));
+      // RTL: the next card waits on the left.
+      const x = -d * step;
       const turn = reduceMotion ? 0 : Math.max(-1.5, Math.min(1.5, d)) * TURN_DEG;
-      el.style.transform = `perspective(1600px) rotateY(${turn.toFixed(2)}deg) scale(${(1 - a * SHRINK).toFixed(4)})`;
+      el.style.transform = `translateX(${x.toFixed(1)}px) perspective(1600px) rotateY(${turn.toFixed(2)}deg) scale(${(1 - a * SHRINK).toFixed(4)})`;
       el.style.opacity = (1 - a * FADE).toFixed(3);
+      el.style.visibility = Math.abs(d) > 2.2 ? 'hidden' : '';
+      el.style.zIndex = String(10 - Math.round(Math.abs(d) * 2));
     });
-    if (best !== activePosRef.current) setActivePos(best);
+    const idx = ((Math.round(pos) % N) + N) % N;
+    if (idx !== activeRef.current) {
+      activeRef.current = idx;
+      setActive(idx);
+    }
   }, [reduceMotion]);
 
-  // Open on the card in use (middle copy).
-  useLayoutEffect(() => {
-    scrollToPos(N + startIndex, false);
-    applyDepth();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Scrolling: update the wheel every frame; once it settles in an outer
-  // copy, hop to the middle one.
-  const rafRef = useRef(0);
-  const settleRef = useRef(0);
-  const onScroll = () => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(applyDepth);
-    clearTimeout(settleRef.current);
-    settleRef.current = setTimeout(() => {
-      const pos = activePosRef.current;
-      if (pos < N) scrollToPos(pos + N, false);
-      else if (pos >= 2 * N) scrollToPos(pos - N, false);
-    }, 260); // after iOS momentum has fully settled
-  };
-  useEffect(
-    () => () => {
-      cancelAnimationFrame(rafRef.current);
-      clearTimeout(settleRef.current);
+  // Glide from wherever the ring is to `target`.
+  const animateTo = useCallback(
+    (target) => {
+      cancelAnimationFrame(animRef.current);
+      targetRef.current = target;
+      const from = posRef.current;
+      const t0 = performance.now();
+      const tick = (now) => {
+        const k = Math.min(1, (now - t0) / ANIM_MS);
+        posRef.current = from + (target - from) * easeOut(k);
+        draw();
+        if (k < 1) animRef.current = requestAnimationFrame(tick);
+      };
+      animRef.current = requestAnimationFrame(tick);
     },
-    [],
+    [draw],
   );
+
+  // One card forward/back.
+  const step = useCallback((dir) => animateTo(targetRef.current + dir), [animateTo]);
+
+  // A dot / a side card: the shortest way round to it.
+  const goToCard = useCallback((i) => animateTo(targetRef.current + ringDist(i, targetRef.current)), [animateTo]);
+
+  useLayoutEffect(() => {
+    draw();
+    const onResize = () => draw();
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      cancelAnimationFrame(animRef.current);
+    };
+  }, [draw]);
+
+  // Swipe / drag: the ring follows the finger, then settles one card over
+  // (or back) — never more than one per swipe.
+  const dragRef = useRef(null);
+  const suppressClickRef = useRef(false);
+  const onPointerDown = (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const first = cardRefs.current[0];
+    const gap = parseFloat(getComputedStyle(trackRef.current).getPropertyValue('--home-gap')) || 28;
+    dragRef.current = {
+      id: e.pointerId,
+      x0: e.clientX,
+      y0: e.clientY,
+      base: Math.round(targetRef.current),
+      startPos: posRef.current,
+      step: (first?.offsetWidth || 1) + gap,
+      lastX: e.clientX,
+      lastT: performance.now(),
+      v: 0,
+      dragging: false,
+    };
+    suppressClickRef.current = false;
+  };
+  const onPointerMove = (e) => {
+    const g = dragRef.current;
+    if (!g || g.id !== e.pointerId) return;
+    const dx = e.clientX - g.x0;
+    if (!g.dragging) {
+      if (Math.abs(dx) < 6) return;
+      if (Math.abs(e.clientY - g.y0) > Math.abs(dx)) {
+        dragRef.current = null; // a vertical gesture: leave it to the page
+        return;
+      }
+      g.dragging = true;
+      suppressClickRef.current = true;
+      cancelAnimationFrame(animRef.current);
+      g.startPos = posRef.current;
+      try {
+        trackRef.current.setPointerCapture(e.pointerId);
+      } catch {
+        /* not capturable — still works */
+      }
+    }
+    const now = performance.now();
+    g.v = (e.clientX - g.lastX) / Math.max(1, now - g.lastT);
+    g.lastX = e.clientX;
+    g.lastT = now;
+    // RTL: dragging right brings the next (left) card in. Held to one card
+    // either side of where the swipe began.
+    const raw = g.startPos + dx / g.step;
+    posRef.current = Math.max(g.base - 1, Math.min(g.base + 1, raw));
+    draw();
+  };
+  const onPointerUp = (e) => {
+    const g = dragRef.current;
+    dragRef.current = null;
+    if (!g || g.id !== e.pointerId || !g.dragging) return;
+    const moved = posRef.current - g.base;
+    let target = g.base;
+    if (moved > SWIPE_SHARE || g.v > SWIPE_SPEED) target = g.base + 1;
+    else if (moved < -SWIPE_SHARE || g.v < -SWIPE_SPEED) target = g.base - 1;
+    animateTo(target);
+  };
 
   useEffect(() => {
     const onKey = (e) => {
@@ -324,19 +384,20 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
 
   // Mouse wheel (desktop): down = next card, up = previous — one card per
   // flick. A trackpad sends a burst of small deltas, so they're summed and
-  // a step is followed by a short pause. Sideways trackpad swipes scroll
-  // natively and are left alone.
+  // a step is followed by a short pause. A sideways trackpad swipe moves
+  // one card too.
   useEffect(() => {
     const box = rootRef.current; // anywhere on the home screen
     if (!box) return undefined;
     let sum = 0;
     let lockedUntil = 0;
     const onWheel = (e) => {
-      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
       e.preventDefault();
       const now = performance.now();
       if (now < lockedUntil) return;
-      sum += e.deltaY;
+      // Sideways: content follows the fingers (RTL: right = next).
+      sum += horizontal ? -e.deltaX : e.deltaY;
       if (Math.abs(sum) < 40) return;
       const dir = sum > 0 ? 1 : -1;
       sum = 0;
@@ -350,11 +411,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
   const open = (card, option) => {
     if (option.tool) {
       // The tool on its own screen.
-      onOpen({
-        tool: option.tool,
-        tunerMode: option.tunerMode,
-        card: card.key,
-      });
+      onOpen({ tool: option.tool, tunerMode: option.tunerMode, card: card.key });
       return;
     }
     onOpen({
@@ -362,6 +419,15 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       section: option.section,
       practiceTab: option.practiceTab ?? null,
     });
+  };
+
+  // A tap at the end of a drag isn't a click.
+  const guard = (fn) => (e) => {
+    if (suppressClickRef.current) {
+      e.preventDefault();
+      return;
+    }
+    fn();
   };
 
   return (
@@ -379,55 +445,56 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       </header>
 
       <div className="home-carousel">
-        <div className="home-track" ref={scrollRef} onScroll={onScroll}>
-          {SLIDES.map(({ card, copy, pos }) => {
+        <div
+          className="home-track"
+          ref={trackRef}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        >
+          {CARDS.map((card, i) => {
             const opts = card.options.filter((o) => {
               if (o.tool) return true;
               const inst = card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument);
               return supportsInstrument(o.section, inst);
             });
-            const isActive = pos === activePos;
+            const isActive = i === active;
             return (
-              <div className="home-slot" key={`${card.key}-${copy}`} ref={(el) => (slotRefs.current[pos] = el)}>
-                <article
-                  ref={(el) => (cardRefs.current[pos] = el)}
-                  className={'home-card' + (isActive ? ' is-active' : '')}
-                  aria-current={isActive ? 'true' : undefined}
-                  aria-hidden={copy !== 1 ? 'true' : undefined}
+              <article
+                key={card.key}
+                ref={(el) => (cardRefs.current[i] = el)}
+                className={'home-card' + (isActive ? ' is-active' : '')}
+                aria-current={isActive ? 'true' : undefined}
+                aria-hidden={isActive ? undefined : 'true'}
+              >
+                <button
+                  type="button"
+                  className="home-card-main"
+                  onClick={guard(() => (isActive ? open(card, opts[0]) : goToCard(i)))}
+                  tabIndex={isActive ? 0 : -1}
                 >
-                  <button
-                    type="button"
-                    className="home-card-main"
-                    onClick={() => (isActive ? open(card, opts[0]) : scrollToPos(pos))}
-                    tabIndex={isActive ? 0 : -1}
-                  >
-                    <span
-                      className={`home-art home-art-${card.key}`}
-                      dangerouslySetInnerHTML={{
-                        __html: INSTRUMENT_ART[card.key],
-                      }}
-                    />
-                    <span className="home-text">
-                      <span className="home-title">{t(card.titleKey)}</span>
-                      <span className="home-desc">{t(card.descKey)}</span>
-                    </span>
-                  </button>
-                  <div className="home-options">
-                    {opts.map((o) => (
-                      <button
-                        key={o.tool ?? o.section + (o.practiceTab ?? '')}
-                        type="button"
-                        className="home-option"
-                        onClick={() => (isActive ? open(card, o) : scrollToPos(pos))}
-                        tabIndex={isActive ? 0 : -1}
-                      >
-                        <LineIcon name={o.icon} />
-                        <span>{t(o.labelKey ?? `nav.${o.section}`)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </article>
-              </div>
+                  <span className={`home-art home-art-${card.key}`} dangerouslySetInnerHTML={{ __html: INSTRUMENT_ART[card.key] }} />
+                  <span className="home-text">
+                    <span className="home-title">{t(card.titleKey)}</span>
+                    <span className="home-desc">{t(card.descKey)}</span>
+                  </span>
+                </button>
+                <div className="home-options">
+                  {opts.map((o) => (
+                    <button
+                      key={o.tool ?? o.section + (o.practiceTab ?? '')}
+                      type="button"
+                      className="home-option"
+                      onClick={guard(() => (isActive ? open(card, o) : goToCard(i)))}
+                      tabIndex={isActive ? 0 : -1}
+                    >
+                      <LineIcon name={o.icon} />
+                      <span>{t(o.labelKey ?? `nav.${o.section}`)}</span>
+                    </button>
+                  ))}
+                </div>
+              </article>
             );
           })}
         </div>

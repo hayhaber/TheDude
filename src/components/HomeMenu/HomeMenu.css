@@ -52,31 +52,24 @@
 }
 
 .home-track {
-  display: flex;
-  gap: 28px;
+  /* Every card in the same grid cell, centred; JS slides/turns them
+     (HomeMenu.jsx draw()). Tall enough for the tallest card. */
+  --home-gap: 28px;
+  display: grid;
+  justify-items: center;
+  align-items: center;
   width: 100%;
-  /* Extra room above/below (taken back by the negative margins) so the
-     active card's shadow and glow aren't clipped by the scroller. */
-  padding: 40px calc((100% - var(--home-card-w)) / 2) 90px;
-  margin: -16px 0 -60px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.home-track::-webkit-scrollbar {
-  display: none;
-}
-
-.home-slot {
-  flex: 0 0 var(--home-card-w);
-  scroll-snap-align: center;
-  display: flex;
+  padding: 24px 0 30px;
+  /* Vertical swipes still scroll the page; sideways ones are ours. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .home-card {
-  flex: 1;
-  min-width: 0;
+  grid-area: 1 / 1;
+  width: var(--home-card-w);
   display: flex;
   flex-direction: column;
   border-radius: 28px;
@@ -292,7 +285,7 @@
   }
 
   .home-track {
-    gap: 14px;
+    --home-gap: 14px;
   }
 
   .home-card-main {

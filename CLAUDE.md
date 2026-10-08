@@ -55,14 +55,15 @@ rosewood, below).
   (guitar, piano, bass, singing — art in `instrumentArt.js`, static SVG)
   in the style of a GarageBand-like instrument browser: art + title +
   description, shortcut row filtered by `supportsInstrument()`, swipe /
-  arrows / dots / arrow keys / mouse wheel, scroll-snap (scrolled with
-  `scrollBy`, not scrollIntoView, so the page doesn't move). It LOOPS: the
-  cards are rendered 3x (`SLIDES`), and once a scroll settles in an outer
-  copy it jumps instantly to the same card in the middle copy. Each card
-  sits in an untransformed `.home-slot` (measured + snapped) and the card
-  inside gets a per-frame "drum" transform from its distance to the centre
-  (`applyDepth`: rotateY ±20°, scale, fade; no rotation with reduced
-  motion; copies >2 cards away get no transform). WebKit (iPhone/Safari)
+  arrows / dots / arrow keys / mouse wheel. NOT a scroll container: an
+  endless ring drawn by JS (`draw()`: each card is translateX'd by its
+  ring distance `ringDist(i, pos)` from one float position `pos`, plus the
+  "drum" rotateY ±20° / scale / fade; `animateTo()` eases `pos` to an
+  integer target). Pointer drag follows the finger but is held to ±1 card
+  and settles one card per swipe (share/velocity threshold); a drag
+  suppresses the click. Native scrolling was dropped because on iPhone it
+  flickered, skipped several cards on a fast swipe and the 3x-copies loop
+  ran out. WebKit (iPhone/Safari)
   rules for anything inside a card: NO nested 3D transforms (the piano art
   is a 2D `scaleY rotate` — a perspective/rotateX there was thrown into the
   card's corner on iPhone) and no `background-clip: text` + filter titles

@@ -23,6 +23,7 @@ export const STRINGS = {
     'home.vocal.title': 'Singing',
     'home.vocal.desc': 'Real-time pitch-accuracy training for your voice, and ear training.',
     'home.tools.title': 'Tools',
+    'toolScreen.back': 'Home',
     'home.tools.desc': 'A metronome with a drum machine, and a guitar tuner.',
 
     'instrument.label': 'Instrument',
@@ -1189,6 +1190,7 @@ export const STRINGS = {
     'home.vocal.title': 'שירה',
     'home.vocal.desc': 'אימון דיוק בגובה הצליל של הקול בזמן אמת, ואימון שמיעה.',
     'home.tools.title': 'כלי עזר',
+    'toolScreen.back': 'בית',
     'home.tools.desc': 'מטרונום עם מכונת תופים, וטיונר לגיטרה.',
 
     'instrument.label': 'כלי נגינה',

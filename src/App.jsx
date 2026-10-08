@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
 import { HomeMenu } from './components/HomeMenu/HomeMenu';
 import { AppShell } from './components/AppShell/AppShell';
 import { Stage } from './components/Stage/Stage';
 import { MetronomeBar } from './components/MetronomeBar/MetronomeBar';
-import { requestTool } from './components/AppShell/toolRequest';
+import { ToolScreen } from './components/ToolScreen/ToolScreen';
 import { ComposeView } from './components/ComposeView/ComposeView';
 import { ImproviseView } from './components/ImproviseView/ImproviseView';
 import { PracticeView } from './components/PracticeView/PracticeView';
@@ -131,6 +131,9 @@ function App() {
   // The home screen (instrument menu) opens first; the logo leads back to it.
   const [home, setHome] = useState(true);
   const [leftHome, setLeftHome] = useState(false);
+  // A tool opened from the home screen's Tools card, on its own screen.
+  const [toolScreen, setToolScreen] = useState(null);
+  const [homeCard, setHomeCard] = useState(null);
   // The 3 top-level destinations (Compose/Improvise/Practice) — see
   // components/AppShell for the nav shell that drives this.
   const [activeSection, setActiveSection] = useState('compose');
@@ -1823,26 +1826,54 @@ function App() {
     tempoDown: () => metronome.setBpm(metronome.bpm - 5),
   });
 
+  // Leaving the tool screen leaves nothing ticking out of sight.
+  const stopMetronome = metronome.stop;
+  const closeToolScreen = useCallback(() => {
+    stopMetronome();
+    setToolScreen(null);
+    setHomeCard('tools');
+  }, [stopMetronome]);
+
+  if (toolScreen) {
+    return (
+      <ToolScreen
+        tool={toolScreen}
+        onToolChange={setToolScreen}
+        onBack={closeToolScreen}
+        metronome={metronome}
+        drums={drums}
+      />
+    );
+  }
+
   if (home) {
     return (
       <HomeMenu
         onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool }) => {
+          // Tools card: the tool on its own screen (home stays underneath).
+          if (tool) {
+            setToolScreen(tool);
+            return;
+          }
+          setHomeCard(null);
           if (nextInstrument && nextInstrument !== instrument) setInstrument(nextInstrument);
           if (tab) setPracticeTab(tab);
-          if (section) setActiveSection(section);
-          // Tools card: the pill of that tool opens its drawer once mounted.
-          if (tool) requestTool(tool);
+          setActiveSection(section);
           setHome(false);
           setLeftHome(true);
         }}
         onContinue={leftHome ? () => setHome(false) : null}
+        initialCard={homeCard}
       />
     );
   }
 
   return (
     <AppShell
-      onHome={() => setHome(true)}
+      onHome={() => {
+        setHomeCard(null);
+        setHome(true);
+      }}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
       settingsSlot={

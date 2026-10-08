@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GuitarTuner } from '../GuitarTuner/GuitarTuner';
 import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { takeToolRequest } from '../AppShell/toolRequest';
 import './TunerBar.css';
 
 // Compact, always-visible trigger (mirrors MetronomeBar's pill) that opens
@@ -30,12 +29,6 @@ export function TunerBar() {
   const [open, setOpen] = useState(false);
   const { instrument } = useInstrument();
   const { t } = useLanguage();
-  const buttonRef = useRef(null);
-
-  // Opened from the home screen's Tools card.
-  useEffect(() => {
-    if (takeToolRequest('tuner', buttonRef.current)) setOpen(true);
-  }, []);
 
   // Same body-scroll-lock + Escape-to-close as AppShell's own nav drawer.
   useEffect(() => {
@@ -59,7 +52,7 @@ export function TunerBar() {
 
   return (
     <>
-      <button ref={buttonRef} type="button" className="tuner-bar" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
+      <button type="button" className="tuner-bar" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
         <span className="tuner-bar-icon" aria-hidden="true">
           🎵
         </span>

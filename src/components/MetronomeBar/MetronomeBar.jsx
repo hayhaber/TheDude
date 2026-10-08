@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Metronome } from '../Metronome/Metronome';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { takeToolRequest } from '../AppShell/toolRequest';
 import './MetronomeBar.css';
 
 // Always-visible, compact — BPM, a single beat-pulse dot, and Start/Stop.
@@ -21,12 +20,6 @@ export function MetronomeBar({ metronome, drums }) {
   const [open, setOpen] = useState(false);
   const { isRunning, bpm } = metronome;
   const { t } = useLanguage();
-  const buttonRef = useRef(null);
-
-  // Opened from the home screen's Tools card.
-  useEffect(() => {
-    if (takeToolRequest('metronome', buttonRef.current)) setOpen(true);
-  }, []);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -48,7 +41,6 @@ export function MetronomeBar({ metronome, drums }) {
           TunerBar's pill. The in-bar Play/Stop moved into the drawer so
           the two nav pills can sit side by side. */}
       <button
-        ref={buttonRef}
         type="button"
         className={'metronome-bar' + (isRunning ? ' running' : '')}
         onClick={() => setOpen(true)}

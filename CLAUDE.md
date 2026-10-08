@@ -60,14 +60,17 @@ rosewood, below).
   practiceTab})` sets them in App. The logo (drawer header + phone brand,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /
-  Tuner shortcuts: `onOpen({tool})` keeps the current section (tuner switches
-  to guitar) and `requestTool()` (`AppShell/toolRequest.js`) makes the
-  VISIBLE pill of that tool open its drawer on mount.
+  Tuner shortcuts: `onOpen({tool})` opens `components/ToolScreen/` — the tool
+  ALONE on its own screen (App `toolScreen` state, rendered instead of home /
+  AppShell; Metronome | Tuner switch, Back / logo / Escape -> home on the
+  Tools card via `initialCard`; leaving stops the metronome). It uses the
+  same `metronome`/`drums` instances as the app pills.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop (>=900px) fixed top-right (`.app-desktop-tools`, across from
   the menu button — NOT in the nav drawer); tablet/phone in the bar above the
   bottom tabs. Each is mounted twice (one hidden by CSS), so anything that
-  opens a drawer programmatically must pick the visible one. GuitarPro's
+  opens a drawer programmatically must pick the visible one. Home also
+  scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   `.gp-song` scroll-margin-top is 60px on desktop to clear them.
 
 - **Three instruments**: Guitar (6-string), Piano, Bass (4-string, E-A-D-G,

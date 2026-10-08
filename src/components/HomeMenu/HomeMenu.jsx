@@ -135,15 +135,14 @@ const CARDS = [
     ],
   },
   {
-    // Not an instrument: opens the metronome / tuner drawer over the app
-    // (the tuner is a guitar tuner, so it switches to guitar).
+    // Not an instrument: the metronome / tuner, each on a screen of its own.
     key: 'tools',
     instrument: null,
     titleKey: 'home.tools.title',
     descKey: 'home.tools.desc',
     options: [
       { tool: 'metronome', icon: 'metronome', labelKey: 'metronome.title' },
-      { tool: 'tuner', icon: 'tuner', labelKey: 'tunerBar.label', instrument: 'guitar' },
+      { tool: 'tuner', icon: 'tuner', labelKey: 'tunerBar.label' },
     ],
   },
 ];
@@ -153,13 +152,18 @@ const CARDS = [
  * each card with a short description and shortcuts into the app. Tapping
  * the card itself opens its first shortcut.
  */
-export function HomeMenu({ onOpen, onContinue }) {
+export function HomeMenu({ onOpen, onContinue, initialCard }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
   const scrollRef = useRef(null);
   const rootRef = useRef(null);
   const cardRefs = useRef([]);
-  const startIndex = Math.max(0, CARDS.findIndex((c) => c.instrument === instrument));
+  // Back from a tool screen = back on the Tools card; otherwise the
+  // instrument in use.
+  const startIndex = Math.max(
+    0,
+    CARDS.findIndex((c) => (initialCard ? c.key === initialCard : c.instrument === instrument))
+  );
   const [active, setActive] = useState(startIndex);
 
   const scrollTo = useCallback((i, smooth = true) => {
@@ -238,8 +242,8 @@ export function HomeMenu({ onOpen, onContinue }) {
 
   const open = (card, option) => {
     if (option.tool) {
-      // Stay in the current section; just open the tool over it.
-      onOpen({ instrument: option.instrument ?? instrument, section: null, practiceTab: null, tool: option.tool });
+      // The tool on its own screen.
+      onOpen({ tool: option.tool });
       return;
     }
     onOpen({

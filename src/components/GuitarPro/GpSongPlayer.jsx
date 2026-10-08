@@ -24,7 +24,7 @@ function giveChordNamesTheirOwnRow() {
 }
 
 // The chord names' font carries this made-up family first, so they can be
-// told apart from every other text in the score's SVG (and styled/lit).
+// told apart from every other text in the score's SVG (and styled).
 const CHORD_FONT_TAG = 'DSChordName';
 
 const KIND_ICON = { drums: '🥁', vocal: '🎤', bass: '🎸', keys: '🎹', strings: '🎻', guitar: '🎸' };
@@ -154,11 +154,6 @@ export function GpSongPlayer({ trainer, t }) {
   trackIndexRef.current = trackIndex;
   // Tracks whose chord names were already written into this file's score.
   const labeledRef = useRef(new Set());
-  // The chord names we wrote, per track ([{ tick, name }]), to light up the
-  // one being played (piano).
-  const chordLabelsRef = useRef(new Map());
-  const pianoRef = useRef(false);
-  pianoRef.current = !!trainer.pianoMode;
 
   // One alphaTab instance per file shown.
   useEffect(() => {
@@ -169,8 +164,8 @@ export function GpSongPlayer({ trainer, t }) {
     setError(null);
     giveChordNamesTheirOwnRow();
     const api = new alphaTab.AlphaTabApi(hostRef.current, {
-      // No lazy loading: every line is in the page, so the chord names can
-      // be found (and lit) in order.
+      // Main-thread rendering (see giveChordNamesTheirOwnRow). Lazy loading
+      // stays off: with it on (and no workers) playback wouldn't start.
       core: { engine: 'svg', fontDirectory: '/font/', useWorkers: false, enableLazyLoading: false },
       display: { staveProfile: alphaTab.StaveProfile.Tab, scale: 0.95 },
       player: {
@@ -192,52 +187,18 @@ export function GpSongPlayer({ trainer, t }) {
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     let lastSystem = -1;
     labeledRef.current = new Set();
-    chordLabelsRef.current = new Map();
-    // Lights the chord name in play: the last one at or before `tick`.
-    const lit = { index: -1, els: null };
-    const lightChord = (tick) => {
-      const labels = chordLabelsRef.current.get(trackIndexRef.current);
-      const host = hostRef.current;
-      if (!host) return;
-      if (!pianoRef.current || !labels?.length || tick == null) {
-        lit.els?.[lit.index]?.classList.remove('is-playing');
-        lit.index = -1;
-        return;
-      }
-      if (!lit.els || !lit.els[0]?.isConnected || lit.els.length !== labels.length) {
-        lit.els = [...host.querySelectorAll('text')].filter((el) => (el.getAttribute('style') || '').includes(CHORD_FONT_TAG));
-        lit.index = -1;
-      }
-      if (lit.els.length !== labels.length) return;
-      let lo = 0;
-      let hi = labels.length - 1;
-      let idx = -1;
-      while (lo <= hi) {
-        const mid = (lo + hi) >> 1;
-        if (labels[mid].tick <= tick) {
-          idx = mid;
-          lo = mid + 1;
-        } else hi = mid - 1;
-      }
-      if (idx === lit.index) return;
-      lit.els[lit.index]?.classList.remove('is-playing');
-      lit.els[idx]?.classList.add('is-playing');
-      lit.index = idx;
-    };
     api.scoreLoaded.on((score) => {
       fixKeysOctave(score); // before the MIDI and the drawing
       // Chord names for the first track shown, before it's drawn.
       const t = trackIndexRef.current;
       if (t != null && !labeledRef.current.has(t)) {
         labeledRef.current.add(t);
-        chordLabelsRef.current.set(t, labelChords(score, t));
+        labelChords(score, t);
       }
       setScoreVersion((v) => v + 1);
     });
     api.renderFinished.on(() => {
       lastSystem = -1;
-      lit.els = null; // redrawn: find the names again
-      lit.index = -1;
       setLoading(false);
     });
     // Page-turn scrolling: whenever playback reaches a new line, that line
@@ -280,16 +241,10 @@ export function GpSongPlayer({ trainer, t }) {
     api.playerStateChanged.on((e) => {
       const isPlaying = e.state === alphaTab.synth.PlayerState.Playing;
       setPlaying(isPlaying);
-      if (!isPlaying && e.stopped) {
-        followPlayhead(null);
-        lightChord(null);
-      }
+      if (!isPlaying && e.stopped) followPlayhead(null);
     });
     api.playerPositionChanged.on((e) => {
-      if (api.playerState === alphaTab.synth.PlayerState.Playing) {
-        followPlayhead((e.currentTick - tickStartRef.current) / TICKS_PER_BEAT);
-        lightChord(e.currentTick);
-      }
+      if (api.playerState === alphaTab.synth.PlayerState.Playing) followPlayhead((e.currentTick - tickStartRef.current) / TICKS_PER_BEAT);
     });
     api.error.on((e) => setError(e?.message ?? String(e)));
     let alive = true;
@@ -322,9 +277,7 @@ export function GpSongPlayer({ trainer, t }) {
     let named = 0;
     if (!labeledRef.current.has(trackIndex)) {
       labeledRef.current.add(trackIndex);
-      const labels = labelChords(score, trackIndex);
-      chordLabelsRef.current.set(trackIndex, labels);
-      named = labels.length;
+      named = labelChords(score, trackIndex).length;
     }
     const drawn = api.tracks?.length === 1 && api.tracks[0].index === trackIndex;
     if (drawn && !named && api.settings.display.staveProfile === profile) return;
@@ -334,6 +287,41 @@ export function GpSongPlayer({ trainer, t }) {
     api.renderTracks([score.tracks[trackIndex]]);
     scrollRef.current?.scrollTo({ top: 0 });
   }, [scoreVersion, trackIndex]);
+
+  // Piano: the shown track an octave up/down (sound + notation). Every
+  // staff keeps its loaded transposition (incl. fixKeysOctave) as the base.
+  const octave = trainer.pianoMode ? trainer.pianoOctave ?? 0 : 0;
+  useEffect(() => {
+    const api = apiRef.current;
+    const score = api?.score;
+    if (!score || !ready) return undefined;
+    // Quick taps (−, −) settle into one reload.
+    const timer = setTimeout(() => applyOctave(api, score), 220);
+    return () => clearTimeout(timer);
+  }, [octave, trackIndex, ready, scoreVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function applyOctave(api, score) {
+    let changed = false;
+    for (const tr of score.tracks) {
+      for (const st of tr.staves) {
+        if (st.__baseTransposition === undefined) st.__baseTransposition = st.transpositionPitch;
+        const want = st.__baseTransposition - (tr.index === trackIndex ? 12 * octave : 0);
+        if (st.transpositionPitch !== want) {
+          st.transpositionPitch = want;
+          changed = true;
+        }
+      }
+    }
+    if (!changed) return;
+    const resumeAt = api.playerState === alphaTab.synth.PlayerState.Playing ? api.tickPosition : null;
+    api.loadMidiForScore();
+    api.render();
+    setMidiVersion((v) => v + 1); // re-apply the mutes
+    if (resumeAt != null) {
+      api.tickPosition = resumeAt;
+      api.play();
+    }
+  }
 
   // The mixer: exactly the checked tracks sound.
   const mixKey = trainer.mix.join(',');

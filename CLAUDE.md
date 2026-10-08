@@ -229,9 +229,14 @@ rosewood, below).
   with section markers (they overlapped); chord font is bold sans 13, family
   starts with the tag `DSChordName` so the SVG <text> can be found; the
   song view uses `enableLazyLoading: false` so all names are in the DOM in
-  time order. Piano mode (`.gp-song.is-piano`): names blue, the one in play
-  gets `.is-playing` (glow + scale) via `lightChord(tick)` against the
-  `[{tick,name}]` list labelChords returns.
+  time order (lazy loading must stay OFF anyway: with main-thread rendering
+  and lazy loading on, Play didn't start). Piano mode (`.gp-song.is-piano`):
+  chord names blue (no glow — removed at the user's request).
+  Piano octave control: panel −/+ "Octave" LCD (PianoKeyboard `octaveShift`/
+  `onOctaveShiftChange`, GuitarPro only) -> `trainer.pianoOctave` (-2..2, per
+  `<file>#<track>` in localStorage); the song view sets the shown track's
+  `staff.transpositionPitch` = base − 12·shift (debounced, reloads MIDI,
+  re-renders, resumes); the keys add 12·shift in `pianoPart`.
   Space bar = Play/Pause in Song view (GpSongPlayer keydown, skips form fields). Song view keeps ONE AlphaTabApi
   per file and switches with `renderTracks()` (no MIDI reload). The mix is
   per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls

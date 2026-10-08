@@ -135,6 +135,10 @@ export function PianoKeyboard({
   // GuitarPro: the chord being played, for its own LCD on the panel
   // (null = none yet -> "—"). Left undefined everywhere else: no screen.
   chordReadout,
+  // GuitarPro: the shown part an octave up/down (-2..2), with its own panel
+  // control; undefined everywhere else (no control).
+  octaveShift,
+  onOctaveShiftChange,
   // Piano course's hand-position/five-finger-pattern lessons — `{midi,
   // finger}` (finger 1-5, thumb-to-pinky), shown as a small badge on the
   // key regardless of labelMode/showAllLabels, since it's teaching a
@@ -762,6 +766,34 @@ export function PianoKeyboard({
             ›
           </button>
         </div>
+
+        {octaveShift !== undefined && (
+          <div className="piano-panel-octave">
+            <button
+              type="button"
+              className="piano-panel-chevron"
+              onClick={() => onOctaveShiftChange?.(octaveShift - 1)}
+              disabled={octaveShift <= -2}
+              aria-label={t('piano.octave.down')}
+            >
+              −
+            </button>
+            <div className="piano-panel-lcd">
+              <span className="piano-panel-lcd-value">
+                {t('piano.octave.label')} <bdi dir="ltr">{octaveShift > 0 ? `+${octaveShift}` : octaveShift}</bdi>
+              </span>
+            </div>
+            <button
+              type="button"
+              className="piano-panel-chevron"
+              onClick={() => onOctaveShiftChange?.(octaveShift + 1)}
+              disabled={octaveShift >= 2}
+              aria-label={t('piano.octave.up')}
+            >
+              +
+            </button>
+          </div>
+        )}
 
         {/* Volume — a real slider, no LCD (per explicit request: this one
             control reads its own value directly off the handle rather than

@@ -59,6 +59,21 @@
   gap: 6px;
 }
 
+.piano-panel-octave {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.piano-panel-octave .piano-panel-lcd {
+  min-width: 96px;
+}
+
+.piano-panel-octave .piano-panel-chevron:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .piano-panel-chord {
   display: flex;
   align-items: stretch;

@@ -1554,7 +1554,13 @@ function App() {
   // notes/labelMode/etc. is in play.
   const stagePianoPropsBase =
     activeSection === 'guitarpro'
-      ? { notes: [], playNotes: lickTrainer.pianoKeys, chordReadout: lickTrainer.pianoChord }
+      ? {
+          notes: [],
+          playNotes: lickTrainer.pianoKeys,
+          chordReadout: lickTrainer.pianoChord,
+          octaveShift: lickTrainer.pianoOctave,
+          onOctaveShiftChange: lickTrainer.setPianoOctave,
+        }
       : activeSection === 'practice'
       ? practiceTab === 'ear-training'
         ? {

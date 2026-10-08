@@ -25,7 +25,8 @@ const LATENCY_KEY = 'lick-trainer-latency';
 const HISTORY_KEY = 'lick-trainer-history';
 const MIX_KEY = 'lick-trainer-gp-mix';
 const NECK_LABEL_KEY = 'lick-trainer-neck-label';
-const DISPLAY_KEY = 'lick-trainer-gp-display'; // { [soloId]: track shown/practiced }
+const DISPLAY_KEY = 'lick-trainer-gp-display';
+const OCTAVE_KEY = 'lick-trainer-gp-octave'; // { ['<file>#<track>']: -2..2 } piano octave shift // { [soloId]: track shown/practiced }
 const CALIBRATION_CLICKS = 8;
 const CALIBRATION_BPM = 90;
 
@@ -628,10 +629,30 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
 
   // Piano: every note of the shown track (both hands), and the keys
   // sounding at the playhead.
-  const pianoPart = useMemo(
-    () => (pianoMode && score && displayTrack != null ? pianoPartOf(score, displayTrack) : []),
-    [pianoMode, score, displayTrack]
+  // Piano: the shown part an octave up/down (the user's correction, per
+  // file and track) — on the keys here, in sound and notation in the song view.
+  const [octaveShifts, setOctaveShifts] = useState(() => readJson(OCTAVE_KEY, {}));
+  const octaveKey = scoreKey && displayTrack != null ? `${scoreKey}#${displayTrack}` : null;
+  const pianoOctave = pianoMode && octaveKey ? octaveShifts[octaveKey] ?? 0 : 0;
+  const setPianoOctave = useCallback(
+    (n) => {
+      if (!octaveKey) return;
+      const v = Math.max(-2, Math.min(2, Math.round(n)));
+      setOctaveShifts((m) => {
+        const next = { ...m, [octaveKey]: v };
+        if (v === 0) delete next[octaveKey];
+        writeJson(OCTAVE_KEY, next);
+        return next;
+      });
+    },
+    [octaveKey]
   );
+  const pianoPart = useMemo(() => {
+    if (!pianoMode || !score || displayTrack == null) return [];
+    const part = pianoPartOf(score, displayTrack);
+    if (!pianoOctave) return part;
+    return part.map((n) => ({ ...n, midi: n.midi + 12 * pianoOctave })).filter((n) => n.midi >= 21 && n.midi <= 108);
+  }, [pianoMode, score, displayTrack, pianoOctave]);
   const pianoKeys = useMemo(() => {
     if (!pianoMode || playheadBeat == null || !activeSolo?.gpRef || pianoPart.length === 0) return NO_TRACKS;
     const tick = activeSolo.gpRef.tickStart + playheadBeat * TICKS_PER_BEAT;
@@ -752,6 +773,8 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     pianoMode,
     pianoKeys,
     pianoChord,
+    pianoOctave,
+    setPianoOctave,
     sectionIndex,
     setSectionIndex,
     preloadSamples: preloadTrainerSamples,

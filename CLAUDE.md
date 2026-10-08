@@ -55,8 +55,14 @@ rosewood, below).
   (guitar, piano, bass, singing — art in `instrumentArt.js`, static SVG)
   in the style of a GarageBand-like instrument browser: art + title +
   description, shortcut row filtered by `supportsInstrument()`, swipe /
-  arrows / dots / arrow keys, scroll-snap (scrolled with `scrollBy`, not
-  scrollIntoView, so the page doesn't move). `onOpen({instrument, section,
+  arrows / dots / arrow keys / mouse wheel, scroll-snap (scrolled with
+  `scrollBy`, not scrollIntoView, so the page doesn't move). It LOOPS: the
+  cards are rendered 3x (`SLIDES`), and once a scroll settles in an outer
+  copy it jumps instantly to the same card in the middle copy. Each card
+  sits in an untransformed `.home-slot` (measured + snapped) and the card
+  inside gets a per-frame "drum" transform from its distance to the centre
+  (`applyDepth`: rotateY ±16°, scale, fade; no rotation with reduced
+  motion). `onOpen({instrument, section,
   practiceTab})` sets them in App. The logo (drawer header + phone brand,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /

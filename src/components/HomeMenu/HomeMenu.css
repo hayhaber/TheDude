@@ -68,22 +68,27 @@
   display: none;
 }
 
-.home-card {
+.home-slot {
   flex: 0 0 var(--home-card-w);
   scroll-snap-align: center;
+  display: flex;
+}
+
+.home-card {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   border-radius: 28px;
   background: var(--bg);
   box-shadow: inset 0 0 0 1px var(--border);
-  opacity: 0.45;
-  transform: scale(0.95);
-  transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  /* transform/opacity are set per frame from the scroll position (the
+     "wheel" in HomeMenu.jsx), so no transition on them. */
+  transition: box-shadow 0.3s ease;
+  will-change: transform, opacity;
 }
 
 .home-card.is-active {
-  opacity: 1;
-  transform: none;
   box-shadow: inset 0 0 0 1px var(--border), 0 18px 40px rgba(0, 0, 0, 0.08);
 }
 
@@ -229,11 +234,6 @@
   cursor: pointer;
 }
 
-.home-arrow:disabled {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* RTL: "previous" sits on the right. */
 .home-arrow-prev {
   right: calc((100% - var(--home-card-w)) / 2 - 70px);
@@ -244,6 +244,9 @@
 }
 
 .home-dots {
+  /* Above the track's extra (shadow) padding, which reaches down here. */
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   gap: 10px;

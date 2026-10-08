@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
@@ -87,7 +87,17 @@ const ICON_PATHS = {
 
 function LineIcon({ name }) {
   return (
-    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="30"
+      height="30"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       {ICON_PATHS[name]}
     </svg>
   );
@@ -129,7 +139,12 @@ const CARDS = [
     options: [
       { section: 'compose', icon: 'compose' },
       { section: 'guitarpro', icon: 'guitarpro' },
-      { tool: 'tuner', tunerMode: 'bass', icon: 'tuner', labelKey: 'tunerBar.label' },
+      {
+        tool: 'tuner',
+        tunerMode: 'bass',
+        icon: 'tuner',
+        labelKey: 'tunerBar.label',
+      },
     ],
   },
   {
@@ -139,7 +154,12 @@ const CARDS = [
     descKey: 'home.vocal.desc',
     options: [
       { section: 'vocal', icon: 'vocal' },
-      { section: 'practice', practiceTab: 'ear-training', icon: 'ear', labelKey: 'practice.tab.earTraining' },
+      {
+        section: 'practice',
+        practiceTab: 'ear-training',
+        icon: 'ear',
+        labelKey: 'practice.tab.earTraining',
+      },
     ],
   },
   {
@@ -157,77 +177,137 @@ const CARDS = [
   },
 ];
 
+// The carousel loops: the cards are rendered three times over and, once a
+// scroll settles in the first or last copy, it jumps (invisibly — the copies
+// are identical) to the same card in the middle copy.
+const N = CARDS.length;
+const SLIDES = [0, 1, 2].flatMap((copy) => CARDS.map((card, i) => ({ card, i, copy, pos: copy * N + i })));
+
+// The "wheel": cards beside the centre turn away a little and recede, as if
+// mounted on a drum — kept subtle.
+const TURN_DEG = 16;
+const SHRINK = 0.08;
+const FADE = 0.55;
+
 /**
- * The home screen: a carousel of instruments (swipe, arrows or the dots),
- * each card with a short description and shortcuts into the app. Tapping
- * the card itself opens its first shortcut.
+ * The home screen: a looping carousel of instruments (swipe, wheel, arrows,
+ * keys or the dots), each card with a short description and shortcuts into
+ * the app. Tapping the card itself opens its first shortcut.
  */
 export function HomeMenu({ onOpen, onContinue, initialCard }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
   const scrollRef = useRef(null);
   const rootRef = useRef(null);
+  // Each card sits in an untransformed slot (measured and snapped to); the
+  // card inside it gets the wheel transform.
+  const slotRefs = useRef([]);
   const cardRefs = useRef([]);
   // Back from a tool screen = back on the Tools card; otherwise the
   // instrument in use.
   const startIndex = Math.max(
     0,
-    CARDS.findIndex((c) => (initialCard ? c.key === initialCard : c.instrument === instrument))
+    CARDS.findIndex((c) => (initialCard ? c.key === initialCard : c.instrument === instrument)),
   );
-  const [active, setActive] = useState(startIndex);
+  const [activePos, setActivePos] = useState(N + startIndex);
+  const active = activePos % N;
+  const activePosRef = useRef(activePos);
+  activePosRef.current = activePos;
 
-  const scrollTo = useCallback((i, smooth = true) => {
+  const scrollToPos = useCallback((pos, smooth = true) => {
     // Scroll the track only (scrollIntoView would also move the page), by
     // the card's distance from the middle — works the same in RTL.
-    const card = cardRefs.current[i];
+    const card = slotRefs.current[pos];
     const box = scrollRef.current;
     if (!card || !box) return;
     const c = card.getBoundingClientRect();
     const b = box.getBoundingClientRect();
-    box.scrollBy({ left: c.left + c.width / 2 - (b.left + b.width / 2), behavior: smooth ? 'smooth' : 'instant' });
+    box.scrollBy({
+      left: c.left + c.width / 2 - (b.left + b.width / 2),
+      behavior: smooth ? 'smooth' : 'instant',
+    });
   }, []);
 
-  // Open on the instrument in use.
-  useEffect(() => {
-    scrollTo(startIndex, false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // One step forward/back from wherever we are (wraps around).
+  const step = useCallback((dir) => scrollToPos(activePosRef.current + dir), [scrollToPos]);
 
-  // The card nearest the middle is the active one.
-  const onScroll = () => {
+  // A dot: the nearest copy of that card.
+  const goToCard = (i) => {
+    const cur = activePosRef.current;
+    const best = [i, i + N, i + 2 * N].reduce((a, b) => (Math.abs(b - cur) < Math.abs(a - cur) ? b : a));
+    scrollToPos(best);
+  };
+
+  // Turn/shrink/fade each card by its distance from the centre.
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const applyDepth = useCallback(() => {
     const box = scrollRef.current;
     if (!box) return;
-    const mid = box.getBoundingClientRect().left + box.clientWidth / 2;
+    const b = box.getBoundingClientRect();
+    const mid = b.left + b.width / 2;
     let best = 0;
     let bestDist = Infinity;
-    cardRefs.current.forEach((el, i) => {
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const d = Math.abs(r.left + r.width / 2 - mid);
-      if (d < bestDist) {
-        bestDist = d;
-        best = i;
+    slotRefs.current.forEach((slot, pos) => {
+      const el = cardRefs.current[pos];
+      if (!slot || !el) return;
+      const r = slot.getBoundingClientRect();
+      const w = r.width || 1;
+      const dist = r.left + w / 2 - mid;
+      if (Math.abs(dist) < bestDist) {
+        bestDist = Math.abs(dist);
+        best = pos;
       }
+      const d = Math.max(-1.5, Math.min(1.5, dist / (w + 28)));
+      const a = Math.min(1, Math.abs(d));
+      const turn = reduceMotion ? 0 : d * TURN_DEG;
+      el.style.transform = `perspective(1600px) rotateY(${turn.toFixed(2)}deg) scale(${(1 - a * SHRINK).toFixed(4)})`;
+      el.style.opacity = (1 - a * FADE).toFixed(3);
     });
-    setActive(best);
+    setActivePos(best);
+  }, [reduceMotion]);
+
+  // Open on the card in use (middle copy).
+  useLayoutEffect(() => {
+    scrollToPos(N + startIndex, false);
+    applyDepth();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scrolling: update the wheel every frame; once it settles in an outer
+  // copy, hop to the middle one.
+  const rafRef = useRef(0);
+  const settleRef = useRef(0);
+  const onScroll = () => {
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(applyDepth);
+    clearTimeout(settleRef.current);
+    settleRef.current = setTimeout(() => {
+      const pos = activePosRef.current;
+      if (pos < N) scrollToPos(pos + N, false);
+      else if (pos >= 2 * N) scrollToPos(pos - N, false);
+    }, 160);
   };
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(rafRef.current);
+      clearTimeout(settleRef.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       // RTL: the next card is to the left.
-      const step = e.key === 'ArrowLeft' ? 1 : -1;
-      scrollTo(Math.min(CARDS.length - 1, Math.max(0, active + step)));
+      step(e.key === 'ArrowLeft' ? 1 : -1);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [active, scrollTo]);
+  }, [step]);
 
   // Mouse wheel (desktop): down = next card, up = previous — one card per
   // flick. A trackpad sends a burst of small deltas, so they're summed and
   // a step is followed by a short pause. Sideways trackpad swipes scroll
   // natively and are left alone.
-  const activeRef = useRef(active);
-  activeRef.current = active;
   useEffect(() => {
     const box = rootRef.current; // anywhere on the home screen
     if (!box) return undefined;
@@ -240,20 +320,23 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       if (now < lockedUntil) return;
       sum += e.deltaY;
       if (Math.abs(sum) < 40) return;
-      const step = sum > 0 ? 1 : -1;
+      const dir = sum > 0 ? 1 : -1;
       sum = 0;
       lockedUntil = now + 450;
-      const next = Math.min(CARDS.length - 1, Math.max(0, activeRef.current + step));
-      if (next !== activeRef.current) scrollTo(next);
+      step(dir);
     };
     box.addEventListener('wheel', onWheel, { passive: false });
     return () => box.removeEventListener('wheel', onWheel);
-  }, [scrollTo]);
+  }, [step]);
 
   const open = (card, option) => {
     if (option.tool) {
       // The tool on its own screen.
-      onOpen({ tool: option.tool, tunerMode: option.tunerMode, card: card.key });
+      onOpen({
+        tool: option.tool,
+        tunerMode: option.tunerMode,
+        card: card.key,
+      });
       return;
     }
     onOpen({
@@ -278,67 +361,62 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       </header>
 
       <div className="home-carousel">
-        <button
-          type="button"
-          className="home-arrow home-arrow-prev"
-          onClick={() => scrollTo(Math.max(0, active - 1))}
-          disabled={active === 0}
-          aria-label={t('home.prev')}
-        >
+        <button type="button" className="home-arrow home-arrow-prev" onClick={() => step(-1)} aria-label={t('home.prev')}>
           ›
         </button>
         <div className="home-track" ref={scrollRef} onScroll={onScroll}>
-          {CARDS.map((card, i) => {
+          {SLIDES.map(({ card, copy, pos }) => {
             const opts = card.options.filter((o) => {
               if (o.tool) return true;
               const inst = card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument);
               return supportsInstrument(o.section, inst);
             });
-            const isActive = i === active;
+            const isActive = pos === activePos;
             return (
-              <article
-                key={card.key}
-                ref={(el) => (cardRefs.current[i] = el)}
-                className={'home-card' + (isActive ? ' is-active' : '')}
-                aria-current={isActive ? 'true' : undefined}
-              >
-                <button
-                  type="button"
-                  className="home-card-main"
-                  onClick={() => (isActive ? open(card, opts[0]) : scrollTo(i))}
-                  tabIndex={isActive ? 0 : -1}
+              <div className="home-slot" key={`${card.key}-${copy}`} ref={(el) => (slotRefs.current[pos] = el)}>
+                <article
+                  ref={(el) => (cardRefs.current[pos] = el)}
+                  className={'home-card' + (isActive ? ' is-active' : '')}
+                  aria-current={isActive ? 'true' : undefined}
+                  aria-hidden={copy !== 1 ? 'true' : undefined}
                 >
-                  <span className={`home-art home-art-${card.key}`} dangerouslySetInnerHTML={{ __html: INSTRUMENT_ART[card.key] }} />
-                  <span className="home-text">
-                    <span className="home-title">{t(card.titleKey)}</span>
-                    <span className="home-desc">{t(card.descKey)}</span>
-                  </span>
-                </button>
-                <div className="home-options">
-                  {opts.map((o) => (
-                    <button
-                      key={o.tool ?? o.section + (o.practiceTab ?? '')}
-                      type="button"
-                      className="home-option"
-                      onClick={() => (isActive ? open(card, o) : scrollTo(i))}
-                      tabIndex={isActive ? 0 : -1}
-                    >
-                      <LineIcon name={o.icon} />
-                      <span>{t(o.labelKey ?? `nav.${o.section}`)}</span>
-                    </button>
-                  ))}
-                </div>
-              </article>
+                  <button
+                    type="button"
+                    className="home-card-main"
+                    onClick={() => (isActive ? open(card, opts[0]) : scrollToPos(pos))}
+                    tabIndex={isActive ? 0 : -1}
+                  >
+                    <span
+                      className={`home-art home-art-${card.key}`}
+                      dangerouslySetInnerHTML={{
+                        __html: INSTRUMENT_ART[card.key],
+                      }}
+                    />
+                    <span className="home-text">
+                      <span className="home-title">{t(card.titleKey)}</span>
+                      <span className="home-desc">{t(card.descKey)}</span>
+                    </span>
+                  </button>
+                  <div className="home-options">
+                    {opts.map((o) => (
+                      <button
+                        key={o.tool ?? o.section + (o.practiceTab ?? '')}
+                        type="button"
+                        className="home-option"
+                        onClick={() => (isActive ? open(card, o) : scrollToPos(pos))}
+                        tabIndex={isActive ? 0 : -1}
+                      >
+                        <LineIcon name={o.icon} />
+                        <span>{t(o.labelKey ?? `nav.${o.section}`)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </article>
+              </div>
             );
           })}
         </div>
-        <button
-          type="button"
-          className="home-arrow home-arrow-next"
-          onClick={() => scrollTo(Math.min(CARDS.length - 1, active + 1))}
-          disabled={active === CARDS.length - 1}
-          aria-label={t('home.next')}
-        >
+        <button type="button" className="home-arrow home-arrow-next" onClick={() => step(1)} aria-label={t('home.next')}>
           ‹
         </button>
       </div>
@@ -352,7 +430,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
             aria-selected={i === active}
             aria-label={t(card.titleKey)}
             className={i === active ? 'on' : ''}
-            onClick={() => scrollTo(i)}
+            onClick={() => goToCard(i)}
           />
         ))}
       </div>

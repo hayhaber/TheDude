@@ -1,7 +1,8 @@
 import json, re
 
 def mic(p):
-    cx, cy, rx, ry = 100, 118, 50, 78     # capsule head
+    cx, cy, rx, ry = 100, 118, 46, 74     # rectangular head (rounded corners)
+    rr = 16
     slats = ''
     y = cy - ry + 10
     while y < cy + ry - 8:
@@ -9,7 +10,7 @@ def mic(p):
         y += 9.2
     return f'''<svg viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
 <defs>
-<clipPath id="{p}head"><ellipse cx="{cx}" cy="{cy}" rx="{rx-5}" ry="{ry-5}"/></clipPath>
+<clipPath id="{p}head"><rect x="{cx-rx+5}" y="{cy-ry+5}" width="{2*rx-10}" height="{2*ry-10}" rx="{rr-5}"/></clipPath>
 <linearGradient id="{p}chromeH" x1="0" x2="1">
   <stop offset="0" stop-color="#4b4e55"/><stop offset=".14" stop-color="#cfd2d8"/><stop offset=".3" stop-color="#ffffff"/>
   <stop offset=".5" stop-color="#8e929a"/><stop offset=".72" stop-color="#eef0f3"/><stop offset=".9" stop-color="#9a9ea6"/><stop offset="1" stop-color="#3f4248"/>
@@ -26,6 +27,13 @@ def mic(p):
 <pattern id="{p}mesh" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#17181b"/><circle cx="1.5" cy="1.5" r=".7" fill="#33363c"/></pattern>
 <radialGradient id="{p}spec" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
 <radialGradient id="{p}knob" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#a3a7af"/><stop offset="1" stop-color="#3d4046"/></radialGradient>
+<linearGradient id="{p}cyl" x1="0" x2="1">
+  <stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".28" stop-color="#fff" stop-opacity=".12"/>
+  <stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/>
+</linearGradient>
+<linearGradient id="{p}rim" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/>
+</linearGradient>
 </defs>
 <!-- stand stem + swivel -->
 <rect x="91" y="232" width="18" height="104" rx="3" fill="url(#{p}chromeH)"/>
@@ -39,15 +47,16 @@ def mic(p):
 <path d="M{cx-rx-9},{cy+4} L{cx-rx-9},{cy+62} Q{cx-rx-9},{cy+112} {cx},{cy+112} Q{cx+rx+9},{cy+112} {cx+rx+9},{cy+62} L{cx+rx+9},{cy+4}"
       fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1" transform="translate(0 4.5)"/>
 <!-- head: chrome rim, dark mesh, horizontal chrome slats, round shading -->
-<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="url(#{p}chromeH)"/>
-<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="none" stroke="#3a3d43" stroke-width="1"/>
+<rect x="{cx-rx}" y="{cy-ry}" width="{2*rx}" height="{2*ry}" rx="{rr}" fill="url(#{p}chromeH)"/>
+<rect x="{cx-rx}" y="{cy-ry}" width="{2*rx}" height="{2*ry}" rx="{rr}" fill="url(#{p}rim)"/>
+<rect x="{cx-rx}" y="{cy-ry}" width="{2*rx}" height="{2*ry}" rx="{rr}" fill="none" stroke="#3a3d43" stroke-width="1"/>
 <g clip-path="url(#{p}head)">
   <rect x="{cx-rx}" y="{cy-ry}" width="{2*rx}" height="{2*ry}" fill="url(#{p}mesh)"/>
   {slats}
-  <ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="url(#{p}round)"/>
+  <rect x="{cx-rx}" y="{cy-ry}" width="{2*rx}" height="{2*ry}" fill="url(#{p}cyl)"/>
   <ellipse cx="{cx-16}" cy="{cy-40}" rx="12" ry="22" fill="url(#{p}spec)" opacity=".7"/>
 </g>
-<ellipse cx="{cx}" cy="{cy}" rx="{rx-5}" ry="{ry-5}" fill="none" stroke="#2a2c31" stroke-width="1.2"/>
+<rect x="{cx-rx+5}" y="{cy-ry+5}" width="{2*rx-10}" height="{2*ry-10}" rx="{rr-5}" fill="none" stroke="#2a2c31" stroke-width="1.2"/>
 <!-- pivot knobs on the yoke -->
 <circle cx="{cx-rx-9}" cy="{cy+4}" r="8.5" fill="url(#{p}knob)" stroke="#3a3d43" stroke-width=".6"/>
 <circle cx="{cx+rx+9}" cy="{cy+4}" r="8.5" fill="url(#{p}knob)" stroke="#3a3d43" stroke-width=".6"/>

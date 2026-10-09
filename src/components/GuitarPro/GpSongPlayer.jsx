@@ -205,6 +205,11 @@ function TrackMixerPanel({ trainer, t, solo, onSolo, onClose, open }) {
 
 // How a track's part is drawn: guitar as tab, bass as notation + tab,
 // everything else (keys, vocals, drums…) as notation.
+// Normal drawing size of the score, and the smallest it may shrink to so
+// that two full lines fit in the score box.
+const BASE_SCALE = 0.95;
+const MIN_SCALE = 0.6;
+
 function staveProfileFor(tr) {
   if (!tr) return alphaTab.StaveProfile.Tab;
   const kind = trackKind(tr);
@@ -284,7 +289,7 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
       // Main-thread rendering (see giveChordNamesTheirOwnRow). Lazy loading
       // stays off: with it on (and no workers) playback wouldn't start.
       core: { engine: 'svg', fontDirectory: '/font/', useWorkers: false, enableLazyLoading: false },
-      display: { staveProfile: alphaTab.StaveProfile.Tab, scale: 0.95 },
+      display: { staveProfile: alphaTab.StaveProfile.Tab, scale: BASE_SCALE },
       player: {
         enablePlayer: true,
         enableCursor: true,
@@ -300,6 +305,9 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
       alphaTab.NotationElement.EffectChordNames,
       new alphaTab.model.Font(`${CHORD_FONT_TAG}, Arial, sans-serif`, 13, alphaTab.model.FontStyle.Plain, alphaTab.model.FontWeight.Bold)
     );
+    // No swing ("triplet feel") sign: it's drawn on every staff of the first
+    // line and makes it far taller than the rest — the feel is still played.
+    api.settings.notation.elements.set(alphaTab.NotationElement.EffectTripletFeel, false);
     api.masterVolume = GP_MASTER_VOLUME;
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     let lastSystem = -1;
@@ -332,6 +340,43 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
       lastSystem = -1;
       setLoading(false);
     });
+    // Two full lines always fit the score box: the line being played and the
+    // next one. When the tallest pair of lines doesn't fit, the score is
+    // drawn smaller (never below MIN_SCALE); when there is room again
+    // (bigger window), back up towards the normal size.
+    let fitTries = 0;
+    let fitHeight = 0;
+    const fitTwoLines = () => {
+      const box = scrollRef.current;
+      const host = hostRef.current;
+      const systems = api.boundsLookup?.staffSystems;
+      if (!box || !host || !systems?.length) return;
+      if (box.clientHeight !== fitHeight) {
+        fitHeight = box.clientHeight;
+        fitTries = 0;
+      }
+      if (fitTries >= 3) return; // settled (or can't do better)
+      const cs = getComputedStyle(host);
+      // A turned page puts a line 6px from the top; leave a little air below.
+      const room = box.clientHeight - (parseFloat(cs.paddingTop) || 0) - 18;
+      let pair = 0;
+      for (let i = 0; i < systems.length; i += 1) {
+        const top = systems[i].realBounds.y - 6; // where a page turn puts this line
+        const last = systems[Math.min(i + 1, systems.length - 1)].realBounds;
+        pair = Math.max(pair, last.y + last.h - top);
+      }
+      if (!(pair > 0) || !(room > 0)) return;
+      const scale = api.settings.display.scale;
+      const ideal = Math.max(MIN_SCALE, Math.min(BASE_SCALE, Math.floor(scale * (room / pair) * 100) / 100));
+      const tooTall = pair > room && scale > MIN_SCALE;
+      const canGrow = ideal > scale + 0.04;
+      if (!tooTall && !canGrow) return;
+      fitTries += 1;
+      api.settings.display.scale = ideal;
+      api.updateSettings();
+      api.render();
+    };
+    api.postRenderFinished.on(fitTwoLines);
     // Page-turn scrolling: whenever playback reaches a new line, that line
     // goes to the top of the score area, so the line being played and the
     // next one are always fully in view.
@@ -354,13 +399,18 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
         ? null
         : new ResizeObserver(([entry]) => {
             const w = Math.round(entry.contentRect.width);
-            if (Math.abs(w - lastWidth) < 4) return;
+            if (Math.abs(w - lastWidth) < 4) {
+              // Only the height changed (window taller/shorter): refit.
+              if (lastWidth && Math.round(entry.contentRect.height) !== fitHeight) fitTwoLines();
+              return;
+            }
             const first = lastWidth === 0;
             lastWidth = w;
             if (first) return;
             clearTimeout(relayout);
             relayout = setTimeout(() => {
               lastSystem = -1;
+              fitTries = 0;
               if (api.score) api.render();
             }, 150);
           });

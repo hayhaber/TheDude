@@ -280,7 +280,14 @@ rosewood, below).
   with OUR page-turn scrolling (`scrollMode: Off`; on `playedBeatChanged`, a
   new staff system is scrolled to the top via `boundsLookup.findBeat()`), and
   a ResizeObserver re-renders the score to the box width (overflow-x hidden,
-  no sideways scrollbar). Phones get extra bottom padding so the scroll
+  no sideways scrollbar).
+  Two full lines always fit the box (user's rule: the line being played +
+  the next): `fitTwoLines()` on `postRenderFinished` measures the tallest
+  pair of `boundsLookup.staffSystems` (from a line's top - 6, where a page
+  turn puts it) and lowers `display.scale` (BASE_SCALE 0.95 .. MIN_SCALE 0.6;
+  grows back when there's room; refits on box height change, max 3 tries per
+  height). The swing sign (`EffectTripletFeel`) is hidden in the song view —
+  it made the first line much taller; the feel is still played. Phones get extra bottom padding so the scroll
   can reach.
   Tracks are a rail on the LEFT of the score (`TrackRail` in
   GpSongPlayer.jsx, icon per kind, tap = mute/unmute; icons only on phones);

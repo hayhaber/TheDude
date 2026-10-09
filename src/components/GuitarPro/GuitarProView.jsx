@@ -7,7 +7,8 @@ import { GpSongPlayer } from './GpSongPlayer';
 import { onSoundFontProgress, prefetchGpSoundFont } from '../../audio/alphaTabSound';
 import './GuitarProView.css';
 
-const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx';
+// MusicXML too (e.g. sheet music converted from a PDF): alphaTab reads it the same way.
+const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.musicxml,.mxl,.xml';
 
 // Which of the file's tracks sound. The practiced part is marked; drums,
 // bass and keys start on (the rhythm section), everything else is up to

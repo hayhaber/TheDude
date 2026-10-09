@@ -1,6 +1,8 @@
 import { CHORD_QUALITIES } from './chordQualities';
 
 const PITCH_CLASS_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+// Spelled with flats, for music in a flat key (Bb, not A#, in F major).
+const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 function mod12(n) {
   return ((n % 12) + 12) % 12;
@@ -14,7 +16,7 @@ function mod12(n) {
 // match and the lowest-sounding note as the root when there's a tie.
 // Returns a chord SYMBOL string (e.g. "Am", "G7"), or null if nothing
 // scores as at least a plausible triad.
-export function identifyChord(midiNotes) {
+export function identifyChord(midiNotes, { flats = false } = {}) {
   if (!midiNotes || midiNotes.length === 0) return null;
   const pitchClasses = new Set(midiNotes.map(mod12));
   if (pitchClasses.size < 2) return null; // a single note isn't a chord
@@ -33,5 +35,5 @@ export function identifyChord(midiNotes) {
   }
   if (!best) return null;
   const quality = CHORD_QUALITIES[best.key];
-  return PITCH_CLASS_NAMES[best.root] + (quality.aliases[0] || '');
+  return (flats ? FLAT_NAMES : PITCH_CLASS_NAMES)[best.root] + (quality.aliases[0] || '');
 }

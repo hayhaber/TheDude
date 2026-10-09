@@ -304,8 +304,13 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     let lastSystem = -1;
     labeledRef.current = new Set();
+    let firstTrack = 0;
     api.scoreLoaded.on((score) => {
       fixKeysOctave(score); // before the MIDI and the drawing
+      // Draw the first track in its own notation from the start: the Tab
+      // profile on a track with no strings (voice/piano first, e.g. a
+      // MusicXML file) crashes alphaTab's layout.
+      api.settings.display.staveProfile = staveProfileFor(describeScore(score).tracks[firstTrack]);
       // No bass part: a suggested bass line as an extra track (heard and
       // shown only in bass mode — muted otherwise, see the mixer effect).
       if (!score.__bassChecked) {
@@ -382,6 +387,7 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
         // A track added on load (the suggested bass line) doesn't exist yet:
         // start on the first and switch once it's there.
         const first = song.trackIndex === trainer.suggestedBassIndex ? 0 : song.trackIndex;
+        firstTrack = first;
         if (alive) api.load(bytes, [first]);
       } catch (err) {
         if (alive) setError(err?.message ?? String(err));

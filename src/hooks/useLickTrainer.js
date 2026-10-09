@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
-import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes, pianoTrackIndex, pianoPartOf, fileOnlySolo, bassTrackIndex, suggestedBassLine, bassPosition } from '../music/lickTrainer/gpImport';
+import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes, pianoTrackIndex, pianoPartOf, fileOnlySolo, bassTrackIndex, suggestedBassLine, bassPosition, inFlatKey } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
@@ -755,11 +755,12 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     }
     const midis = pianoKeys.map((n) => n.midi);
     if (new Set(midis.map((m) => m % 12)).size >= 3) {
-      const name = identifyChord(midis);
+      const tick = (activeSolo?.gpRef?.tickStart ?? 0) + playheadBeat * TICKS_PER_BEAT;
+      const name = identifyChord(midis, { flats: inFlatKey(score, tick) });
       if (name) lastChordRef.current = name;
     }
     return lastChordRef.current;
-  }, [pianoMode, playheadBeat, pianoKeys]);
+  }, [pianoMode, playheadBeat, pianoKeys, activeSolo, score]);
 
   // ---- Guitar Pro import ----
   const readFile = useCallback(async (file) => {

@@ -451,6 +451,16 @@ export function fileOnlySolo(score, trackIndex = 0, base = {}) {
  * Returns the names added, in time order: [{ tick, name }] (empty when the
  * file has its own).
  */
+/** True when the music at `tick` is in a flat key (chord names then use flats). */
+export function inFlatKey(score, tick) {
+  let key = 0;
+  for (const mb of score?.masterBars ?? []) {
+    if (mb.start > tick) break;
+    key = mb.keySignature ?? 0;
+  }
+  return key < 0;
+}
+
 export function labelChords(score, trackIndex) {
   const track = score?.tracks[trackIndex];
   if (!track || track.staves[0]?.isPercussion) return [];
@@ -481,7 +491,7 @@ export function labelChords(score, trackIndex) {
   for (const tick of [...byTick.keys()].sort((a, b) => a - b)) {
     const { midis, anchor } = byTick.get(tick);
     if (new Set(midis.map((m) => m % 12)).size < 3) continue;
-    const name = identifyChord(midis);
+    const name = identifyChord(midis, { flats: inFlatKey(score, tick) });
     if (!name || name === previous) continue;
     previous = name;
     const id = `dudestar-${name}`;

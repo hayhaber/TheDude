@@ -295,6 +295,18 @@ rosewood, below).
   built with `scoreToSolo({bass: true})` -> `neck: 'bass'` (BASS_TUNING strings),
   `practiceOff`; App draws it on the bass neck (`tuning` = shifted BASS_TUNING)
   and passes `noteSound: 'bass'` so tapped markers use `playBassNote`.
+  MusicXML (.musicxml/.mxl/.xml) is accepted by the same Import (alphaTab
+  reads it; stored like a GP file). Sheet-music PDFs: OMR (Audiveris) is
+  far too inaccurate on its own — transcribe/correct by hand to MusicXML,
+  then (optionally) load in alphaTab, set `masterBar.tripletFeel` for swing
+  and the sheet's chord symbols (`staff.addChord` + `beat.chordId`), and
+  export with `alphaTab.exporter.Gp7Exporter` -> .gp. Copyrighted songs go to
+  the user's own import, never into the public build.
+  First load of the song view sets the stave profile for the first track in
+  `scoreLoaded` — the Tab profile on a track with no strings (a voice/piano
+  track first) crashed alphaTab's layout ("reading 'staves'").
+  Chord names in a flat key use flats (`identifyChord(midis, {flats})`,
+  `inFlatKey(score, tick)` — labelChords + the piano chord LCD only).
   Chord names: `labelChords(score, track)` (gpImport) writes a name above
   the staff wherever 3+ pitch classes sound together (both hands), on each
   change, unless the track already has the file's own chords; the song

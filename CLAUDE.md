@@ -114,6 +114,15 @@ rosewood, below).
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
+- **Piano Chord Rhythm** (`useChordRhythm`, `ChordRhythmPanel`): the clock
+  starts on the metronome's FIRST click (`waitingRef`, `currentBeat` effect,
+  700 ms fallback) and the lead-in is a whole number of beats, so chords
+  land on the clicks. While running every key is playable/audible
+  (`quizKeys` = all 88; judging only for the open window, a press up to
+  `EARLY_S` 0.25 s before the next window counts for it). "Show keys"
+  (`showKeys`, localStorage `chord-rhythm-show-keys`) lights the next
+  unjudged chord's tones via `quizRevealKeys` as soon as its block appears.
+  Start scrolls the lane into view.
 - **Piano FreePlay** (nav `freeplay`, piano only; `components/FreePlayView/`;
   App hides the Stage for it and passes `stagePianoProps`): a big
   PianoKeyboard — `visibleOctaves` (1/1.5/2/3, default 2, 1 on phones) fills

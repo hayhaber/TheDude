@@ -1588,6 +1588,7 @@ function App() {
         ? {
             notes: [],
             quizKeys: chordRhythm.quizKeys,
+            quizRevealKeys: chordRhythm.quizRevealKeys,
             quizFeedbackKeys: chordRhythm.quizFeedbackKeys,
             onQuizKeyClick: chordRhythm.onQuizKeyClick,
           }

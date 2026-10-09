@@ -17,12 +17,13 @@ export const LEAD_TIME_S = 2.5;
 // visually running before ending it — lets the very last block finish
 // crossing/exiting the line instead of vanishing the instant it's judged.
 const TAIL_S = 0.6;
-// Lenient mode's "any octave" window on the shared PianoKeyboard — wide
-// enough to cover a comfortably reachable two-hand span without pulling in
-// the whole 88-key range (which would make near-identical-sounding
-// pitch-class matches in a far-away octave register as a "hit", not
-// actually testing the chord).
-const LENIENT_RANGE = { from: 48, to: 84 }; // C3..C6
+const SHOW_KEYS_STORAGE = 'chord-rhythm-show-keys';
+// Every key stays playable (and audible) during a run — a wrong key is a
+// wrong note you should hear, not a dead key.
+const ALL_KEYS = Array.from({ length: 88 }, (_, i) => ({ midi: 21 + i }));
+// A chord played a touch early (just before its window opens) still counts
+// for it — players anticipate the beat.
+const EARLY_S = 0.25;
 
 function parseProgressionText(text) {
   return text
@@ -51,11 +52,11 @@ function pitchClassOf(midi) {
 // This is what lets the panel render every chord's exact fall/cross/exit
 // position as a pure function of elapsed time (see the tick loop below) —
 // no per-beat state, no discrete jumps, nothing to drift out of sync.
-function buildSequence(chords, secondsPerBeat, beatsPerChord) {
+function buildSequence(chords, secondsPerBeat, beatsPerChord, lead) {
   return chords.map((chord, i) => {
     const tones = computePianoChordTones(chord.parsed);
     const pitchClasses = new Set(tones.map((t) => pitchClassOf(t.midi)));
-    const startTime = LEAD_TIME_S + i * beatsPerChord * secondsPerBeat;
+    const startTime = lead + i * beatsPerChord * secondsPerBeat;
     const endTime = startTime + beatsPerChord * secondsPerBeat;
     return { text: chord.text, tones, pitchClasses, startTime, endTime };
   });
@@ -88,6 +89,23 @@ export function useChordRhythm(metronome) {
   const [beatsPerChord, setBeatsPerChord] = useState(DEFAULT_BEATS_PER_CHORD);
   const [strictMode, setStrictMode] = useState(false); // lenient by default — see the design writeup
   const [viewMode, setViewMode] = useState('falling'); // 'falling' | 'timeline'
+  // Show the keys of the chord to play on the keyboard as soon as its block
+  // appears (a learning aid; off = play it from the chord name alone).
+  const [showKeys, setShowKeysState] = useState(() => {
+    try {
+      return localStorage.getItem(SHOW_KEYS_STORAGE) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const setShowKeys = (v) => {
+    setShowKeysState(v);
+    try {
+      localStorage.setItem(SHOW_KEYS_STORAGE, v ? '1' : '0');
+    } catch {
+      /* storage unavailable */
+    }
+  };
 
   const [sequence, setSequence] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -129,6 +147,13 @@ export function useChordRhythm(metronome) {
   // chord (or the window's timeout) resolves it. Cleared whenever the
   // active window changes (see tick()) or a new session loads.
   const liveFeedbackRef = useRef(new Map());
+  // A chord already being played early (see EARLY_S) — its notes so far
+  // are kept when its window opens.
+  const earlyIndexRef = useRef(-1);
+  // The clock starts on the metronome's first click (so the chords fall in
+  // time with it); until then `waitingRef` holds it at 0.
+  const waitingRef = useRef(false);
+  const waitTimerRef = useRef(null);
 
   function activeIndexAt(t) {
     const seq = sequenceRef.current;
@@ -136,19 +161,6 @@ export function useChordRhythm(metronome) {
       if (t >= seq[i].startTime && t < seq[i].endTime) return i;
     }
     return -1;
-  }
-
-  function currentTargets() {
-    const entry = sequenceRef.current[activeIndexRef.current];
-    if (!entry) return null;
-    if (strictModeRef.current) {
-      return { keys: entry.tones.map((t) => ({ midi: t.midi })) };
-    }
-    const keys = [];
-    for (let midi = LENIENT_RANGE.from; midi <= LENIENT_RANGE.to; midi += 1) {
-      if (entry.pitchClasses.has(pitchClassOf(midi))) keys.push({ midi });
-    }
-    return { keys };
   }
 
   // Flashes the chord's default (root-position) tones regardless of which
@@ -194,8 +206,7 @@ export function useChordRhythm(metronome) {
     });
   }
 
-  function isActiveWindowSatisfied() {
-    const entry = sequenceRef.current[activeIndexRef.current];
+  function isSatisfied(entry) {
     if (!entry) return false;
     if (strictModeRef.current) {
       if (struckMidiRef.current.size !== entry.tones.length) return false;
@@ -205,14 +216,29 @@ export function useChordRhythm(metronome) {
   }
 
   function handleQuizKeyClick(midi) {
-    const index = activeIndexRef.current;
-    if (index < 0 || resultsRef.current[index] != null) return;
     // Unlike Ear Training's own quiz clicks (deliberately silent — hearing
     // the note back would give away the answer to a listen-and-identify
     // test), this is a performance-practice tool: every played note must
     // be audible regardless of right/wrong, the way an actual instrument
-    // would sound.
+    // would sound — also when the chord was already judged, or between
+    // chords.
     playPianoNote(midi);
+    let index = activeIndexRef.current;
+    // The current chord is done (or none is open yet) and the next one is
+    // about to start: this press belongs to the next chord.
+    const seq = sequenceRef.current;
+    const nextIdx = index < 0 ? seq.findIndex((c) => c.startTime > nowRef.current) : index + 1;
+    const next = seq[nextIdx];
+    if ((index < 0 || resultsRef.current[index] != null) && next && next.startTime - nowRef.current <= EARLY_S) {
+      if (earlyIndexRef.current !== nextIdx) {
+        earlyIndexRef.current = nextIdx;
+        struckPitchClassesRef.current = new Set();
+        struckMidiRef.current = new Set();
+        liveFeedbackRef.current = new Map();
+      }
+      index = nextIdx;
+    }
+    if (index < 0 || resultsRef.current[index] != null) return;
     const entry = sequenceRef.current[index];
     const correct = strictModeRef.current
       ? entry.tones.some((t) => t.midi === midi)
@@ -228,7 +254,7 @@ export function useChordRhythm(metronome) {
     // every-target-tone breakdown).
     liveFeedbackRef.current.set(midi, correct ? 'hit' : 'miss');
     setFeedbackKeys([...liveFeedbackRef.current.entries()].map(([m, state]) => ({ midi: m, state })));
-    if (isActiveWindowSatisfied()) judgeChord(index, true);
+    if (isSatisfied(entry)) judgeChord(index, true);
   }
 
   function endSession() {
@@ -255,7 +281,7 @@ export function useChordRhythm(metronome) {
   // Synthesia-style falling-note implementations (e.g. the Canvas/WebGL
   // reference the user pointed to) get from rAF that a timer can't.
   function tick() {
-    const elapsed = (performance.now() - startPerfTimeRef.current) / 1000;
+    const elapsed = waitingRef.current ? 0 : (performance.now() - startPerfTimeRef.current) / 1000;
     nowRef.current = elapsed;
     setNow(elapsed);
 
@@ -277,9 +303,13 @@ export function useChordRhythm(metronome) {
     const newActiveIndex = activeIndexAt(elapsed);
     if (newActiveIndex !== activeIndexRef.current) {
       activeIndexRef.current = newActiveIndex;
-      struckPitchClassesRef.current = new Set();
-      struckMidiRef.current = new Set();
-      liveFeedbackRef.current = new Map();
+      // Notes played early for this very chord are kept.
+      if (earlyIndexRef.current !== newActiveIndex) {
+        struckPitchClassesRef.current = new Set();
+        struckMidiRef.current = new Set();
+        liveFeedbackRef.current = new Map();
+      }
+      earlyIndexRef.current = -1;
     }
 
     const last = seq[seq.length - 1];
@@ -311,7 +341,11 @@ export function useChordRhythm(metronome) {
     strictModeRef.current = strictMode;
 
     const chords = parseProgressionText(progressionText);
-    const built = buildSequence(chords, secondsPerBeatRef.current, nextBeatsPerChord);
+    // The lead-in is a whole number of beats, so every chord lands on a
+    // metronome click.
+    const spb = secondsPerBeatRef.current;
+    const lead = Math.max(2, Math.ceil(LEAD_TIME_S / spb)) * spb;
+    const built = buildSequence(chords, spb, nextBeatsPerChord, lead);
     sequenceRef.current = built;
     setSequence(built);
     setEnded(false);
@@ -325,6 +359,7 @@ export function useChordRhythm(metronome) {
     struckPitchClassesRef.current = new Set();
     struckMidiRef.current = new Set();
     liveFeedbackRef.current = new Map();
+    earlyIndexRef.current = -1;
     return built;
   }
 
@@ -336,6 +371,15 @@ export function useChordRhythm(metronome) {
     nowRef.current = 0;
     setNow(0);
     startPerfTimeRef.current = performance.now();
+    // Wait for the metronome's first click (see the effect below); if it
+    // doesn't come (silenced/odd setup), start anyway shortly after.
+    waitingRef.current = true;
+    clearTimeout(waitTimerRef.current);
+    waitTimerRef.current = setTimeout(() => {
+      if (!waitingRef.current) return;
+      waitingRef.current = false;
+      startPerfTimeRef.current = performance.now();
+    }, 700);
     if (rafIdRef.current != null) cancelAnimationFrame(rafIdRef.current);
     rafIdRef.current = requestAnimationFrame(tick);
     // The metronome's click is a real audible tempo reference while
@@ -357,16 +401,31 @@ export function useChordRhythm(metronome) {
     setIsPlaying(false);
   }
 
+  // The metronome just clicked: if a run is waiting, its clock starts now —
+  // the lead-in and every chord then fall exactly on the clicks.
+  useEffect(() => {
+    if (metronome.currentBeat == null || !waitingRef.current) return;
+    waitingRef.current = false;
+    clearTimeout(waitTimerRef.current);
+    startPerfTimeRef.current = performance.now();
+  }, [metronome.currentBeat]);
+
   useEffect(() => {
     return () => {
       if (rafIdRef.current != null) cancelAnimationFrame(rafIdRef.current);
       clearTimeout(feedbackTimeoutRef.current);
+      clearTimeout(waitTimerRef.current);
     };
   }, []);
 
   const accuracyPct = score.hits + score.misses > 0 ? Math.round((score.hits / (score.hits + score.misses)) * 100) : null;
 
-  const targets = isPlaying ? currentTargets() : null;
+  // The chord to show on the keys (Show keys): the first one not yet
+  // judged whose block is already falling.
+  const hintKeys =
+    isPlaying && showKeys
+      ? (sequence.find((c, i) => results[i] == null && now >= c.startTime - LEAD_TIME_S && now < c.endTime)?.tones ?? []).map((tn) => ({ midi: tn.midi }))
+      : [];
 
   return {
     source,
@@ -392,8 +451,12 @@ export function useChordRhythm(metronome) {
     combo,
     maxCombo,
     accuracyPct,
+    showKeys,
+    setShowKeys,
     // PianoKeyboard quiz props — spread straight into stagePianoProps.
-    quizKeys: targets ? targets.keys : null,
+    // While running every key plays; idle = the normal keyboard.
+    quizKeys: isPlaying ? ALL_KEYS : null,
+    quizRevealKeys: hintKeys,
     onQuizKeyClick: handleQuizKeyClick,
     quizFeedbackKeys: feedbackKeys,
   };

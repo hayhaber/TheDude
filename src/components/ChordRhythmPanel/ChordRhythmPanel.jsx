@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { LEAD_TIME_S } from '../../hooks/useChordRhythm';
@@ -83,6 +84,8 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
     setStrictMode,
     viewMode,
     setViewMode,
+    showKeys,
+    setShowKeys,
     sequence,
     now,
     results,
@@ -102,6 +105,13 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
   // line-crossing journey) reads as a taller, narrower bar instead of every
   // window looking like the same square, even though only a point-in-time
   // hit/miss is actually scored today.
+  // Start: bring the lane into view (on a short screen the controls push
+  // it down behind the pinned keyboard).
+  const laneRef = useRef(null);
+  useEffect(() => {
+    if (isPlaying) laneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [isPlaying]);
+
   const blockWidth = Math.max(56, 96 - beatsPerChord * 4);
   const blockHeight = Math.min(70, 22 + beatsPerChord * 4);
 
@@ -206,6 +216,21 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
           </div>
         </div>
 
+        {/* Learning aid: light the chord's keys as soon as its block appears. */}
+        <div className="chord-rhythm-field">
+          <span className="chord-rhythm-field-label" aria-hidden="true">
+            {t('chordRhythm.showKeys')}
+          </span>
+          <div className="mode-toggle" role="group" aria-label={t('chordRhythm.showKeys')}>
+            <button type="button" className={!showKeys ? 'active' : ''} onClick={() => setShowKeys(false)}>
+              {t('chordRhythm.showKeys.off')}
+            </button>
+            <button type="button" className={showKeys ? 'active' : ''} onClick={() => setShowKeys(true)}>
+              {t('chordRhythm.showKeys.on')}
+            </button>
+          </div>
+        </div>
+
         <div className="chord-rhythm-field">
           <span className="chord-rhythm-field-label" aria-hidden="true">
             &nbsp;
@@ -217,7 +242,7 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
       </div>
 
       {viewMode === 'falling' ? (
-        <div className="chord-rhythm-lane">
+        <div className="chord-rhythm-lane" ref={laneRef}>
           <div className={'chord-rhythm-hit-zone' + (anyActive ? ' active' : '')} />
           {visible.map(({ chord, i }) => {
             const result = results[i];
@@ -246,7 +271,7 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
           <div className={'chord-rhythm-hitline' + (anyActive ? ' active' : '')} />
         </div>
       ) : (
-        <div className="chord-rhythm-timeline">
+        <div className="chord-rhythm-timeline" ref={laneRef}>
           <div className={'chord-rhythm-hit-zone timeline' + (anyActive ? ' active' : '')} />
           <div className={'chord-rhythm-playhead' + (anyActive ? ' active' : '')} />
           {visible.map(({ chord, i }) => {

@@ -258,3 +258,9 @@
   font-weight: 700;
   color: var(--text);
 }
+
+/* Scrolled to on Start — clear of the top bar. */
+.chord-rhythm-lane,
+.chord-rhythm-timeline {
+  scroll-margin-top: 90px;
+}

@@ -52,10 +52,14 @@ export function loadRange() {
   return null;
 }
 
-export function saveRange(low, high) {
+/**
+ * `extra`: { lowMargin, highMargin } — semitones from each extreme to the
+ * comfortable edge (from the guided test), and `speaking` (MIDI).
+ */
+export function saveRange(low, high, extra = {}) {
   const prev = loadRange();
   const history = [...(prev?.history ?? []), { low, high, at: Date.now() }].slice(-30);
-  const r = { low, high, measuredAt: Date.now(), history };
+  const r = { low, high, ...extra, measuredAt: Date.now(), history };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(r));
   } catch {
@@ -72,8 +76,27 @@ export const DEFAULT_RANGE = { low: 48, high: 67, isDefault: true }; // C3–G4:
  * range test finds are reachable but strained, so leave a margin.
  */
 export function workingRange(range, { edge = false } = {}) {
-  const margin = edge ? 0 : 2;
-  return { low: range.low + margin, high: range.high - margin };
+  if (edge) return { low: range.low, high: range.high };
+  return comfortRange(range);
+}
+
+/** The comfortable range: measured margins when the guided test set them, else 2 semitones in. */
+export function comfortRange(range) {
+  const lm = Number.isFinite(range.lowMargin) ? range.lowMargin : 2;
+  const hm = Number.isFinite(range.highMargin) ? range.highMargin : 2;
+  return { low: range.low + lm, high: range.high - hm };
+}
+
+/** Voice type from the comfortable range (tessitura counts more than the extremes). */
+export function voiceOf(range) {
+  if (!range) return null;
+  const c = comfortRange(range);
+  return classifyVoice(c.low - 2, c.high + 2);
+}
+
+/** Days since the range was measured (null when never). */
+export function rangeAgeDays(range) {
+  return range?.measuredAt ? Math.floor((Date.now() - range.measuredAt) / 86400000) : null;
 }
 
 /**

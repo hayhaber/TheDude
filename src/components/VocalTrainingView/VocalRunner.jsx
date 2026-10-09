@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { useVocalExercise, LOUDNESS } from '../../hooks/useVocalExercise';
+import { useVocalExercise, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey } from '../../hooks/useVocalExercise';
 import { midiName } from '../../music/vocal/voiceRange';
 import { centsOff } from '../../music/vocal/vocalAnalysis';
 import { targetAt } from '../../music/vocal/exercises';
@@ -13,26 +13,16 @@ const TEMPOS = [
   { key: 'fast', value: 1.2 },
 ];
 
-const VOLUME_KEY = 'dudestar-vocal-volume';
-function loadVolume() {
-  try {
-    const v = localStorage.getItem(VOLUME_KEY);
-    return v && LOUDNESS[v] ? v : 'loud';
-  } catch {
-    return 'loud';
-  }
-}
-
 // One exercise: how-to, the pitch roll, transport, and the result.
 export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLast }) {
   const { t } = useLanguage();
   const [tempoKey, setTempoKey] = useState('normal');
   const [guide, setGuide] = useState(false);
-  const [volumeKey, setVolumeKey] = useState(loadVolume);
+  const [volumeKey, setVolumeKey] = useState(loadLoudnessKey);
   const changeVolume = (v) => {
     setVolumeKey(v);
     try {
-      localStorage.setItem(VOLUME_KEY, v);
+      localStorage.setItem(LOUDNESS_KEY, v);
     } catch {
       /* private mode */
     }

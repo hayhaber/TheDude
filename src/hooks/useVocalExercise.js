@@ -12,7 +12,7 @@ const GAP = 0.6; // pause between rounds
 // small earpiece speaker (a "call" route), not the loudspeaker. So there the
 // mic is closed while the piano plays and reopened right after the cue —
 // a slightly longer breath leaves time for it to open.
-const IS_IOS =
+export const IS_IOS =
   typeof navigator !== 'undefined' &&
   (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 const IOS_BREATH = 0.75;
@@ -22,6 +22,15 @@ export const LOUDNESS = {
   loud: { velocity: 100, boost: 2.5 },
   max: { velocity: 110, boost: 5 },
 };
+export const LOUDNESS_KEY = 'dudestar-vocal-volume';
+export function loadLoudnessKey() {
+  try {
+    const v = localStorage.getItem(LOUDNESS_KEY);
+    return v && LOUDNESS[v] ? v : 'loud';
+  } catch {
+    return 'loud';
+  }
+}
 
 /**
  * Runs one exercise as rounds of call-and-response: the piano cue, then the

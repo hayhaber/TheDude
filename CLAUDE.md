@@ -173,8 +173,23 @@ rosewood, below).
   (phases cue/sing/gap/done on the AudioContext clock; piano via
   `schedulePianoNotes()` in pianoPlayer.js, returns a stop fn). UI:
   `PitchRoll.jsx` (canvas piano roll: target bars = ±50¢ band, playhead,
-  coloured voice line, per-note cents after a round), `RangeTest.jsx` (only a
-  note HELD ~0.35 s counts; ± nudge), `RangeBar.jsx`. Text: `vocal.ex.<id>.
+  coloured voice line, per-note cents after a round), `RangeBar.jsx` (solid
+  = comfortable, hatched = reachable only).
+  **Range test** (`RangeTest.jsx` + pure `music/vocal/rangeProbe.js`), the
+  teacher / voice-range-profile method: 1) count aloud -> speaking pitch
+  (median), the start; 2) piano plays one note, singer holds it on "ah"
+  (match ±60¢, held 0.7 s, `heldMatch`), stepping DOWN by whole tones, a
+  miss -> the semitone between, then semitones; 2 misses on a note end the
+  direction (a start note that fails shifts 3 st the other way, up to 4x);
+  3) same UP from the middle. `Done` ends a direction by hand. Comfortable
+  edge = extreme ± (1 + strained edge notes: retried or sd > 30¢, max 4),
+  saved as `lowMargin`/`highMargin` (+ `speaking`) with the range;
+  `comfortRange()` = what exercises use (`workingRange`, old saves without
+  margins = 2 st in), `voiceOf()` classifies from it. Practice is GATED:
+  with no saved range, Start / a library row opens the test first (`then`
+  screen; `Skip` = typical range for this visit). Retest hint after 60 days.
+  Test harness: a fake getUserMedia sawtooth that sings the shown target
+  when inside a simulated range (scratchpad rt.cjs). Text: `vocal.ex.<id>.
   title/desc/how/why`, `vocal.syl.*`, `vocal.cat.*`, `vocal.voice.*`.
   Test with Chromium's fake mic (`--use-file-for-fake-audio-capture=x.wav`).
   iPhone sound with the mic open: Start calls `prepareAudioOutput()` (in the

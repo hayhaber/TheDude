@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useVocalMic } from '../../hooks/useVocalMic';
 import { CATEGORIES, EXERCISES, buildReps, dailyWorkout, exerciseById } from '../../music/vocal/exercises';
-import { DEFAULT_RANGE, classifyVoice, loadRange, midiName } from '../../music/vocal/voiceRange';
+import { DEFAULT_RANGE, comfortRange, loadRange, midiName, rangeAgeDays, voiceOf } from '../../music/vocal/voiceRange';
 import {
   exerciseStats,
   lastWeek,
@@ -38,6 +38,8 @@ export function VocalTrainingView() {
   const mic = useVocalMic();
   const [screen, setScreen] = useState({ name: 'home' });
   const [range, setRange] = useState(() => loadRange());
+  // "Skip" on the first range test: typical range for this visit only.
+  const [skipped, setSkipped] = useState(false);
   const [level, setLevelState] = useState(loadLevel);
   const [progress, setProgress] = useState(loadProgress);
   const useRange = range ?? DEFAULT_RANGE;
@@ -55,6 +57,11 @@ export function VocalTrainingView() {
     setLevelState(lv);
     saveLevel(lv);
   };
+  // Practice needs the singer's range first (a teacher's first lesson).
+  const open = (next) => {
+    if (!range && !skipped) setScreen({ name: 'range', then: next });
+    else setScreen(next);
+  };
   const goHome = () => {
     mic.stop();
     setProgress(loadProgress());
@@ -66,10 +73,20 @@ export function VocalTrainingView() {
       <div className="vocal-training-view" dir={dir}>
         <RangeTest
           mic={mic}
+          first={!!screen.then}
           onCancel={goHome}
+          onSkip={
+            screen.then
+              ? () => {
+                  setSkipped(true);
+                  setScreen(screen.then);
+                }
+              : null
+          }
           onDone={(r) => {
             setRange(r);
-            goHome();
+            if (screen.then) setScreen(screen.then);
+            else goHome();
           }}
         />
       </div>
@@ -107,7 +124,9 @@ export function VocalTrainingView() {
     );
   }
 
-  const voice = range ? classifyVoice(range.low, range.high) : null;
+  const voice = voiceOf(range);
+  const comfort = range ? comfortRange(range) : null;
+  const age = rangeAgeDays(range);
 
   return (
     <div className="vocal-training-view" dir={dir}>
@@ -134,7 +153,7 @@ export function VocalTrainingView() {
               <li key={id}>{t(`vocal.ex.${id}.title`)}</li>
             ))}
           </ol>
-          <button type="button" className="primary vocal-cta" onClick={() => setScreen({ name: 'run', queue: workout, index: 0 })}>
+          <button type="button" className="primary vocal-cta" onClick={() => open({ name: 'run', queue: workout, index: 0 })}>
             {t('vocal.start')}
           </button>
         </section>
@@ -145,9 +164,10 @@ export function VocalTrainingView() {
             <>
               <h2>{voice ? t(`vocal.voice.${voice}`) : '–'}</h2>
               <p className="vocal-range-notes">
-                {midiName(range.low)} – {midiName(range.high)}
+                {midiName(comfort.low)} – {midiName(comfort.high)}
               </p>
-              <RangeBar low={range.low} high={range.high} compact />
+              <RangeBar low={range.low} high={range.high} comfortLow={comfort.low} comfortHigh={comfort.high} compact />
+              {age != null && age >= 60 && <p className="vocal-muted">{t('vocal.range.old', { n: age })}</p>}
             </>
           ) : (
             <>
@@ -185,7 +205,7 @@ export function VocalTrainingView() {
               {list.map((ex) => {
                 const st = exerciseStats(progress, ex.id);
                 return (
-                  <button key={ex.id} type="button" className="vocal-row" onClick={() => setScreen({ name: 'run', id: ex.id })}>
+                  <button key={ex.id} type="button" className="vocal-row" onClick={() => open({ name: 'run', id: ex.id })}>
                     <span className="vocal-row-text">
                       <strong>{t(`vocal.ex.${ex.id}.title`)}</strong>
                       <span>{t(`vocal.ex.${ex.id}.desc`)}</span>

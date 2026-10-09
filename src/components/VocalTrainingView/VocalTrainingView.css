@@ -336,6 +336,10 @@
   background: var(--accent-bg);
 }
 
+.vocal-rangebar-keys span.is-reach {
+  background: repeating-linear-gradient(135deg, var(--accent-bg) 0 3px, transparent 3px 6px);
+}
+
 .vocal-rangebar-keys em {
   position: absolute;
   bottom: -16px;
@@ -750,6 +754,62 @@
 
 .vocal-big-note.is-captured {
   color: var(--accent);
+}
+
+.vocal-big-note.is-target {
+  transition: color 0.2s;
+}
+
+.vocal-big-note.is-listen {
+  color: var(--accent);
+}
+
+.vocal-big-note.is-pass {
+  color: var(--vocal-good);
+}
+
+.vocal-big-note.is-miss {
+  color: var(--text-secondary);
+}
+
+.vocal-range-first {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.vocal-range-steps {
+  margin: 0;
+  padding-inline-start: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 1.5;
+}
+
+.vocal-range-summary {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.vocal-range-summary dt {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.vocal-range-summary dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.vocal-range-summary dd small {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
 }
 
 .vocal-voice-type {

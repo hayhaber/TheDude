@@ -30,10 +30,10 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   // worse than never seeing the option in the first place.
   // Singing has its own home-screen card: inside an instrument the Vocal
   // section isn't a destination, and inside Vocal the bar shows only it.
-  const visibleSections =
-    activeSection === 'vocal'
-      ? SECTIONS.filter((s) => s.key === 'vocal')
-      : SECTIONS.filter((s) => s.key !== 'vocal' && supportsInstrument(s.key, instrument));
+  // Singing is a single page: no section tabs at all (and no metronome —
+  // App passes no metronomeSlot there).
+  const bare = activeSection === 'vocal';
+  const visibleSections = bare ? [] : SECTIONS.filter((s) => s.key !== 'vocal' && supportsInstrument(s.key, instrument));
   // On the piano the Guitar Pro player is "PianoPro".
   const label = (s) => t(s.key === 'guitarpro' && instrument === 'piano' ? 'nav.pianopro' : s.labelKey);
   // The pinned instrument's height, as --stage-height on the root, so a
@@ -48,7 +48,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   }, [stage != null]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="app-shell">
+    <div className={'app-shell' + (bare ? ' is-bare' : '')}>
       {/* Phone/tablet: the logo (back to the home screen), top-left. */}
       <button type="button" className="app-mobile-brand app-brand-home" onClick={() => onHome?.()} aria-label={t('home.open')}>
         <AppLogo size={26} />
@@ -79,7 +79,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             </button>
           </div>
           {/* Features left to right in both languages (Compose first). */}
-          <nav className="app-topbar-nav mode-toggle wrap" dir="ltr" aria-label={t('nav.mainLabel')}>
+          <nav className={'app-topbar-nav mode-toggle wrap' + (bare ? ' is-empty' : '')} dir="ltr" aria-label={t('nav.mainLabel')}>
             {visibleSections.map((s) => (
               <button
                 key={s.key}
@@ -111,7 +111,8 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
         <TunerBar />
       </div>
 
-      <nav className="app-bottom-tabs" aria-label={t('nav.mainLabel')}>
+      {!bare && (
+        <nav className="app-bottom-tabs" aria-label={t('nav.mainLabel')}>
         {visibleSections.map((s) => (
           <button
             key={s.key}
@@ -127,7 +128,8 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             {label(s)}
           </button>
         ))}
-      </nav>
+        </nav>
+      )}
     </div>
   );
 }

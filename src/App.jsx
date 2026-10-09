@@ -1840,6 +1840,11 @@ function App() {
     setHomeCard(toolCardRef.current);
   }, [stopMetronome]);
 
+  // Singing has no metronome (and a click would reach the mic): stop it there.
+  useEffect(() => {
+    if (activeSection === 'vocal' && metronome.isRunning) stopMetronome();
+  }, [activeSection, metronome.isRunning, stopMetronome]);
+
   // Shared by the app's settings drawer and the home screen's Settings page.
   const settingsProps = {
     theme,
@@ -1902,7 +1907,7 @@ function App() {
       }}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
-      metronomeSlot={<MetronomeBar metronome={metronome} drums={drums} />}
+      metronomeSlot={activeSection === 'vocal' ? null : <MetronomeBar metronome={metronome} drums={drums} />}
       stage={
         // The Vocal section draws the voice itself (no neck/keys under it).
         earTrainingOwnsInstrument || activeSection === 'vocal' || activeSection === 'freeplay' ? null : (

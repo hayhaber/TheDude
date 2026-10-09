@@ -102,8 +102,10 @@ rosewood, below).
   always LTR — Compose leftmost in both languages; icons only <=1360px;
   `justify-content: safe center` so an overflow scrolls instead of clipping
   the first pill), then metronome, tuner, info. `vocal` is never in an
-  instrument's nav (singing has its own card); inside Vocal the nav shows
-  only Vocal. NO settings gear inside the app —
+  instrument's nav (singing has its own card); inside Vocal there are NO
+  section tabs and NO metronome (AppShell `bare`/`.is-bare`, App passes no
+  metronomeSlot and stops a running metronome on entering Vocal — it would
+  also reach the mic); only the tuner pill + info remain (user's request). NO settings gear inside the app —
   Settings are only on the home screen's Tools card (user's request).
   Phone/tablet: logo top-left, info top-right,
   metronome/tuner bar + feature tabs at the bottom.

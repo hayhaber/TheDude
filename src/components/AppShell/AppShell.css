@@ -379,3 +379,20 @@
 .app-topbar-brand .app-topbar-logo {
   padding: 2px;
 }
+
+/* Singing (no section tabs, no metronome): the tuner bar sits at the very
+   bottom and the nav slot stays as an empty spacer on desktop. */
+.app-topbar-nav.is-empty {
+  visibility: hidden;
+}
+
+@media (max-width: 899px) {
+  .app-shell.is-bare .app-mobile-metronome {
+    bottom: 0;
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-shell.is-bare .app-content {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+}

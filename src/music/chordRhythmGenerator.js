@@ -38,11 +38,27 @@ const BEATS_PER_CHORD = 4;
 const MIN_BPM = 70;
 const MAX_BPM = 100;
 
+// Chord names spelled the way the key is written: a key with flats in its
+// signature (F, Bb, Eb, Ab, Db) names its chords with flats — in Ab major
+// the chords are Ab, Db, Eb, Fm, Bbm, Cm, never G#, C#, D#… Sharp keys (G,
+// D, A, E, B, F#) and C keep sharps/naturals. (pitch class 6 is written F#
+// major; its I–vi chords are all plain sharps.)
+const FLAT_KEYS = new Set([5, 10, 3, 8, 1]);
+const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+export function spellChordInKey(chord, keyPitchClass) {
+  const sharpRoot = SHARP_NAMES[chord.rootPitchClass];
+  const suffix = chord.chordText.slice(sharpRoot.length);
+  const names = FLAT_KEYS.has(((keyPitchClass % 12) + 12) % 12) ? FLAT_NAMES : SHARP_NAMES;
+  return names[chord.rootPitchClass] + suffix;
+}
+
 export function generateChordRhythmProgression() {
   const rootPitchClass = Math.floor(Math.random() * 12);
   const pattern = PROGRESSION_PATTERNS[Math.floor(Math.random() * PROGRESSION_PATTERNS.length)];
   const diatonic = buildDiatonicChords(rootPitchClass, 'major', false);
-  const progressionText = pattern.map((degreeIndex) => diatonic[degreeIndex].chordText).join(' ');
+  const progressionText = pattern.map((degreeIndex) => spellChordInKey(diatonic[degreeIndex], rootPitchClass)).join(' ');
   const bpmSuggested = MIN_BPM + Math.floor(Math.random() * (MAX_BPM - MIN_BPM + 1));
   return { progressionText, bpmSuggested, beatsPerChord: BEATS_PER_CHORD };
 }

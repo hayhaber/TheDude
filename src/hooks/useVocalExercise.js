@@ -8,6 +8,14 @@ import { recordResult } from '../music/vocal/vocalProgress';
 const BREATH = 0.35; // seconds between the cue ending and singing
 const TAIL = 0.45; // keep listening a little after the last note
 const GAP = 0.6; // pause between rounds
+// iPhone/iPad: while the microphone is open iOS plays everything through the
+// small earpiece speaker (a "call" route), not the loudspeaker. So there the
+// mic is closed while the piano plays and reopened right after the cue —
+// a slightly longer breath leaves time for it to open.
+const IS_IOS =
+  typeof navigator !== 'undefined' &&
+  (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const IOS_BREATH = 0.75;
 
 /**
  * Runs one exercise as rounds of call-and-response: the piano cue, then the
@@ -22,6 +30,8 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
   const [repCount, setRepCount] = useState(0);
   const viewRef = useRef({ rep: null, phase: 'ready', cueStart: 0, singStart: 0, singEnd: 0, last: null });
   const run = useRef({ reps: [], index: 0, results: [], stopCue: null, raf: null, started: 0, alive: false });
+  const micRef = useRef(mic);
+  micRef.current = mic;
   const settings = useRef({ guide, level, ex });
   settings.current = { guide, level, ex };
 
@@ -32,6 +42,7 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
     r.raf = null;
     r.stopCue?.();
     r.stopCue = null;
+    clearTimeout(r.micTimer);
   }, []);
 
   const startRep = useCallback((index) => {
@@ -41,7 +52,17 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
     // The first round waits a moment longer: on iPhone the audio session
     // is still settling right after the mic opened.
     const cueStart = ctx.currentTime + (index === 0 ? 0.45 : 0.12);
-    const singStart = cueStart + rep.cueLength + BREATH;
+    const singStart = cueStart + rep.cueLength + (IS_IOS ? IOS_BREATH : BREATH);
+    if (IS_IOS) {
+      // Loudspeaker for the cue: no capture while it plays; reopen the mic
+      // as the cue ends (permission was already given on Start).
+      micRef.current.stop();
+      clearTimeout(r.micTimer);
+      r.micTimer = setTimeout(() => {
+        if (!r.alive) return;
+        micRef.current.start().then(() => reviveAudioOutput());
+      }, Math.max(0, (cueStart + rep.cueLength - ctx.currentTime) * 1000));
+    }
     const singEnd = singStart + rep.length + TAIL;
     r.stopCue?.();
     const notes = [...rep.cue];
@@ -129,6 +150,8 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
   /** Play the current round's cue again (or the first one) — a tap, so it
    *  always sounds, and a quick way to check the sound is on. */
   const hear = useCallback(() => {
+    // iPhone: close the mic first so the notes come out of the loudspeaker.
+    if (IS_IOS && !run.current.alive) micRef.current.stop();
     prepareAudioOutput();
     const rep = viewRef.current.rep ?? buildReps(ex, range, { level, tempo })[0];
     if (rep) schedulePianoNotes(rep.cue, getAudioContext().currentTime + 0.05);

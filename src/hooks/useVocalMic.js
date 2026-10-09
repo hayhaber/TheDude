@@ -67,11 +67,6 @@ export function useVocalMic() {
     n.stream?.getTracks().forEach((tr) => tr.stop());
     nodes.current = {};
     recent.current = [];
-    try {
-      if (navigator.audioSession) navigator.audioSession.type = 'auto';
-    } catch {
-      /* not supported */
-    }
     setListening(false);
     setLive({ midi: null, level: 0 });
   }, []);
@@ -83,13 +78,6 @@ export function useVocalMic() {
       const { deviceId } = getAudioInputSettings();
       // Processing off: echo cancellation/AGC/noise suppression bend a
       // sustained sung pitch and pump its level.
-      // iPhone/iPad (Safari 16.4+): record AND keep playing through the
-      // speaker — otherwise opening the mic can mute or reroute our piano.
-      try {
-        if (navigator.audioSession) navigator.audioSession.type = 'play-and-record';
-      } catch {
-        /* not supported */
-      }
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: deviceId ? { exact: deviceId } : undefined,

@@ -380,19 +380,14 @@
   padding: 2px;
 }
 
-/* Singing (no section tabs, no metronome): the tuner bar sits at the very
-   bottom and the nav slot stays as an empty spacer on desktop. */
+/* Singing (no section tabs, metronome or tuner): the nav slot stays as an
+   empty spacer on desktop; nothing is fixed at the bottom on mobile. */
 .app-topbar-nav.is-empty {
   visibility: hidden;
 }
 
 @media (max-width: 899px) {
-  .app-shell.is-bare .app-mobile-metronome {
-    bottom: 0;
-    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
-  }
-
   .app-shell.is-bare .app-content {
-    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
   }
 }

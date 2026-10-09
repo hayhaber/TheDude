@@ -105,7 +105,7 @@ rosewood, below).
   instrument's nav (singing has its own card); inside Vocal there are NO
   section tabs and NO metronome (AppShell `bare`/`.is-bare`, App passes no
   metronomeSlot and stops a running metronome on entering Vocal — it would
-  also reach the mic); only the tuner pill + info remain (user's request). NO settings gear inside the app —
+  also reach the mic); no tuner either — only logo/home + info (user's request). NO settings gear inside the app —
   Settings are only on the home screen's Tools card (user's request).
   Phone/tablet: logo top-left, info top-right,
   metronome/tuner bar + feature tabs at the bottom.

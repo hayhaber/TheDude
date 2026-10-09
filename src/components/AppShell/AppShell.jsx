@@ -30,8 +30,8 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   // worse than never seeing the option in the first place.
   // Singing has its own home-screen card: inside an instrument the Vocal
   // section isn't a destination, and inside Vocal the bar shows only it.
-  // Singing is a single page: no section tabs at all (and no metronome —
-  // App passes no metronomeSlot there).
+  // Singing is a single page: no section tabs, no tuner, and no metronome
+  // (App passes no metronomeSlot there).
   const bare = activeSection === 'vocal';
   const visibleSections = bare ? [] : SECTIONS.filter((s) => s.key !== 'vocal' && supportsInstrument(s.key, instrument));
   // On the piano the Guitar Pro player is "PianoPro".
@@ -98,7 +98,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
           </nav>
           <div className="app-topbar-tools" dir={dir}>
             {metronomeSlot}
-            <TunerBar />
+            {!bare && <TunerBar />}
             <InfoTooltipsToggle />
           </div>
         </header>
@@ -106,10 +106,12 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
         {stage && <div className="app-stage-anchor" ref={stageRef}>{stage}</div>}
       </main>
 
-      <div className="app-mobile-metronome">
-        {metronomeSlot}
-        <TunerBar />
-      </div>
+      {!bare && (
+        <div className="app-mobile-metronome">
+          {metronomeSlot}
+          <TunerBar />
+        </div>
+      )}
 
       {!bare && (
         <nav className="app-bottom-tabs" aria-label={t('nav.mainLabel')}>

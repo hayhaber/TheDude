@@ -136,8 +136,9 @@ export function buildReps(ex, range, { level = 1, tempo = 1, rand = Math.random 
     const seconds = ex.seconds ?? 6;
     return keys.map((key) => ({
       key,
-      cue: [{ midi: key, start: 0, dur: 1.4 }],
-      cueLength: 1.6,
+      // Held 3 s so the singer can take the note in before singing it.
+      cue: [{ midi: key, start: 0, dur: 3 }],
+      cueLength: 3.2,
       targets: [{ midi: key, start: 0, dur: seconds }],
       length: seconds,
     }));

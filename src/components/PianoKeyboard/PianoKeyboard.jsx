@@ -615,6 +615,29 @@ export function PianoKeyboard({
     handlePressKey(midi);
   }
 
+  // Glissando: sliding a finger across the keys plays every key it passes,
+  // like running a finger along a real keyboard. A touch keeps reporting
+  // to the key it started on, so the key under the finger is looked up from
+  // its position. Free play only — a quiz answer stays a deliberate tap.
+  function handleTouchMoveKey(e) {
+    if (quizKeys) return;
+    Array.from(e.changedTouches).forEach((touch) => {
+      const el = document.elementFromPoint(touch.clientX, touch.clientY)?.closest?.('.piano-key[data-midi]');
+      if (!el) return;
+      const midi = Number(el.dataset.midi);
+      if (!isClickable(midi)) return;
+      const prev = activeTouchesRef.current.get(touch.identifier);
+      if (prev === midi) return;
+      if (prev != null) {
+        removePressedNote(prev);
+        handleReleaseKey(prev);
+      }
+      activeTouchesRef.current.set(touch.identifier, midi);
+      addPressedNote(midi);
+      handlePressKey(midi);
+    });
+  }
+
   function handleTouchEndKey(e) {
     lastTouchTimeRef.current = Date.now();
     Array.from(e.changedTouches).forEach((touch) => {
@@ -1051,7 +1074,9 @@ export function PianoKeyboard({
                     style={fill ? { backgroundColor: fill, opacity: keyOpacity(w.midi) } : undefined}
                     onClick={() => clickable && quizKeys && handleKeyClick(w.midi)}
                     onMouseDown={() => clickable && handleMouseDownKey(w.midi)}
+                    data-midi={w.midi}
                     onTouchStart={(e) => clickable && handleTouchStartKey(e, w.midi)}
+                    onTouchMove={handleTouchMoveKey}
                     onTouchEnd={handleTouchEndKey}
                     onTouchCancel={handleTouchEndKey}
                     onKeyDown={(e) => handleKeyDown(e, w.midi, clickable)}
@@ -1103,7 +1128,9 @@ export function PianoKeyboard({
                         }}
                         onClick={() => blackClickable && quizKeys && handleKeyClick(blackMidi)}
                         onMouseDown={() => blackClickable && handleMouseDownKey(blackMidi)}
+                        data-midi={blackMidi}
                         onTouchStart={(e) => blackClickable && handleTouchStartKey(e, blackMidi)}
+                        onTouchMove={handleTouchMoveKey}
                         onTouchEnd={handleTouchEndKey}
                         onTouchCancel={handleTouchEndKey}
                         onKeyDown={(e) => handleKeyDown(e, blackMidi, blackClickable)}

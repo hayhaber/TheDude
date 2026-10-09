@@ -114,6 +114,10 @@ rosewood, below).
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
+- **Piano glissando (touch)**: sliding a finger across PianoKeyboard plays
+  each key it passes (`handleTouchMoveKey`: elementFromPoint ->
+  `.piano-key[data-midi]`, releases the previous key per touch id). Free
+  play only — quiz keys still need a deliberate tap.
 - **Ear Training on piano**: a melodic answer (direction, melodic interval,
   scale id) is revealed one key at a time in play order, looping
   (`useSequentialReveal` in EarTrainingModal, 650 ms/note; useEarTraining

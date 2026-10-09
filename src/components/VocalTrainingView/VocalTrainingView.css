@@ -228,8 +228,10 @@
 .vocal-library {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  /* Every category card the same height (the tallest), rows at the top. */
+  grid-auto-rows: 1fr;
   gap: var(--space-4);
-  align-items: start;
+  align-items: stretch;
 }
 
 .vocal-cat {
@@ -866,6 +868,7 @@
 
   .vocal-library {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
   }
 
   .vocal-run-head h2 {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { useVocalExercise } from '../../hooks/useVocalExercise';
+import { useVocalExercise, LOUDNESS } from '../../hooks/useVocalExercise';
 import { midiName } from '../../music/vocal/voiceRange';
 import { centsOff } from '../../music/vocal/vocalAnalysis';
 import { targetAt } from '../../music/vocal/exercises';
@@ -13,13 +13,32 @@ const TEMPOS = [
   { key: 'fast', value: 1.2 },
 ];
 
+const VOLUME_KEY = 'dudestar-vocal-volume';
+function loadVolume() {
+  try {
+    const v = localStorage.getItem(VOLUME_KEY);
+    return v && LOUDNESS[v] ? v : 'loud';
+  } catch {
+    return 'loud';
+  }
+}
+
 // One exercise: how-to, the pitch roll, transport, and the result.
 export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLast }) {
   const { t } = useLanguage();
   const [tempoKey, setTempoKey] = useState('normal');
   const [guide, setGuide] = useState(false);
+  const [volumeKey, setVolumeKey] = useState(loadVolume);
+  const changeVolume = (v) => {
+    setVolumeKey(v);
+    try {
+      localStorage.setItem(VOLUME_KEY, v);
+    } catch {
+      /* private mode */
+    }
+  };
   const tempo = TEMPOS.find((x) => x.key === tempoKey)?.value ?? 1;
-  const run = useVocalExercise({ ex, range, level, tempo, guide, mic });
+  const run = useVocalExercise({ ex, range, level, tempo, guide, mic, loud: LOUDNESS[volumeKey] });
   const running = run.phase === 'cue' || run.phase === 'sing';
   const timed = ex.kind === 'pattern' || ex.kind === 'glide';
   const resultRef = useRef(null);
@@ -160,6 +179,16 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
                 </select>
               </label>
             )}
+            <label className="vocal-field">
+              <span>{t('vocal.volume')}</span>
+              <select value={volumeKey} onChange={(e) => changeVolume(e.target.value)}>
+                {Object.keys(LOUDNESS).map((k) => (
+                  <option key={k} value={k}>
+                    {t(`vocal.volume.${k}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="vocal-switch" title={t('vocal.guideHint')}>
               <input type="checkbox" checked={guide} onChange={(e) => setGuide(e.target.checked)} />
               <span className="vocal-switch-track" aria-hidden="true" />

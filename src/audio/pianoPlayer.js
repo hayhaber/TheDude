@@ -64,10 +64,39 @@ function getCurrentPianoEntry() {
   return profile.soundfontName ? getSoundfontInstrument(profile.soundfontName) : getSplendidPiano();
 }
 
+// Extra loudness for the Vocal section's cues (a phone loudspeaker playing a
+// soft piano note is hard to hear): a gain + limiter inserted into the
+// piano's own channel, added lazily the first time a boost is asked for and
+// left at unity gain (limiter only catches overs) for everything else.
+const boosters = new WeakMap();
+
+function setBoost(entry, boost) {
+  const out = entry?.instrument?.output;
+  if (!out) return;
+  let b = boosters.get(out);
+  if (!b) {
+    if (boost === 1 || !out.addInsert) return;
+    const ctx = getAudioContext();
+    const gain = ctx.createGain();
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -2;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.2;
+    out.addInsert(gain);
+    out.addInsert(limiter);
+    b = { gain };
+    boosters.set(out, b);
+  }
+  b.gain.gain.value = boost;
+}
+
 function playNoteAt(midi, startTime, duration = NOTE_DURATION) {
   const ctx = getAudioContext();
   const entry = getCurrentPianoEntry();
   if (entry?.isReady) {
+    setBoost(entry, 1);
     // smplr's own output channel volume (0-100, its default) — set on every
     // call rather than only when it changes, which is cheap (just a control
     // value write) and guarantees whichever instrument is currently
@@ -101,6 +130,7 @@ export function playPianoNoteOn(midi, { pedal = false } = {}) {
   const entry = getCurrentPianoEntry();
   const profile = resolvePianoProfile(getCurrentPianoProfile());
   if (entry?.isReady && profile.soundfontName) {
+    setBoost(entry, 1);
     entry.instrument.output?.setVolume?.(pianoVolume);
     entry.instrument.start({ note: midi, time: ctx.currentTime, velocity: VELOCITY });
     return;
@@ -146,16 +176,18 @@ export function playPianoSequence(midiNotes, noteGapSeconds = SEQUENCE_NOTE_GAP)
  * with `start` seconds after `at` (an AudioContext time). Returns a function
  * that silences everything still to come or ringing (e.g. on Stop). Used by
  * the Vocal section's piano cues; the one-shot helpers above are unchanged.
+ * `boost` (>= 1) makes them louder through a limiter (Vocal's Volume).
  */
-export function schedulePianoNotes(notes, at = getAudioContext().currentTime, { velocity = 80 } = {}) {
+export function schedulePianoNotes(notes, at = getAudioContext().currentTime, { velocity = 80, boost = 1 } = {}) {
   const ctx = getAudioContext();
   const entry = getCurrentPianoEntry();
   const stops = [];
+  if (entry?.isReady) setBoost(entry, boost);
   for (const n of notes) {
     const time = at + n.start;
     const dur = Math.max(0.15, n.dur ?? 0.8);
     if (entry?.isReady) {
-      entry.instrument.output?.setVolume?.(pianoVolume);
+      entry.instrument.output?.setVolume?.(boost > 1 ? Math.max(pianoVolume, 127) : pianoVolume);
       const stop = entry.instrument.start({ note: n.midi, time, velocity, duration: dur });
       if (typeof stop === 'function') stops.push(stop);
       continue;
@@ -165,7 +197,7 @@ export function schedulePianoNotes(notes, at = getAudioContext().currentTime, { 
     osc.type = 'triangle';
     osc.frequency.value = freq;
     const gain = ctx.createGain();
-    const peak = Math.max(0.18 * (pianoVolume / 100), 0.0001);
+    const peak = Math.max(Math.min(0.8, 0.18 * boost * (pianoVolume / 100)), 0.0001);
     gain.gain.setValueAtTime(0, time);
     gain.gain.linearRampToValueAtTime(peak, time + 0.012);
     gain.gain.setValueAtTime(peak, time + dur * 0.6);

@@ -16,13 +16,19 @@ const IS_IOS =
   typeof navigator !== 'undefined' &&
   (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 const IOS_BREATH = 0.75;
+// Cue loudness (the runner's Volume select): note velocity + a limited boost.
+export const LOUDNESS = {
+  normal: { velocity: 80, boost: 1 },
+  loud: { velocity: 100, boost: 2.5 },
+  max: { velocity: 110, boost: 5 },
+};
 
 /**
  * Runs one exercise as rounds of call-and-response: the piano cue, then the
  * singer, then the analysis of that round. `mic` is useVocalMic().
  * The drawing reads `viewRef` every frame (no re-render per frame).
  */
-export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
+export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = LOUDNESS.loud }) {
   const [phase, setPhase] = useState('ready'); // ready | cue | sing | done
   const [repIndex, setRepIndex] = useState(0);
   const [results, setResults] = useState([]);
@@ -32,8 +38,8 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
   const run = useRef({ reps: [], index: 0, results: [], stopCue: null, raf: null, started: 0, alive: false });
   const micRef = useRef(mic);
   micRef.current = mic;
-  const settings = useRef({ guide, level, ex });
-  settings.current = { guide, level, ex };
+  const settings = useRef({ guide, level, ex, loud });
+  settings.current = { guide, level, ex, loud };
 
   const cancel = useCallback(() => {
     const r = run.current;
@@ -66,13 +72,14 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
     const singEnd = singStart + rep.length + TAIL;
     r.stopCue?.();
     const notes = [...rep.cue];
-    const stops = [schedulePianoNotes(notes, cueStart)];
+    const { velocity, boost } = settings.current.loud;
+    const stops = [schedulePianoNotes(notes, cueStart, { velocity, boost })];
     if (settings.current.guide) {
       // Soft guide while singing: the target notes (a slide: its turning points).
       const guideNotes = rep.targets.flatMap((n) =>
         n.glide ? n.glide.slice(0, -1).map(([t, m], i) => ({ midi: m, start: n.start + t, dur: n.glide[i + 1][0] - t })) : [{ midi: n.midi, start: n.start, dur: n.dur }]
       );
-      stops.push(schedulePianoNotes(guideNotes, singStart, { velocity: 42 }));
+      stops.push(schedulePianoNotes(guideNotes, singStart, { velocity: Math.round(velocity * 0.52), boost }));
     }
     r.stopCue = () => stops.forEach((s) => s());
     r.index = index;
@@ -154,7 +161,7 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
     if (IS_IOS && !run.current.alive) micRef.current.stop();
     prepareAudioOutput();
     const rep = viewRef.current.rep ?? buildReps(ex, range, { level, tempo })[0];
-    if (rep) schedulePianoNotes(rep.cue, getAudioContext().currentTime + 0.05);
+    if (rep) schedulePianoNotes(rep.cue, getAudioContext().currentTime + 0.05, settings.current.loud);
   }, [ex, range, level, tempo]);
 
   /** Sing the current round again. */

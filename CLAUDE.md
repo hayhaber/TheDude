@@ -185,6 +185,12 @@ rosewood, below).
   (closed when leaving Vocal). First cue waits 0.45 s; `Hear` replays the
   round's cue from a tap (closes the mic first on iOS when idle). Guide
   (piano while singing) still comes from the earpiece on iOS.
+  Cue loudness: the runner's Volume select (Normal/Loud/Max, default Loud,
+  localStorage `dudestar-vocal-volume`, `LOUDNESS` in useVocalExercise) ->
+  `schedulePianoNotes(..., {velocity, boost})`; boost > 1 lazily inserts a
+  gain + limiter (threshold -2 dB) into the piano's smplr channel
+  (`setBoost` in pianoPlayer.js); every other piano path resets it to 1.
+  Measured peaks: Normal 0.18, Loud 0.45, Max 0.80 (no clipping).
 - **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
   Compose-only for now). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each

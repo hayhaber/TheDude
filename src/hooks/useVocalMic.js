@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PitchDetector } from 'pitchy';
-import { getAudioContext } from '../audio/audioContext';
+import { getAudioContext, reviveAudioOutput } from '../audio/audioContext';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { hzToMidi } from '../music/vocal/voiceRange';
 
@@ -67,6 +67,11 @@ export function useVocalMic() {
     n.stream?.getTracks().forEach((tr) => tr.stop());
     nodes.current = {};
     recent.current = [];
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = 'auto';
+    } catch {
+      /* not supported */
+    }
     setListening(false);
     setLive({ midi: null, level: 0 });
   }, []);
@@ -78,6 +83,13 @@ export function useVocalMic() {
       const { deviceId } = getAudioInputSettings();
       // Processing off: echo cancellation/AGC/noise suppression bend a
       // sustained sung pitch and pump its level.
+      // iPhone/iPad (Safari 16.4+): record AND keep playing through the
+      // speaker — otherwise opening the mic can mute or reroute our piano.
+      try {
+        if (navigator.audioSession) navigator.audioSession.type = 'play-and-record';
+      } catch {
+        /* not supported */
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: deviceId ? { exact: deviceId } : undefined,
@@ -87,7 +99,9 @@ export function useVocalMic() {
         },
       });
       const ctx = getAudioContext();
-      if (ctx.state === 'suspended') await ctx.resume().catch(() => {});
+      // Opening the mic can interrupt playback on iOS; wake it again.
+      reviveAudioOutput();
+      if (ctx.state !== 'running') await ctx.resume().catch(() => {});
       const source = ctx.createMediaStreamSource(stream);
       const gain = ctx.createGain();
       const analyser = ctx.createAnalyser();

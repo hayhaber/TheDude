@@ -177,6 +177,11 @@ rosewood, below).
   note HELD ~0.35 s counts; ± nudge), `RangeBar.jsx`. Text: `vocal.ex.<id>.
   title/desc/how/why`, `vocal.syl.*`, `vocal.cat.*`, `vocal.voice.*`.
   Test with Chromium's fake mic (`--use-file-for-fake-audio-capture=x.wav`).
+  iPhone sound with the mic open: Start calls `prepareAudioOutput()` (in the
+  tap, before getUserMedia) and `reviveAudioOutput()` after; the mic sets
+  `navigator.audioSession.type = 'play-and-record'` (back to 'auto' on stop);
+  the mic stays open between exercises (closed when leaving Vocal); first
+  cue waits 0.45 s; `Hear` button replays the round's cue from a tap.
 - **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
   Compose-only for now). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each

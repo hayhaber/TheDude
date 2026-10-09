@@ -136,3 +136,32 @@ export function unlockAudioContextOnFirstGesture() {
   window.addEventListener('mousedown', unlock, { once: true });
   window.addEventListener('keydown', unlock, { once: true });
 }
+
+/**
+ * Call synchronously inside a tap/click, right before something that will
+ * take over the audio session (opening the microphone): wakes the context,
+ * plays a silent buffer and the silent element in the gesture, so iOS keeps
+ * playing our sound through the speaker. Safe to call any time.
+ */
+export function prepareAudioOutput() {
+  const ctx = getAudioContext();
+  try {
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+  } catch {
+    /* nothing to unlock */
+  }
+  ensureSilentAudioPlaying();
+  return ctx;
+}
+
+/** After the microphone opened: make sure playback is still alive. */
+export function reviveAudioOutput() {
+  const ctx = getAudioContext();
+  if (ctx.state !== 'running') ctx.resume().catch(() => {});
+  ensureSilentAudioPlaying();
+  return ctx;
+}

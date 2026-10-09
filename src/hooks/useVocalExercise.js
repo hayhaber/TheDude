@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAudioContext } from '../audio/audioContext';
+import { getAudioContext, prepareAudioOutput, reviveAudioOutput } from '../audio/audioContext';
 import { schedulePianoNotes, preparePiano } from '../audio/pianoPlayer';
 import { buildReps } from '../music/vocal/exercises';
 import { analyzeRep, diagnose } from '../music/vocal/vocalAnalysis';
@@ -38,7 +38,9 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
     const r = run.current;
     const rep = r.reps[index];
     const ctx = getAudioContext();
-    const cueStart = ctx.currentTime + 0.12;
+    // The first round waits a moment longer: on iPhone the audio session
+    // is still settling right after the mic opened.
+    const cueStart = ctx.currentTime + (index === 0 ? 0.45 : 0.12);
     const singStart = cueStart + rep.cueLength + BREATH;
     const singEnd = singStart + rep.length + TAIL;
     r.stopCue?.();
@@ -66,7 +68,9 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
     const score = Math.round(r.results.reduce((a, x) => a + x.score, 0) / Math.max(1, r.results.length));
     const seconds = (getAudioContext().currentTime - r.started) || 0;
     if (r.results.length) recordResult(e.id, score, seconds); // an all-skipped run isn't practice
-    mic.stop(); // release the microphone between exercises
+    // The mic stays open between exercises (closed when leaving the Vocal
+    // section): on iPhone every open/close switches the audio session,
+    // which could cut the piano.
     setSummary({ score, tips });
     viewRef.current = { ...viewRef.current, phase: 'done' };
     setPhase('done');
@@ -100,7 +104,11 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
 
   const start = useCallback(async () => {
     cancel();
+    // Still inside the tap: unlock playback BEFORE the mic takes the
+    // audio session (iPhone), then wake it again once the mic is open.
+    prepareAudioOutput();
     const ok = await mic.start();
+    reviveAudioOutput();
     if (!ok) return;
     preparePiano();
     const reps = buildReps(ex, range, { level, tempo });
@@ -114,10 +122,17 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
 
   const stop = useCallback(() => {
     cancel();
-    mic.stop();
     viewRef.current = { ...viewRef.current, phase: 'ready' };
     setPhase('ready');
-  }, [cancel, mic]);
+  }, [cancel]);
+
+  /** Play the current round's cue again (or the first one) — a tap, so it
+   *  always sounds, and a quick way to check the sound is on. */
+  const hear = useCallback(() => {
+    prepareAudioOutput();
+    const rep = viewRef.current.rep ?? buildReps(ex, range, { level, tempo })[0];
+    if (rep) schedulePianoNotes(rep.cue, getAudioContext().currentTime + 0.05);
+  }, [ex, range, level, tempo]);
 
   /** Sing the current round again. */
   const repeat = useCallback(() => {
@@ -153,5 +168,5 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic }) {
     return cancel;
   }, [ex, cancel]);
 
-  return { phase, repIndex, repCount, results, summary, viewRef, start, stop, repeat, skip };
+  return { phase, repIndex, repCount, results, summary, viewRef, start, stop, repeat, skip, hear };
 }

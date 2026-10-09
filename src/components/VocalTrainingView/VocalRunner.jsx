@@ -124,6 +124,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
         </div>
 
         {mic.error && <p className="vocal-error">{t('vocal.micError', { message: mic.error })}</p>}
+        <p className="vocal-hint vocal-sound-hint">{t('vocal.soundHint')}</p>
 
         <div className="vocal-controls-row">
           <div className="vocal-actions">
@@ -141,6 +142,9 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
             </button>
             <button type="button" onClick={run.skip} disabled={!running}>
               {t('vocal.skip')}
+            </button>
+            <button type="button" onClick={run.hear} title={t('vocal.hearHint')}>
+              {t('vocal.hear')}
             </button>
           </div>
           <div className="vocal-options">

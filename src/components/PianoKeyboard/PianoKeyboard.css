@@ -761,3 +761,14 @@
     min-width: 22px;
   }
 }
+
+/* ⓘ on the panel's fixed dark face: light enough to read in both themes. */
+.piano-panel .info-tooltip-trigger {
+  color: #b8bcc4;
+}
+
+.piano-panel .info-tooltip-trigger:hover,
+.piano-panel .info-tooltip-trigger:focus-visible {
+  color: #4dabf7;
+  background: rgba(77, 171, 247, 0.18);
+}

@@ -13,6 +13,7 @@ import { ProgressionAreaPanel } from '../ProgressionAreaPanel/ProgressionAreaPan
 import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { PositionRoadmapPanel } from '../PositionRoadmapPanel/PositionRoadmapPanel';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { localize } from '../../i18n/localize';
 import './StudiesView.css';
 
@@ -119,27 +120,37 @@ export function StudiesView({
             )}
 
             {activeLesson.kind === 'chordTones' && (
-              <div className="mode-toggle" role="group" aria-label={t('studies.chordToneLabels')}>
-                <button
-                  type="button"
-                  className={chordToneLabels === 'note' ? 'active' : ''}
-                  onClick={() => onChordToneLabelsChange?.('note')}
-                >
-                  {t('studies.labelNotes')}
-                </button>
-                <button
-                  type="button"
-                  className={chordToneLabels === 'degree' ? 'active' : ''}
-                  onClick={() => onChordToneLabelsChange?.('degree')}
-                >
-                  {t('studies.labelDegrees')}
-                </button>
+              // The toggle keeps its own bottom margin; the ⓘ sits centred on
+              // the buttons (a control-height box), not on toggle + margin.
+              <div style={{ display: 'inline-flex', alignItems: 'flex-start' }}>
+                <div className="mode-toggle" role="group" aria-label={t('studies.chordToneLabels')}>
+                  <button
+                    type="button"
+                    className={chordToneLabels === 'note' ? 'active' : ''}
+                    onClick={() => onChordToneLabelsChange?.('note')}
+                  >
+                    {t('studies.labelNotes')}
+                  </button>
+                  <button
+                    type="button"
+                    className={chordToneLabels === 'degree' ? 'active' : ''}
+                    onClick={() => onChordToneLabelsChange?.('degree')}
+                  >
+                    {t('studies.labelDegrees')}
+                  </button>
+                </div>
+                <span style={{ display: 'inline-flex', alignItems: 'center', height: 'var(--control-height)' }}>
+                  <InfoTooltip text={t('tip.tools.chordToneLabels')} />
+                </span>
               </div>
             )}
 
             {activeLesson.kind === 'inversionMap' && (
               <label className="studies-field">
-                <span>{t('studies.inversionStringSet')}</span>
+                <span>
+                  {t('studies.inversionStringSet')}
+                  <InfoTooltip text={t('tip.tools.stringSet')} />
+                </span>
                 <select
                   value={inversionStringSet}
                   onChange={(e) => onInversionStringSetChange?.(Number(e.target.value))}

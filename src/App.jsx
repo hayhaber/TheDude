@@ -942,8 +942,10 @@ function App() {
     return twoHandView ? applyTwoHandVoicing(inverted) : inverted;
   }, [activeParsed, activePianoInversion, twoHandView]);
   const pianoChordToneSummary = pianoChordTones.length > 0 ? inversionSummary(pianoChordTones, noteNameForMidi) : '';
+  // heatMap.js builds a MAJOR scale from this tonic, so a minor key passes
+  // its relative major (same notes: A minor -> C).
   const heatMapTonicPitchClass = scaleAnalysis
-    ? scaleAnalysis.tonicPitchClass
+    ? (scaleAnalysis.tonicPitchClass + (scaleAnalysis.mode === 'minor' ? 3 : 0)) % 12
     : activeParsed
       ? guessTonicPitchClass(activeParsed.root.pitchClass, activeParsed.qualityKey)
       : null;

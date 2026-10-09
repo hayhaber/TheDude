@@ -7,6 +7,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import '../SettingsPanel/SettingsPanel.css';
 import './DisplayOptionsMenu.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Right-side drawer, same interaction/anchor as MetronomeBar/TunerBar
 // (top-anchored, capped max-height so it never covers the Stage, portaled to
@@ -93,7 +94,10 @@ export function DisplayOptionsMenu({
                   no-op on piano, silently doing nothing when clicked. */}
               {instrument === 'guitar' && (
                 <div className="settings-field">
-                  {t('modeToggle.label')}
+                  <span>
+                    {t('modeToggle.label')}
+                    <InfoTooltip text={t('tip.compose.displayMode')} />
+                  </span>
                   <ModeToggle mode={mode} onChange={setMode} />
                 </div>
               )}
@@ -111,7 +115,10 @@ export function DisplayOptionsMenu({
               )}
 
               <div className="settings-field">
-                {t('colorModeToggle.label')}
+                <span>
+                  {t('colorModeToggle.label')}
+                  <InfoTooltip text={t('tip.compose.noteColoring')} />
+                </span>
                 <ColorModeToggle colorMode={colorMode} onChange={setColorMode} />
               </div>
 
@@ -144,7 +151,10 @@ export function DisplayOptionsMenu({
                   segmented-button size/style, not a visually different
                   control for just this one setting. */}
               <div className="settings-field" title={t('compose.heatMapHint')}>
-                {t('compose.heatMap')}
+                <span>
+                  {t('compose.heatMap')}
+                  <InfoTooltip text={t('tip.compose.heatMap')} />
+                </span>
                 <div className="mode-toggle" role="group" aria-label={t('compose.heatMap')}>
                   <button type="button" className={!showHeatMap ? 'active' : ''} onClick={() => setShowHeatMap(false)}>
                     {t('displayOptions.off')}

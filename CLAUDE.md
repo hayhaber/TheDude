@@ -454,6 +454,17 @@ on the container; content inside stays top-aligned). Stacked on a phone
   above capped at 980px).
 
 
+## ⓘ explanations (info switch)
+
+- `InfoTooltip` (components/InfoTooltip) renders only while the global "i"
+  switch is on — default OFF now (`infoTooltipsEnabled` in localStorage).
+  Texts live in `src/i18n/tips/{compose,practice,tools}.js` (EN+HE, keys
+  `tip.<area>.<name>`), looked up by `t()` after STRINGS. ~60 places across
+  the app, ONLY where a term/setting/score isn't self-evident (user's rule:
+  not next to obvious buttons). New non-obvious features get one too.
+  `.info-tooltip > .info-tooltip-trigger` resets container button styles;
+  the bubble is `dir="auto"`, max 280px — keep texts short (≤ ~230 chars).
+
 ## Backlog (user-approved ideas, not built yet)
 
 - **Personal profiles for the WHOLE app** (user, 2026-10-09: "for later"):

@@ -1,5 +1,6 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import './PhraseBuilderPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 function NoteList({ notes, playingOrder }) {
   return (
@@ -39,7 +40,10 @@ export function PhraseBuilderPanel({
     <div className="phrase-builder-panel">
       <div className="phrase-section">
         <div className="phrase-section-header">
-          <h2 className="phrase-section-title">{t('phraseBuilder.title')}</h2>
+          <h2 className="phrase-section-title">
+            {t('phraseBuilder.title')}
+            <InfoTooltip text={t('tip.compose.phraseBuilder')} />
+          </h2>
           <div className="phrase-buttons">
             <button type="button" className="play-button" onClick={onBuildPhrase} disabled={disabled}>
               {phrase ? t('phraseBuilder.rebuild') : t('phraseBuilder.build')}
@@ -70,7 +74,10 @@ export function PhraseBuilderPanel({
 
       <div className="phrase-section">
         <div className="phrase-section-header">
-          <h2 className="phrase-section-title">{t('phraseBuilder.callResponseTitle')}</h2>
+          <h2 className="phrase-section-title">
+            {t('phraseBuilder.callResponseTitle')}
+            <InfoTooltip text={t('tip.compose.callResponse')} />
+          </h2>
           <div className="phrase-buttons">
             <button type="button" className="play-button" onClick={onBuildCallResponse} disabled={disabled}>
               {callResponse ? t('phraseBuilder.rebuildCr') : t('phraseBuilder.generateCr')}

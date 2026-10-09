@@ -1,5 +1,6 @@
 import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels, parseGuitarChordProgressionText } from '../../music/guitarChordRhythmContent';
 import { LEAD_TIME_S } from '../../hooks/useGuitarChordRhythm';
 import './GuitarChordRhythmPanel.css';
@@ -159,8 +160,9 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
         {source === 'auto' && (
           <>
             <div className="guitar-chord-rhythm-field">
-              <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
-                {t('guitarChordRhythm.mode')}
+              <span className="guitar-chord-rhythm-field-label">
+                <span aria-hidden="true">{t('guitarChordRhythm.mode')}</span>
+                <InfoTooltip text={t('tip.practice.chordPool')} />
               </span>
               <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.mode')}>
                 {GUITAR_CHORD_RHYTHM_MODES.map((m) => (
@@ -362,6 +364,7 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
                 })
               : t('guitarChordRhythm.listening')
             : t('earTraining.mic.permission')}
+          {!micError && micIsListening && <InfoTooltip text={t('tip.practice.chordHearing')} />}
         </p>
       )}
 

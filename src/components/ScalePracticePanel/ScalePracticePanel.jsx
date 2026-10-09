@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { buildPositionExercise, buildLinearExercise, buildTransitionExercise } from '../../music/scalePracticeContent';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { ChevronIcon } from '../ChevronIcon/ChevronIcon';
 import { LabelModeToggle } from '../LabelModeToggle/LabelModeToggle';
 import './ScalePracticePanel.css';
@@ -120,8 +121,9 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
 
         {(mode === 'position' || mode === 'transition') && (
           <div className="scale-practice-field">
-            <span className="scale-practice-field-label" aria-hidden="true">
-              {mode === 'position' ? t('scalePractice.position') : t('scalePractice.transitionPosition')}
+            <span className="scale-practice-field-label">
+              <span aria-hidden="true">{mode === 'position' ? t('scalePractice.position') : t('scalePractice.transitionPosition')}</span>
+              <InfoTooltip text={t('tip.practice.scalePosition')} />
             </span>
             <div className="scale-practice-stepper">
               <button
@@ -204,6 +206,7 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
                 <span className="scale-practice-switch-thumb" />
               </span>
               {t('scalePractice.blueNote')}
+              <InfoTooltip text={t('tip.practice.blueNote')} />
             </label>
           </div>
         )}

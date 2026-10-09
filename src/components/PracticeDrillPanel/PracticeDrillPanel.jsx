@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './PracticeDrillPanel.css';
 
 // Space = play/pause, arrow keys = manual step when paused — only active
@@ -59,14 +60,17 @@ export function PracticeDrillPanel({ drill }) {
       </div>
 
       <div className="practice-drill-controls">
-        <div className="mode-toggle" role="group" aria-label={t('practiceDrillPanel.viewModeLabel')}>
-          <button type="button" className={mode === 'static' ? 'active' : ''} onClick={() => setMode('static')}>
-            {t('practiceDrillPanel.staticOverview')}
-          </button>
-          <button type="button" className={mode === 'live' ? 'active' : ''} onClick={() => setMode('live')}>
-            {t('practiceDrillPanel.livePlayback')}
-          </button>
-        </div>
+        <span style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="mode-toggle" role="group" aria-label={t('practiceDrillPanel.viewModeLabel')}>
+            <button type="button" className={mode === 'static' ? 'active' : ''} onClick={() => setMode('static')}>
+              {t('practiceDrillPanel.staticOverview')}
+            </button>
+            <button type="button" className={mode === 'live' ? 'active' : ''} onClick={() => setMode('live')}>
+              {t('practiceDrillPanel.livePlayback')}
+            </button>
+          </div>
+          <InfoTooltip text={t('tip.practice.drillView')} />
+        </span>
 
         {/* What the fretboard's note dots show — the note's letter name, or
             its 1-based position in the play order, so you can tell "this is
@@ -81,15 +85,18 @@ export function PracticeDrillPanel({ drill }) {
         </div>
 
         {mode === 'live' && (
-          <button
-            type="button"
-            className={'practice-drill-hear' + (hearAudio ? ' active' : '')}
-            onClick={() => setHearAudio((v) => !v)}
-            aria-pressed={hearAudio}
-            title={t('practiceDrillPanel.hearItHint')}
-          >
-            {hearAudio ? '🔊' : '🔈'} {t('practiceDrillPanel.hearIt')}
-          </button>
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            <button
+              type="button"
+              className={'practice-drill-hear' + (hearAudio ? ' active' : '')}
+              onClick={() => setHearAudio((v) => !v)}
+              aria-pressed={hearAudio}
+              title={t('practiceDrillPanel.hearItHint')}
+            >
+              {hearAudio ? '🔊' : '🔈'} {t('practiceDrillPanel.hearIt')}
+            </button>
+            <InfoTooltip text={t('tip.practice.drillHear')} />
+          </span>
         )}
 
         <button

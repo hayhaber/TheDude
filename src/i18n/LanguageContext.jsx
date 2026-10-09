@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { STRINGS } from './strings';
+import { TIPS } from './tips';
 
 const STORAGE_KEY = 'lang';
 
@@ -30,7 +31,7 @@ export function LanguageProvider({ children }) {
   }, [lang]);
 
   function t(key, vars) {
-    const template = STRINGS[lang]?.[key] ?? STRINGS.en[key] ?? key;
+    const template = STRINGS[lang]?.[key] ?? TIPS[lang]?.[key] ?? STRINGS.en[key] ?? TIPS.en[key] ?? key;
     return interpolate(template, vars);
   }
 

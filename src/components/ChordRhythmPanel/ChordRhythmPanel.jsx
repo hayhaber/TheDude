@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { LEAD_TIME_S } from '../../hooks/useChordRhythm';
 import './ChordRhythmPanel.css';
 
@@ -189,8 +190,9 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
         </label>
 
         <div className="chord-rhythm-field">
-          <span className="chord-rhythm-field-label" aria-hidden="true">
-            {t('chordRhythm.strictness')}
+          <span className="chord-rhythm-field-label">
+            <span aria-hidden="true">{t('chordRhythm.strictness')}</span>
+            <InfoTooltip text={t('tip.practice.judging')} />
           </span>
           <div className="mode-toggle" role="group" aria-label={t('chordRhythm.strictness')}>
             <button type="button" className={!strictMode ? 'active' : ''} onClick={() => setStrictMode(false)} disabled={isPlaying}>

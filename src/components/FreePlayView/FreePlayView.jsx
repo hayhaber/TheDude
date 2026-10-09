@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { PianoKeyboard } from '../PianoKeyboard/PianoKeyboard';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { getAudioContext } from '../../audio/audioContext';
 import { schedulePianoNotes } from '../../audio/pianoPlayer';
 import { identifyChord } from '../../music/chordFromNotes';
@@ -249,16 +250,20 @@ export function FreePlayView({ pianoProps }) {
           </select>
         </label>
 
-        <button
-          type="button"
-          className={'freeplay-pedal' + (pedal ? ' is-on' : '')}
-          aria-pressed={pedal}
-          onClick={() => setPedal((p) => !p)}
-          title={t('freeplay.pedalHint')}
-        >
-          <span className="freeplay-pedal-dot" aria-hidden="true" />
-          {t('freeplay.pedal')}
-        </button>
+        {/* Pedal + its ⓘ kept together as one item of the wrapping row. */}
+        <span className="freeplay-pedal-wrap">
+          <button
+            type="button"
+            className={'freeplay-pedal' + (pedal ? ' is-on' : '')}
+            aria-pressed={pedal}
+            onClick={() => setPedal((p) => !p)}
+            title={t('freeplay.pedalHint')}
+          >
+            <span className="freeplay-pedal-dot" aria-hidden="true" />
+            {t('freeplay.pedal')}
+          </button>
+          <InfoTooltip text={t('tip.tools.pedal')} />
+        </span>
 
         <div className="freeplay-recorder" role="group" aria-label={t('freeplay.recorder')}>
           {recState === 'idle' ? (

@@ -892,3 +892,37 @@
     font-size: 36px;
   }
 }
+
+/* ⓘ: keep its own small look — the scoped `.vocal-training-view button`
+   rules above would otherwise turn it into a full-size pill. */
+.vocal-training-view .info-tooltip-trigger {
+  min-height: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.vocal-training-view .info-tooltip-trigger:hover:not(:disabled),
+.vocal-training-view .info-tooltip-trigger:focus-visible {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.vocal-training-view .info-tooltip-trigger:active:not(:disabled) {
+  transform: none;
+}
+
+/* A control + its ⓘ as one item of a row. */
+.vocal-with-tip {
+  display: inline-flex;
+  align-items: center;
+}

@@ -1,5 +1,6 @@
 import { useInfoTooltipsEnabled } from '../../hooks/useInfoTooltipsEnabled';
 import { useHoverExplanation } from './useHoverExplanation';
+import { useLanguage } from '../../i18n/LanguageContext';
 import './InfoTooltip.css';
 
 // Reusable contextual-help tooltip: a small "ⓘ" trigger that reveals a short
@@ -21,8 +22,9 @@ import './InfoTooltip.css';
 // Gated on the app-wide "i" master switch next to Settings (see AppShell +
 // hooks/InfoTooltipsProvider.jsx) — every InfoTooltip in the app renders
 // nothing at all while that switch is off, per explicit request.
-export function InfoTooltip({ text, label = 'More info' }) {
+export function InfoTooltip({ text, label }) {
   const { enabled } = useInfoTooltipsEnabled();
+  const { t } = useLanguage();
   const { triggerRef, tooltipId, open, setOpen, hoverHandlers, renderBubble } = useHoverExplanation();
 
   if (!enabled) return null;
@@ -33,7 +35,7 @@ export function InfoTooltip({ text, label = 'More info' }) {
         ref={triggerRef}
         type="button"
         className="info-tooltip-trigger"
-        aria-label={label}
+        aria-label={label ?? t('infoTooltips.more')}
         aria-describedby={open ? tooltipId : undefined}
         aria-expanded={open}
         {...hoverHandlers}

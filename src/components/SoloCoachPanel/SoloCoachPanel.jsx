@@ -1,5 +1,6 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import './SoloCoachPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 function scoreClass(score) {
   if (score >= 80) return 'good';
@@ -19,7 +20,10 @@ export function SoloCoachPanel({ disabled, subjectLabel, feedback, onAnalyze }) 
   return (
     <div className="solo-coach-panel">
       <div className="solo-coach-header">
-        <h2 className="solo-coach-title">{t('soloCoach.title')}</h2>
+        <h2 className="solo-coach-title">
+          {t('soloCoach.title')}
+          <InfoTooltip text={t('tip.compose.soloCoach')} />
+        </h2>
         <button type="button" className="play-button" onClick={onAnalyze} disabled={disabled}>
           {feedback ? t('soloCoach.reanalyze') : t('soloCoach.analyze')}
         </button>

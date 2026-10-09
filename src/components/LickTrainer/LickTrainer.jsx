@@ -6,6 +6,7 @@ import { defaultTrackIndex } from '../../music/lickTrainer/gpImport';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { midiToNoteName } from '../../music/pitchUtils';
 import { TabTimeline } from './TabTimeline';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './LickTrainer.css';
 
 const STRING_NUM = (stringIndex) => 6 - stringIndex; // app index -> tab string number
@@ -60,7 +61,10 @@ function Results({ trainer, t, lang }) {
           <div className="lt-score-row">
             <div className={`lt-score grade-${s.verdict}`}>
               <span className="lt-score-num">{s.score}</span>
-              <span className="lt-score-label">{t('lickTrainer.score')}</span>
+              <span className="lt-score-label">
+                {t('lickTrainer.score')}
+                <InfoTooltip text={t('tip.practice.lickScore')} />
+              </span>
             </div>
             <div className="lt-verdict">
               <p className="lt-verdict-text">{t(`lickTrainer.verdict.${s.verdict}`)}</p>
@@ -69,11 +73,13 @@ function Results({ trainer, t, lang }) {
                   {t('lickTrainer.notes')}: <b>{s.correct}/{s.total}</b>
                 </span>
                 <span>
-                  {t('lickTrainer.timing')}: <b>{pct(s.timingScore)}</b>
+                  {t('lickTrainer.timing')}
+                  <InfoTooltip text={t('tip.practice.lickTiming')} />: <b>{pct(s.timingScore)}</b>
                 </span>
                 {s.techniqueScore != null && (
                   <span>
-                    {t('lickTrainer.technique')}: <b>{pct(s.techniqueScore)}</b>
+                    {t('lickTrainer.technique')}
+                    <InfoTooltip text={t('tip.practice.lickTechnique')} />: <b>{pct(s.techniqueScore)}</b>
                   </span>
                 )}
                 <span className="lt-muted">
@@ -475,8 +481,11 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
             {localize(lick.title, lang)}
             {lick.sectionLabel && <span className="lt-section-label"> · {localize(lick.sectionLabel, lang)}</span>}
           </h3>
-          <span className={'lt-badge' + (lick.source === 'user' || lick.source === 'import' ? ' verified' : '')}>
-            {t(lick.source === 'import' ? 'lickTrainer.sourceImport' : lick.source === 'user' ? 'lickTrainer.sourceUser' : 'lickTrainer.sourceApp')}
+          <span style={{ display: 'flex', alignItems: 'center', flex: 'none' }}>
+            <span className={'lt-badge' + (lick.source === 'user' || lick.source === 'import' ? ' verified' : '')}>
+              {t(lick.source === 'import' ? 'lickTrainer.sourceImport' : lick.source === 'user' ? 'lickTrainer.sourceUser' : 'lickTrainer.sourceApp')}
+            </span>
+            <InfoTooltip text={t('tip.practice.lickSource')} />
           </span>
         </div>
         <p className="lt-meta">
@@ -566,6 +575,7 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
           <label className="lt-check">
             <input type="checkbox" checked={trainer.clickDuring} onChange={(e) => trainer.setClickDuring(e.target.checked)} disabled={busy} />
             {t('lickTrainer.click')}
+            <InfoTooltip text={t('tip.practice.lickClick')} />
           </label>
         </div>
 

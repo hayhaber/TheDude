@@ -70,6 +70,7 @@ export const STRINGS = {
     'settings.dark': 'Dark',
     'settings.gearLabel': 'Settings',
     'infoTooltips.toggleLabel': 'Info tooltips',
+    'infoTooltips.more': 'What is this?',
     'infoTooltips.toggleExplanation':
       'Toggles the small ⓘ info icons shown throughout the app. When on (highlighted), hovering or tapping an ⓘ icon opens a short explanation. When off, none of the ⓘ icons appear at all.',
     'settings.guitarSound': 'Guitar Sound',
@@ -199,7 +200,7 @@ export const STRINGS = {
     'compose.smoothHint':
       'Gold notes stay put, blue notes move — step through the chords above to see the smoothest fingering for each change.',
     'compose.pianoSmoothTooltip':
-      "Automatically picks each chord's inversion to keep the notes as close as possible to the previous chord, instead of everything sitting in root position. Your own per-chord inversion choices are still there underneath — turn Smooth off to see them again.",
+      "Automatically picks each chord's inversion to keep the notes as close as possible to the previous chord, instead of everything sitting in root position. Your own per-chord inversion choices are still there underneath — turn Smart off to see them again.",
 
     'compose.training': 'Training',
     'compose.trainingPanelTitle': 'Send to Chord Changes',
@@ -1458,6 +1459,7 @@ export const STRINGS = {
     'settings.dark': 'כהה',
     'settings.gearLabel': 'הגדרות',
     'infoTooltips.toggleLabel': 'סימוני מידע',
+    'infoTooltips.more': 'מה זה?',
     'infoTooltips.toggleExplanation':
       'מדליק/מכבה את סימוני המידע הקטנים (ⓘ) המוצגים בכל האפליקציה. כשהפונקציה דלוקה (מודגשת), מעבר עכבר או הקשה על סימן ⓘ פותחים הסבר קצר. כשהיא כבויה, אף סימן ⓘ לא מוצג כלל.',
     'settings.guitarSound': 'צליל גיטרה',
@@ -1586,7 +1588,7 @@ export const STRINGS = {
     'compose.smoothTooltip': 'מדגיש איזו אצבע נשארת במקום בין אקורדים (זהב) ואיזו זזה (כחול), בתוספת הפוזיציה החלקה ביותר על הצוואר לכל מעבר — כדי שתוכלו להחליף אקורדים בלי לקפוץ סביב הצוואר.',
     'compose.smoothHint': 'תווים בזהב נשארים במקום, תווים בכחול זזים — עברו בין האקורדים למעלה כדי לראות את האצבוע החלק ביותר לכל מעבר.',
     'compose.pianoSmoothTooltip':
-      'בוחר אוטומטית את ההיפוך של כל אקורד כדי לשמור על התווים קרובים ככל האפשר לאקורד הקודם, במקום שהכל יישאר במצב יסוד. הבחירות הידניות שלכם לכל אקורד עדיין שמורות מתחת — כבו את "חלק" כדי לראות אותן שוב.',
+      'בוחר אוטומטית את ההיפוך של כל אקורד כדי לשמור על התווים קרובים ככל האפשר לאקורד הקודם, במקום שהכל יישאר במצב יסוד. הבחירות הידניות שלכם לכל אקורד עדיין שמורות מתחת — כבו את "חכם" כדי לראות אותן שוב.',
 
     'compose.training': 'אימון',
     'compose.trainingPanelTitle': 'שלח לתרגול "החלפת אקורדים"',

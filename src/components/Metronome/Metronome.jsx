@@ -2,6 +2,7 @@ import { CLICK_SOUND_OPTIONS } from '../../audio/metronome';
 import { SOUND_SOURCE_OPTIONS } from '../../music/drumPatterns';
 import { BpmScroller } from './BpmScroller';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './Metronome.css';
 
 const MIXER_CHANNELS = [
@@ -181,6 +182,7 @@ export function Metronome({
                   <span className="metronome-fill-thumb" />
                 </span>
                 {t('metronome.fills')}
+                <InfoTooltip text={t('tip.tools.drumFills')} />
               </label>
 
               <div className="metronome-mixer">

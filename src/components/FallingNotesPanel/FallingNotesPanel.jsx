@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { playPianoNote } from '../../audio/pianoPlayer';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './FallingNotesPanel.css';
 
 const WHITE_PITCH_CLASSES = new Set([0, 2, 4, 5, 7, 9, 11]);
@@ -104,9 +105,12 @@ export function FallingNotesPanel({ fallingNotes }) {
           </select>
         </label>
 
-        <button type="button" className="falling-notes-midi-btn" onClick={enableMidi} disabled={midiState === 'connected'}>
-          {t('fallingNotes.midi')}
-        </button>
+        <span style={{ display: 'flex', alignItems: 'center' }}>
+          <button type="button" className="falling-notes-midi-btn" onClick={enableMidi} disabled={midiState === 'connected'}>
+            {t('fallingNotes.midi')}
+          </button>
+          <InfoTooltip text={t('tip.practice.midi')} />
+        </span>
 
         <button type="button" className="play-button" onClick={isPlaying ? stop : start}>
           {isPlaying ? t('vocal.stop') : t('vocal.start')}

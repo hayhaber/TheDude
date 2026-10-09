@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { useVocalExercise, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey } from '../../hooks/useVocalExercise';
 import { midiName } from '../../music/vocal/voiceRange';
 import { centsOff } from '../../music/vocal/vocalAnalysis';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { targetAt } from '../../music/vocal/exercises';
 import { getAudioContext } from '../../audio/audioContext';
 import { PitchRoll } from './PitchRoll';
@@ -100,6 +101,8 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
             <span className="vocal-dot" />
             {status}
           </div>
+          {/* The pitch roll below has no heading of its own. */}
+          <InfoTooltip text={t('tip.tools.vocalRoll')} />
           {run.repCount > 0 && run.phase !== 'done' && run.phase !== 'ready' && (
             <span className="vocal-muted">
               {t('vocal.rep', { i: run.repIndex + 1, n: run.repCount })} · {t('vocal.key', { note: midiName(run.viewRef.current.rep?.key ?? 60) })}
@@ -121,6 +124,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
             <span className="vocal-level">
               <span style={{ width: `${Math.round(mic.live.level * 100)}%` }} />
             </span>
+            <InfoTooltip text={t('tip.tools.vocalLive')} />
           </div>
         </div>
         <div className="vocal-roll-wrap" dir="ltr">
@@ -179,11 +183,14 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
                 ))}
               </select>
             </label>
-            <label className="vocal-switch" title={t('vocal.guideHint')}>
-              <input type="checkbox" checked={guide} onChange={(e) => setGuide(e.target.checked)} />
-              <span className="vocal-switch-track" aria-hidden="true" />
-              {t('vocal.guide')}
-            </label>
+            <span className="vocal-with-tip">
+              <label className="vocal-switch" title={t('vocal.guideHint')}>
+                <input type="checkbox" checked={guide} onChange={(e) => setGuide(e.target.checked)} />
+                <span className="vocal-switch-track" aria-hidden="true" />
+                {t('vocal.guide')}
+              </label>
+              <InfoTooltip text={t('tip.tools.vocalGuide')} />
+            </span>
           </div>
         </div>
       </div>
@@ -199,6 +206,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
                 <span key={i} title={midiName(r.key)} className={r.score >= 85 ? 'is-good' : r.score >= 60 ? 'is-ok' : 'is-off'} style={{ height: `${Math.max(8, r.score)}%` }} />
               ))}
             </div>
+            <InfoTooltip text={t('tip.tools.vocalScore')} />
           </div>
           <ul className="vocal-tips">
             {run.summary.tips.map((tip) => (

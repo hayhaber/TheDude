@@ -8,6 +8,7 @@ import { useInstrument } from '../../instruments/useInstrument';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import './ScalesView.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 const STAGE_ORDER = [
   SCALES_STAGES.FOUNDATION,
@@ -164,6 +165,7 @@ export function ScalesView({ lessons, scalesLesson, progress, drill, metronome, 
                 <label className="scales-field scales-blue-note-toggle">
                   <input type="checkbox" checked={includeBlueNote} onChange={(e) => setIncludeBlueNote(e.target.checked)} />
                   {t('scales.showBlueNote')}
+                  <InfoTooltip text={t('tip.compose.blueNote')} />
                 </label>
               )}
 

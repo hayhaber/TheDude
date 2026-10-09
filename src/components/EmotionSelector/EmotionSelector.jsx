@@ -1,6 +1,8 @@
+import { useId } from 'react';
 import { EMOTIONS, emotionProfile } from '../../music/emotionEngine';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './EmotionSelector.css';
 
 // Lets you pick an emotional target (spec #9) that adapts every
@@ -10,11 +12,17 @@ import './EmotionSelector.css';
 export function EmotionSelector({ emotionKey, onChange }) {
   const profile = emotionProfile(emotionKey);
   const { t, lang } = useLanguage();
+  // htmlFor keeps the <select> as this label's control — otherwise the ⓘ
+  // button (also labelable, and first in tree order) would take the label.
+  const selectId = useId();
 
   return (
-    <label className="emotion-selector improvise-field">
-      {t('emotionSelector.label')}
-      <select value={emotionKey ?? ''} onChange={(e) => onChange(e.target.value || null)}>
+    <label className="emotion-selector improvise-field" htmlFor={selectId}>
+      <span>
+        {t('emotionSelector.label')}
+        <InfoTooltip text={t('tip.compose.emotion')} />
+      </span>
+      <select id={selectId} value={emotionKey ?? ''} onChange={(e) => onChange(e.target.value || null)}>
         <option value="">{t('emotionSelector.none')}</option>
         {EMOTIONS.map((e) => (
           <option key={e.key} value={e.key}>

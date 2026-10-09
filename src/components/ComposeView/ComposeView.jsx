@@ -182,7 +182,10 @@ export function ComposeView({
           >
             −
           </button>
-          <span className="compose-transpose-key">{t('compose.keyLabel', { key: scaleAnalysis?.key ?? '—' })}</span>
+          <span className="compose-transpose-key">
+            {t('compose.keyLabel', { key: scaleAnalysis?.key ?? '—' })}
+            <InfoTooltip text={t('tip.compose.keyTranspose')} />
+          </span>
           <button
             type="button"
             className="compose-transpose-button"

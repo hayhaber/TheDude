@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { SongVideoPlayer } from '../SongVideoPlayer/SongVideoPlayer';
 import { TabUploadPanel } from '../TabUploadPanel/TabUploadPanel';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './SongsView.css';
 
 // Query-builder only — this app can't legitimately host chord charts, lyrics,
@@ -99,7 +100,10 @@ export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSong
           apart by file extension, so the player just uploads the file
           they have without needing to know which engine reads it. */}
       <label className="songs-mode-field">
-        {t('songs.modeLabel')}
+        <span>
+          {t('songs.modeLabel')}
+          <InfoTooltip text={t('tip.tools.songsMode')} />
+        </span>
         <select value={mode} onChange={(e) => setMode(e.target.value)}>
           <option value="song">{t('songs.mode.song')}</option>
           <option value="solo">{t('songs.mode.solo')}</option>

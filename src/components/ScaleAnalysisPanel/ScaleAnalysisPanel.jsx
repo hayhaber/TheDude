@@ -1,6 +1,7 @@
 import { computeScaleDegreeUsage } from '../../music/scaleDegreeUsage';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './ScaleAnalysisPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Shows the detected parent key, its 7 scale tones (with which ones the
 // current progression actually uses, and how — see below), suggested solo
@@ -21,6 +22,7 @@ export function ScaleAnalysisPanel({ analysis, emphasizeMood = null, progression
     <div className="scale-analysis-panel">
       <p className="scale-analysis-title">
         {t('scaleAnalysis.detectedKey')} <strong>{analysis.key}</strong>
+        <InfoTooltip text={t('tip.compose.detectedKey')} />
       </p>
 
       {/* Scale-tone strip: degree number (small) above the note letter,
@@ -56,7 +58,8 @@ export function ScaleAnalysisPanel({ analysis, emphasizeMood = null, progression
       </div>
 
       <p className="scale-analysis-scales">
-        {t('scaleAnalysis.suggestedScales')}{' '}
+        {t('scaleAnalysis.suggestedScales')}
+        <InfoTooltip text={t('tip.compose.suggestedScales')} />{' '}
         {analysis.suggestedScales.map((scale, i) => {
           const isMinor = scale.toLowerCase().includes('minor');
           const emphasized = emphasizeMood && (emphasizeMood === 'minor') === isMinor;
@@ -70,7 +73,8 @@ export function ScaleAnalysisPanel({ analysis, emphasizeMood = null, progression
       </p>
       {analysis.borrowedChords.length > 0 && (
         <p className="scale-analysis-borrowed">
-          {t('scaleAnalysis.borrowedChords')}{' '}
+          {t('scaleAnalysis.borrowedChords')}
+          <InfoTooltip text={t('tip.compose.borrowedChords')} />{' '}
           {analysis.borrowedChords.map((chordText, i) => (
             <span key={chordText + i} className={'scale-analysis-borrowed-chord usage-' + (usage.chordSeverity.get(chordText) ?? 'borrowed')}>
               {chordText}

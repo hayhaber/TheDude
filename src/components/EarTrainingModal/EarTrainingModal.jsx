@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { useInstrument } from '../../instruments/useInstrument';
 import { noteNameForMidi } from '../../music/earTraining';
 import { Fretboard } from '../Fretboard/Fretboard';
@@ -276,18 +277,21 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
               ))}
             </select>
           </label>
-          <div className="mode-toggle" role="group" aria-label={t('earTraining.practiceModeLabel')}>
-            {practiceModes.map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                className={practiceMode === m.key ? 'active' : ''}
-                onClick={() => setPracticeMode(m.key)}
-              >
-                {t(m.labelKey)}
-              </button>
-            ))}
-          </div>
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            <div className="mode-toggle" role="group" aria-label={t('earTraining.practiceModeLabel')}>
+              {practiceModes.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  className={practiceMode === m.key ? 'active' : ''}
+                  onClick={() => setPracticeMode(m.key)}
+                >
+                  {t(m.labelKey)}
+                </button>
+              ))}
+            </div>
+            <InfoTooltip text={t('tip.practice.earPace')} />
+          </span>
         </div>
 
         {/* What the selected mode is actually asking you to do — closed by
@@ -324,7 +328,8 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
               accumulated across every session ever, so there's an actual
               answer to "am I improving over time?". */}
           <span>
-            {t('earTraining.lifetimeAccuracy')} <strong>{lifetimeAccuracyPct === null ? '—' : `${lifetimeAccuracyPct}%`}</strong>
+            {t('earTraining.lifetimeAccuracy')}
+            <InfoTooltip text={t('tip.practice.earAllTime')} /> <strong>{lifetimeAccuracyPct === null ? '—' : `${lifetimeAccuracyPct}%`}</strong>
           </span>
         </div>
 

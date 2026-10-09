@@ -3,14 +3,12 @@ import { InfoTooltipsContext } from './infoTooltipsContextInstance';
 
 const STORAGE_KEY = 'infoTooltipsEnabled';
 
-// Default ON — InfoTooltip icons already existed and were always visible
-// before this master switch was added, so defaulting to enabled preserves
-// that behavior; the new "i" toggle next to Settings (see AppShell) is an
-// opt-OUT for people who find the ⓘ icons cluttered, not an opt-in gate
-// hiding a feature no one's seen yet.
+// Default OFF: the ⓘ marks appear only once the user turns on the "i"
+// switch (user's request — explanations across the whole app, shown on
+// demand rather than cluttering every screen).
 function getInitial() {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === null ? true : stored === 'true';
+  return stored === 'true';
 }
 
 // Same Context+localStorage pattern as instruments/InstrumentContext.jsx —

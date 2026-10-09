@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { LanguageToggle } from '../LanguageToggle/LanguageToggle';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { GUITAR_SOUND_PROFILES, PIANO_SOUND_PROFILES, BASS_SOUND_PROFILES } from '../../audio/instrumentProfiles';
 import { AudioInputSettings } from '../AudioInputSettings/AudioInputSettings';
 import { YoutubeApiKeySettings } from '../YoutubeApiKeySettings/YoutubeApiKeySettings';
@@ -144,7 +145,10 @@ export function SettingsBody({
       )}
       {showSound('piano') && (
         <label className="settings-field">
-          <span className="settings-field-label">{t('settings.pianoSound')}</span>
+          <span className="settings-field-label">
+            {t('settings.pianoSound')}
+            <InfoTooltip text={t('tip.tools.pianoSound')} />
+          </span>
           <select value={pianoProfile} onChange={(e) => onPianoProfileChange(e.target.value)}>
             {PIANO_SOUND_PROFILES.map((p) => (
               <option key={p.key} value={p.key}>
@@ -157,7 +161,10 @@ export function SettingsBody({
       )}
       {showSound('bass') && (
         <label className="settings-field">
-          <span className="settings-field-label">{t('settings.bassSound')}</span>
+          <span className="settings-field-label">
+            {t('settings.bassSound')}
+            <InfoTooltip text={t('tip.tools.bassSound')} />
+          </span>
           <select value={bassProfile} onChange={(e) => onBassProfileChange(e.target.value)}>
             {BASS_SOUND_PROFILES.map((p) => (
               <option key={p.key} value={p.key}>

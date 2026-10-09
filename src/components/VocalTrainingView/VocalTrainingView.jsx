@@ -14,6 +14,7 @@ import {
   dayKey,
 } from '../../music/vocal/vocalProgress';
 import { VocalRunner } from './VocalRunner';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { RangeTest } from './RangeTest';
 import { RangeBar } from './RangeBar';
 import './VocalTrainingView.css';
@@ -135,12 +136,15 @@ export function VocalTrainingView() {
           <h1>{t('vocal.title')}</h1>
           <p className="subtitle">{t('vocal.subtitle')}</p>
         </div>
-        <div className="mode-toggle" role="group" aria-label={t('vocal.level')}>
-          {[1, 2].map((lv) => (
-            <button key={lv} type="button" className={level === lv ? 'active' : ''} onClick={() => setLevel(lv)}>
-              {t(`vocal.level${lv}`)}
-            </button>
-          ))}
+        <div className="vocal-with-tip">
+          <div className="mode-toggle" role="group" aria-label={t('vocal.level')}>
+            {[1, 2].map((lv) => (
+              <button key={lv} type="button" className={level === lv ? 'active' : ''} onClick={() => setLevel(lv)}>
+                {t(`vocal.level${lv}`)}
+              </button>
+            ))}
+          </div>
+          <InfoTooltip text={t('tip.tools.vocalLevel')} />
         </div>
       </header>
 
@@ -159,7 +163,10 @@ export function VocalTrainingView() {
         </section>
 
         <section className="vocal-card vocal-voice">
-          <span className="vocal-eyebrow">{t('vocal.yourVoice')}</span>
+          <span className="vocal-eyebrow">
+            {t('vocal.yourVoice')}
+            <InfoTooltip text={t('tip.tools.vocalRange')} />
+          </span>
           {range ? (
             <>
               <h2>{voice ? t(`vocal.voice.${voice}`) : '–'}</h2>

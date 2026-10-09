@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { usePitchDetection, BASS_PITCH_RANGE } from '../../hooks/usePitchDetection';
 import { useInfoTooltipsEnabled } from '../../hooks/useInfoTooltipsEnabled';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './GuitarTuner.css';
 
 const IN_TUNE_CENTS = 5; // vibrant-green "In Tune!" threshold
@@ -107,7 +108,10 @@ export function GuitarTuner({ mode = 'guitar' }) {
           ))}
         </div>
 
-        <div className="guitar-tuner-frequency">{frequency ? `${frequency.toFixed(1)} Hz` : '—'}</div>
+        <div className="guitar-tuner-frequency">
+          {frequency ? `${frequency.toFixed(1)} Hz` : '—'}
+          <InfoTooltip text={t('tip.tools.tunerAccuracy')} />
+        </div>
 
         <div className={`guitar-tuner-in-tune-badge${isInTune ? ' visible' : ''}`}>{t('trainer.inTune')}</div>
       </div>

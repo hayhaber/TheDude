@@ -1,6 +1,7 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import { CHORD_INVERSIONS } from '../../music/pianoInversions';
 import '../PositionControls/PositionControls.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Piano's equivalent of PositionControls (guitar's "← Back / Position N of
 // M — shape / Next →" stepper) — same layout, same CSS classes, same
@@ -28,6 +29,7 @@ export function PianoInversionControls({ inversion, setInversion, chordColor }) 
         </button>
         <span className="position-label">
           {t('piano.inversion.navLabel', { index: currentIndex + 1, total: CHORD_INVERSIONS.length, name: t(current.labelKey) })}
+          <InfoTooltip text={t('tip.compose.inversion')} />
         </span>
         <button type="button" onClick={() => step(1)}>
           {t('positionControls.next')}

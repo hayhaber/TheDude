@@ -1,5 +1,6 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import './PositionControls.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 export function PositionControls({ currentIndex, positions, chordColor, onNext, onBack, onSelect }) {
   const { t, lang } = useLanguage();
@@ -15,6 +16,7 @@ export function PositionControls({ currentIndex, positions, chordColor, onNext, 
         </button>
         <span className="position-label">
           {t('positionControls.navLabel', { index: currentIndex + 1, total: positions.length, shape: current.shapeName })}
+          <InfoTooltip text={t('tip.compose.position')} />
         </span>
         <button type="button" onClick={onNext} disabled={positions.length < 2}>
           {t('positionControls.next')}

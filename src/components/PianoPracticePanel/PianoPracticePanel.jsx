@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 // Reuses EarTrainingModal's scoreboard/prompt/choices/exit-button styles
 // directly (same pattern DisplayOptionsMenu.jsx already uses for
 // SettingsPanel.css) — this is the exact same visual language (a choice-
@@ -82,7 +83,10 @@ export function PianoPracticePanel({ pianoPractice }) {
         </label>
 
         <label className="ear-training-mode-field">
-          {t('pianoPractice.exerciseLabel')}
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            {t('pianoPractice.exerciseLabel')}
+            <InfoTooltip text={t('tip.practice.pianoExercise')} />
+          </span>
           <select value={exerciseKey} onChange={(e) => setExerciseKey(e.target.value)}>
             {exercisesInTier.map((ex) => (
               <option key={ex.key} value={ex.key}>

@@ -4,6 +4,7 @@ import { localize } from '../../i18n/localize';
 import { getAudioInputSettings } from '../../audio/audioInputSettingsStore';
 import { LickTrainer, ImportPanel, NeckLabelToggle } from '../LickTrainer/LickTrainer';
 import { GpSongPlayer } from './GpSongPlayer';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { onSoundFontProgress, prefetchGpSoundFont } from '../../audio/alphaTabSound';
 import './GuitarProView.css';
 
@@ -213,21 +214,24 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
           {/* Piano and bass: song view only (the instrument lights up with the part). */}
           {!songOnly && (
             <>
-              <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')}>
-                <button
-                  type="button"
-                  className={view === 'song' ? 'active' : ''}
-                  onClick={() => {
-                    trainer.stop();
-                    setView('song');
-                  }}
-                  disabled={busy}
-                >
-                  {t('gp.viewSong')}
-                </button>
-                <button type="button" className={view === 'practice' ? 'active' : ''} onClick={() => setView('practice')}>
-                  {t('gp.viewPractice')}
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')} style={{ margin: 0 }}>
+                  <button
+                    type="button"
+                    className={view === 'song' ? 'active' : ''}
+                    onClick={() => {
+                      trainer.stop();
+                      setView('song');
+                    }}
+                    disabled={busy}
+                  >
+                    {t('gp.viewSong')}
+                  </button>
+                  <button type="button" className={view === 'practice' ? 'active' : ''} onClick={() => setView('practice')}>
+                    {t('gp.viewPractice')}
+                  </button>
+                </div>
+                <InfoTooltip text={t('tip.tools.gpView')} />
               </div>
 
               <NeckLabelToggle trainer={trainer} t={t} />

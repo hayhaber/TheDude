@@ -1,6 +1,7 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import { translatePositionLabel, translateTransitionLabel } from '../../i18n/roadmapLabels';
 import './PositionRoadmapPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Text form of the roadmap (the fretboard gets the visual pins/lines) — a
 // readable "Position 5 -> Slide -> Position 8" chain, per the spec's own
@@ -14,7 +15,10 @@ export function PositionRoadmapPanel({ roadmap }) {
 
   return (
     <div className="position-roadmap-panel">
-      <p className="position-roadmap-title">{t('positionRoadmap.title')}</p>
+      <p className="position-roadmap-title">
+        {t('positionRoadmap.title')}
+        <InfoTooltip text={t('tip.compose.positionRoadmap')} />
+      </p>
       <div className="position-roadmap-chain">
         {roadmap.steps.map((step, i) => (
           <span key={i} className="position-roadmap-step-group">

@@ -3,6 +3,7 @@ import { playPianoNoteOn, playPianoNoteOff } from '../../audio/pianoPlayer';
 import { NOTE_FUNCTION_COLORS, MUTED_DOT_COLOR } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { PIANO_SOUND_PROFILES, DEFAULT_PIANO_PROFILE } from '../../audio/instrumentProfiles';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './PianoKeyboard.css';
 
 // Full 88-key model (A0..C8), built once. Rather than one big SVG scaled
@@ -901,6 +902,7 @@ export function PianoKeyboard({
             >
               +
             </button>
+            <InfoTooltip text={t('tip.tools.pianoOctave')} />
           </div>
         )}
 
@@ -955,6 +957,7 @@ export function PianoKeyboard({
                 {chordReadout ?? '—'}
               </span>
             </div>
+            <InfoTooltip text={t('tip.tools.chordReadout')} />
           </div>
         )}
 

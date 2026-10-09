@@ -1,14 +1,19 @@
+import { useId } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { shapeLabel } from '../../music/cagedCurriculum';
 import { SHAPE_SHIFT_TEMPOS, SHAPE_SHIFT_BEATS_PER_SHAPE } from '../../hooks/useShapeShift';
 // Same panel look as the Shape-Shift Workout.
 import '../ShapeShiftPanel/ShapeShiftPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Studies -> CAGED -> "I-IV-V in One Area". `areas` comes from
 // buildProgressionAreas (one per shape of the I chord); `player` is a
 // useShapeShift instance stepping through the chosen area's I-IV-V-I.
 export function ProgressionAreaPanel({ areas, areaIndex, onAreaChange, player }) {
   const { t, lang } = useLanguage();
+  // htmlFor keeps the area <select> as the label's control (the ⓘ button is
+  // labelable too and comes first in tree order).
+  const areaSelectId = useId();
   const { steps, current, stepIndex, isPlaying, bpm, setBpm, play, stop, next, previous, goTo } = player;
   if (!current || areas.length === 0) return null;
 
@@ -17,9 +22,12 @@ export function ProgressionAreaPanel({ areas, areaIndex, onAreaChange, player })
 
   return (
     <div className="shape-shift-panel" dir={lang === 'he' ? 'rtl' : 'ltr'}>
-      <label className="shape-shift-tempo shape-shift-area">
-        <span>{t('progressionArea.area')}</span>
-        <select value={areaIndex} onChange={(e) => onAreaChange(Number(e.target.value))}>
+      <label className="shape-shift-tempo shape-shift-area" htmlFor={areaSelectId}>
+        <span>
+          {t('progressionArea.area')}
+          <InfoTooltip text={t('tip.compose.progressionArea')} />
+        </span>
+        <select id={areaSelectId} value={areaIndex} onChange={(e) => onAreaChange(Number(e.target.value))}>
           {areas.map((a, i) => (
             <option key={i} value={i}>
               {t('progressionArea.areaOption', { shape: shapeLabel(a.anchorShape, lang), where: whereInline(a.anchorFret) })}

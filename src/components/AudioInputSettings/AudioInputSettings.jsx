@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAudioInputSettings } from '../../hooks/useAudioInputSettings';
 import { usePitchDetection } from '../../hooks/usePitchDetection';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './AudioInputSettings.css';
 
 // Settings UI for every feature that listens to the mic (Tuner, Ear
@@ -62,7 +63,10 @@ export function AudioInputSettings() {
       </label>
 
       <label className="settings-field">
-        {t('audioInput.gain', { value: gain.toFixed(1) })}
+        <span>
+          {t('audioInput.gain', { value: gain.toFixed(1) })}
+          <InfoTooltip text={t('tip.tools.inputGain')} />
+        </span>
         <input
           type="range"
           min="0"

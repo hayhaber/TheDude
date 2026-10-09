@@ -2,6 +2,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { shapeLabel } from '../../music/cagedCurriculum';
 import { SHAPE_SHIFT_TEMPOS, SHAPE_SHIFT_BEATS_PER_SHAPE } from '../../hooks/useShapeShift';
 import './ShapeShiftPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Studies -> CAGED -> Shape-Shift Workout controls. The shared Stage
 // Fretboard shows the current shape (App.jsx resolves it from
@@ -43,7 +44,10 @@ export function ShapeShiftPanel({ shapeShift, keyLabel }) {
       </ol>
 
       <div className="shape-shift-now" aria-live="polite">
-        <span className="shape-shift-now-title">{shapeLabel(current.shapeName, lang)}</span>
+        <span className="shape-shift-now-title">
+          {shapeLabel(current.shapeName, lang)}
+          <InfoTooltip text={t('tip.compose.cagedCycle')} />
+        </span>
         <span className="shape-shift-now-meta">
           <bdi dir="ltr">{keyLabel}</bdi> · {fretText(t, current.baseFret)} · {t(current.direction === 'up' ? 'shapeShift.up' : 'shapeShift.down')}
         </span>

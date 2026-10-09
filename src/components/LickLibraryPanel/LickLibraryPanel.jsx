@@ -5,6 +5,7 @@ import { MOTIF_KINDS } from '../../music/motifDevelopment';
 import { LickNotation } from '../LickNotation/LickNotation';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './LickLibraryPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 const TEMPO_OPTIONS = [0.5, 0.75, 1];
 
@@ -125,6 +126,7 @@ export function LickLibraryPanel({ selectedLick, onSelectLick, onPlay, tempo, on
                 {k.label}
               </button>
             ))}
+            <InfoTooltip text={t('tip.compose.motifKinds')} />
           </div>
 
           <p className="lick-legend">{t('lickPanel.legend')}</p>

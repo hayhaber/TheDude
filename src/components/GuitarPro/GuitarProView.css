@@ -757,3 +757,14 @@
     padding-bottom: 6px;
   }
 }
+
+/* The transport Solo button's ⓘ hugs the button (not the Tempo field). */
+.gp-solo-tip {
+  display: inline-flex;
+  margin-inline-start: -8px;
+  margin-inline-end: 6px;
+}
+
+.gp-solo-tip:empty {
+  display: none;
+}

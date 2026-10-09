@@ -107,6 +107,7 @@ export function useHoverExplanation() {
         ref={tooltipRef}
         id={tooltipId}
         role="tooltip"
+        dir="auto"
         className={'info-tooltip-bubble' + (coords ? ' visible' : '')}
         style={coords ? { top: coords.top, left: coords.left } : { top: -9999, left: -9999 }}
         data-placement={placement}

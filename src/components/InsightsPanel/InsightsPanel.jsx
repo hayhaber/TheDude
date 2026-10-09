@@ -4,6 +4,7 @@ import { TensionMeter } from '../TensionMeter/TensionMeter';
 import { NoteInfoPanel } from '../NoteInfoPanel/NoteInfoPanel';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './InsightsPanel.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Pure layout wrapper — every child here is the exact same component with
 // the exact same props it always had, just grouped into a side panel next
@@ -49,6 +50,7 @@ export function InsightsPanel({
         <p className="landing-notes-hint" dir="auto">
           {t('insightsPanel.landingNotes', { chord: nextChordText, notes: landingNotes.map((n) => n.label).join(', ') })}
           {voiceLeadingMessage ? ` — ${voiceLeadingMessage}` : ''}
+          <InfoTooltip text={t('tip.compose.landingNotes')} />
         </p>
       )}
     </div>

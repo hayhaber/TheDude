@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { localize } from '../../i18n/localize';
 import './PracticeStatsBar.css';
 
@@ -37,7 +38,10 @@ export function PracticeStatsBar({ practiceHistory, drill, catalog, onSelectReco
     <div className="practice-stats-bar">
       <div className="practice-stat">
         <span className="practice-stat-value">{todayMinutes}m</span>
-        <span className="practice-stat-label">{t('practiceStats.today')}</span>
+        <span className="practice-stat-label">
+          {t('practiceStats.today')}
+          <InfoTooltip text={t('tip.practice.statsToday')} />
+        </span>
       </div>
       <div className="practice-stat">
         <span className="practice-stat-value">{weekMinutes}m</span>
@@ -53,7 +57,10 @@ export function PracticeStatsBar({ practiceHistory, drill, catalog, onSelectReco
       </div>
       <div className="practice-stat">
         <span className="practice-stat-value">{completedToday}</span>
-        <span className="practice-stat-label">{t('practiceStats.completed')}</span>
+        <span className="practice-stat-label">
+          {t('practiceStats.completed')}
+          <InfoTooltip text={t('tip.practice.statsCompleted')} />
+        </span>
       </div>
       <div className="practice-stat">
         <span className="practice-stat-value">{avgMinutes}m</span>
@@ -63,6 +70,7 @@ export function PracticeStatsBar({ practiceHistory, drill, catalog, onSelectReco
         <span className="practice-stat-value">{highestBpm ?? '—'}</span>
         <span className="practice-stat-label">{t('practiceStats.bestBpm')}</span>
       </div>
+      <div style={{ position: 'relative', display: 'grid', minWidth: 0 }}>
       <button
         type="button"
         className={'practice-stat practice-stat-recommend' + (recommended ? ' actionable' : '')}
@@ -74,6 +82,12 @@ export function PracticeStatsBar({ practiceHistory, drill, catalog, onSelectReco
         </span>
         <span className="practice-stat-label">{t('practiceStats.recommended')}</span>
       </button>
+      {/* The tile is itself a <button>, so the ⓘ (also a button) sits beside
+          it in the tile's corner rather than nested inside it. */}
+      <span style={{ position: 'absolute', top: 4, insetInlineEnd: 6 }}>
+        <InfoTooltip text={t('tip.practice.statsRecommended')} />
+      </span>
+      </div>
     </div>
   );
 }

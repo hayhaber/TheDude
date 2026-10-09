@@ -3,6 +3,7 @@ import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
 import { PIANO_PROFILE_GM_PROGRAM, BASS_PROFILE_GM_PROGRAM } from '../../audio/instrumentProfiles';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave, bassTrackIndex, suggestedBassLine, addSuggestedBassTrack } from '../../music/lickTrainer/gpImport';
 
 const TICKS_PER_BEAT = 960;
@@ -52,8 +53,14 @@ function TrackRail({ trainer, t, open, onToggle, solo }) {
   const on = new Set(trainer.mix);
   return (
     <div className="gp-rail" role="group" aria-label={t('gp.tracks')}>
-      <div className="gp-rail-head">
-        <span className="gp-rail-title">{t('gp.tracksShort')}</span>
+      {/* wrap: with the ⓘ shown the narrow rail can't fit title + ⓘ + mixer
+          button on one line, so the button drops below instead of overflowing. */}
+      <div className="gp-rail-head" style={{ flexWrap: 'wrap' }}>
+        {/* Title + ⓘ together; on phones the title hides, the ⓘ stays. */}
+        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <span className="gp-rail-title">{t('gp.tracksShort')}</span>
+          <InfoTooltip text={t('tip.tools.gpTracks')} />
+        </span>
         {/* Opens the mixer (each track's level) to the right. */}
         <button
           type="button"
@@ -132,7 +139,10 @@ function TrackMixerPanel({ trainer, t, solo, onSolo, onClose, open }) {
       dir="auto"
     >
       <div className="gp-mixer-head">
-        <b>{t('gp.mixerTitle')}</b>
+        <b>
+          {t('gp.mixerTitle')}
+          <InfoTooltip text={t('tip.tools.gpMixer')} />
+        </b>
         <button type="button" className="gp-mixer-close" onClick={onClose} aria-label={t('gp.mixerClose')}>
           ‹
         </button>
@@ -649,6 +659,10 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
           <TransportIcon kind="solo" />
           {t('gp.toSolo')}
         </button>
+        {/* Pulled toward its Solo button so it doesn't read as Tempo's. */}
+        <span className="gp-solo-tip">
+          <InfoTooltip text={t('tip.tools.gpJumpToPart')} />
+        </span>
         <label className="gp-inline-field">
           <span>{t('lickTrainer.tempo')}</span>
           <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))}>

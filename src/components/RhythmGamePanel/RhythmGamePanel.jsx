@@ -1,5 +1,6 @@
 import { ExerciseDrawer } from '../ExerciseDrawer/ExerciseDrawer';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { localize } from '../../i18n/localize';
 import './RhythmGamePanel.css';
 
@@ -51,7 +52,10 @@ export function RhythmGamePanel({ rhythmGame, metronome }) {
       <div className="rhythm-game-scoreboard">
         <div className="rhythm-game-stat">
           <span className="rhythm-game-stat-value">{score.hits}</span>
-          <span className="rhythm-game-stat-label">{t('rhythmGame.hits')}</span>
+          <span className="rhythm-game-stat-label">
+            {t('rhythmGame.hits')}
+            <InfoTooltip text={t('tip.practice.rhythmHits')} />
+          </span>
         </div>
         <div className="rhythm-game-stat">
           <span className="rhythm-game-stat-value">{score.misses}</span>

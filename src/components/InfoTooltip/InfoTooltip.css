@@ -34,7 +34,7 @@
 .info-tooltip-bubble {
   position: fixed;
   z-index: 70;
-  max-width: 240px;
+  max-width: 280px;
   padding: 7px 10px;
   border-radius: 8px;
   background: #0f172a;
@@ -51,4 +51,29 @@
 
 .info-tooltip-bubble.visible {
   opacity: 1;
+}
+
+/* Containers style "every button inside" (pills, shadows, min sizes) —
+   this stronger selector keeps the ⓘ a bare 16px glyph wherever it sits. */
+.info-tooltip > .info-tooltip-trigger {
+  flex: 0 0 auto;
+  width: 16px;
+  min-width: 0;
+  height: 16px;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  box-shadow: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  transform: none;
+}
+
+.info-tooltip > .info-tooltip-trigger:hover,
+.info-tooltip > .info-tooltip-trigger:focus-visible {
+  color: var(--accent);
+  background: var(--accent-bg);
 }

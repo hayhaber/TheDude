@@ -1,5 +1,6 @@
 import { BEND_STATES } from '../../music/bendingTraining';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './BendingPracticePanel.css';
 
 const STATE_COLOR = {
@@ -104,6 +105,7 @@ export function BendingPracticePanel({ bending }) {
               <span className="bending-tab-text">{step.tabText}</span>
               <span className="bending-tab-arrow">↑</span>
               <span className="bending-distance-badge">{t(`bending.badgeLabel.${step.bendKey}`)}</span>
+              <InfoTooltip text={t('tip.practice.bendSize')} />
             </div>
 
             <svg className="bending-svg" viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`} role="img" aria-label={t('bending.title')}>
@@ -145,7 +147,10 @@ export function BendingPracticePanel({ bending }) {
               {livePoint && <circle cx={livePoint.x} cy={livePoint.y} r={7} className={'bending-live-dot' + (isSuccess ? ' success' : '')} fill={color} />}
             </svg>
 
-            <p className="bending-state-label" style={{ color }}>{t(stateLabelKey)}</p>
+            <p className="bending-state-label" style={{ color }}>
+              {t(stateLabelKey)}
+              <InfoTooltip text={t('tip.practice.bendHold')} />
+            </p>
 
             <div className="bending-hold-bar">
               <div className="bending-hold-fill" style={{ width: `${bending.holdProgress * 100}%` }} />

@@ -1,5 +1,6 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import './HeatMapLegend.css';
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
 // Explains the Heat Map's note-importance tiers. Chord tones aren't drawn
 // by the heat map overlay itself (the normal fretboard dots already show
@@ -23,6 +24,7 @@ export function HeatMapLegend() {
           {t(labelKey)}
         </span>
       ))}
+      <InfoTooltip text={t('tip.compose.heatMapLegend')} />
     </div>
   );
 }

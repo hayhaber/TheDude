@@ -300,3 +300,14 @@
 .is-bass .guitar-tuner-in-tune-badge {
   color: #64d2ff;
 }
+
+/* ⓘ beside the Hz line, on the tuner's always-dark screen. */
+.guitar-tuner-screen .info-tooltip-trigger {
+  color: #9aa09a;
+}
+
+.guitar-tuner-screen .info-tooltip-trigger:hover,
+.guitar-tuner-screen .info-tooltip-trigger:focus-visible {
+  color: #e8e8ea;
+  background: rgba(255, 255, 255, 0.12);
+}

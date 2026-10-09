@@ -96,12 +96,14 @@ rosewood, below).
   Switching mode while listening restarts the mic.
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
-  screen (logo = back home). Desktop (>=900px): `.app-topbar` = that
-  instrument's features (`visibleSections`, as `.mode-toggle.wrap` pills;
-  icons only <=1360px; `justify-content: safe center` so an overflow
-  scrolls instead of clipping the first pill) | home button (the only way
-  back on desktop — the logo/instrument name were removed at the user's
-  request), metronome, tuner, info. NO settings gear inside the app —
+  screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT
+  the logo + home button (`.app-topbar-brand`, both -> the cards), then that
+  instrument's features (`visibleSections`, as `.mode-toggle.wrap` pills,
+  always LTR — Compose leftmost in both languages; icons only <=1360px;
+  `justify-content: safe center` so an overflow scrolls instead of clipping
+  the first pill), then metronome, tuner, info. `vocal` is never in an
+  instrument's nav (singing has its own card); inside Vocal the nav shows
+  only Vocal. NO settings gear inside the app —
   Settings are only on the home screen's Tools card (user's request).
   Phone/tablet: logo top-left, info top-right,
   metronome/tuner bar + feature tabs at the bottom.
@@ -112,6 +114,12 @@ rosewood, below).
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
+- **Practice opens empty**: the tab row is one line (`.mode-toggle.wrap.practice-tabs`,
+  nowrap + sideways scroll); Drills and Rhythm Practice (`ExerciseDrawer`:
+  filters start at "Choose…", undefined = not chosen) and Lick Trainer
+  (`trainer.licksChosen` via `chooseGenre`/`chooseLevel`, reset on each
+  visit; `licksShown` also empties the neck) list nothing until a filter is
+  picked (user's request).
 - **Vocal section** (`components/VocalTrainingView/`, nav `vocal`, all
   instruments; App hides the Stage neck/keys for it). Built from a market
   review of singing apps (Yousician, Simply Sing, Erol, Singing Carrots,

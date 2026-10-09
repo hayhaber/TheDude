@@ -9,13 +9,16 @@ import './ExerciseDrawer.css';
 // directly inside a tab — e.g. PracticeView's Drills tab. `variant='drawer'`
 // (default) keeps the original slide-in-over-everything behavior.
 export function ExerciseDrawer({ open = true, onClose, onLoadExercise, variant = 'drawer' }) {
-  const [category, setCategory] = useState(null);
-  const [difficulty, setDifficulty] = useState(null);
+  // Nothing is listed until the user picks a category or a difficulty
+  // (undefined = not chosen yet; null = "All"/"Any").
+  const [category, setCategory] = useState(undefined);
+  const [difficulty, setDifficulty] = useState(undefined);
+  const chosen = category !== undefined || difficulty !== undefined;
   const { t, lang } = useLanguage();
 
   if (variant === 'drawer' && !open) return null;
 
-  const exercises = filterDrills({ category, difficulty });
+  const exercises = chosen ? filterDrills({ category: category ?? null, difficulty: difficulty ?? null }) : [];
   const isInline = variant === 'inline';
 
   return (
@@ -39,7 +42,12 @@ export function ExerciseDrawer({ open = true, onClose, onLoadExercise, variant =
               of a button group. */}
           <label className="exercise-drawer-field">
             {t('exerciseDrawer.categoryLabel')}
-            <select value={category ?? ''} onChange={(e) => setCategory(e.target.value || null)}>
+            <select value={category === undefined ? '__choose' : category ?? ''} onChange={(e) => setCategory(e.target.value || null)}>
+              {category === undefined && (
+                <option value="__choose" disabled>
+                  {t('exerciseDrawer.choose')}
+                </option>
+              )}
               <option value="">{t('exerciseDrawer.all')}</option>
               {DRILL_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
@@ -51,7 +59,12 @@ export function ExerciseDrawer({ open = true, onClose, onLoadExercise, variant =
 
           <label className="exercise-drawer-field">
             {t('exerciseDrawer.difficultyLabel')}
-            <select value={difficulty ?? ''} onChange={(e) => setDifficulty(e.target.value || null)}>
+            <select value={difficulty === undefined ? '__choose' : difficulty ?? ''} onChange={(e) => setDifficulty(e.target.value || null)}>
+              {difficulty === undefined && (
+                <option value="__choose" disabled>
+                  {t('exerciseDrawer.choose')}
+                </option>
+              )}
               <option value="">{t('exerciseDrawer.any')}</option>
               {DIFFICULTIES.map((d) => (
                 <option key={d} value={d}>
@@ -63,7 +76,8 @@ export function ExerciseDrawer({ open = true, onClose, onLoadExercise, variant =
         </div>
 
         <div className="exercise-drawer-list">
-          {exercises.length === 0 && <p className="exercise-drawer-empty">{t('exerciseDrawer.empty')}</p>}
+          {!chosen && <p className="exercise-drawer-empty">{t('exerciseDrawer.pickHint')}</p>}
+          {chosen && exercises.length === 0 && <p className="exercise-drawer-empty">{t('exerciseDrawer.empty')}</p>}
           {exercises.map((ex) => (
             <div key={ex.id} className="exercise-card">
               <div className="exercise-card-header">

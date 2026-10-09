@@ -13,9 +13,23 @@
   margin-top: var(--space-5);
 }
 
-.practice-tabs {
-  flex-wrap: wrap;
+/* (.mode-toggle.wrap's own flex-wrap needs the extra specificity) */
+.mode-toggle.wrap.practice-tabs {
+  /* One row (user's request); scrolls sideways if a screen is too narrow. */
+  flex-wrap: nowrap;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
   margin: 0;
+}
+
+.practice-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.practice-tabs button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* The generic `.practice-view > * + *` sibling rule above gives every

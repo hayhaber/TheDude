@@ -308,7 +308,8 @@ function App() {
       }
       return m;
     };
-    for (const n of lickOnNeck.notes) {
+    // Nothing on the neck until a lick list is chosen (Practice -> Lick Trainer).
+    for (const n of lickTrainer.licksShown ? lickOnNeck.notes : []) {
       if (sec && (n.start < sec.fromBeat - 1e-6 || n.start >= sec.toBeat - 1e-6)) continue;
       const m = markerAt(n, n.order, n.technique ?? (n.vibrato ? 'vibrato' : null));
       markerOf.set(n.order, m.order);
@@ -317,7 +318,7 @@ function App() {
       n.also?.forEach((a, k) => markerAt(a, n.order + (k + 1) / 10, null));
     }
     return { markers, markerOf, byPos };
-  }, [lickOnNeck, neckSections, neckSectionIndex, lickTuningShift]);
+  }, [lickOnNeck, neckSections, neckSectionIndex, lickTuningShift, lickTrainer.licksShown]);
   useEffect(() => {
     if (!lickTrainerVisible) stopLickTrainer();
   }, [lickTrainerVisible, stopLickTrainer]);

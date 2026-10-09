@@ -140,6 +140,18 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   const [sectionIndex, setSectionIndexState] = useState(-1); // -1 = whole solo
   const [genre, setGenre] = useState('all');
   const [level, setLevel] = useState('all');
+  // Practice -> Lick Trainer opens empty: licks appear only once the user
+  // picks a Genre or Level (user's request). Reset on every visit.
+  const [licksChosen, setLicksChosen] = useState(false);
+  const chooseGenre = useCallback((g) => {
+    setGenre(g);
+    setLicksChosen(true);
+  }, []);
+  const chooseLevel = useCallback((l) => {
+    setLevel(l);
+    setLicksChosen(true);
+  }, []);
+  const resetLickChoice = useCallback(() => setLicksChosen(false), []);
   const [lickId, setLickId] = useState(LICKS[0].id);
   const [tempoPct, setTempoPct] = useState(70);
   // Click through the take by default only on a direct (DI / interface)
@@ -808,6 +820,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         setMode('licks');
         setGenre('mine');
         setLevel('all');
+        setLicksChosen(true);
         selectLick(derived[0].id);
       }
     },
@@ -887,6 +900,12 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     setGenre,
     level,
     setLevel,
+    chooseGenre,
+    chooseLevel,
+    resetLickChoice,
+    // Anything to show? (the lick library waits for a Genre/Level choice)
+    licksShown: mode !== 'licks' || licksChosen,
+    licksChosen,
     visibleLicks,
     lick,
     selectLick,

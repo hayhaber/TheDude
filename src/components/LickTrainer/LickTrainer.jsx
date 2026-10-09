@@ -329,6 +329,12 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
   useEffect(() => {
     setMode(variant);
   }, [variant, setMode]);
+  // Practice -> Lick Trainer: start empty on every visit.
+  const { resetLickChoice } = trainer;
+  useEffect(() => {
+    if (variant === 'licks') resetLickChoice();
+  }, [variant, resetLickChoice]);
+  const chosen = trainer.licksChosen;
   const [confirmDelete, setConfirmDelete] = useState(null);
   // Start decoding the guitar samples as soon as the trainer is opened.
   const { preloadSamples } = trainer;
@@ -367,7 +373,12 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
           <>
         <label className="lt-field">
           <span>{t('lickTrainer.genre')}</span>
-          <select value={trainer.genre} onChange={(e) => trainer.setGenre(e.target.value)}>
+          <select value={chosen ? trainer.genre : ''} onChange={(e) => trainer.chooseGenre(e.target.value)}>
+            {!chosen && (
+              <option value="" disabled>
+                {t('lickTrainer.choose')}
+              </option>
+            )}
             <option value="all">{t('lickTrainer.all')}</option>
             <option value="mine">{t('lickTrainer.mine')}</option>
             {LICK_GENRES.map((g) => (
@@ -379,7 +390,12 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
         </label>
         <label className="lt-field">
           <span>{t('lickTrainer.level')}</span>
-          <select value={trainer.level} onChange={(e) => trainer.setLevel(e.target.value)}>
+          <select value={chosen ? trainer.level : ''} onChange={(e) => trainer.chooseLevel(e.target.value)}>
+            {!chosen && (
+              <option value="" disabled>
+                {t('lickTrainer.choose')}
+              </option>
+            )}
             <option value="all">{t('lickTrainer.all')}</option>
             {LICK_LEVELS.map((l) => (
               <option key={l.key} value={l.key}>
@@ -411,14 +427,16 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
       </div>
 
 
-      {variant === 'licks' && <NeckLabelToggle trainer={trainer} t={t} />}
+      {variant === 'licks' && !chosen && !trainer.pendingImport && <p className="lt-muted lt-pick-hint">{t('lickTrainer.pickHint')}</p>}
+
+      {variant === 'licks' && chosen && <NeckLabelToggle trainer={trainer} t={t} />}
 
       {variant === 'licks' && trainer.pendingImport && (
         <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="lick" />
       )}
 
 
-      {trainer.mode === 'licks' && (
+      {trainer.mode === 'licks' && chosen && (
       <div className="lt-list" role="list">
         {trainer.visibleLicks.length === 0 && <p className="lt-muted">{t('lickTrainer.none')}</p>}
         {trainer.visibleLicks.map((l) => {
@@ -450,7 +468,7 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
 
       )}
 
-      {(trainer.mode === 'licks' || trainer.activeSolo) && (
+      {((trainer.mode === 'licks' && chosen) || (trainer.mode === 'solos' && trainer.activeSolo)) && (
       <section className="lt-lick">
         <div className="lt-lick-head">
           <h3 dir="auto">

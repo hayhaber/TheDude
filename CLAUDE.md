@@ -48,6 +48,13 @@ grain/inlays) should look real — proper proportions, string gauges, and
 material differences between instruments (see Bass's maple neck vs Guitar's
 rosewood, below).
 
+**8. Equal heights in a row.** Whenever several elements sit side by side
+in one row (cards, panels, tiles…), every element in that row takes the
+height of the tallest one (grid/flex `align-items: stretch`, no `start`
+on the container; content inside stays top-aligned). Stacked on a phone
+(one per row), each keeps its natural height. Applies everywhere, always
+(user's standing rule, 2026-10-09).
+
 ## Architecture essentials
 
 - **Home screen** (`components/HomeMenu/`): opens first (App `home` state;

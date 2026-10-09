@@ -480,12 +480,13 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
                   tabIndex={isActive ? 0 : -1}
                 >
                   <span className={`home-art home-art-${card.key}`} dangerouslySetInnerHTML={{ __html: INSTRUMENT_ART[card.key] }} />
-                  <span className="home-text">
+                  <span className="home-text" dir="auto">
                     <span className="home-title">{t(card.titleKey)}</span>
                     <span className="home-desc">{t(card.descKey)}</span>
                   </span>
                 </button>
-                <div className="home-options">
+                {/* Shortcuts left to right in both languages (Compose first), like the in-app nav. */}
+                <div className="home-options" dir="ltr">
                   {opts.map((o) => (
                     <button
                       key={o.tool ?? o.section + (o.practiceTab ?? '')}

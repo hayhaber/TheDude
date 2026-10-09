@@ -442,3 +442,16 @@ rosewood, below).
   per file (`gpKey`), and the hidden reference player loads once per file. The view is full width (controls
   above capped at 980px).
 
+
+## Backlog (user-approved ideas, not built yet)
+
+- **Personal profiles for the WHOLE app** (user, 2026-10-09: "for later"):
+  several people on one device, each with a named profile. Everything
+  personal is in localStorage per device today (vocal range/level/progress,
+  Lick Trainer progress, settings…), so a shared device mixes them. Plan
+  discussed: local profiles first (a "who's practising?" select + New;
+  every personal localStorage key namespaced by profile id; the current
+  data migrates into the first profile; a new profile takes the vocal range
+  test first), optional cloud sync later on top of the existing
+  `api/library.js` mechanism (needs a real login — not the shared
+  DUDESTAR_KEY).

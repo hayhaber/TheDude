@@ -79,7 +79,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
   is a 2D `scaleY rotate` — a perspective/rotateX there was thrown into the
   card's corner on iPhone) and no `background-clip: text` + filter titles
   (flicker) — dark titles use text-shadow. No WebKit in this container to
-  test with; the user checks on his iPhone. Phone sideways (`orientation: landscape` + max-height 520px): a low card (art beside the text, one row of shortcuts) sized to fit under the logo, notch-safe padding. `onOpen({instrument, section,
+  test with; the user checks on his iPhone. The app ALWAYS opens on the Guitar card (App `homeCard`
+  starts as 'guitar', user's rule); back from inside an instrument (logo) =
+  that instrument's card. Phone sideways (`orientation: landscape` + max-height 520px): a low card (art beside the text, one row of shortcuts) sized to fit under the logo, notch-safe padding. `onOpen({instrument, section,
   practiceTab})` sets them in App. The home button (desktop top bar) / logo (phone/tablet,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /

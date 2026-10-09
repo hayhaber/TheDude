@@ -137,7 +137,9 @@ function App() {
   // Bass card), and the card to return to.
   const [tunerMode, setTunerMode] = useState('guitar');
   const toolCardRef = useRef('tools');
-  const [homeCard, setHomeCard] = useState(null);
+  // The app always opens on the Guitar card (user's rule); coming back from
+  // inside an instrument shows that instrument's card (null).
+  const [homeCard, setHomeCard] = useState('guitar');
   // The 3 top-level destinations (Compose/Improvise/Practice) — see
   // components/AppShell for the nav shell that drives this.
   const [activeSection, setActiveSection] = useState('compose');

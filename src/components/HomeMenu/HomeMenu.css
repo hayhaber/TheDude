@@ -394,6 +394,110 @@
   }
 }
 
+/* Phone turned sideways (short and wide): a low card that fits under the
+   logo — compact art and text, one row of shortcuts — clear of the notch. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .home-menu {
+    --home-card-w: min(760px, calc(100vw - 2 * max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) - 120px));
+  }
+
+  .home-top {
+    padding: 10px max(24px, env(safe-area-inset-right, 0px)) 0 max(24px, env(safe-area-inset-left, 0px));
+  }
+
+  .home-brand {
+    font-size: 17px;
+  }
+
+  .home-brand svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .home-continue {
+    font-size: 13px;
+    padding: 5px 14px;
+  }
+
+  .home-track {
+    --home-gap: 18px;
+    padding: 6px 0 10px;
+  }
+
+  .home-card {
+    border-radius: 22px;
+  }
+
+  .home-card-main {
+    flex-direction: row;
+    height: calc(100dvh - 210px);
+    min-height: 120px;
+    max-height: 190px;
+    gap: 16px;
+    padding: 0 32px;
+  }
+
+  .home-art {
+    flex: 0 0 40%;
+    width: auto;
+  }
+
+  .home-art-guitar svg,
+  .home-art-bass svg {
+    height: 200px;
+  }
+
+  .home-art-piano svg {
+    width: 190px;
+  }
+
+  .home-art-vocal svg {
+    height: 150px;
+  }
+
+  .home-art-tools svg {
+    height: 150px;
+  }
+
+  .home-title {
+    font-size: 26px;
+  }
+
+  .home-desc {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .home-options {
+    flex-wrap: nowrap;
+    gap: 4px;
+    margin: auto 24px 0;
+    padding: 6px 0 8px;
+  }
+
+  .home-option {
+    flex: 0 1 140px;
+    gap: 4px;
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  .home-option svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .home-arrow {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+  }
+
+  .home-nav {
+    padding: 0 0 10px;
+  }
+}
+
 /* Tall screens (tablet upright): a bigger card. */
 @media (min-width: 641px) and (min-height: 1000px) {
   .home-card-main {

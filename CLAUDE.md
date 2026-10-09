@@ -112,6 +112,32 @@ rosewood, below).
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
+- **Vocal section** (`components/VocalTrainingView/`, nav `vocal`, all
+  instruments; App hides the Stage neck/keys for it). Built from a market
+  review of singing apps (Yousician, Simply Sing, Erol, Singing Carrots,
+  SingTrue, Swiftscales…): daily workout + library, in the singer's own
+  range, call-and-response (piano cue -> silence while singing, so the mic
+  hears only the voice; optional soft `Guide`), feedback per note, no
+  paywalls/lives. Pure logic in `music/vocal/`:
+  `voiceRange.js` (range in localStorage `dudestar-vocal-range`, VOICE_TYPES,
+  `classifyVoice`, `workingRange` = ±2 st margin, `keysForPattern` walks a
+  pattern up by semitones then down), `exercises.js` (EXERCISES with kind
+  pattern/glide/sustain/match/interval, level 1|2, `dailyWorkout(level)` =
+  warm-ups first then a daily rotation, `buildReps()` -> reps {cue, targets,
+  length}), `vocalAnalysis.js` (`estimateLag` aligns the take, per note:
+  cents/wobble/drift/scoop (onsets only)/octave; glides: follow %, breaks,
+  top reached; sustain: held time, vibrato rate/width; `diagnose()` -> tip
+  keys `vocal.tip.*`), `vocalProgress.js` (localStorage
+  `dudestar-vocal-progress`, `dudestar-vocal-level`). Mic: `hooks/useVocalMic.js`
+  (own pipeline, 70–1300 Hz, clarity 0.86, RMS gate, 3-frame median,
+  timestamped frames in a ref). Engine: `hooks/useVocalExercise.js`
+  (phases cue/sing/gap/done on the AudioContext clock; piano via
+  `schedulePianoNotes()` in pianoPlayer.js, returns a stop fn). UI:
+  `PitchRoll.jsx` (canvas piano roll: target bars = ±50¢ band, playhead,
+  coloured voice line, per-note cents after a round), `RangeTest.jsx` (only a
+  note HELD ~0.35 s counts; ± nudge), `RangeBar.jsx`. Text: `vocal.ex.<id>.
+  title/desc/how/why`, `vocal.syl.*`, `vocal.cat.*`, `vocal.voice.*`.
+  Test with Chromium's fake mic (`--use-file-for-fake-audio-capture=x.wav`).
 - **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
   Compose-only for now). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each

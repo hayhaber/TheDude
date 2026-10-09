@@ -1901,7 +1901,8 @@ function App() {
       onSectionChange={setActiveSection}
       metronomeSlot={<MetronomeBar metronome={metronome} drums={drums} />}
       stage={
-        earTrainingOwnsInstrument ? null : (
+        // The Vocal section draws the voice itself (no neck/keys under it).
+        earTrainingOwnsInstrument || activeSection === 'vocal' ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
             pianoProps={stagePianoProps}

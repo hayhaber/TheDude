@@ -1,151 +1,211 @@
-import { useVocalTraining } from '../../hooks/useVocalTraining';
-import {
-  VOCAL_MODES,
-  VOCAL_SCALE_OPTIONS,
-  VOCAL_INTERVALS,
-  VOCAL_PITCH_CLASSES,
-  VOCAL_OCTAVES,
-  VOCAL_DIFFICULTIES,
-} from '../../music/vocalTraining';
+import { useMemo, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { useVocalMic } from '../../hooks/useVocalMic';
+import { CATEGORIES, EXERCISES, buildReps, dailyWorkout, exerciseById } from '../../music/vocal/exercises';
+import { DEFAULT_RANGE, classifyVoice, loadRange, midiName } from '../../music/vocal/voiceRange';
+import {
+  exerciseStats,
+  lastWeek,
+  loadLevel,
+  loadProgress,
+  recordWorkout,
+  saveLevel,
+  streak,
+  dayKey,
+} from '../../music/vocal/vocalProgress';
+import { VocalRunner } from './VocalRunner';
+import { RangeTest } from './RangeTest';
+import { RangeBar } from './RangeBar';
 import './VocalTrainingView.css';
 
-// Self-contained top-level section — mirrors Songs' isolation (see
-// sections.js): owns its own mic pipeline via useVocalTraining/
-// usePitchDetection and never touches the shared Stage Fretboard/Piano,
-// since singing doesn't map to either instrument's fretboard/keys.
-export function VocalTrainingView() {
-  const { t } = useLanguage();
-  const vocal = useVocalTraining();
+// Vocal section: a daily workout and an exercise library in the singer's own
+// range (piano call, voice response, feedback per note). Self-contained —
+// its own mic pipeline, never the shared Stage fretboard/keys.
 
-  const clampedCents = vocal.cents == null ? null : Math.max(-50, Math.min(50, vocal.cents));
-  const needlePercent = clampedCents == null ? 50 : 50 + clampedCents;
+function estimateMinutes(ids, range, level) {
+  let s = 0;
+  for (const id of ids) {
+    const ex = exerciseById(id);
+    for (const r of buildReps(ex, range, { level })) s += r.cueLength + r.length + 1.4;
+    s += 20; // reading the how-to
+  }
+  return Math.max(1, Math.round(s / 60));
+}
+
+export function VocalTrainingView() {
+  const { t, lang } = useLanguage();
+  const dir = lang === 'he' ? 'rtl' : 'ltr';
+  const mic = useVocalMic();
+  const [screen, setScreen] = useState({ name: 'home' });
+  const [range, setRange] = useState(() => loadRange());
+  const [level, setLevelState] = useState(loadLevel);
+  const [progress, setProgress] = useState(loadProgress);
+  const useRange = range ?? DEFAULT_RANGE;
+
+  const workout = useMemo(() => dailyWorkout(level), [level]);
+  const minutes = useMemo(() => estimateMinutes(workout, useRange, level), [workout, useRange, level]);
+  const week = lastWeek(progress);
+  const days = streak(progress);
+  const weekScores = week.map((d) => d.score).filter((x) => x != null);
+  const weekAvg = weekScores.length ? Math.round(weekScores.reduce((a, b) => a + b, 0) / weekScores.length) : null;
+  const doneToday = progress.workouts?.includes(dayKey());
+  const maxMin = Math.max(5, ...week.map((d) => d.minutes));
+
+  const setLevel = (lv) => {
+    setLevelState(lv);
+    saveLevel(lv);
+  };
+  const goHome = () => {
+    mic.stop();
+    setProgress(loadProgress());
+    setScreen({ name: 'home' });
+  };
+
+  if (screen.name === 'range') {
+    return (
+      <div className="vocal-training-view" dir={dir}>
+        <RangeTest
+          mic={mic}
+          onCancel={goHome}
+          onDone={(r) => {
+            setRange(r);
+            goHome();
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (screen.name === 'run') {
+    const queue = screen.queue;
+    const id = queue ? queue[screen.index] : screen.id;
+    const ex = exerciseById(id);
+    const isLast = queue ? screen.index === queue.length - 1 : true;
+    return (
+      <div className="vocal-training-view" dir={dir}>
+        <VocalRunner
+          key={`${id}-${screen.index ?? 0}`}
+          ex={ex}
+          range={useRange}
+          level={level}
+          mic={mic}
+          step={queue ? { index: screen.index, count: queue.length } : null}
+          onBack={goHome}
+          isLast={isLast}
+          onNext={
+            queue
+              ? () => {
+                  if (isLast) {
+                    recordWorkout();
+                    goHome();
+                  } else setScreen({ ...screen, index: screen.index + 1 });
+                }
+              : null
+          }
+        />
+      </div>
+    );
+  }
+
+  const voice = range ? classifyVoice(range.low, range.high) : null;
 
   return (
-    <div className="vocal-training-view">
-      <div>
-        <h1>{t('vocal.title')}</h1>
-        <p className="subtitle">{t('vocal.subtitle')}</p>
-      </div>
+    <div className="vocal-training-view" dir={dir}>
+      <header className="vocal-header">
+        <div>
+          <h1>{t('vocal.title')}</h1>
+          <p className="subtitle">{t('vocal.subtitle')}</p>
+        </div>
+        <div className="mode-toggle" role="group" aria-label={t('vocal.level')}>
+          {[1, 2].map((lv) => (
+            <button key={lv} type="button" className={level === lv ? 'active' : ''} onClick={() => setLevel(lv)}>
+              {t(`vocal.level${lv}`)}
+            </button>
+          ))}
+        </div>
+      </header>
 
-      <div className="vocal-controls">
-        <label className="vocal-field">
-          <span>{t('vocal.mode')}</span>
-          <select value={vocal.mode} onChange={(e) => vocal.setMode(e.target.value)}>
-            {VOCAL_MODES.map((m) => (
-              <option key={m.key} value={m.key}>{t(`vocal.mode.${m.key}`)}</option>
+      <div className="vocal-overview">
+        <section className="vocal-card vocal-today">
+          <span className="vocal-eyebrow">{t('vocal.today')}</span>
+          <h2>{doneToday ? t('vocal.doneToday') : t('vocal.minutes', { n: minutes })}</h2>
+          <ol className="vocal-today-list">
+            {workout.map((id) => (
+              <li key={id}>{t(`vocal.ex.${id}.title`)}</li>
             ))}
-          </select>
-        </label>
+          </ol>
+          <button type="button" className="primary vocal-cta" onClick={() => setScreen({ name: 'run', queue: workout, index: 0 })}>
+            {t('vocal.start')}
+          </button>
+        </section>
 
-        <label className="vocal-field">
-          <span>{t('vocal.startNote')}</span>
-          <select value={vocal.pitchClass} onChange={(e) => vocal.setPitchClass(Number(e.target.value))}>
-            {VOCAL_PITCH_CLASSES.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
+        <section className="vocal-card vocal-voice">
+          <span className="vocal-eyebrow">{t('vocal.yourVoice')}</span>
+          {range ? (
+            <>
+              <h2>{voice ? t(`vocal.voice.${voice}`) : '–'}</h2>
+              <p className="vocal-range-notes">
+                {midiName(range.low)} – {midiName(range.high)}
+              </p>
+              <RangeBar low={range.low} high={range.high} compact />
+            </>
+          ) : (
+            <>
+              <h2>{t('vocal.noRange')}</h2>
+              <p className="vocal-muted">{t('vocal.noRangeHint')}</p>
+            </>
+          )}
+          <button type="button" className={range ? 'vocal-cta' : 'primary vocal-cta'} onClick={() => setScreen({ name: 'range' })}>
+            {t('vocal.test')}
+          </button>
+        </section>
+
+        <section className="vocal-card vocal-progress">
+          <span className="vocal-eyebrow">{t('vocal.progress')}</span>
+          <h2>{days ? t('vocal.streak', { n: days }) : t('vocal.noStreak')}</h2>
+          <div className="vocal-week" dir="ltr" aria-label={t('vocal.week')}>
+            {week.map((d) => (
+              <div key={d.day} className={'vocal-week-day' + (d.day === dayKey() ? ' is-today' : '')} title={`${d.minutes}′`}>
+                <span className="vocal-week-bar" style={{ height: `${d.minutes ? Math.max(8, (d.minutes / maxMin) * 100) : 0}%` }} />
+              </div>
             ))}
-          </select>
-        </label>
-
-        <label className="vocal-field">
-          <span>{t('vocal.octave')}</span>
-          <select value={vocal.octave} onChange={(e) => vocal.setOctave(Number(e.target.value))}>
-            {VOCAL_OCTAVES.map((o) => (
-              <option key={o} value={o}>{o}</option>
-            ))}
-          </select>
-        </label>
-
-        {vocal.mode === 'scale' && (
-          <label className="vocal-field">
-            <span>{t('vocal.scale')}</span>
-            <select value={vocal.scaleKey} onChange={(e) => vocal.setScaleKey(e.target.value)}>
-              {VOCAL_SCALE_OPTIONS.map((s) => (
-                <option key={s.key} value={s.key}>{t(`vocal.scaleOption.${s.key}`)}</option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        {vocal.mode === 'interval' && (
-          <label className="vocal-field">
-            <span>{t('vocal.interval')}</span>
-            <select value={vocal.intervalSemitones} onChange={(e) => vocal.setIntervalSemitones(Number(e.target.value))}>
-              {VOCAL_INTERVALS.map((iv) => (
-                <option key={iv.key} value={iv.semitones}>{t(`vocal.intervalOption.${iv.key}`)}</option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        <label className="vocal-field">
-          <span>{t('vocal.difficulty')}</span>
-          <select value={vocal.difficultyKey} onChange={(e) => vocal.setDifficultyKey(e.target.value)}>
-            {VOCAL_DIFFICULTIES.map((d) => (
-              <option key={d.key} value={d.key}>{t(`difficulty.${d.label}`)}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="vocal-session">
-        <button type="button" className="vocal-toggle-btn" onClick={vocal.isListening ? vocal.stop : vocal.start}>
-          {vocal.isListening ? t('vocal.stop') : t('vocal.start')}
-        </button>
-
-        {vocal.error && <p className="vocal-error">{vocal.error}</p>}
-
-        {vocal.isListening && vocal.target && !vocal.isComplete && (
-          <>
-            <div className="vocal-target">
-              <span className="vocal-target-label">{t('vocal.target')}</span>
-              <span className="vocal-target-note">{vocal.target.name}</span>
-            </div>
-
-            <div className="vocal-meter">
-              <div
-                className="vocal-meter-zone"
-                style={{ left: `${50 - vocal.difficulty.toleranceCents}%`, width: `${vocal.difficulty.toleranceCents * 2}%` }}
-              />
-              <div className="vocal-meter-center" />
-              {clampedCents != null && (
-                <div
-                  className={`vocal-meter-needle${vocal.isMatched ? ' matched' : ''}`}
-                  style={{ left: `${needlePercent}%` }}
-                />
-              )}
-            </div>
-
-            <div className="vocal-hold-bar">
-              <div className="vocal-hold-fill" style={{ width: `${vocal.holdProgress * 100}%` }} />
-            </div>
-
-            <div className="vocal-sequence">
-              {vocal.sequence.map((note, i) => (
-                <span
-                  key={i}
-                  className={`vocal-seq-note${i < vocal.targetIndex ? ' done' : ''}${i === vocal.targetIndex ? ' current' : ''}`}
-                >
-                  {note.name}
-                </span>
-              ))}
-            </div>
-
-            <button type="button" className="vocal-skip-btn" onClick={vocal.skip}>{t('vocal.skip')}</button>
-          </>
-        )}
-
-        {vocal.isListening && vocal.isComplete && (
-          <div className="vocal-complete">
-            <p>{t('vocal.complete')}</p>
-            <button type="button" className="vocal-again-btn" onClick={vocal.restart}>{t('vocal.again')}</button>
           </div>
-        )}
-
-        {vocal.isListening && (
-          <p className="vocal-score">{t('vocal.score')}: {vocal.score.hits} / {vocal.score.hits + vocal.score.misses}</p>
-        )}
+          <p className="vocal-muted">{weekAvg != null ? t('vocal.avgScore', { n: weekAvg }) : t('vocal.noScores')}</p>
+        </section>
       </div>
+
+      <h2 className="vocal-section-title">{t('vocal.library')}</h2>
+      <div className="vocal-library">
+        {CATEGORIES.map((cat) => {
+          const list = EXERCISES.filter((e) => e.category === cat && e.level <= level);
+          if (!list.length) return null;
+          return (
+            <section key={cat} className="vocal-card vocal-cat">
+              <h3>{t(`vocal.cat.${cat}`)}</h3>
+              {list.map((ex) => {
+                const st = exerciseStats(progress, ex.id);
+                return (
+                  <button key={ex.id} type="button" className="vocal-row" onClick={() => setScreen({ name: 'run', id: ex.id })}>
+                    <span className="vocal-row-text">
+                      <strong>{t(`vocal.ex.${ex.id}.title`)}</strong>
+                      <span>{t(`vocal.ex.${ex.id}.desc`)}</span>
+                    </span>
+                    <span className="vocal-row-meta">
+                      {ex.level === 2 && <em>{t('vocal.level2')}</em>}
+                      {st && <b>{t('vocal.best', { n: st.best })}</b>}
+                      <span className="vocal-chevron" aria-hidden="true">
+                        ›
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </section>
+          );
+        })}
+      </div>
+
+      <p className="vocal-tipline">{t('vocal.headphones')}</p>
     </div>
   );
 }

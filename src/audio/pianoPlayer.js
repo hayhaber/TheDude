@@ -138,3 +138,53 @@ export function playPianoSequence(midiNotes, noteGapSeconds = SEQUENCE_NOTE_GAP)
   const now = getAudioContext().currentTime;
   midiNotes.forEach((midi, index) => playNoteAt(midi, now + index * noteGapSeconds));
 }
+
+/**
+ * Schedules notes ahead on the shared clock — `notes`: [{ midi, start, dur }]
+ * with `start` seconds after `at` (an AudioContext time). Returns a function
+ * that silences everything still to come or ringing (e.g. on Stop). Used by
+ * the Vocal section's piano cues; the one-shot helpers above are unchanged.
+ */
+export function schedulePianoNotes(notes, at = getAudioContext().currentTime, { velocity = 80 } = {}) {
+  const ctx = getAudioContext();
+  const entry = getCurrentPianoEntry();
+  const stops = [];
+  for (const n of notes) {
+    const time = at + n.start;
+    const dur = Math.max(0.15, n.dur ?? 0.8);
+    if (entry?.isReady) {
+      entry.instrument.output?.setVolume?.(pianoVolume);
+      const stop = entry.instrument.start({ note: n.midi, time, velocity, duration: dur });
+      if (typeof stop === 'function') stops.push(stop);
+      continue;
+    }
+    const freq = 440 * Math.pow(2, (n.midi - 69) / 12);
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    const gain = ctx.createGain();
+    const peak = Math.max(0.18 * (pianoVolume / 100), 0.0001);
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(peak, time + 0.012);
+    gain.gain.setValueAtTime(peak, time + dur * 0.6);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur + 0.3);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(time);
+    osc.stop(time + dur + 0.35);
+    stops.push(() => {
+      try {
+        gain.gain.cancelScheduledValues(ctx.currentTime);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.02);
+      } catch {
+        /* already stopped */
+      }
+    });
+  }
+  return () => stops.forEach((s) => s());
+}
+
+/** Starts loading the selected piano sound (so the first cue isn't a beep). */
+export function preparePiano() {
+  return getCurrentPianoEntry();
+}

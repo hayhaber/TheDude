@@ -64,7 +64,7 @@ function getCurrentPianoEntry() {
   return profile.soundfontName ? getSoundfontInstrument(profile.soundfontName) : getSplendidPiano();
 }
 
-function playNoteAt(midi, startTime) {
+function playNoteAt(midi, startTime, duration = NOTE_DURATION) {
   const ctx = getAudioContext();
   const entry = getCurrentPianoEntry();
   if (entry?.isReady) {
@@ -75,7 +75,7 @@ function playNoteAt(midi, startTime) {
     // always reflects the latest volume without needing its own change
     // listener wired up per profile.
     entry.instrument.output?.setVolume?.(pianoVolume);
-    entry.instrument.start({ note: midi, time: startTime, velocity: VELOCITY, duration: NOTE_DURATION });
+    entry.instrument.start({ note: midi, time: startTime, velocity: VELOCITY, duration });
     return;
   }
   playOscillatorNote(ctx, midi, startTime);
@@ -96,7 +96,7 @@ export function playPianoNote(midi) {
 // oscillator fallback keep their existing natural one-shot decay — a real
 // piano string keeps ringing briefly after the key/damper releases, so
 // there's nothing to "stop" there, exactly the exception asked for.
-export function playPianoNoteOn(midi) {
+export function playPianoNoteOn(midi, { pedal = false } = {}) {
   const ctx = getAudioContext();
   const entry = getCurrentPianoEntry();
   const profile = resolvePianoProfile(getCurrentPianoProfile());
@@ -105,7 +105,9 @@ export function playPianoNoteOn(midi) {
     entry.instrument.start({ note: midi, time: ctx.currentTime, velocity: VELOCITY });
     return;
   }
-  playNoteAt(midi, ctx.currentTime);
+  // The acoustic piano decays on its own; with the sustain pedal down it
+  // rings out much longer (as a real one does with the dampers lifted).
+  playNoteAt(midi, ctx.currentTime, pedal ? 6 : NOTE_DURATION);
 }
 
 // Releases a note started with playPianoNoteOn — a no-op for

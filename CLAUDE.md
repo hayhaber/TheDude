@@ -114,6 +114,18 @@ rosewood, below).
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
+- **Piano FreePlay** (nav `freeplay`, piano only; `components/FreePlayView/`;
+  App hides the Stage for it and passes `stagePianoProps`): a big
+  PianoKeyboard — `visibleOctaves` (1/1.5/2/3, default 2, 1 on phones) fills
+  the width from `startMidi` (C4/G3/C3/C3), keys ~6x as tall as wide up to
+  `maxKeyHeight` (room left on screen). Sustain pedal: `sustain` prop
+  (released keys go to `pedalHeldRef`, stopped on pedal up; acoustic
+  `playPianoNoteOn(midi, {pedal})` rings 6 s) — Pedal button toggles, Space
+  held = pedal. `onNoteEvent({type, midi})` (all free-play inputs) feeds the
+  live chord (`chordReadout` LCD, flats) and the recorder (events in
+  localStorage `dudestar-freeplay-recording`, played with
+  `schedulePianoNotes`, keys lit via `playNotes`). Scoped button CSS to
+  `.freeplay-controls` — a `.freeplay-view button` rule restyled the keys.
 - **Piano glissando (touch)**: sliding a finger across PianoKeyboard plays
   each key it passes (`handleTouchMoveKey`: elementFromPoint ->
   `.piano-key[data-midi]`, releases the previous key per touch id). Free

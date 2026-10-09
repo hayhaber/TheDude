@@ -1,0 +1,120 @@
+.freeplay-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.freeplay-view h1 {
+  margin: 0;
+}
+
+.freeplay-view .subtitle {
+  margin: 6px 0 0;
+}
+
+.freeplay-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.freeplay-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.freeplay-field select {
+  font-size: 14px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 120px;
+  text-transform: none;
+}
+
+.freeplay-controls button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: var(--control-height);
+  padding: 0 16px;
+  gap: 8px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.freeplay-controls button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.freeplay-pedal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(120, 120, 128, 0.35);
+}
+
+.freeplay-controls .freeplay-pedal.is-on {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.freeplay-pedal.is-on .freeplay-pedal-dot {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.freeplay-recorder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.freeplay-rec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff3b30;
+}
+
+.freeplay-controls .freeplay-rec.is-recording {
+  border-color: #ff3b30;
+  color: #ff3b30;
+}
+
+.freeplay-rec.is-recording .freeplay-rec-dot {
+  animation: freeplay-blink 1s steps(2, start) infinite;
+}
+
+@keyframes freeplay-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.freeplay-clock {
+  min-width: 80px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.freeplay-tip {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}

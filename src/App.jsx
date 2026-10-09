@@ -10,6 +10,7 @@ import { PracticeView } from './components/PracticeView/PracticeView';
 import { StudiesSection } from './components/StudiesSection/StudiesSection';
 import { SongsView } from './components/SongsView/SongsView';
 import { GuitarProView } from './components/GuitarPro/GuitarProView';
+import { FreePlayView } from './components/FreePlayView/FreePlayView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
 import { NoteColorLegend } from './components/NoteColorLegend/NoteColorLegend';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './music/chordSymbolParser';
@@ -1903,7 +1904,7 @@ function App() {
       metronomeSlot={<MetronomeBar metronome={metronome} drums={drums} />}
       stage={
         // The Vocal section draws the voice itself (no neck/keys under it).
-        earTrainingOwnsInstrument || activeSection === 'vocal' ? null : (
+        earTrainingOwnsInstrument || activeSection === 'vocal' || activeSection === 'freeplay' ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
             pianoProps={stagePianoProps}
@@ -2105,6 +2106,7 @@ function App() {
 
       {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} />}
 
+      {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
       {activeSection === 'vocal' && <VocalTrainingView />}
     </AppShell>
   );

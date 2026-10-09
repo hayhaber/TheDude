@@ -8,6 +8,14 @@ import './HomeMenu.css';
 
 // Line icons for the per-instrument shortcuts (24px grid).
 const ICON_PATHS = {
+  // A few piano keys.
+  freeplay: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="1.5" />
+      <path d="M8 5v14M13 5v14M18 5v14" opacity=".55" />
+      <path d="M6.5 5v8M10.5 5v8M15.5 5v8" strokeWidth="2.6" />
+    </>
+  ),
   compose: (
     <>
       <path d="M4 6h16M4 10h16M4 14h16M4 18h16" opacity=".35" />
@@ -129,6 +137,7 @@ const CARDS = [
       { section: 'studies', icon: 'studies' },
       { section: 'practice', icon: 'practice' },
       { section: 'guitarpro', icon: 'guitarpro', labelKey: 'nav.pianopro' },
+      { section: 'freeplay', icon: 'freeplay' },
     ],
   },
   {

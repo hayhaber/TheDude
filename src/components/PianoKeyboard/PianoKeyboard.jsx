@@ -182,8 +182,32 @@ export function PianoKeyboard({
   onMetronomeToggle,
   metronomeBpm = 120,
   onMetronomeBpmChange,
+  // FreePlay (big keyboard): show exactly this many octaves across the
+  // width (keys grow to fill it, taller in proportion) starting at
+  // `startMidi` (a C). Undefined everywhere else = the normal keyboard.
+  visibleOctaves,
+  startMidi,
+  // ...and the tallest the keys may be (the room the page has for them).
+  maxKeyHeight,
+  // Sustain pedal (FreePlay): while true, released keys keep ringing; let
+  // go of the pedal and they stop.
+  sustain = false,
+  // Every free-play note on/off (touch, mouse, MIDI, computer keys) —
+  // FreePlay records and names chords from these.
+  onNoteEvent,
 }) {
   const { t } = useLanguage();
+  const sustainRef = useRef(sustain);
+  sustainRef.current = sustain;
+  const onNoteEventRef = useRef(onNoteEvent);
+  onNoteEventRef.current = onNoteEvent;
+  const pedalHeldRef = useRef(new Set());
+  // Pedal up: everything it was holding stops.
+  useEffect(() => {
+    if (sustain) return;
+    pedalHeldRef.current.forEach((m) => playPianoNoteOff(m));
+    pedalHeldRef.current.clear();
+  }, [sustain]);
   const viewportRef = useRef(null);
   const scrollRef = useRef(null);
   const dragRef = useRef({ dragging: false, startX: 0, startScrollLeft: 0, moved: false });
@@ -345,8 +369,21 @@ export function PianoKeyboard({
     return () => observer.disconnect();
   }, []);
 
-  const visibleWhiteKeyCount = isMobile ? 15 : 26; // C3..C5 vs F2..C6
-  const keyWidth = viewportWidth > 0 ? clamp(viewportWidth / visibleWhiteKeyCount, MIN_KEY_WIDTH, MAX_KEY_WIDTH) : FALLBACK_KEY_WIDTH;
+  const bigMode = visibleOctaves != null;
+  const visibleWhiteKeyCount = bigMode ? Math.round(visibleOctaves * 7) + 1 : isMobile ? 15 : 26; // C3..C5 vs F2..C6
+  const keyWidth =
+    viewportWidth > 0
+      ? bigMode
+        ? Math.max(MIN_KEY_WIDTH, viewportWidth / visibleWhiteKeyCount)
+        : clamp(viewportWidth / visibleWhiteKeyCount, MIN_KEY_WIDTH, MAX_KEY_WIDTH)
+      : FALLBACK_KEY_WIDTH;
+  // Big keys get taller too (about a real key's proportion), within reason.
+  // Big keys get taller too (a real white key is ~6x as long as it is
+  // wide), up to the room the page has for them.
+  const whiteKeyHeight = bigMode
+    ? Math.round(clamp(keyWidth * 6, WHITE_KEY_HEIGHT, Math.max(WHITE_KEY_HEIGHT, maxKeyHeight ?? 420)))
+    : WHITE_KEY_HEIGHT;
+  const blackKeyHeight = Math.round(whiteKeyHeight * 0.6);
   const blackKeyWidth = Math.round(keyWidth * 0.62);
   const totalWidth = TOTAL_WHITE_KEYS * keyWidth;
 
@@ -364,6 +401,14 @@ export function PianoKeyboard({
   // viewport has a real measured width — not on every later resize, so
   // resizing the window doesn't yank a user back to the default range
   // after they've scrolled elsewhere.
+  useLayoutEffect(() => {
+    if (!bigMode || !scrollRef.current || viewportWidth === 0) return;
+    scrollRef.current.scrollLeft = (WHITE_INDEX_BY_MIDI.get(startMidi ?? 48) ?? 0) * keyWidth;
+    didInitialScrollRef.current = true;
+    updateScrollMetrics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bigMode, startMidi, visibleOctaves, keyWidth]);
+
   useLayoutEffect(() => {
     if (didInitialScrollRef.current || !scrollRef.current || viewportWidth === 0) return;
     const range = isMobile ? DEFAULT_RANGE_MOBILE : DEFAULT_RANGE_DESKTOP;
@@ -570,11 +615,19 @@ export function PianoKeyboard({
   // free-play (non-quiz) notes get PianoKeyboard's own sound at all.
   function handleSustainedNoteOn(midi) {
     const wasQuiz = registerNoteClick(midi);
-    if (!wasQuiz) playPianoNoteOn(midi);
+    if (!wasQuiz) {
+      pedalHeldRef.current.delete(midi);
+      playPianoNoteOn(midi, { pedal: sustainRef.current });
+      onNoteEventRef.current?.({ type: 'on', midi });
+    }
   }
 
   function handleSustainedNoteOff(midi) {
-    if (!quizKeys) playPianoNoteOff(midi);
+    if (quizKeys) return;
+    onNoteEventRef.current?.({ type: 'off', midi });
+    // Pedal down: the note keeps ringing until the pedal is released.
+    if (sustainRef.current) pedalHeldRef.current.add(midi);
+    else playPianoNoteOff(midi);
   }
 
   // Mouse/touch press-and-hold on an actual key — quiz mode stays exactly
@@ -1055,7 +1108,7 @@ export function PianoKeyboard({
           role="img"
           aria-label={t('piano.ariaLabel')}
         >
-          <div className="piano-keyboard-keys" style={{ width: totalWidth, height: WHITE_KEY_HEIGHT }}>
+          <div className="piano-keyboard-keys" style={{ width: totalWidth, height: whiteKeyHeight }}>
             {WHITE_KEYS.map((w) => {
               const fill = keyFill(w.midi);
               const clickable = isClickable(w.midi);
@@ -1122,7 +1175,7 @@ export function PianoKeyboard({
                         }
                         style={{
                           width: blackKeyWidth,
-                          height: BLACK_KEY_HEIGHT,
+                          height: blackKeyHeight,
                           left: keyWidth - blackKeyWidth / 2,
                           ...(blackFill ? { backgroundColor: blackFill, opacity: keyOpacity(blackMidi) } : undefined),
                         }}

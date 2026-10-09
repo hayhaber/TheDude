@@ -22,5 +22,7 @@ export const SECTIONS = [
   { key: 'songs', labelKey: 'nav.songs', icon: '🔍' },
   // Guitar Pro files: play the song with its band, practice its solo.
   { key: 'guitarpro', labelKey: 'nav.guitarpro', icon: GuitarProNavIcon },
+  // Piano only: a big keyboard to play freely (pedal, live chord, recording).
+  { key: 'freeplay', labelKey: 'nav.freeplay', icon: '🎹' },
   { key: 'vocal', labelKey: 'nav.vocal', icon: '🎤' },
 ];

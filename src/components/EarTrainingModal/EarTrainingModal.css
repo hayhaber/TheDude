@@ -194,6 +194,20 @@
   font-size: 13px;
   font-weight: 590;
   color: var(--text-secondary);
+  /* Room for the answer line is kept even before it appears, so the
+     instrument below stays put (two lines on narrow screens). */
+  min-height: 1.4em;
+  line-height: 1.4;
+}
+
+.ear-training-reveal.is-pending {
+  visibility: hidden;
+}
+
+@media (max-width: 600px) {
+  .ear-training-reveal {
+    min-height: 2.8em;
+  }
 }
 
 .ear-training-actions {

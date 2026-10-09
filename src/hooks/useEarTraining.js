@@ -13,6 +13,7 @@ import {
   saveLifetimeStats,
 } from '../music/earTraining';
 import { playQuestionAudio, playAnswerFeedbackAudio } from '../audio/earTrainingPlayer';
+import { useInstrument } from '../instruments/useInstrument';
 
 const MISTAKE_FLASH_MS = 700;
 // How long Timed mode holds the just-answered question's feedback on screen
@@ -48,6 +49,7 @@ const AUTO_ADVANCE_WRONG_MS = 2600;
 // components/EarTrainingModal for how it wires into a dedicated Fretboard
 // instance, entirely separate from the main chord-progression fretboard.
 export function useEarTraining() {
+  const { instrument } = useInstrument();
   const [open, setOpen] = useState(false);
   const [modeKey, setModeKey] = useState(EAR_TRAINING_MODES[0].key);
   const [difficultyKey, setDifficultyKey] = useState(EAR_TRAINING_DIFFICULTIES[0].key);
@@ -297,11 +299,19 @@ export function useEarTraining() {
         ? AUTO_ADVANCE_CORRECT_MS
         : AUTO_ADVANCE_WRONG_MS
       : FEEDBACK_HOLD_MS;
+    // Piano: a melodic answer is shown one key at a time (EarTrainingModal's
+    // useSequentialReveal, 650 ms per note) — stay long enough to see it.
+    const melodic =
+      instrument === 'piano' &&
+      !question?.harmonic &&
+      ['direction', 'interval', 'scaleid'].includes(question?.kind) &&
+      (question?.notesToPlay?.length ?? 0) > 1;
+    const shownMs = melodic ? holdMs + question.notesToPlay.length * 650 : holdMs;
     if (feedbackHoldTimeoutRef.current) clearTimeout(feedbackHoldTimeoutRef.current);
     feedbackHoldTimeoutRef.current = setTimeout(() => {
       feedbackHoldTimeoutRef.current = null;
       newQuestion();
-    }, holdMs);
+    }, shownMs);
   }
 
   function next() {

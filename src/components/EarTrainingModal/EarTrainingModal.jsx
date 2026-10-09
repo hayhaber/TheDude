@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { noteNameForMidi } from '../../music/earTraining';
@@ -47,6 +48,35 @@ function choiceLabel(t, question, choice) {
 // explicit "Start Quiz" tap either way — that's the user gesture that
 // unlocks the AudioContext for the very first sound, so it can't be
 // skipped/auto-started even inline.
+// Piano: the notes of a melodic answer (higher/lower, a melodic interval, a
+// scale) lit one at a time, in the order they were played, over and over —
+// both keys lit at once can't show which way the melody went.
+const REVEAL_STEP_MS = 650;
+const REVEAL_PAUSE_MS = 700;
+
+function useSequentialReveal(notes, active) {
+  const [index, setIndex] = useState(-1);
+  const count = notes?.length ?? 0;
+  const key = active && count > 1 ? notes.map((n) => n.midi).join(',') : '';
+  useEffect(() => {
+    if (!key) {
+      setIndex(-1);
+      return undefined;
+    }
+    let i = 0;
+    let timer;
+    const tick = () => {
+      setIndex(i < count ? i : -1); // -1 = a short pause before it repeats
+      const wait = i < count ? REVEAL_STEP_MS : REVEAL_PAUSE_MS;
+      i = i < count ? i + 1 : 0;
+      timer = setTimeout(tick, wait);
+    };
+    tick();
+    return () => clearTimeout(timer);
+  }, [key, count]);
+  return key ? index : null;
+}
+
 export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
   const isInline = variant === 'inline';
   const { t } = useLanguage();
@@ -136,12 +166,21 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     isChordQuiz && answeredChoiceKey && question.chordText
       ? { text: question.chordText, fret: question.chordBaseFret ?? 0 }
       : null;
+  const melodicReveal =
+    instrument === 'piano' &&
+    isChoiceQuestion &&
+    !!answeredChoiceKey &&
+    !question?.harmonic &&
+    ['direction', 'interval', 'scaleid'].includes(question?.kind);
+  const revealIndex = useSequentialReveal(question?.notesToPlay, melodicReveal);
+  const pianoRevealKeys =
+    revealIndex == null ? quizRevealPianoKeys : revealIndex < 0 ? [] : [{ midi: question.notesToPlay[revealIndex].midi }];
   const inlineInstrument = !showInlineInstrument ? null : instrument === 'piano' ? (
     <div className="ear-training-instrument">
       <PianoKeyboard
         notes={[]}
         quizKeys={quizPianoKeys}
-        quizRevealKeys={quizRevealPianoKeys}
+        quizRevealKeys={pianoRevealKeys}
         quizFeedbackKey={
           feedback?.cell?.midi != null ? { midi: feedback.cell.midi, correct: feedback.correct } : null
         }
@@ -302,6 +341,13 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                 inversion here, its genuinely useful place (after the
                 quality is known) rather than leaked in the prompt before
                 anything is visible to correlate it against. */}
+            {/* Always rendered for choice questions (empty until answered) so
+                the instrument below never jumps when the answer appears. */}
+            {isChoiceQuestion && !answeredChoiceKey && (
+              <p className="ear-training-reveal is-pending" aria-hidden="true">
+                {'\u00a0'}
+              </p>
+            )}
             {isChoiceQuestion && answeredChoiceKey && (
               <p className="ear-training-reveal" dir="auto">
                 {t('earTraining.reveal', {

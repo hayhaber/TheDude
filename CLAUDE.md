@@ -114,6 +114,12 @@ rosewood, below).
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
+- **Ear Training on piano**: a melodic answer (direction, melodic interval,
+  scale id) is revealed one key at a time in play order, looping
+  (`useSequentialReveal` in EarTrainingModal, 650 ms/note; useEarTraining
+  holds auto-advance that much longer). The reveal line is always rendered
+  for choice questions (`.is-pending` = hidden placeholder, min-height) so
+  the instrument never jumps when the answer appears.
 - **Practice opens empty**: the tab row is one line (`.mode-toggle.wrap.practice-tabs`,
   nowrap + sideways scroll); Drills and Rhythm Practice (`ExerciseDrawer`:
   filters start at "Choose…", undefined = not chosen) and Lick Trainer

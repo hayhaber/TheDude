@@ -94,6 +94,23 @@ const ICON_PATHS = {
       <circle cx="12" cy="12" r="7" opacity=".35" />
     </>
   ),
+  // A small amp head: grille + two knobs.
+  amp: (
+    <>
+      <rect x="3" y="6" width="18" height="13" rx="2" />
+      <path d="M3 10.5h18" />
+      <circle cx="7.5" cy="8.3" r=".9" fill="currentColor" stroke="none" />
+      <circle cx="11" cy="8.3" r=".9" fill="currentColor" stroke="none" />
+      <path d="M7 13.5h10M7 16h10" opacity=".45" />
+    </>
+  ),
+  // A record dot inside a ring.
+  record: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+    </>
+  ),
   ear: (
     <>
       <path d="M7 9a5 5 0 1 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0" />
@@ -176,15 +193,17 @@ const CARDS = [
     ],
   },
   {
-    // Not an instrument: the metronome / tuner / settings, each on a screen
+    // Not an instrument: metronome / tuner / amp / recorder / settings, each on a screen
     // of its own.
     key: 'tools',
     instrument: null,
     titleKey: 'home.tools.title',
-    descKey: 'home.tools.desc',
+    descKey: 'amp.homeDesc',
     options: [
       { tool: 'metronome', icon: 'metronome', labelKey: 'metronome.title' },
       { tool: 'tuner', icon: 'tuner', labelKey: 'tunerBar.label' },
+      { tool: 'amp', icon: 'amp', labelKey: 'amp.nav' },
+      { tool: 'record', icon: 'record', labelKey: 'rec.nav' },
       { tool: 'settings', icon: 'settings', labelKey: 'settings.title' },
     ],
   },

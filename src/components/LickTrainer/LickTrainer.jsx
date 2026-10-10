@@ -5,6 +5,7 @@ import { LICK_GENRES, LICK_LEVELS } from '../../music/lickTrainer/library';
 import { defaultTrackIndex } from '../../music/lickTrainer/gpImport';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { midiToNoteName } from '../../music/pitchUtils';
+import { BUILD_PASS, waitTarget } from '../../music/lickTrainer/practiceModes';
 import { TabTimeline } from './TabTimeline';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './LickTrainer.css';
@@ -109,22 +110,172 @@ function Results({ trainer, t, lang }) {
             </ul>
           )}
 
+          <ResultNotes result={result} t={t} />
+
           {result.signal.clipped && <p className="lt-warning">{t('lickTrainer.signal.clipped')}</p>}
           {!result.calibrated && <p className="lt-muted">{t('lickTrainer.notCalibrated')}</p>}
         </>
       )}
 
+      {result.loopEnd && <p className="lt-focus">{t(`trainerx.loopEnd.${result.loopEnd}`)}</p>}
+
       <div className="lt-actions" dir={lang === 'he' ? 'rtl' : 'ltr'}>
         <button type="button" className="primary" onClick={trainer.record}>
           {t('lickTrainer.retry')}
         </button>
-        {s.verdict === 'tempoUp' && trainer.tempoPct < TEMPO_OPTIONS[TEMPO_OPTIONS.length - 1] && (
+        {s.verdict === 'tempoUp' && !trainer.autoTempo.on && trainer.tempoPct < TEMPO_OPTIONS[TEMPO_OPTIONS.length - 1] && (
           <button type="button" onClick={trainer.raiseTempo}>
             {t('lickTrainer.faster')}
           </button>
         )}
       </div>
+
+      <TakeBar trainer={trainer} t={t} />
     </div>
+  );
+}
+
+// Under the score: what the auto tempo / Build step made of this take.
+function ResultNotes({ result, t }) {
+  const lines = [];
+  if (result.build) {
+    const b = result.build;
+    lines.push(
+      <p key="build" className={b.passed ? 'lt-good' : 'lt-muted'}>
+        {b.done ? t('trainerx.build.done') : b.passed ? t('trainerx.build.passed') : t('trainerx.build.failed', { pass: BUILD_PASS })}
+      </p>
+    );
+  }
+  if (result.targetHeld) lines.push(<p key="held" className="lt-good">{t('trainerx.targetHeld')}</p>);
+  else if (result.tempoChange) {
+    const up = result.tempoChange.to > result.tempoChange.from;
+    lines.push(
+      <p key="tempo" className={up ? 'lt-good' : 'lt-muted'}>
+        {t(up ? 'trainerx.tempoUp' : 'trainerx.tempoDown', { to: result.tempoChange.to })}
+      </p>
+    );
+  }
+  return lines.length ? <div className="lt-result-notes">{lines}</div> : null;
+}
+
+// Your last take: play it, hear it right after the reference, save it.
+function TakeBar({ trainer, t }) {
+  if (!trainer.take) return null;
+  const playing = trainer.phase === 'listening';
+  return (
+    <div className="lt-take">
+      <span className="lt-take-title">
+        {t('trainerx.take.title')}
+        <InfoTooltip text={t('trainerx.tip.take')} />
+      </span>
+      <div className="lt-actions">
+        <button type="button" onClick={trainer.listenTake} disabled={playing}>
+          {t('trainerx.take.mine')}
+        </button>
+        <button type="button" onClick={trainer.compareTake} disabled={playing}>
+          {t('trainerx.take.compare')}
+        </button>
+        <button type="button" onClick={trainer.saveTake}>
+          {t('trainerx.take.save')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Wait mode: the note being waited for, or the run's summary.
+function WaitPanel({ trainer, t }) {
+  const { wait, lick } = trainer;
+  if (!wait) return null;
+  if (wait.done) {
+    return (
+      <div className="lt-wait is-done" aria-live="polite">
+        <p className="lt-wait-main">{t('trainerx.wait.done', { notes: wait.total })}</p>
+        <p className="lt-muted">{t('trainerx.wait.doneStats', { wrong: wait.wrong, seconds: wait.seconds })}</p>
+        <p className="lt-muted lt-small">{t('trainerx.wait.next')}</p>
+        <div className="lt-actions">
+          <button type="button" className="primary" onClick={trainer.startWait}>
+            {t('trainerx.again')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  const note = lick.notes[wait.index];
+  if (!note) return null;
+  const name = midiToNoteName(waitTarget(note));
+  const what = note.technique === 'bend' ? t('trainerx.wait.bend', { note: name }) : name;
+  // (The note names are LTR inside a Hebrew sentence: each piece is isolated.)
+  return (
+    <div className="lt-wait" aria-live="polite">
+      <p className="lt-wait-main">
+        {t('trainerx.wait.status', { n: wait.index + 1, total: wait.total, note: what })}{' '}
+        <bdi className="lt-muted lt-wait-where">({t('trainerx.wait.where', { string: STRING_NUM(note.string), fret: note.fret })})</bdi>
+      </p>
+      <p className={'lt-wait-hint' + (wait.hint ? ' is-on' : '')}>{wait.hint ? t(`trainerx.wait.hint.${wait.hint}`) : '\u00a0'}</p>
+      {wait.wrong > 0 && <p className="lt-muted lt-small">{t('trainerx.wait.wrong', { n: wait.wrong })}</p>}
+    </div>
+  );
+}
+
+// Solos: each section's best score and tempo as a coloured strip.
+export function MasteryMap({ trainer, t, busy }) {
+  const { mastery } = trainer;
+  if (!mastery || mastery.length < 2) return null;
+  const sel = trainer.sectionIndex;
+  const shown = sel >= 0 ? mastery[sel] : null;
+  const weakest = trainer.weakestSection;
+  const allDone = mastery.every((m) => m.status === 'mastered');
+  const detail = (m) =>
+    m.takes === 0
+      ? t('trainerx.mastery.detailNone', { n: m.index + 1 })
+      : m.topTempo != null
+      ? t('trainerx.mastery.detail', { n: m.index + 1, score: m.best, tempo: m.bestTempo, top: `${m.topTempo}%` })
+      : t('trainerx.mastery.detailNoTop', { n: m.index + 1, score: m.best, tempo: m.bestTempo });
+  return (
+    <section className="lt-mastery" aria-label={t('trainerx.mastery.title')}>
+      <div className="lt-mastery-head">
+        <span className="lt-mastery-title">
+          {t('trainerx.mastery.title')}
+          <InfoTooltip text={t('trainerx.tip.mastery')} />
+        </span>
+        <span className="lt-mastery-legend">
+          {['mastered', 'close', 'weak', 'none'].map((st) => (
+            <span key={st} className={`lt-legend is-${st}`}>
+              <i aria-hidden="true" />
+              {t(`trainerx.mastery.${st}`)}
+            </span>
+          ))}
+        </span>
+      </div>
+      <div className="lt-mastery-strip" dir="ltr" role="list">
+        {mastery.map((m) => (
+          <button
+            key={m.index}
+            type="button"
+            role="listitem"
+            className={`lt-seg is-${m.status}` + (m.index === sel ? ' active' : '')}
+            onClick={() => trainer.setSectionIndex(m.index)}
+            disabled={busy}
+            title={`${t(`trainerx.mastery.${m.status}`)} · ${detail(m)}`}
+            aria-label={`${detail(m)} · ${t(`trainerx.mastery.${m.status}`)}`}
+          >
+            <span className="lt-seg-n">{m.index + 1}</span>
+            <span className="lt-seg-score">{m.best ?? '–'}</span>
+          </button>
+        ))}
+      </div>
+      <div className="lt-mastery-foot">
+        <span className="lt-muted lt-small">
+          {shown ? detail(shown) : allDone ? t('trainerx.mastery.allDone') : weakest != null ? t('trainerx.mastery.weakest', { n: weakest + 1 }) : ''}
+        </span>
+        {weakest != null && !allDone && weakest !== sel && (
+          <button type="button" onClick={trainer.practiceWeakest} disabled={busy}>
+            {t('trainerx.mastery.practise')}
+          </button>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -349,7 +500,12 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
   }, [preloadSamples]);
   const { t, lang } = useLanguage();
   const { lick, phase, history } = trainer;
-  const busy = phase === 'preparing' || phase === 'countIn' || phase === 'recording' || phase === 'analyzing' || phase === 'calibrating';
+  const busy =
+    phase === 'preparing' || phase === 'countIn' || phase === 'recording' || phase === 'analyzing' || phase === 'calibrating' || phase === 'waiting';
+  const pm = trainer.practiceMode;
+  // The tempo list, plus the current tempo if a launch set one off the list.
+  const tempoOptions = TEMPO_OPTIONS.includes(trainer.tempoPct) ? TEMPO_OPTIONS : [...TEMPO_OPTIONS, trainer.tempoPct].sort((a, b) => a - b);
+  const looping = trainer.loopActive || trainer.loopNext;
   const countdown =
     phase === 'countIn' && trainer.playheadBeat != null ? Math.max(1, Math.ceil(-trainer.playheadBeat)) : null;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -432,6 +588,8 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
         )}
       </div>
 
+
+      {trainer.mode === 'solos' && <MasteryMap trainer={trainer} t={t} busy={busy} />}
 
       {variant === 'licks' && !chosen && !trainer.pendingImport && <p className="lt-muted lt-pick-hint">{t('lickTrainer.pickHint')}</p>}
 
@@ -533,18 +691,38 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
             result={trainer.result}
             resultOffset={lick.view?.firstIndex ?? 0}
             highlight={
-              trainer.sectionIndex >= 0 ? trainer.activeSolo.sections[trainer.sectionIndex] : null
+              trainer.build && trainer.build.end < trainer.build.total
+                ? { fromBeat: lick.view?.fromBeat ?? 0, toBeat: (lick.view?.fromBeat ?? 0) + trainer.build.endBeat }
+                : trainer.sectionIndex >= 0
+                ? trainer.activeSolo.sections[trainer.sectionIndex]
+                : null
             }
           />
         ) : (
-          <TabTimeline lick={lick} playheadBeat={trainer.playheadBeat} result={trainer.result} />
+          <TabTimeline
+            lick={lick}
+            playheadBeat={trainer.playheadBeat}
+            result={trainer.result}
+            highlight={trainer.build && trainer.build.end < trainer.build.total ? { fromBeat: 0, toBeat: trainer.build.endBeat } : null}
+          />
         )}
 
         <div className="lt-controls">
           <label className="lt-field">
+            <span>
+              {t('trainerx.mode')}
+              <InfoTooltip text={t('trainerx.tip.mode')} />
+            </span>
+            <select value={pm} onChange={(e) => trainer.setPracticeMode(e.target.value)} disabled={busy || looping}>
+              <option value="normal">{t('trainerx.mode.normal')}</option>
+              <option value="wait">{t('trainerx.mode.wait')}</option>
+              <option value="build">{t('trainerx.mode.build')}</option>
+            </select>
+          </label>
+          <label className="lt-field">
             <span>{t('lickTrainer.tempo')}</span>
-            <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))} disabled={busy}>
-              {TEMPO_OPTIONS.map((v) => (
+            <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))} disabled={busy || looping}>
+              {tempoOptions.map((v) => (
                 <option key={v} value={v}>
                   {v}% · {tempoLabel(lick, Math.round((lick.bpm * v) / 100))}
                 </option>
@@ -562,7 +740,17 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
             </button>
           )}
 
-          {phase === 'countIn' || phase === 'recording' ? (
+          {pm === 'wait' ? (
+            phase === 'waiting' ? (
+              <button type="button" className="record active" onClick={trainer.stop}>
+                {t('lickTrainer.stop')}
+              </button>
+            ) : (
+              <button type="button" className="record" onClick={trainer.startWait} disabled={busy}>
+                {t('trainerx.start')}
+              </button>
+            )
+          ) : phase === 'countIn' || phase === 'recording' || (looping && phase !== 'listening') ? (
             <button type="button" className="record active" onClick={trainer.stop}>
               {t('lickTrainer.stop')}
             </button>
@@ -572,12 +760,71 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
             </button>
           )}
 
-          <label className="lt-check">
-            <input type="checkbox" checked={trainer.clickDuring} onChange={(e) => trainer.setClickDuring(e.target.checked)} disabled={busy} />
-            {t('lickTrainer.click')}
-            <InfoTooltip text={t('tip.practice.lickClick')} />
-          </label>
+          {pm === 'wait' ? (
+            <label className="lt-check">
+              <input type="checkbox" checked={trainer.hearCue} onChange={(e) => trainer.setHearCue(e.target.checked)} disabled={busy} />
+              {t('trainerx.hear')}
+            </label>
+          ) : (
+            <label className="lt-check">
+              <input type="checkbox" checked={trainer.clickDuring} onChange={(e) => trainer.setClickDuring(e.target.checked)} disabled={busy} />
+              {t('lickTrainer.click')}
+              <InfoTooltip text={t('tip.practice.lickClick')} />
+            </label>
+          )}
         </div>
+
+        {pm !== 'wait' && (
+          <div className="lt-auto">
+            <label className="lt-check">
+              <input
+                type="checkbox"
+                checked={trainer.autoTempo.on}
+                onChange={(e) => trainer.setAutoTempo({ on: e.target.checked })}
+                disabled={busy}
+              />
+              {t('trainerx.autoTempo')}
+              <InfoTooltip text={t('trainerx.tip.autoTempo')} />
+            </label>
+            {trainer.autoTempo.on && (
+              <label className="lt-inline-field">
+                <span>{t('trainerx.target')}</span>
+                <select dir="ltr" value={trainer.autoTempo.to} onChange={(e) => trainer.setAutoTempo({ to: Number(e.target.value) })} disabled={busy}>
+                  {TEMPO_OPTIONS.filter((v) => v >= 60).map((v) => (
+                    <option key={v} value={v}>
+                      {v}%
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className="lt-check">
+              <input type="checkbox" checked={trainer.loop} onChange={(e) => trainer.setLoop(e.target.checked)} />
+              {t('trainerx.loop')}
+              <InfoTooltip text={t('trainerx.tip.loop')} />
+            </label>
+          </div>
+        )}
+
+        {trainer.build && (
+          <div className="lt-build">
+            <span>
+              {t('trainerx.build.status', {
+                step: trainer.build.step + 1,
+                steps: trainer.build.steps,
+                end: trainer.build.end,
+                total: trainer.build.total,
+              })}
+            </span>
+            {trainer.build.step > 0 && (
+              <button type="button" onClick={trainer.restartBuild} disabled={busy || looping}>
+                {t('trainerx.restart')}
+              </button>
+            )}
+          </div>
+        )}
+
+        <WaitPanel trainer={trainer} t={t} />
 
         <div className="lt-status" aria-live="polite">
           {phase === 'preparing' && <span>{t('lickTrainer.preparing')}</span>}
@@ -587,7 +834,9 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
           {phase === 'recording' && <span>{t('lickTrainer.recording')}</span>}
           {phase === 'analyzing' && <span>{t('lickTrainer.analyzing')}</span>}
           {phase === 'calibrating' && <span>{t('lickTrainer.calibrating')}</span>}
-          {(phase === 'recording' || phase === 'calibrating' || phase === 'countIn') && (
+          {trainer.loopNext && phase === 'results' && <span className="lt-loop-next">{t('trainerx.loopNext')}</span>}
+          {trainer.loopActive && !trainer.loopNext && phase !== 'results' && <span className="lt-muted">{t('trainerx.loopOn')}</span>}
+          {(phase === 'recording' || phase === 'calibrating' || phase === 'countIn' || phase === 'waiting') && (
             <span className="lt-meter" aria-hidden="true">
               <span style={{ width: `${Math.min(100, trainer.inputLevel * 140)}%` }} />
             </span>

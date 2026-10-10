@@ -20,6 +20,7 @@ import {
 } from '../../coach/engine';
 import { pick, formatValue, formatTarget, clock, formatDate } from './coachFormat';
 import { ProgressChart } from './ProgressChart';
+import { RewardsView } from '../Achievements/RewardsView';
 import './CoachView.css';
 
 // Coach section: a goal-based practice plan. No plan yet -> a short wizard
@@ -874,6 +875,8 @@ function Dashboard({ coach, state, g, goal, onEdit, onGoal, lang, t }) {
 
 // ---------------------------------------------------------------------------
 
+let lastTab = 'plan';
+
 export function CoachView() {
   const { t, lang } = useLanguage();
   const coach = useCoach();
@@ -882,6 +885,14 @@ export function CoachView() {
   const goal = g ? goalByKey(g.goalKey) : null;
   // 'welcome' | 'about' | 'goal' while editing or walking back; null = derived.
   const [override, setOverride] = useState(null);
+  // Plan (the wizard / dashboard) | Rewards (XP, challenges, badges) — the
+  // Rewards view works with or without a coach plan.
+  // Remembered for this page load (coming back from a challenge's tool).
+  const [tab, setTabState] = useState(() => lastTab);
+  const setTab = (k) => {
+    lastTab = k;
+    setTabState(k);
+  };
   const hasPlan = !!(g && g.planSeen && goal);
 
   let mode;
@@ -897,7 +908,7 @@ export function CoachView() {
   // Scroll the section to the top on every wizard step.
   useEffect(() => {
     document.querySelector('.app-section-content')?.scrollTo?.({ top: 0 });
-  }, [mode]);
+  }, [mode, tab]);
 
   let body;
   if (mode === 'welcome') body = <WelcomeStep t={t} onNext={() => setOverride('about')} />;
@@ -944,9 +955,19 @@ export function CoachView() {
     );
   else body = <Dashboard coach={coach} state={state} g={g} goal={goal} lang={lang} t={t} onEdit={() => setOverride('about')} onGoal={() => setOverride('goal')} />;
 
+  const viewClass = tab === 'rewards' ? ' is-rewards' : mode === 'dashboard' ? ' is-dashboard' : ' is-wizard';
   return (
-    <div className={'coach-view' + (mode === 'dashboard' ? ' is-dashboard' : ' is-wizard')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
-      {body}
+    <div className={'coach-view' + viewClass} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+      <div className="coach-switch-row">
+        <div className="mode-toggle coach-switch" role="tablist" aria-label={t('achieve.tabsLabel')}>
+          {['plan', 'rewards'].map((k) => (
+            <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>
+              {t(k === 'plan' ? 'achieve.tabPlan' : 'achieve.tabRewards')}
+            </button>
+          ))}
+        </div>
+      </div>
+      {tab === 'rewards' ? <RewardsView /> : body}
     </div>
   );
 }

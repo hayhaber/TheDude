@@ -6,6 +6,7 @@ import { playNote } from '../../audio/chordPlayer';
 import { playBassNote, preloadBassSamples } from '../../audio/bassPlayer';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { translateTransitionLabel } from '../../i18n/roadmapLabels';
+import { useLeftHanded } from './handedness';
 import './Fretboard.css';
 
 // Back to the original, larger scale, now bumped up twice more by 10% each
@@ -335,6 +336,12 @@ export function Fretboard({
   // Which WINDOW_FRETS-wide slice of the neck is currently visible — the
   // "camera," moved via the SVG viewBox below rather than browser scroll.
   const [windowStart, setWindowStart] = useState(0);
+  // Left-handed mode (Settings, device-level): the whole SVG is mirrored by
+  // CSS (nut on the right, higher frets to the left) and every <text> is
+  // flipped back in place so letters/numbers stay readable. Hit-testing
+  // follows the CSS transform, so taps land on the note drawn under the
+  // finger. Only the pan direction and the paging arrows need to know.
+  const [leftHanded] = useLeftHanded();
   const maxWindowStart = Math.max(0, MAX_FRET - WINDOW_FRETS);
 
   // Auto-frame the neck so the current shape/lick/drill/quiz is actually in
@@ -447,7 +454,9 @@ export function Fretboard({
       const dxPx = ev.clientX - s.startX;
       if (Math.abs(dxPx) > 4) s.moved = true;
       // Drag right → reveal earlier (lower) frets, like sliding the neck.
-      const next = Math.max(0, Math.min(maxWindowStart, s.startWindow - dxPx / s.pxPerFret));
+      // Mirrored (left-handed) the low frets are on the right: drag left.
+      const dxFrets = (leftHanded ? -dxPx : dxPx) / s.pxPerFret;
+      const next = Math.max(0, Math.min(maxWindowStart, s.startWindow - dxFrets));
       s.current = next;
       svgRef.current?.setAttribute('viewBox', viewBoxStringFor(next));
     };
@@ -502,15 +511,19 @@ export function Fretboard({
   }, [roadmap]);
 
   return (
-    <div className={`fretboard-scroll${isQuizMode ? ' fretboard-scroll-quiz' : ''}${compact ? ' fretboard-scroll-compact' : ''}`}>
+    <div
+      className={`fretboard-scroll${isQuizMode ? ' fretboard-scroll-quiz' : ''}${compact ? ' fretboard-scroll-compact' : ''}${leftHanded ? ' is-lefty' : ''}`}
+    >
+      {/* Arrows sit on the side the lower/higher frets are drawn on, so in
+          left-handed mode "lower" is on the right, pointing right. */}
       {!isQuizMode && windowStart > 0 && (
         <button type="button" className="fretboard-page-btn fretboard-page-prev" onClick={() => pageWindow(-1)} aria-label={t('fretboard.pageDown')}>
-          ‹
+          {leftHanded ? '›' : '‹'}
         </button>
       )}
       {!isQuizMode && windowEndFret < MAX_FRET && (
         <button type="button" className="fretboard-page-btn fretboard-page-next" onClick={() => pageWindow(1)} aria-label={t('fretboard.pageUp')}>
-          ›
+          {leftHanded ? '‹' : '›'}
         </button>
       )}
       <svg

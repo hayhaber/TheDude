@@ -17,6 +17,7 @@ import { resolveGuitarProfile } from './instrumentProfiles';
 import { getCurrentGuitarProfile } from './audioSettingsStore';
 import { getAudioInputSettings } from './audioInputSettingsStore';
 import { STANDARD_TUNING } from '../music/notes';
+import { PitchDetector } from 'pitchy';
 
 const SCHEDULE_AHEAD = 0.12;
 const TICK_MS = 25;
@@ -151,7 +152,7 @@ function contour(note, prevNote, t, dur) {
 // Plays one "string gesture": a picked note plus any legato notes that
 // follow it on the same string (hammer-on, pull-off, slide, release) — one
 // voice, one attack, pitch automated through every note.
-function playChain(ctx, buffers, chain, voices) {
+function playChain(ctx, buffers, chain, voices, level = 1) {
   const first = chain[0];
   const t0 = first.time;
   const tEnd = chain[chain.length - 1].time + chain[chain.length - 1].dur;
@@ -165,7 +166,14 @@ function playChain(ctx, buffers, chain, voices) {
   });
 
   const out = ctx.createGain();
-  out.connect(ctx.destination);
+  if (level === 1) out.connect(ctx.destination);
+  else {
+    // Softer (a Wait-mode cue): one more gain stage, so the envelope below
+    // stays exactly the same.
+    const soft = ctx.createGain();
+    soft.gain.value = level;
+    out.connect(soft).connect(ctx.destination);
+  }
   const g = out.gain;
   g.setValueAtTime(0, t0);
   g.linearRampToValueAtTime(0.9, t0 + 0.004);
@@ -224,8 +232,9 @@ function playChain(ctx, buffers, chain, voices) {
  * @param {boolean} p.playNotes   play the reference notes
  * @param {boolean} p.clickDuring keep clicking through the lick
  * @param {number} p.lengthBeats
+ * @param {number} [p.level]      note loudness (1 = normal)
  */
-export function scheduleLick({ notes, bpm, startTime, countInBeats = 0, playNotes = true, clickDuring = false, lengthBeats }) {
+export function scheduleLick({ notes, bpm, startTime, countInBeats = 0, playNotes = true, clickDuring = false, lengthBeats, level = 1 }) {
   const ctx = getAudioContext();
   const spb = 60 / bpm;
   const events = [];
@@ -267,7 +276,7 @@ export function scheduleLick({ notes, bpm, startTime, countInBeats = 0, playNote
       const e = events[cursor];
       if (e.time >= ctx.currentTime - 0.01) {
         if (e.kind === 'click') voices.push(scheduleClick(ctx, e.time, e.accent));
-        else playChain(ctx, buffers, e.items, voices);
+        else playChain(ctx, buffers, e.items, voices, level);
       }
       cursor += 1;
     }
@@ -369,6 +378,12 @@ export async function openInput() {
   source.connect(gainNode);
   gainNode.connect(node).connect(mute).connect(ctx.destination);
   gainNode.connect(analyser);
+  // Live pitch (Wait mode): a window long enough for the low E.
+  const pitchAnalyser = ctx.createAnalyser();
+  pitchAnalyser.fftSize = 2048;
+  gainNode.connect(pitchAnalyser);
+  const pitchBuf = new Float32Array(pitchAnalyser.fftSize);
+  let detector = null;
 
   let chunks = [];
   let onDone = null;
@@ -389,6 +404,17 @@ export async function openInput() {
       let peak = 0;
       for (let i = 0; i < levelBuf.length; i += 1) peak = Math.max(peak, Math.abs(levelBuf[i]));
       return peak;
+    },
+    // The input's pitch right now: { hz, clarity, rms } (McLeod / pitchy).
+    pitch() {
+      gainNode.gain.value = getAudioInputSettings().gain;
+      pitchAnalyser.getFloatTimeDomainData(pitchBuf);
+      let sum = 0;
+      for (let i = 0; i < pitchBuf.length; i += 1) sum += pitchBuf[i] * pitchBuf[i];
+      const rms = Math.sqrt(sum / pitchBuf.length);
+      if (!detector) detector = PitchDetector.forFloat32Array(pitchBuf.length);
+      const [hz, clarity] = detector.findPitch(pitchBuf, ctx.sampleRate);
+      return { hz, clarity, rms };
     },
     start() {
       chunks = [];
@@ -416,6 +442,7 @@ export async function openInput() {
         gainNode.disconnect();
         node.disconnect();
         mute.disconnect();
+        pitchAnalyser.disconnect();
       } catch {
         // already disconnected
       }

@@ -9,6 +9,7 @@ import { GUITAR_SOUND_PROFILES, PIANO_SOUND_PROFILES, BASS_SOUND_PROFILES } from
 import { AudioInputSettings } from '../AudioInputSettings/AudioInputSettings';
 import { YoutubeApiKeySettings } from '../YoutubeApiKeySettings/YoutubeApiKeySettings';
 import { KeyboardShortcutsSettings } from '../KeyboardShortcutsSettings/KeyboardShortcutsSettings';
+import { useLeftHanded } from '../Fretboard/handedness';
 import '../ModeToggle/ModeToggle.css';
 import './SettingsPanel.css';
 
@@ -102,6 +103,10 @@ export function SettingsBody({
 }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
+  const [leftHanded, setLeftHanded] = useLeftHanded();
+  // Left-handed only means something where there's a neck: on the home
+  // screen's page (allSounds) and inside guitar/bass, not inside piano.
+  const showHand = allSounds || instrument !== 'piano';
   const showSound = (key) => allSounds || (key === 'guitar' ? instrument !== 'piano' && instrument !== 'bass' : instrument === key);
 
   return (
@@ -122,6 +127,23 @@ export function SettingsBody({
           </button>
         </div>
       </div>
+
+      {showHand && (
+        <div className="settings-field">
+          <span className="settings-field-label">
+            {t('tuning.hand')}
+            <InfoTooltip text={t('tuning.tip.leftHanded')} />
+          </span>
+          <div className="mode-toggle" role="group" aria-label={t('tuning.hand')}>
+            <button type="button" className={!leftHanded ? 'active' : ''} aria-pressed={!leftHanded} onClick={() => setLeftHanded(false)}>
+              {t('tuning.hand.right')}
+            </button>
+            <button type="button" className={leftHanded ? 'active' : ''} aria-pressed={leftHanded} onClick={() => setLeftHanded(true)}>
+              {t('tuning.hand.left')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Instrument-aware, per docs/PIANO_MODE_ARCHITECTURE.md's roadmap —
           one sound-profile field, showing whichever instrument's own

@@ -1,0 +1,376 @@
+/* Record yourself: a deck (big record button, time, level), options, and
+   the list of takes with waveforms. */
+.rec-view {
+  --rec-red: #ff3b30;
+  --rec-panel: linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%);
+  --rec-panel-border: rgba(0, 0, 0, 0.08);
+  --rec-wave: rgba(120, 120, 128, 0.38);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: start;
+}
+
+:root[data-theme='dark'] .rec-view {
+  --rec-red: #ff453a;
+  --rec-panel: linear-gradient(180deg, #2c2c31 0%, #232327 100%);
+  --rec-panel-border: rgba(255, 255, 255, 0.1);
+  --rec-wave: rgba(255, 255, 255, 0.28);
+}
+
+/* ---- deck -------------------------------------------------------------- */
+.rec-deck {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: var(--rec-panel);
+  box-shadow: inset 0 0 0 1px var(--rec-panel-border);
+}
+
+.rec-button {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 96px;
+  height: 96px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 1px var(--rec-panel-border),
+    0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+
+.rec-button:active {
+  transform: scale(0.97);
+}
+
+.rec-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.rec-button-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--rec-red);
+  transition: border-radius 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+
+.rec-button.is-busy .rec-button-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.rec-deck.is-recording .rec-button {
+  box-shadow:
+    inset 0 0 0 2px var(--rec-red),
+    0 0 0 6px color-mix(in srgb, var(--rec-red) 16%, transparent);
+  animation: rec-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rec-pulse {
+  50% {
+    box-shadow:
+      inset 0 0 0 2px var(--rec-red),
+      0 0 0 10px color-mix(in srgb, var(--rec-red) 8%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-deck.is-recording .rec-button {
+    animation: none;
+  }
+}
+
+.rec-deck-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rec-time {
+  font-size: 40px;
+  font-weight: 650;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  text-align: start;
+}
+
+[dir='rtl'] .rec-time {
+  text-align: right;
+}
+
+.rec-state {
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.rec-deck.is-recording .rec-state {
+  color: var(--rec-red);
+}
+
+/* ---- options ----------------------------------------------------------- */
+.rec-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.rec-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rec-option-label {
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.rec-toggle {
+  margin: 0;
+}
+
+.rec-toggle button {
+  min-width: 72px;
+}
+
+.rec-bpm {
+  box-sizing: border-box;
+  width: 76px;
+  height: var(--control-height);
+  padding: 0 8px;
+  border: 1px solid var(--divider);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rec-note {
+  margin: -6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+/* ---- takes ------------------------------------------------------------- */
+.rec-takes-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+[dir='rtl'] .rec-takes-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+}
+
+.rec-empty {
+  margin: 0;
+  padding: 28px 16px;
+  border-radius: 16px;
+  background: rgba(120, 120, 128, 0.08);
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rec-take {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--rec-panel);
+  box-shadow: inset 0 0 0 1px var(--rec-panel-border);
+}
+
+.rec-take.is-current {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.rec-take-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rec-play {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.rec-play:hover {
+  background: var(--accent-hover);
+}
+
+.rec-take-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rec-take-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 620;
+}
+
+.rec-take-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rec-badge {
+  padding: 1px 7px;
+  font-size: 11px;
+}
+
+.rec-take-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.rec-take-actions .amp-btn,
+.rec-rename .amp-btn {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.rec-confirm-q {
+  font-size: 13px;
+  font-weight: 590;
+}
+
+.rec-rename {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rec-rename input {
+  flex: 1 1 140px;
+  min-width: 0;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.rec-wave {
+  display: block;
+  width: 100%;
+  height: 44px;
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+
+.rec-wave:focus-visible {
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.rec-wave-base rect {
+  fill: var(--rec-wave);
+}
+
+.rec-wave-played rect {
+  fill: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .rec-deck {
+    gap: 16px;
+    padding: 14px;
+  }
+
+  .rec-button {
+    width: 84px;
+    height: 84px;
+  }
+
+  .rec-time {
+    font-size: 34px;
+  }
+
+  .rec-take {
+    padding: 10px 12px;
+  }
+
+  .rec-take-row {
+    flex-wrap: wrap;
+  }
+
+  /* Actions on their own line under the name. */
+  .rec-take-actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}

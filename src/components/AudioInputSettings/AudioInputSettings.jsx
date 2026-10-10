@@ -3,6 +3,7 @@ import { useAudioInputSettings } from '../../hooks/useAudioInputSettings';
 import { usePitchDetection } from '../../hooks/usePitchDetection';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { RoomCalibration } from './RoomCalibration';
 import './AudioInputSettings.css';
 
 // Settings UI for every feature that listens to the mic (Tuner, Ear
@@ -89,6 +90,10 @@ export function AudioInputSettings() {
         {error && <span className="settings-attribution audio-input-error">{t('trainer.micError', { message: error })}</span>}
         {isClipping && <span className="settings-attribution audio-input-error">{t('audioInput.clipping')}</span>}
       </div>
+
+      {/* Measuring opens its own mic stream — the live meter's stream is
+          closed first so the two never run at once. */}
+      <RoomCalibration deviceId={deviceId} inputMode={inputMode} gain={gain} setGain={setGain} beforeStart={stopListening} />
     </div>
   );
 }

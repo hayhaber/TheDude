@@ -643,3 +643,28 @@
     opacity: 0;
   }
 }
+
+/* Left-handed mode (handedness.js, Settings): the neck is a mirror image —
+   nut on the right, higher frets to the left, low string still at the
+   bottom (a lefty's guitar seen from the player). Every <text> is flipped
+   back around its own centre so note names / fret numbers read normally;
+   circles, inlays and wood are symmetric so they need nothing. */
+.fretboard-scroll.is-lefty .fretboard-svg {
+  transform: scaleX(-1);
+}
+
+.fretboard-scroll.is-lefty .fretboard-svg text {
+  transform: scaleX(-1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.fretboard-scroll.is-lefty .fretboard-page-prev {
+  left: auto;
+  right: 6px;
+}
+
+.fretboard-scroll.is-lefty .fretboard-page-next {
+  right: auto;
+  left: 6px;
+}

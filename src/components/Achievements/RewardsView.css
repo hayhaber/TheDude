@@ -1,0 +1,514 @@
+/* Coach -> Rewards: level, streak, challenges, achievements. Lives inside
+   .coach-view (its tokens, cards and buttons); calm, no casino colours —
+   one accent, green for done, a soft gold only on earned medals. */
+.coach-view {
+  --rw-gold: #c98a12;
+  --rw-gold-bg: linear-gradient(145deg, #fff6df 0%, #fde7b0 100%);
+  --rw-gold-ring: rgba(201, 138, 18, 0.35);
+}
+
+:root[data-theme='dark'] .coach-view {
+  --rw-gold: #f2bd4c;
+  --rw-gold-bg: linear-gradient(145deg, #3a2f17 0%, #2a2212 100%);
+  --rw-gold-ring: rgba(242, 189, 76, 0.4);
+}
+
+.rw-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.rw-hero,
+.rw-badges {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Progress bars ---------- */
+.rw-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--coach-muted-bg);
+  overflow: hidden;
+}
+
+.rw-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.rw-bar.is-done span {
+  background: var(--coach-good);
+}
+
+/* ---------- Level / streak / badges ---------- */
+.rw-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.rw-hero-level {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.rw-level-badge {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-bg);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.rw-level-badge span {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.rw-level-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rw-level-text h2 {
+  font-size: 24px;
+  margin: 2px 0 10px;
+}
+
+.rw-level-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rw-today-xp {
+  color: var(--coach-good);
+  font-weight: 650;
+}
+
+.rw-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  align-items: stretch;
+}
+
+.rw-stat {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rw-stat-big {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.01em;
+  margin: 2px 0;
+}
+
+.rw-stat-big.is-on {
+  color: var(--coach-warn);
+}
+
+.rw-stat-note {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.rw-how {
+  grid-column: 1 / -1;
+  margin-top: calc(-1 * var(--space-2));
+}
+
+.coach-view button.rw-how-toggle {
+  min-height: 28px;
+  padding: 0 4px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+.coach-view button.rw-how-toggle:hover:not(:disabled) {
+  background: transparent;
+  text-decoration: underline;
+}
+
+.rw-how-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.rw-how-toggle svg.is-open {
+  transform: rotate(180deg);
+}
+
+.rw-how-text {
+  max-width: 720px;
+  margin-top: 4px;
+}
+
+/* ---------- Today's challenges ---------- */
+.rw-ch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rw-ch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--divider);
+}
+
+.rw-ch:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.rw-ch-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rw-ch-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rw-tool {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--coach-muted-bg);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.rw-done-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--coach-good);
+}
+
+.rw-ch-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-h);
+}
+
+.rw-ch.is-done .rw-ch-title {
+  color: var(--text-secondary);
+}
+
+.rw-ch-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: none;
+}
+
+.rw-swap-used {
+  margin-top: var(--space-2);
+}
+
+/* ---------- This week ---------- */
+.rw-days-left {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-radius: 980px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.rw-week-title {
+  font-size: 17px !important;
+  margin: 0 0 var(--space-3) !important;
+}
+
+.rw-parts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rw-part-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 6px;
+}
+
+.rw-part-mark {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--coach-muted-bg);
+  color: var(--text-secondary);
+}
+
+.rw-parts li.is-done .rw-part-mark {
+  background: var(--coach-good-bg);
+  color: var(--coach-good);
+}
+
+.rw-part-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.rw-part-num {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rw-week-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+/* ---------- Achievements grid ---------- */
+.rw-badge-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--space-3);
+  align-items: stretch;
+}
+
+.rw-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: 14px;
+  background: var(--bg);
+  min-width: 0;
+}
+
+.rw-medal {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--coach-muted-bg);
+}
+
+.rw-medal-icon {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.rw-badge.is-on .rw-medal {
+  background: var(--rw-gold-bg);
+  box-shadow: inset 0 0 0 1.5px var(--rw-gold-ring), 0 2px 6px rgba(201, 138, 18, 0.18);
+}
+
+.rw-badge.is-locked .rw-medal-icon {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.rw-badge-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.rw-badge-title {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text-h);
+}
+
+.rw-badge.is-locked .rw-badge-title {
+  color: var(--text-secondary);
+}
+
+.rw-badge-desc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.rw-badge-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rw-gold);
+  margin-top: 2px;
+}
+
+.rw-badge-date.is-locked {
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.rw-badge-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rw-badge-progress .rw-bar {
+  flex: 1;
+  height: 4px;
+}
+
+/* ---------- Plan | Rewards switch (Coach page header) ---------- */
+.coach-switch-row {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 var(--space-4);
+}
+
+.coach-view .coach-switch.mode-toggle {
+  margin: 0;
+}
+
+/* .coach-view button would otherwise restyle the segmented buttons. */
+.coach-view .coach-switch.mode-toggle button {
+  min-height: 0;
+  height: var(--control-height);
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0 16px;
+  font-weight: 590;
+}
+
+.coach-view .coach-switch.mode-toggle button.active {
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+
+.coach-view .coach-switch.mode-toggle button:hover:not(.active) {
+  background: transparent;
+}
+
+.coach-view.is-rewards {
+  max-width: 1100px;
+}
+
+@media (max-width: 899px) {
+  .rw-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rw-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .rw-level-badge {
+    width: 60px;
+    height: 60px;
+  }
+
+  .rw-level-badge span {
+    font-size: 25px;
+  }
+
+  .rw-level-text h2 {
+    font-size: 21px;
+  }
+
+  .rw-ch {
+    flex-wrap: wrap;
+  }
+
+  .rw-ch-actions {
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Two compact columns: medal on top, text centred. */
+  .rw-badge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .rw-badge {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .rw-badge-text {
+    align-items: center;
+    width: 100%;
+  }
+
+  .rw-badge-progress {
+    width: 100%;
+  }
+}

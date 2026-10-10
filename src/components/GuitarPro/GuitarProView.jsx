@@ -48,7 +48,7 @@ function TrackMixer({ trainer, t, busy }) {
 export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
   const { t, lang } = useLanguage();
   const fileRef = useRef(null);
-  const [view, setView] = useState('song'); // 'song' | 'practice'
+  const [view, setView] = useState('song'); // 'song' | 'practice' | 'chords'
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [dragging, setDragging] = useState(false);
   // A chosen file opens its "add" form: bring it into view.
@@ -230,6 +230,18 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
                   <button type="button" className={view === 'practice' ? 'active' : ''} onClick={() => setView('practice')}>
                     {t('gp.viewPractice')}
                   </button>
+                  {/* The song as a chord sheet (same player as Song). */}
+                  <button
+                    type="button"
+                    className={view === 'chords' ? 'active' : ''}
+                    onClick={() => {
+                      trainer.stop();
+                      setView('chords');
+                    }}
+                    disabled={busy}
+                  >
+                    {t('gpx.viewChords')}
+                  </button>
                 </div>
                 <InfoTooltip text={t('tip.tools.gpView')} />
               </div>
@@ -244,8 +256,14 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
             </>
           )}
 
-          {view === 'song' || songOnly ? (
-            <GpSongPlayer trainer={trainer} t={t} pianoProfile={pianoProfile} bassProfile={bassProfile} />
+          {view === 'song' || view === 'chords' || songOnly ? (
+            <GpSongPlayer
+              trainer={trainer}
+              t={t}
+              pianoProfile={pianoProfile}
+              bassProfile={bassProfile}
+              view={songOnly ? 'song' : view}
+            />
           ) : !canPractice ? (
             <p className="lt-muted">{t(solo.pending ? 'gp.buildingPart' : 'gp.practiceGuitarOnly')}</p>
           ) : (

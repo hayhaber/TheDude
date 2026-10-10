@@ -4,17 +4,22 @@ import { AppLogo } from '../AppLogo/AppLogo';
 import { Metronome } from '../Metronome/Metronome';
 import { GuitarTuner } from '../GuitarTuner/GuitarTuner';
 import { SettingsBody } from '../SettingsPanel/SettingsPanel';
+import { AmpView } from '../AmpView/AmpView';
+import { RecorderView } from '../RecorderView/RecorderView';
 import '../SettingsPanel/SettingsPanel.css';
 import '../ModeToggle/ModeToggle.css';
 import './ToolScreen.css';
 
 /**
  * A tool on its own screen (from the home screen's Tools card): just the
- * metronome, the tuner or the settings, no instrument page around it. The logo / Back /
- * Escape return to the home screen.
+ * metronome, the tuner, the amp, the recorder or the settings, no
+ * instrument page around it. The logo / Back / Escape return to the home
+ * screen. Amp and Recorder close the mic when this screen goes away.
  */
 export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeChange, settingsProps, metronome, drums }) {
   const { t, lang } = useLanguage();
+  // The Metronome | Tuner switch only belongs to those two.
+  const noSwitch = tool !== 'metronome' && tool !== 'tuner';
 
   useEffect(() => {
     const onKey = (e) => {
@@ -31,12 +36,12 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
           <span aria-hidden="true">{lang === 'he' ? '›' : '‹'}</span>
           {t('toolScreen.back')}
         </button>
-        {/* Metronome | Tuner (not on the Settings page). */}
+        {/* Metronome | Tuner (not on the Settings / Amp / Recorder pages). */}
         <div
-          className={'mode-toggle tool-screen-switch' + (tool === 'settings' ? ' is-hidden' : '')}
+          className={'mode-toggle tool-screen-switch' + (noSwitch ? ' is-hidden' : '')}
           role="group"
           aria-label={t('home.tools.title')}
-          inert={tool === 'settings'}
+          inert={noSwitch}
         >
           <button type="button" className={tool === 'metronome' ? 'active' : ''} onClick={() => onToolChange('metronome')}>
             {t('metronome.title')}
@@ -59,7 +64,11 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
                 : 'toolScreen.guitarTuner'
               : tool === 'settings'
                 ? 'settings.title'
-                : 'metronome.title'
+                : tool === 'amp'
+                  ? 'amp.title'
+                  : tool === 'record'
+                    ? 'rec.title'
+                    : 'metronome.title'
           )}
         </h1>
         {tool === 'tuner' && (
@@ -71,9 +80,13 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
             ))}
           </div>
         )}
-        <div className="tool-screen-card">
+        <div className={'tool-screen-card' + (tool === 'amp' ? ' is-wide' : tool === 'record' ? ' is-medium' : '')}>
           {tool === 'tuner' ? (
             <GuitarTuner mode={tunerMode} />
+          ) : tool === 'amp' ? (
+            <AmpView />
+          ) : tool === 'record' ? (
+            <RecorderView metronome={metronome} />
           ) : tool === 'settings' ? (
             <div className="settings-drawer-body">
               <SettingsBody {...settingsProps} allSounds />

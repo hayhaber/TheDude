@@ -21,19 +21,25 @@ const DEFAULTS = {
   deviceId: null, // null = browser default input device
   gain: 1.5, // linear multiplier applied to the raw signal before analysis; >1 boosts a quiet direct-line signal
   inputMode: 'direct', // 'direct' (echo/noise/AGC processing off — clean instrument signal) | 'microphone' (processing on — better for a room mic picking up an acoustic guitar)
+  // Room calibrations (noiseCalibration.js), one per mic AND input mode —
+  // the browser's noise suppression changes the noise floor completely, so
+  // a 'microphone'-mode measurement says nothing about 'direct' mode.
+  // { [calibrationKey]: record } — see noiseCalibration.js for the record.
+  calibrations: {},
 };
 
 function loadInitial() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!stored || typeof stored !== 'object') return { ...DEFAULTS };
+    if (!stored || typeof stored !== 'object') return { ...DEFAULTS, calibrations: {} };
     return {
       deviceId: typeof stored.deviceId === 'string' ? stored.deviceId : DEFAULTS.deviceId,
       gain: Number.isFinite(stored.gain) ? stored.gain : DEFAULTS.gain,
       inputMode: stored.inputMode === 'microphone' ? 'microphone' : DEFAULTS.inputMode,
+      calibrations: stored.calibrations && typeof stored.calibrations === 'object' ? stored.calibrations : {},
     };
   } catch {
-    return { ...DEFAULTS };
+    return { ...DEFAULTS, calibrations: {} };
   }
 }
 
@@ -49,4 +55,25 @@ export function getAudioInputSettings() {
 export function setAudioInputSettings(next) {
   current = { ...current, ...next };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+}
+
+// ---- Room calibration (per device + input mode) ---------------------------
+// A different mic (or the same mic with processing on/off) needs its own
+// calibration, so records are keyed by both. null deviceId = the browser's
+// default input ('default').
+export function calibrationKey(deviceId, inputMode) {
+  return `${deviceId || 'default'}|${inputMode === 'microphone' ? 'microphone' : 'direct'}`;
+}
+
+// The calibration for a device/mode — defaults to the CURRENT settings.
+// null = not calibrated: every detector then behaves exactly as before.
+export function getCalibration(deviceId = current.deviceId, inputMode = current.inputMode) {
+  return current.calibrations?.[calibrationKey(deviceId, inputMode)] ?? null;
+}
+
+export function setCalibration(deviceId, inputMode, record) {
+  const calibrations = { ...(current.calibrations || {}) };
+  if (record) calibrations[calibrationKey(deviceId, inputMode)] = record;
+  else delete calibrations[calibrationKey(deviceId, inputMode)];
+  setAudioInputSettings({ calibrations });
 }

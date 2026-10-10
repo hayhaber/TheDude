@@ -3,6 +3,7 @@ import { SECTIONS } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
 import { AppLogo } from '../AppLogo/AppLogo';
+import { RewardToast } from '../Achievements/RewardToast';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
@@ -132,6 +133,9 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
         ))}
         </nav>
       )}
+
+      {/* Challenge done / achievement unlocked / new level (any section). */}
+      <RewardToast />
     </div>
   );
 }

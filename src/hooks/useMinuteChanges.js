@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAudioContext } from '../audio/audioContext';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { computeChroma, matchChordFromChroma } from '../music/chromaChordDetector';
+import { activeCalibration, createGate, subtractNoiseProfile } from '../audio/noiseCalibration';
 import { parseGuitarChordProgressionText } from '../music/guitarChordRhythmContent';
 import { logPerf } from '../coach/perfLog';
 
@@ -247,7 +248,10 @@ export function useMinuteChanges({ chords = [], duration = DEFAULT_DURATION_S, o
     setLevel(Math.min(1, Math.max(0, (db + 60) / 54)));
 
     m.analyser.getFloatFrequencyData(m.freq);
-    const guess = matchChordFromChroma(computeChroma(m.freq, m.ctx.sampleRate, FFT_SIZE));
+    // Room calibration (null = none -> unchanged): gate + noise subtraction.
+    if (m.cal) subtractNoiseProfile(m.freq, m.cal, m.gain.gain.value, FFT_SIZE, m.ctx.sampleRate);
+    const gateOpen = !m.cal || m.gate(rms, m.cal, m.gain.gain.value);
+    const guess = gateOpen ? matchChordFromChroma(computeChroma(m.freq, m.ctx.sampleRate, FFT_SIZE)) : null;
     setHeard(guess);
     if (phaseRef.current !== 'running') return;
     const now = performance.now();
@@ -310,6 +314,8 @@ export function useMinuteChanges({ chords = [], duration = DEFAULT_DURATION_S, o
         analyser,
         freq: new Float32Array(analyser.frequencyBinCount),
         time: new Float32Array(analyser.fftSize),
+        cal: activeCalibration(),
+        gate: createGate({ soft: true }),
       };
       stream.getAudioTracks()[0]?.addEventListener('ended', () => {
         if (phaseRef.current === 'running' || phaseRef.current === 'countdown') {

@@ -311,3 +311,96 @@
   color: #e8e8ea;
   background: rgba(255, 255, 255, 0.12);
 }
+
+/* ---------- Tuning picker (on the casing, above the screen) ---------- */
+.guitar-tuner-tuning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.guitar-tuner-tuning-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.guitar-tuner-tuning select {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* The tuning's strings, low to high, printed on the screen like a tuner's
+   string legend; the string being tuned lights up in its zone colour. */
+.guitar-tuner-strings {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.guitar-tuner-string {
+  min-width: 30px;
+  padding: 3px 4px;
+  border-radius: 6px;
+  border: 1px solid #2a2c2a;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #5a5f5a;
+  transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.guitar-tuner-string.active {
+  color: #ff453a;
+  border-color: #ff453a;
+  box-shadow: 0 0 8px rgba(255, 69, 58, 0.45);
+}
+
+.guitar-tuner-string.active.zone-close {
+  color: #ffd60a;
+  border-color: #ffd60a;
+  box-shadow: 0 0 8px rgba(255, 214, 10, 0.45);
+}
+
+.guitar-tuner-string.active.zone-in-tune {
+  color: #34ff6b;
+  border-color: #34ff6b;
+  box-shadow: 0 0 8px rgba(52, 255, 107, 0.55);
+}
+
+.is-bass .guitar-tuner-string {
+  border-color: #18243a;
+  color: #3d5a80;
+}
+
+.is-bass .guitar-tuner-string.active {
+  color: #ff5c8a;
+  border-color: #ff5c8a;
+  box-shadow: 0 0 8px rgba(255, 92, 138, 0.45);
+}
+
+.is-bass .guitar-tuner-string.active.zone-close {
+  color: #ffb340;
+  border-color: #ffb340;
+  box-shadow: 0 0 8px rgba(255, 179, 64, 0.45);
+}
+
+.is-bass .guitar-tuner-string.active.zone-in-tune {
+  color: #64d2ff;
+  border-color: #64d2ff;
+  box-shadow: 0 0 8px rgba(100, 210, 255, 0.55);
+}

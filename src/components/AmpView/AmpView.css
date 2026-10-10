@@ -1,0 +1,613 @@
+/* The virtual amp: a calm, Apple-like amp face — clean panels, real knobs
+   drawn as arcs, one accent colour per channel. */
+.amp-view {
+  --amp-accent: #0a84ff;
+  --amp-panel: linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%);
+  --amp-panel-border: rgba(0, 0, 0, 0.08);
+  --amp-cap: linear-gradient(180deg, #ffffff 0%, #e9e9ee 100%);
+  --amp-cap-ring: rgba(0, 0, 0, 0.14);
+  --amp-track: rgba(120, 120, 128, 0.22);
+  --amp-pointer: #1d1d1f;
+  --amp-subtle: rgba(120, 120, 128, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: start;
+}
+
+.amp-view.voicing-crunch {
+  --amp-accent: #ff9f0a;
+}
+
+.amp-view.voicing-lead {
+  --amp-accent: #ff453a;
+}
+
+:root[data-theme='dark'] .amp-view {
+  --amp-panel: linear-gradient(180deg, #2c2c31 0%, #232327 100%);
+  --amp-panel-border: rgba(255, 255, 255, 0.1);
+  --amp-cap: linear-gradient(180deg, #4a4a50 0%, #2f2f34 100%);
+  --amp-cap-ring: rgba(0, 0, 0, 0.6);
+  --amp-track: rgba(255, 255, 255, 0.14);
+  --amp-pointer: #f5f5f7;
+  --amp-subtle: rgba(255, 255, 255, 0.08);
+}
+
+/* ---- warning + callouts ------------------------------------------------ */
+.amp-warn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.amp-warn svg {
+  flex: none;
+  color: var(--text-secondary);
+}
+
+.amp-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 159, 10, 0.12);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.amp-error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.amp-hint {
+  margin: -6px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.amp-input-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- buttons ----------------------------------------------------------- */
+.amp-btn {
+  height: var(--control-height);
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--amp-subtle, rgba(120, 120, 128, 0.12));
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 590;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.amp-btn:hover:not(:disabled) {
+  background: rgba(120, 120, 128, 0.2);
+}
+
+.amp-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.amp-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.amp-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.amp-btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.amp-btn-danger:hover:not(:disabled) {
+  background: var(--danger);
+  filter: brightness(1.08);
+}
+
+.amp-mute.is-active {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* ---- head: power, status, meters --------------------------------------- */
+.amp-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--amp-panel);
+  box-shadow: inset 0 0 0 1px var(--amp-panel-border);
+}
+
+.amp-power {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--amp-subtle);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.amp-power.is-on {
+  background: var(--amp-accent);
+  color: #fff;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--amp-accent) 22%, transparent);
+}
+
+.amp-power.is-starting {
+  opacity: 0.7;
+}
+
+.amp-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.amp-status-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.amp-status-latency b {
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.amp-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(120, 120, 128, 0.4);
+}
+
+.amp-led.is-on {
+  background: #30d158;
+  box-shadow: 0 0 8px rgba(48, 209, 88, 0.8);
+}
+
+.amp-meters {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.amp-meter {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.amp-meter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.amp-meter-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--amp-track);
+  overflow: hidden;
+}
+
+.amp-meter-fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #30d158 0%, #30d158 70%, #ffd60a 88%, #ff453a 100%);
+  background-size: 100% 100%;
+}
+
+[dir='rtl'] .amp-meter-fill {
+  transform-origin: right center;
+  background: linear-gradient(270deg, #30d158 0%, #30d158 70%, #ffd60a 88%, #ff453a 100%);
+}
+
+.amp-meter-peak {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--text);
+  opacity: 0;
+}
+
+.amp-meter-bar.is-clip {
+  box-shadow: 0 0 0 1px #ff453a;
+}
+
+/* ---- presets ----------------------------------------------------------- */
+.amp-presets {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.amp-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 590;
+  color: var(--text-secondary);
+}
+
+.amp-field select {
+  min-width: 150px;
+}
+
+.amp-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--amp-subtle, rgba(120, 120, 128, 0.12));
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.amp-preset-actions {
+  display: flex;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.amp-save-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.amp-save-form input {
+  height: var(--control-height);
+  box-sizing: border-box;
+  width: 180px;
+  padding: 0 12px;
+  border: 1px solid var(--divider);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.amp-confirm-q {
+  font-size: 14px;
+  font-weight: 590;
+}
+
+/* ---- amp face ---------------------------------------------------------- */
+.amp-face {
+  position: relative;
+  padding: 16px 20px 20px;
+  border-radius: 22px;
+  background: var(--amp-panel);
+  box-shadow:
+    inset 0 0 0 1px var(--amp-panel-border),
+    inset 0 3px 0 0 var(--amp-accent);
+  overflow: hidden;
+}
+
+.amp-face-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.amp-knobs {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+/* ---- knob -------------------------------------------------------------- */
+.amp-knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  --knob-accent: var(--amp-accent);
+}
+
+.amp-knob-dial {
+  width: var(--knob-size);
+  height: var(--knob-size);
+  border-radius: 50%;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+
+.amp-knob-dial:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-bg), 0 0 0 1px var(--accent);
+}
+
+.amp-knob svg {
+  display: block;
+  overflow: visible;
+}
+
+.amp-knob-track,
+.amp-knob-value {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.amp-knob-track {
+  stroke: var(--amp-track);
+}
+
+.amp-knob-value {
+  stroke: var(--knob-accent);
+}
+
+.amp-knob-cap {
+  fill: var(--amp-cap-fill, #f3f3f6);
+  stroke: var(--amp-cap-ring);
+  stroke-width: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.16));
+}
+
+:root[data-theme='dark'] .amp-knob-cap {
+  --amp-cap-fill: #3a3a40;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.amp-knob-pointer {
+  stroke: var(--amp-pointer);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.amp-knob-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+[dir='rtl'] .amp-knob-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+.amp-knob-readout,
+.amp-knob-input {
+  height: 22px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.amp-knob-input {
+  box-sizing: border-box;
+  width: 48px;
+  padding: 0 4px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+  text-align: center;
+  font: inherit;
+  font-size: 13px;
+}
+
+.amp-knob.is-disabled {
+  opacity: 0.45;
+}
+
+/* ---- pedal board ------------------------------------------------------- */
+.amp-board-title {
+  margin: 4px 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+[dir='rtl'] .amp-board-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+}
+
+.amp-pedals {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+}
+
+.amp-pedal {
+  --pedal: #8e8e93;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 8px 12px;
+  border-radius: 18px;
+  background: var(--amp-panel);
+  box-shadow: inset 0 0 0 1px var(--amp-panel-border);
+  transition: box-shadow 0.2s ease;
+}
+
+.amp-pedal.pedal-comp { --pedal: #64d2ff; }
+.amp-pedal.pedal-drive { --pedal: #30d158; }
+.amp-pedal.pedal-chorus { --pedal: #bf5af2; }
+.amp-pedal.pedal-delay { --pedal: #5e5ce6; }
+.amp-pedal.pedal-reverb { --pedal: #0a84ff; }
+
+.amp-pedal.is-on {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--pedal) 55%, transparent),
+    0 4px 14px color-mix(in srgb, var(--pedal) 14%, transparent);
+}
+
+.amp-pedal-switch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--amp-subtle);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  text-align: start;
+}
+
+.amp-pedal-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amp-pedal-led {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(120, 120, 128, 0.35);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.amp-pedal.is-on .amp-pedal-led {
+  background: var(--pedal);
+  box-shadow: 0 0 8px var(--pedal);
+}
+
+.amp-pedal-knobs {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 6px 2px;
+  --knob-accent: var(--pedal);
+}
+
+.amp-pedal-knobs .amp-knob {
+  --knob-accent: var(--pedal);
+}
+
+.amp-pedal:not(.is-on) .amp-knob-value {
+  opacity: 0.45;
+}
+
+/* Medium widths: pedals wrap three across. */
+@media (max-width: 900px) {
+  .amp-pedals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Phones */
+@media (max-width: 640px) {
+  .amp-view {
+    gap: 14px;
+  }
+
+  .amp-head {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .amp-meters {
+    flex-basis: 100%;
+  }
+
+  .amp-callout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .amp-face {
+    padding: 14px 10px 16px;
+  }
+
+  .amp-knobs {
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 14px;
+  }
+
+  .amp-pedals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .amp-preset-actions {
+    margin-inline-start: 0;
+  }
+
+  .amp-field select {
+    min-width: 130px;
+  }
+
+  .amp-save-form input {
+    width: 100%;
+    flex: 1 1 140px;
+  }
+}

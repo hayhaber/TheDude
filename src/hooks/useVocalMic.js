@@ -3,6 +3,7 @@ import { PitchDetector } from 'pitchy';
 import { getAudioContext, reviveAudioOutput } from '../audio/audioContext';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { hzToMidi } from '../music/vocal/voiceRange';
+import { activeCalibration, gateFor } from '../audio/noiseCalibration';
 
 // The Vocal section's microphone: a continuous, timestamped pitch track (not
 // just "the current note" like usePitchDetection) — the exercises draw the
@@ -39,7 +40,10 @@ export function useVocalMic() {
     for (let i = 0; i < buffer.length; i += 1) sum += buffer[i] * buffer[i];
     const rms = Math.sqrt(sum / buffer.length);
     let midi = null;
-    if (rms >= MIN_RMS) {
+    // Fixed gate, raised to the room calibration's gate when there is one
+    // (the vocal mic always opens with processing off -> 'direct' mode).
+    const minRms = Math.max(MIN_RMS, gateFor(nodes.current.cal, gain.gain.value));
+    if (rms >= minRms) {
       const [hz, clarity] = detector.findPitch(buffer, ctx.sampleRate);
       if (clarity >= MIN_CLARITY && hz >= MIN_HZ && hz <= MAX_HZ) midi = hzToMidi(hz);
     }
@@ -102,6 +106,7 @@ export function useVocalMic() {
         analyser,
         detector: PitchDetector.forFloat32Array(FFT_SIZE),
         buffer: new Float32Array(FFT_SIZE),
+        cal: activeCalibration('direct'),
       };
       setListening(true);
       rafRef.current = requestAnimationFrame(tick);

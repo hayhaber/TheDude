@@ -56,3 +56,173 @@
   display: block;
   margin-top: 4px;
 }
+
+/* ---- Room calibration (RoomCalibration.jsx) ---------------------------- */
+.room-cal,
+.settings-drawer-body .audio-input-settings .settings-field.room-cal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.room-cal-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The heading keeps the settings' small-caps label look; everything below
+   it is ordinary sentence text. */
+.room-cal > :not(.room-cal-head) {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.room-cal-status,
+.room-cal-step {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.room-cal-step.is-play {
+  color: var(--accent);
+  font-weight: 590;
+}
+
+.room-cal-run {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.room-cal-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.room-cal-bar-fill {
+  height: 100%;
+  background: var(--text-secondary);
+  transition: width 0.05s linear;
+}
+
+.room-cal-level {
+  height: 6px;
+}
+
+.room-cal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+  gap: 6px;
+}
+
+.room-cal-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.room-cal-stat-label {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.room-cal-stat-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.room-cal-verdict {
+  font-size: 12px;
+  font-weight: 590;
+}
+
+.room-cal-verdict.is-good,
+.room-cal-stat.is-good .room-cal-stat-value {
+  color: #248a3d;
+}
+
+.room-cal-verdict.is-fair,
+.room-cal-stat.is-fair .room-cal-stat-value {
+  color: #b25000;
+}
+
+.room-cal-verdict.is-noisy,
+.room-cal-stat.is-noisy .room-cal-stat-value,
+.room-cal-warn {
+  color: var(--danger);
+}
+
+:root[data-theme='dark'] .room-cal-verdict.is-good,
+:root[data-theme='dark'] .room-cal-stat.is-good .room-cal-stat-value {
+  color: #30d158;
+}
+
+:root[data-theme='dark'] .room-cal-verdict.is-fair,
+:root[data-theme='dark'] .room-cal-stat.is-fair .room-cal-stat-value {
+  color: #ffb340;
+}
+
+.room-cal-warn {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.room-cal-tips {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.room-cal-tips ul {
+  margin: 4px 0 0;
+  padding-inline-start: 18px;
+}
+
+.room-cal-gain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.room-cal-gain .audio-input-test-btn,
+.room-cal-actions .audio-input-test-btn {
+  margin-top: 0;
+}
+
+.room-cal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.room-cal-go {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.room-cal-go:hover {
+  background: var(--accent);
+  filter: brightness(1.08);
+}

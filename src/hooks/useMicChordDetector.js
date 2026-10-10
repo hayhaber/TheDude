@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAudioContext } from '../audio/audioContext';
 import { computeChroma, matchChordFromChroma } from '../music/chromaChordDetector';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
+import { activeCalibration, createGate, frameRms, subtractNoiseProfile } from '../audio/noiseCalibration';
 
 const FFT_SIZE = 4096; // matches useTabAudioChordGuesser.js's own choice — chroma binning wants the finer resolution
 const GUESS_INTERVAL_MS = 250; // faster than the tab-audio guesser's 400ms — Chord Rhythm needs to catch a strum landing close to a beat, not just eventually notice a sustained chord
@@ -88,6 +89,12 @@ export function useMicChordDetector() {
       gainNodeRef.current = gainNode;
       analyserRef.current = analyser;
       bufferRef.current = new Float32Array(analyser.frequencyBinCount);
+      // Room calibration for this mic + mode (null = none -> unchanged
+      // behaviour): a loudness gate + spectral subtraction of the room's
+      // measured noise before the chroma.
+      const cal = activeCalibration();
+      const gate = createGate({ soft: true });
+      const timeBuf = cal ? new Float32Array(analyser.fftSize) : null;
 
       stream.getAudioTracks()[0]?.addEventListener('ended', stopListening);
 
@@ -101,9 +108,15 @@ export function useMicChordDetector() {
         // same pattern usePitchDetection.js's tick() uses.
         const g = gainNodeRef.current;
         if (g) g.gain.value = getAudioInputSettings().gain;
+        let quiet = false;
+        if (cal) {
+          a.getFloatTimeDomainData(timeBuf);
+          quiet = !gate(frameRms(timeBuf), cal, g ? g.gain.value : 1);
+        }
         a.getFloatFrequencyData(buf);
+        if (cal) subtractNoiseProfile(buf, cal, g ? g.gain.value : 1, FFT_SIZE, ctx.sampleRate);
         const chroma = computeChroma(buf, ctx.sampleRate, FFT_SIZE);
-        const next = matchChordFromChroma(chroma);
+        const next = quiet ? null : matchChordFromChroma(chroma);
         guessRef.current = next;
         setGuess(next);
       }, GUESS_INTERVAL_MS);

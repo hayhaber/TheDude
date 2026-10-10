@@ -501,6 +501,55 @@ on the container; content inside stays top-aligned). Stacked on a phone
   banner shows the live result and Done/Coach. Launch scrolls `.practice-tabs`
   into view. Free-text goals use keywords, not an AI model (no API key).
 
+## Competitor-gap features (Gibson / Yousician / MusicMentor / Rocksmith+ review, 2026-10-10)
+
+- Per-profile storage: any key starting `dudestar-p-` (or `dudestar-coach`)
+  is automatically per profile.
+- **Lick Trainer modes** (`music/lickTrainer/practiceModes.js`, useLickTrainer,
+  LickTrainer.jsx; also GuitarPro -> Practice): Mode select Normal / Wait
+  (note by note, waits for the right pitch; logs tool 'lick' with
+  `metrics.mode:'wait'` and NO score — consumers must skip it) / Build
+  (growing chunks); Auto tempo (>=85 up a step, <70 down, steps from the
+  existing 50-120 % list) + target + Loop (count-in, next take 3 s after
+  results, stops at target held); tempo remembered per lick / `<solo>#<sec>`
+  (`dudestar-p-lick-tempo`); solos: section mastery strip (85+ at 100 % =
+  mastered) + "practise weakest"; after a take: Mine / Compare / Save (WAV).
+- **GuitarPro loop trainer** (GpSongPlayer): Speed-up (step / every N passes
+  / up to), live `playbackSpeed` (no MIDI rebuild); Count-in is OUR own one-
+  bar click then `play()` — alphaTab's own count-in stalled the player after
+  a few loop passes. Song-view tempo per file `dudestar-p-gp-tempo`, loop
+  settings `dudestar-p-gp-loop`.
+- **GuitarPro Chords view** (Song | Practice | Chords): `music/chordChart.js`
+  (file chord symbols first, else derived from all pitched non-drum/vocal
+  tracks per eighth, weighted), ChordChartView over the same player/clock,
+  Simple names, shape diagrams (ChordShapeDiagram), Mic play-along
+  (`useChordPlayAlong`, logs tool 'chordChanges' item `gp:<soloId>`).
+  Shapes are standard-tuning even for detuned files (open issue).
+- **Rewards** (Coach page: Plan | Rewards): XP (quality-weighted, 60/day cap
+  on runs, practice-day + streak bonuses), levels 100+40(n-1), 25
+  achievements, 3 daily challenges (1 swap/day) + a weekly challenge
+  (Sun-Sat) — `coach/{achievements,challenges,useAchievements,useChallenges}.js`,
+  `components/Achievements/` (RewardsView, RewardToast mounted in AppShell).
+  Keys `dudestar-coach-challenges`, `dudestar-coach-rewards`.
+- **Tools card**: Amp (`components/AmpView`, `audio/amp/*`: own low-latency
+  AudioContext created in the tap, gate+comp worklet, drive, amp voicings,
+  generated cabinet IR, chorus/delay/reverb, limiter; output muted until
+  wired headphones are confirmed once; presets device-level) and Record
+  (`components/RecorderView`, `audio/recorder*.js`: WAV takes in IndexedDB
+  tagged with the profile id, dry or through the amp, count-in click).
+- **Room calibration** (Settings -> Audio Input, `noiseCalibration.js`,
+  RoomCalibration.jsx): 3 s room + 4 s playing -> gate + noise spectrum per
+  mic/mode; detectors use max(own gate, calibrated) and subtract the noise
+  spectrum ONLY when a calibration exists (no calibration = old behaviour).
+  Measured: chords recognised in noise rose from 0-28 % to 61-76 %.
+- **Tuner tunings** (`music/tunings.js`, select per instrument, device key
+  'tuner-tuning'); standard stays chromatic; the tuner display is always LTR.
+- **Left-handed** (Settings "Playing hand", device key 'left-handed',
+  `Fretboard/handedness.js`): every neck mirrored, text un-mirrored, taps and
+  scroll arrows mirrored. PNG export of the neck stays right-handed (open).
+- Build: main bundle > 4 MiB, so `workbox.maximumFileSizeToCacheInBytes` is
+  6 MiB in vite.config.js.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

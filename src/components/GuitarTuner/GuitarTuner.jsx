@@ -1,9 +1,29 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePitchDetection, BASS_PITCH_RANGE } from '../../hooks/usePitchDetection';
 import { useInfoTooltipsEnabled } from '../../hooks/useInfoTooltipsEnabled';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { tuningsFor, findTuning, loadTuningId, saveTuningId, nearestString } from '../../music/tunings';
 import './GuitarTuner.css';
+
+// Both tuner instances (TunerBar mounts one per layout) follow a change.
+const TUNING_EVENT = 'dudestar:tuner-tuning';
+
+function useTunerTuning(mode) {
+  const [id, setId] = useState(() => loadTuningId(mode));
+  useEffect(() => {
+    setId(loadTuningId(mode));
+    const onChange = () => setId(loadTuningId(mode));
+    window.addEventListener(TUNING_EVENT, onChange);
+    return () => window.removeEventListener(TUNING_EVENT, onChange);
+  }, [mode]);
+  const choose = (next) => {
+    saveTuningId(mode, next);
+    setId(next);
+    window.dispatchEvent(new Event(TUNING_EVENT));
+  };
+  return [findTuning(mode, id), choose];
+}
 
 const IN_TUNE_CENTS = 5; // vibrant-green "In Tune!" threshold
 const CLOSE_CENTS = 15; // amber "getting close" threshold; beyond this is red
@@ -42,6 +62,7 @@ export function GuitarTuner({ mode = 'guitar' }) {
   const { isListening, startListening, stopListening, currentNote, frequency, error } = usePitchDetection(
     bass ? BASS_PITCH_RANGE : undefined
   );
+  const [tuning, setTuningId] = useTunerTuning(bass ? 'bass' : 'guitar');
   const listeningRef = useRef(isListening);
   listeningRef.current = isListening;
   const firstModeRef = useRef(true);
@@ -56,8 +77,16 @@ export function GuitarTuner({ mode = 'guitar' }) {
     }
   }, [bass]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const cents = currentNote?.centsOff ?? 0;
-  const zone = currentNote ? tuningZone(cents) : null;
+  // String mode: a pitch near one of the chosen tuning's strings is read
+  // against THAT string's target (so a low E heard in Drop D reads "D, too
+  // sharp", not an in-tune E). Further from every string (a fretted note)
+  // the reading stays chromatic, exactly as before. Same zones/thresholds.
+  const string = currentNote && frequency ? nearestString(frequency, tuning) : null;
+  const rawCents = string ? string.cents : (currentNote?.centsOff ?? 0);
+  const cents = Math.max(-MAX_CENTS, Math.min(MAX_CENTS, rawCents));
+  const zone = currentNote ? tuningZone(rawCents) : null;
+  const heardName = currentNote ? currentNote.name.replace(/-?\d+$/, '').replace('#', '♯') : null;
+  const shownName = string ? string.name : currentNote ? currentNote.name.replace(/-?\d+$/, '') : '–';
   const isInTune = zone === 'in-tune';
 
   // Segment index 0 is the leftmost (most-flat) segment, SEGMENT_COUNT-1 the
@@ -77,7 +106,22 @@ export function GuitarTuner({ mode = 'guitar' }) {
 
   return (
     <div className={'guitar-tuner' + (bass ? ' is-bass' : '')}>
-      <div className={`guitar-tuner-screen${zone ? ` zone-${zone}` : ''}`}>
+      <label className="guitar-tuner-tuning">
+        <span className="guitar-tuner-tuning-label">
+          {t('tuning.label')}
+          <InfoTooltip text={t('tuning.tip.select')} />
+        </span>
+        <select value={tuning.id} onChange={(e) => setTuningId(e.target.value)}>
+          {tuningsFor(bass ? 'bass' : 'guitar').map((x) => (
+            <option key={x.id} value={x.id}>
+              {t(`tuning.${x.id}`)} ({x.names.join(' ')})
+            </option>
+          ))}
+        </select>
+      </label>
+      {/* Always LTR (also in Hebrew): flat on the left, sharp on the right,
+          like every hardware tuner — in RTL the meter used to run backwards. */}
+      <div className={`guitar-tuner-screen${zone ? ` zone-${zone}` : ''}`} dir="ltr">
         <span className="guitar-tuner-mode" aria-hidden="true">
           {bass ? 'BASS' : 'GUITAR'}
         </span>
@@ -89,7 +133,7 @@ export function GuitarTuner({ mode = 'guitar' }) {
               string/pitch class you're on and how far off it is, not which
               octave (a player already knows that; e.g. the low E string
               reads "E", not "E2"). */}
-          <span className="guitar-tuner-note">{currentNote ? currentNote.name.replace(/-?\d+$/, '') : '–'}</span>
+          <span className="guitar-tuner-note">{shownName}</span>
           <span className={`guitar-tuner-sharp-arrow${zone === 'off' && cents > 0 ? ' active' : ''}`} aria-hidden="true">
             ♯
           </span>
@@ -108,8 +152,22 @@ export function GuitarTuner({ mode = 'guitar' }) {
           ))}
         </div>
 
+        {/* The tuning's strings, low to high — the one being tuned lit. */}
+        <div className="guitar-tuner-strings" dir="ltr" aria-hidden="true">
+          {tuning.names.map((name, i) => (
+            <span
+              key={i}
+              className={'guitar-tuner-string' + (string?.index === i ? ` active zone-${zone}` : '')}
+            >
+              {name}
+            </span>
+          ))}
+        </div>
+
         <div className="guitar-tuner-frequency">
           {frequency ? `${frequency.toFixed(1)} Hz` : '—'}
+          {/* Off by more than a semitone: which note is actually sounding. */}
+          {string && Math.abs(rawCents) > MAX_CENTS && heardName ? ` · ${heardName}` : ''}
           <InfoTooltip text={t('tip.tools.tunerAccuracy')} />
         </div>
 

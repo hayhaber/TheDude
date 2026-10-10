@@ -34,7 +34,7 @@ export default defineConfig({
         // over workbox's 2MB default) DOES get precached, hence the raised
         // limit — that one's needed on every visit.
         globIgnores: ['**/alphaTab.worker-*.js', '**/alphaTab.worklet-*.js'],
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         // A new service worker version now takes over immediately instead
         // of waiting for every open tab/PWA instance to fully close first
         // — critical while actively iterating on iOS-specific fixes, where

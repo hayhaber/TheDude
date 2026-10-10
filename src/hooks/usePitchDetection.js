@@ -3,6 +3,7 @@ import { PitchDetector } from 'pitchy';
 import { getAudioContext } from '../audio/audioContext';
 import { frequencyToNote } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
+import { activeCalibration, createGate, frameRms } from '../audio/noiseCalibration';
 
 const MIN_CLARITY = 0.9; // pitchy's clarity is 0-1; below this, treat as noise/no pitch
 // Defaults = guitar: floor below the lowest open string (E2 ~= 82Hz) with
@@ -39,6 +40,10 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
   const detectorRef = useRef(null);
   const bufferRef = useRef(null);
   const rafRef = useRef(null);
+  // Room calibration (Settings -> Audio Input -> Calibrate) for this mic +
+  // mode, read when the mic opens. null = none: no gate, exactly as before.
+  const calRef = useRef(null);
+  const gateRef = useRef(null);
 
   const tick = useCallback(() => {
     const analyser = analyserRef.current;
@@ -66,7 +71,11 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
 
     setClarity(detectedClarity);
     const { minHz, maxHz } = rangeRef.current;
-    if (detectedClarity >= MIN_CLARITY && pitch >= minHz && pitch <= maxHz) {
+    // Calibrated noise gate: room noise below it (hum, fan) never becomes a
+    // note. Always open when uncalibrated.
+    const cal = calRef.current;
+    const gateOpen = !cal || gateRef.current(frameRms(buffer), cal, gainNode ? gainNode.gain.value : 1);
+    if (gateOpen && detectedClarity >= MIN_CLARITY && pitch >= minHz && pitch <= maxHz) {
       setFrequency(pitch);
       setCurrentNote(frequencyToNote(pitch));
     } else {
@@ -132,6 +141,9 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
       analyserRef.current = analyser;
       detectorRef.current = PitchDetector.forFloat32Array(analyser.fftSize);
       bufferRef.current = new Float32Array(analyser.fftSize);
+
+      calRef.current = activeCalibration();
+      gateRef.current = createGate();
 
       setIsListening(true);
       rafRef.current = requestAnimationFrame(tick);

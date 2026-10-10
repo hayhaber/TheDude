@@ -5,13 +5,28 @@ import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, c
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
 import { scheduleLick, openInput, defaultLatency, preloadTrainerSamples } from '../audio/lickTrainerAudio';
+import {
+  AUTO_TARGET,
+  BUILD_PASS,
+  LOOP_GAP_S,
+  autoTargetHeld,
+  buildSteps,
+  chunkLick,
+  chunkEndBeat,
+  createWaitMatcher,
+  encodeWav,
+  nextAutoTempo,
+  sectionMastery,
+  waitTarget,
+  weakestSection,
+} from '../music/lickTrainer/practiceModes';
 import { getAudioContext } from '../audio/audioContext';
 import { identifyChord } from '../music/chordFromNotes';
 import { playReference, stopReference, preloadReference, referenceTracks, referenceScore, renderBacking } from '../audio/gpReferencePlayer';
 import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
-import { logPerf } from '../coach/perfLog';
+import { logPerf, loadPerf, onPerf } from '../coach/perfLog';
 
 // Practice -> Lick Trainer: pick a lick, hear it, play it back, get judged.
 //
@@ -29,6 +44,13 @@ const VOLUME_KEY = 'lick-trainer-gp-volume'; // { [file]: { [track]: 0..1 } } pe
 const NECK_LABEL_KEY = 'lick-trainer-neck-label';
 const DISPLAY_KEY = 'lick-trainer-gp-display';
 const OCTAVE_KEY = 'lick-trainer-gp-octave'; // { ['<file>#<track>']: -2..2 } piano octave shift // { [soloId]: track shown/practiced }
+// Personal ('dudestar-p-' = per profile): auto tempo { on, to }, and the
+// tempo last used per lick / per solo section { [item]: pct }.
+const AUTO_TEMPO_KEY = 'dudestar-p-lick-auto';
+const TEMPO_MEM_KEY = 'dudestar-p-lick-tempo';
+const WAIT_HEAR_KEY = 'lick-trainer-wait-hear';
+const TAKE_LEAD_S = 0.25; // the kept take starts this long before beat 0
+const WAIT_TICK_MS = 20;
 const CALIBRATION_CLICKS = 8;
 const CALIBRATION_BPM = 90;
 
@@ -194,7 +216,9 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     setLicksChosen(false);
   }, []);
   const [lickId, setLickId] = useState(LICKS[0].id);
-  const [tempoPct, setTempoPct] = useState(70);
+  const [tempoPct, setTempoState] = useState(70);
+  const tempoRef = useRef(tempoPct);
+  tempoRef.current = tempoPct;
   // Click through the take by default only on a direct (DI / interface)
   // input — a room mic would hear it from the speakers.
   const [clickDuring, setClickDuring] = useState(() => getAudioInputSettings().inputMode !== 'microphone');
@@ -214,6 +238,41 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     setNeckLabelState(v);
     writeJson(NECK_LABEL_KEY, v);
   }, []);
+
+  // Practice mode: 'normal' (a scored take) | 'wait' (note by note, the app
+  // waits for each right note) | 'build' (the lick in growing chunks).
+  const [practiceMode, setPracticeModeState] = useState('normal');
+  // Build: which step, for which lick (a new lick starts at step 0).
+  const [buildPos, setBuildPos] = useState({ lickId: null, step: 0 });
+  // Wait: { lickId, index, total, wrong, hint, done, seconds } while running / after.
+  const [waitState, setWaitState] = useState(null);
+  const [hearCue, setHearCueState] = useState(() => readJson(WAIT_HEAR_KEY, false) === true);
+  const setHearCue = useCallback((v) => {
+    setHearCueState(v);
+    writeJson(WAIT_HEAR_KEY, !!v);
+  }, []);
+  const hearRef = useRef(hearCue);
+  hearRef.current = hearCue;
+  // Auto tempo: on/off + target %. While on, each take moves the tempo a
+  // step (up after a good take, down after a poor one).
+  const [autoTempo, setAutoTempoState] = useState(() => {
+    const v = readJson(AUTO_TEMPO_KEY, null);
+    return { on: v?.on === true, to: TEMPO_OPTIONS.includes(v?.to) ? v.to : AUTO_TARGET };
+  });
+  const autoRef = useRef(autoTempo);
+  autoRef.current = autoTempo;
+  // Loop: take after take (count-in before each) until Stop, or until the
+  // auto-tempo target is reached and held. Off on every visit.
+  const [loop, setLoopState] = useState(false);
+  const loopRef = useRef(loop);
+  loopRef.current = loop;
+  const [loopNext, setLoopNext] = useState(false); // a looped take is about to start
+  const recordRef = useRef(null);
+  // The last take's audio (Listen / Compare / Save): { lickId, lick, buffer, lead, tempoPct, bpm }.
+  const [take, setTake] = useState(null);
+  const takeSrcRef = useRef(null);
+  const waitLoopRef = useRef(null);
+  const cueRef = useRef(null);
 
   // Licks imported in the app from Guitar Pro files (this device).
   const [userLicks, setUserLicks] = useState([]);
@@ -339,6 +398,50 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   const sectionLick = useMemo(() => (activeSolo ? soloSection(activeSolo, sectionIndex) : null), [activeSolo, sectionIndex]);
   // What's being practiced right now: a lick, a whole solo, or one section.
   const lick = mode === 'solos' && sectionLick ? sectionLick : baseLick;
+  // Its name in the performance log and the tempo memory: the lick id, or
+  // '<soloId>#<section>' (-1 = the whole solo).
+  const item = mode === 'solos' ? `${activeSolo?.id ?? lick.id}#${sectionIndex}` : lick.id;
+  const itemRef = useRef(item);
+  itemRef.current = item;
+
+  // The tempo is remembered per lick / per solo section (per profile):
+  // choosing one brings back the tempo it was last practised at.
+  const tempoMemRef = useRef(null);
+  const tempoMem = () => {
+    if (!tempoMemRef.current) tempoMemRef.current = readJson(TEMPO_MEM_KEY, {});
+    return tempoMemRef.current;
+  };
+  const rememberTempo = useCallback((it, v) => {
+    const mem = { ...(tempoMemRef.current ?? readJson(TEMPO_MEM_KEY, {})), [it]: v };
+    tempoMemRef.current = mem;
+    writeJson(TEMPO_MEM_KEY, mem);
+  }, []);
+  const setTempoPct = useCallback(
+    (v) => {
+      if (!Number.isFinite(v)) return;
+      setTempoState(v);
+      rememberTempo(itemRef.current, v);
+    },
+    [rememberTempo]
+  );
+  // A launch (coach) brings its own tempo for this item: don't override it.
+  const launchedItemRef = useRef(null);
+  useEffect(() => {
+    if (launchedItemRef.current === item) {
+      launchedItemRef.current = null;
+      return;
+    }
+    const v = tempoMem()[item];
+    if (Number.isFinite(v)) setTempoState(v);
+  }, [item]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Build mode: the part of the lick the current step covers.
+  const buildEnds = useMemo(() => buildSteps(lick.notes), [lick]);
+  const buildStep = buildPos.lickId === lick.id ? Math.min(buildPos.step, buildEnds.length - 1) : 0;
+  const building = practiceMode === 'build' && lick.notes.length > 0;
+  const takeLick = useMemo(
+    () => (building ? chunkLick(lick, buildEnds[buildStep]) : lick),
+    [building, lick, buildEnds, buildStep]
+  );
 
   // Load the file (and alphaTab's soundfont) as soon as a file-based
   // solo/lick is on screen, so Listen starts immediately.
@@ -435,9 +538,25 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     rafRef.current = null;
   };
 
-  const stop = useCallback(() => {
+  // Stops whatever is running (a loop's next take too — see stop below,
+  // which also ends the loop).
+  const halt = useCallback(() => {
     runIdRef.current += 1;
+    setLoopNext(false);
     clearTimers();
+    if (waitLoopRef.current) clearInterval(waitLoopRef.current);
+    waitLoopRef.current = null;
+    cueRef.current?.stop();
+    cueRef.current = null;
+    // A Wait run that was stopped part-way leaves nothing behind; a finished
+    // one keeps its summary.
+    setWaitState((w) => (w && !w.done ? null : w));
+    try {
+      takeSrcRef.current?.stop();
+    } catch {
+      // already ended
+    }
+    takeSrcRef.current = null;
     stopReference();
     try {
       backingRef.current?.stop();
@@ -451,11 +570,17 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     setInputLevel(0);
     setPhase((p) => (p === 'results' ? 'results' : 'idle'));
   }, []);
+  const [loopActive, setLoopActive] = useState(false); // a loop of takes is running
+  const stop = useCallback(() => {
+    setLoopActive(false);
+    halt();
+  }, [halt]);
 
   // Release the input device when the trainer goes away.
   useEffect(
     () => () => {
       clearTimers();
+      if (waitLoopRef.current) clearInterval(waitLoopRef.current);
       scheduleRef.current?.stop();
       inputRef.current?.close();
       inputRef.current = null;
@@ -541,12 +666,16 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     rafRef.current = requestAnimationFrame(frame);
   }
 
-  const listen = useCallback(async () => {
+  // The reference: `refLick` (default: what's being practiced — in Build
+  // mode the current chunk) at `pct`; `after` runs instead of the normal
+  // ending (Compare: the take follows the reference).
+  const runReference = useCallback(async ({ refLick = takeLick, pct = tempoPct, after = null } = {}) => {
     stop();
     const runId0 = runIdRef.current;
+    const refBpm = Math.round((refLick.bpm * pct) / 100);
     // Anything that came from a Guitar Pro file is played from the file
     // itself by alphaTab's synth, exactly as the file sounds.
-    const gp = gpSourceOf(lick);
+    const gp = gpSourceOf(refLick);
     if (gp) {
       setPhase('listening');
       try {
@@ -554,12 +683,16 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
           ...gp,
           tracks: mix,
           volumes,
-          speed: tempoPct / 100,
+          speed: pct / 100,
           onTick: (tick) => {
             if (runIdRef.current === runId0) setPlayheadBeat((tick - gp.startTick) / TICKS_PER_BEAT);
           },
           onEnd: () => {
             if (runIdRef.current !== runId0) return;
+            if (after) {
+              after();
+              return;
+            }
             setPlayheadBeat(null);
             setPhase((p) => (p === 'listening' ? (result ? 'results' : 'idle') : p));
           },
@@ -578,9 +711,9 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     if (runIdRef.current !== runId0) return;
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') ctx.resume();
-    const spb = 60 / bpm;
+    const spb = 60 / refBpm;
     const startTime = ctx.currentTime + 0.15;
-    const sched = scheduleLick({ notes: lick.notes, bpm, startTime, countInBeats: 0, playNotes: true, lengthBeats: lick.lengthBeats });
+    const sched = scheduleLick({ notes: refLick.notes, bpm: refBpm, startTime, countInBeats: 0, playNotes: true, lengthBeats: refLick.lengthBeats });
     scheduleRef.current = sched;
     setPhase('listening');
     const runId = runIdRef.current;
@@ -588,11 +721,80 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     timersRef.current.push(
       setTimeout(() => {
         if (runIdRef.current !== runId) return;
+        if (after) {
+          after();
+          return;
+        }
         setPlayheadBeat(null);
         setPhase((p) => (p === 'listening' ? (result ? 'results' : 'idle') : p));
       }, (sched.endTime - ctx.currentTime + 0.4) * 1000)
     );
-  }, [bpm, lick, stop, result, tempoPct, mix, volumes]);
+  }, [takeLick, stop, result, tempoPct, mix, volumes]);
+
+  const listen = useCallback(() => runReference(), [runReference]);
+
+  // ---- The last take: play it back, against the reference, save it ----
+  const playTakeAt = useCallback((tk, when) => {
+    const ctx = getAudioContext();
+    const runId = runIdRef.current;
+    const src = ctx.createBufferSource();
+    src.buffer = tk.buffer;
+    src.connect(ctx.destination);
+    src.start(when);
+    takeSrcRef.current = src;
+    setPhase('listening');
+    // The playhead follows the take (beat 0 = `lead` into the recording).
+    const spb = 60 / tk.bpm;
+    const beat0 = when + tk.lead;
+    startPlayhead(beat0, spb, when + tk.buffer.duration, false);
+    src.onended = () => {
+      if (takeSrcRef.current !== src) return;
+      takeSrcRef.current = null;
+      if (runIdRef.current !== runId) return;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      setPlayheadBeat(null);
+      setPhase((p) => (p === 'listening' ? 'results' : p));
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const currentTake = take && take.lickId === lick.id ? take : null;
+  const listenTake = useCallback(async () => {
+    if (!currentTake) return;
+    stop();
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+    playTakeAt(currentTake, ctx.currentTime + 0.05);
+  }, [currentTake, stop, playTakeAt]);
+
+  // A/B: the reference (at the take's tempo), then the take.
+  const compareTake = useCallback(() => {
+    if (!currentTake) return;
+    const tk = currentTake;
+    runReference({
+      refLick: tk.lick,
+      pct: tk.tempoPct,
+      after: () => {
+        const ctx = getAudioContext();
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        setPlayheadBeat(null);
+        playTakeAt(tk, ctx.currentTime + 0.35);
+      },
+    });
+  }, [currentTake, runReference, playTakeAt]);
+
+  const saveTake = useCallback(() => {
+    if (!currentTake) return;
+    const blob = encodeWav(currentTake.buffer.getChannelData(0), currentTake.buffer.sampleRate);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const name = String(currentTake.lick.title?.en ?? 'take').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-') || 'take';
+    a.href = url;
+    a.download = `${name}-${currentTake.tempoPct}pct.wav`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }, [currentTake]);
 
   const ensureInput = useCallback(async () => {
     if (inputRef.current) return inputRef.current;
@@ -602,13 +804,22 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   }, []);
 
   const record = useCallback(async () => {
-    stop();
+    halt();
     setError(null);
+    setWaitState(null);
+    if (loopRef.current) setLoopActive(true);
     const runId = runIdRef.current;
+    // Build mode: just the current chunk; otherwise the whole lick/section.
+    const L = takeLick;
+    const takeBpm = Math.round((L.bpm * tempoPct) / 100);
+    const step = buildStep;
+    const steps = buildEnds.length;
+    const partial = L !== lick;
     let input;
     try {
       input = await ensureInput();
     } catch (err) {
+      setLoopActive(false);
       setError({ key: 'mic', message: err?.message ?? String(err) });
       setPhase('idle');
       return;
@@ -616,7 +827,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     if (runIdRef.current !== runId) return;
     const ctx = getAudioContext();
     // The backing band, rendered offline so it sits exactly on this clock.
-    const gp = gpSourceOf(lick);
+    const gp = gpSourceOf(L);
     let backing = null;
     if (gp && backingTracks.length > 0) {
       const key = JSON.stringify([gp.source.key, gp.trackIndex, gp.startTick, gp.endTick, tempoPct, backingTracks, volumes]);
@@ -633,7 +844,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       }
     }
     if (ctx.state === 'suspended') await ctx.resume();
-    const spb = 60 / bpm;
+    const spb = 60 / takeBpm;
     const startTime = ctx.currentTime + 0.25 + COUNT_IN_BEATS * spb;
     if (backing) {
       const node = ctx.createBufferSource();
@@ -646,13 +857,13 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     }
     input.start();
     const sched = scheduleLick({
-      notes: lick.notes,
-      bpm,
+      notes: L.notes,
+      bpm: takeBpm,
       startTime,
       countInBeats: COUNT_IN_BEATS,
       playNotes: false,
       clickDuring,
-      lengthBeats: lick.lengthBeats,
+      lengthBeats: L.lengthBeats,
     });
     scheduleRef.current = sched;
     setPhase('countIn');
@@ -671,10 +882,29 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         setInputLevel(0);
         const take = await input.stop();
         if (runIdRef.current !== runId) return;
+        const lat = latency ?? defaultLatency();
+        // Keep the take (from just before beat 0) for Listen / Compare /
+        // Save — replacing (and so freeing) the previous one.
+        try {
+          const from = Math.max(0, Math.round((startTime - TAKE_LEAD_S + lat - take.t0) * take.sampleRate));
+          const slice = take.samples.subarray(from);
+          if (slice.length > take.sampleRate * 0.2) {
+            let peak = 0;
+            for (let i = 0; i < slice.length; i += 1) peak = Math.max(peak, Math.abs(slice[i]));
+            const norm = peak > 0.001 ? Math.min(8, 0.8 / peak) : 1;
+            const buffer = ctx.createBuffer(1, slice.length, take.sampleRate);
+            const ch = buffer.getChannelData(0);
+            for (let i = 0; i < slice.length; i += 1) ch[i] = slice[i] * norm;
+            const lead = Math.min(TAKE_LEAD_S, startTime + lat - take.t0);
+            setTake({ lickId: lick.id, lick: L, buffer, lead, tempoPct, bpm: takeBpm });
+          } else setTake(null);
+        } catch {
+          setTake(null);
+        }
         // Let the "Analyzing" state paint before the (synchronous) analysis.
         setTimeout(() => {
           if (runIdRef.current !== runId) return;
-          const expected = lick.notes.map((n, i) => ({
+          const expected = L.notes.map((n, i) => ({
             time: sched.noteTimes[i].time,
             duration: sched.noteTimes[i].duration,
             midi: n.midi,
@@ -684,18 +914,64 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
           }));
           const res = analyzeTake({
             ...take,
-            latency: latency ?? defaultLatency(),
+            latency: lat,
             expected,
             clickTimes: sched.clickTimes,
           });
-          const entry = { ...res, lickId: lick.id, tempoPct, bpm, at: Date.now(), calibrated: latency != null };
+          const entry = { ...res, lickId: lick.id, tempoPct, bpm: takeBpm, at: Date.now(), calibrated: latency != null };
+          let loopEnd = res.signal.tooQuiet ? 'quiet' : null;
+          if (!res.signal.tooQuiet) {
+            const sc = res.summary.score;
+            // Build: a passing step adds the next notes; a fail repeats it.
+            if (step != null && building) {
+              const passed = sc >= BUILD_PASS;
+              entry.build = { step, steps, end: L.notes.length, total: lick.notes.length, passed, done: passed && step >= steps - 1 };
+              if (passed && step < steps - 1) setBuildPos({ lickId: lick.id, step: step + 1 });
+              if (entry.build.done) loopEnd = 'built';
+            }
+            // Auto tempo: faster after a good take, slower after a poor one.
+            const auto = autoRef.current;
+            if (auto.on) {
+              if (autoTargetHeld(tempoPct, sc, auto)) {
+                entry.targetHeld = true;
+                loopEnd = 'target';
+              }
+              const next = nextAutoTempo(tempoPct, sc, auto, TEMPO_OPTIONS);
+              if (next !== tempoPct) {
+                entry.tempoChange = { from: tempoPct, to: next };
+                setTempoState(next);
+                rememberTempo(item, next);
+              }
+            }
+          }
+          // Loop: the next take after a moment to read this one — unless
+          // it's done (target held / lick built) or nobody played.
+          if (loopRef.current) {
+            if (loopEnd) {
+              entry.loopEnd = loopEnd;
+              setLoopActive(false);
+            } else {
+              setLoopNext(true);
+              timersRef.current.push(
+                setTimeout(() => {
+                  if (runIdRef.current !== runId || !loopRef.current) {
+                    setLoopNext(false);
+                    return;
+                  }
+                  recordRef.current?.();
+                }, LOOP_GAP_S * 1000)
+              );
+            }
+          }
           setResult(entry);
           setPhase('results');
-          if (!res.signal.tooQuiet) {
+          // A Build chunk isn't the whole lick: it doesn't go into the
+          // lick's best score or the performance log.
+          if (!res.signal.tooQuiet && !partial) {
             const isSolo = mode === 'solos';
             logTake(res, {
-              item: isSolo ? `${activeSolo?.id ?? lick.id}#${sectionIndex}` : lick.id,
-              bpm,
+              item,
+              bpm: takeBpm,
               tempoPct,
               solo: isSolo,
               durationMs: (sched.endTime - startTime) * 1000,
@@ -714,7 +990,8 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         }, 30);
       }, (sched.endTime + TAIL_S - ctx.currentTime) * 1000)
     );
-  }, [bpm, clickDuring, ensureInput, latency, lick, stop, tempoPct, backingTracks, volumes, mode, activeSolo, sectionIndex]);
+  }, [clickDuring, ensureInput, latency, lick, takeLick, building, buildStep, buildEnds, halt, tempoPct, backingTracks, volumes, mode, item, rememberTempo]);
+  recordRef.current = record;
 
   // The player picks any note on each of 8 clicks; the median delay from
   // click to captured attack is this setup's round-trip latency.
@@ -759,6 +1036,138 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     );
   }, [ensureInput, result, stop]);
 
+  // ---- Wait mode: note by note -------------------------------------------
+  const startWait = useCallback(async () => {
+    stop();
+    setError(null);
+    setResult(null);
+    const runId = runIdRef.current;
+    const notes = lick.notes;
+    if (!notes.length) return;
+    let input;
+    try {
+      input = await ensureInput();
+    } catch (err) {
+      setError({ key: 'mic', message: err?.message ?? String(err) });
+      setPhase('idle');
+      return;
+    }
+    if (runIdRef.current !== runId) return;
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+    await Promise.race([preloadTrainerSamples(), new Promise((r) => setTimeout(r, 1500))]);
+    if (runIdRef.current !== runId) return;
+    const total = notes.length;
+    const matcher = createWaitMatcher();
+    const roomMic = input.inputMode === 'microphone';
+    const lat = latency ?? defaultLatency();
+    let idx = 0;
+    let wrong = 0;
+    let muteUntil = 0;
+    const began = performance.now();
+    const cue = (note) => {
+      if (!hearRef.current) return;
+      cueRef.current?.stop();
+      const at = ctx.currentTime + 0.05;
+      cueRef.current = scheduleLick({
+        notes: [{ start: 0, duration: 0.6, midi: waitTarget(note), string: note.string }],
+        bpm: 60,
+        startTime: at,
+        playNotes: true,
+        lengthBeats: 1,
+        level: 0.45,
+      });
+      // A room mic hears the cue from the speakers: don't take it for the player.
+      if (roomMic) muteUntil = at + 1.0 + lat + 0.1;
+    };
+    const show = (i) => {
+      setPlayheadBeat(notes[i].start);
+      setWaitState({ lickId: lick.id, index: i, total, wrong, hint: null, done: false });
+    };
+    matcher.setTarget(notes[0]);
+    show(0);
+    cue(notes[0]);
+    setPhase('waiting');
+    const waitItem = item;
+    const waitPct = tempoPct;
+    waitLoopRef.current = setInterval(() => {
+      if (runIdRef.current !== runId) {
+        clearInterval(waitLoopRef.current);
+        waitLoopRef.current = null;
+        return;
+      }
+      setInputLevel(input.level());
+      if (ctx.currentTime < muteUntil) return;
+      const r = matcher.feed({ time: ctx.currentTime, ...input.pitch() });
+      if (r.wrong) {
+        wrong += 1;
+        const hint = r.wrong;
+        setWaitState((w) => (w ? { ...w, wrong, hint } : w));
+      }
+      if (!r.hit) return;
+      idx += 1;
+      if (idx >= total) {
+        clearInterval(waitLoopRef.current);
+        waitLoopRef.current = null;
+        const seconds = Math.round((performance.now() - began) / 100) / 10;
+        setPlayheadBeat(null);
+        setInputLevel(0);
+        setWaitState({ lickId: lick.id, index: total, total, wrong, hint: null, done: true, seconds });
+        setPhase('idle');
+        // Logged with the takes (tool 'lick'), marked mode 'wait' — no
+        // score, so the coach's score-based checks and the section map skip it.
+        logPerf({
+          tool: 'lick',
+          item: waitItem,
+          durationMs: seconds * 1000,
+          metrics: { mode: 'wait', notes: total, wrongAttempts: wrong, seconds, tempoPct: waitPct, solo: mode === 'solos' },
+        });
+        return;
+      }
+      matcher.setTarget(notes[idx], notes[idx - 1]);
+      show(idx);
+      cue(notes[idx]);
+    }, WAIT_TICK_MS);
+  }, [stop, lick, ensureInput, latency, mode, item, tempoPct]);
+
+  const setPracticeMode = useCallback(
+    (m) => {
+      stop();
+      setPracticeModeState(m);
+      setWaitState(null);
+      setResult(null);
+      setPhase('idle');
+    },
+    [stop]
+  );
+  const restartBuild = useCallback(() => {
+    stop();
+    setBuildPos({ lickId: lick.id, step: 0 });
+    setResult(null);
+    setPhase('idle');
+  }, [stop, lick.id]);
+
+  // ---- Auto tempo / loop ---------------------------------------------------
+  const setAutoTempo = useCallback((patch) => {
+    setAutoTempoState((a) => {
+      const next = { ...a, ...patch };
+      writeJson(AUTO_TEMPO_KEY, { on: next.on, to: next.to });
+      return next;
+    });
+  }, []);
+  const setLoop = useCallback(
+    (v) => {
+      setLoopState(!!v);
+      loopRef.current = !!v;
+      // Off while a loop runs: this take finishes, no next one.
+      if (!v) {
+        setLoopActive(false);
+        setLoopNext(false);
+      }
+    },
+    []
+  );
+
   // Programmatic launch (coach): the lick library with this lick chosen and
   // the tempo set. `expectMount`: the Lick Trainer tab is about to mount
   // (its mount resets the choice — skip that once).
@@ -771,23 +1180,48 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       setLicksChosen(true);
       keepChoiceRef.current = expectMount;
       if (id) setLickId(id);
-      if (Number.isFinite(pct)) setTempoPct(pct);
+      if (Number.isFinite(pct)) {
+        // This tempo wins over the one remembered for the lick.
+        const it = id ?? itemRef.current;
+        if (it !== itemRef.current || mode !== 'licks') launchedItemRef.current = it;
+        setTempoState(pct);
+        rememberTempo(it, pct);
+      }
       setResult(null);
       setPhase('idle');
     },
-    [stop]
+    [stop, mode, rememberTempo]
   );
 
   const raiseTempo = useCallback(() => {
-    setTempoPct((p) => TEMPO_OPTIONS.find((v) => v > p) ?? p);
-  }, []);
+    const p = tempoRef.current;
+    setTempoPct(TEMPO_OPTIONS.find((v) => v > p) ?? p);
+  }, [setTempoPct]);
+
+  // ---- Section mastery (solos): best score / tempo per section ------------
+  const [perfVersion, setPerfVersion] = useState(0);
+  useEffect(() => onPerf(() => setPerfVersion((v) => v + 1)), []);
+  const sectionCount = mode === 'solos' && activeSolo && !activeSolo.displayOnly ? activeSolo.sections?.length ?? 0 : 0;
+  const masterySoloId = activeSolo?.id ?? null;
+  const mastery = useMemo(
+    () => (sectionCount > 0 ? sectionMastery(loadPerf(), masterySoloId, sectionCount) : null),
+    [sectionCount, masterySoloId, perfVersion] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const weakest = mastery ? weakestSection(mastery) : null;
+  const practiceWeakest = useCallback(() => {
+    if (weakest != null) setSectionIndex(weakest);
+  }, [weakest, setSectionIndex]);
 
   // Which note the playhead is on — drives the fretboard highlight.
+  const waiting = phase === 'waiting' && waitState && !waitState.done && waitState.lickId === lick.id;
   const playingOrder = useMemo(() => {
+    // Wait mode: the note being waited for (a long note before it may still
+    // cover this beat).
+    if (waiting) return lick.notes[waitState.index]?.order ?? null;
     if (playheadBeat == null) return null;
     const note = lick.notes.find((n) => playheadBeat >= n.start && playheadBeat < n.start + n.duration);
     return note ? note.order : null;
-  }, [playheadBeat, lick]);
+  }, [playheadBeat, lick, waiting, waitState]);
 
   // Piano: every note of the shown track (both hands), and the keys
   // sounding at the playhead.
@@ -996,5 +1430,35 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     stop,
     calibrate,
     raiseTempo,
+    // Practice modes (Wait / Build), auto tempo, the last take.
+    practiceMode,
+    setPracticeMode,
+    build: building
+      ? {
+          step: buildStep,
+          steps: buildEnds.length,
+          end: buildEnds[buildStep],
+          total: lick.notes.length,
+          endBeat: chunkEndBeat(lick, buildEnds[buildStep]),
+        }
+      : null,
+    restartBuild,
+    wait: waitState && waitState.lickId === lick.id ? waitState : null,
+    startWait,
+    hearCue,
+    setHearCue,
+    autoTempo,
+    setAutoTempo,
+    loop,
+    setLoop,
+    loopActive,
+    loopNext,
+    mastery,
+    weakestSection: weakest,
+    practiceWeakest,
+    take: currentTake ? { tempoPct: currentTake.tempoPct, seconds: currentTake.buffer.duration } : null,
+    listenTake,
+    compareTake,
+    saveTake,
   };
 }

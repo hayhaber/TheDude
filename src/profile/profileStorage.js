@@ -47,6 +47,8 @@ export const PERSONAL_PREFIXES = [
   'pianoPracticeBestStreak:',
   'songChordTimeline:',
   'dudestar-coach',
+  // Any newer personal data: name its key 'dudestar-p-…' and it is per profile.
+  'dudestar-p-',
 ];
 
 const personalSet = new Set(PERSONAL_KEYS);

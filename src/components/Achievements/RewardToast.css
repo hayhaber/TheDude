@@ -1,0 +1,141 @@
+/* The reward notice: a small floating card, top centre, under the desktop
+   top bar / the phone's logo row. Calm: no confetti, a short fade. */
+.rw-toast-live {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 74px);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1200;
+  padding: 0 16px;
+}
+
+@media (max-width: 899px) {
+  .rw-toast-live {
+    top: calc(env(safe-area-inset-top, 0px) + 54px);
+  }
+}
+
+.rw-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(420px, 100%);
+  min-height: 0;
+  padding: 10px 18px 10px 10px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  font: inherit;
+  text-align: start;
+  justify-content: flex-start;
+  cursor: pointer;
+  animation: rw-toast-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+[dir='rtl'] .rw-toast {
+  padding: 10px 10px 10px 18px;
+}
+
+.rw-toast.is-leaving {
+  animation: rw-toast-out 0.22s ease forwards;
+}
+
+.rw-toast-glyph {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(52, 199, 89, 0.14);
+  color: #248a3d;
+}
+
+:root[data-theme='dark'] .rw-toast-glyph {
+  background: rgba(48, 209, 88, 0.16);
+  color: #30d158;
+}
+
+.rw-toast.is-achievement .rw-toast-glyph {
+  background: linear-gradient(145deg, #fff6df 0%, #fde7b0 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(201, 138, 18, 0.35);
+}
+
+:root[data-theme='dark'] .rw-toast.is-achievement .rw-toast-glyph {
+  background: linear-gradient(145deg, #3a2f17 0%, #2a2212 100%);
+}
+
+.rw-toast.is-level .rw-toast-glyph {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.rw-toast-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.rw-toast-level {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rw-toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rw-toast-head {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.rw-toast-body {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+@keyframes rw-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rw-toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-toast,
+  .rw-toast.is-leaving {
+    animation: none;
+  }
+}

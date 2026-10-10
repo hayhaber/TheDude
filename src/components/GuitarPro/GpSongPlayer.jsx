@@ -1,12 +1,96 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { loadGpSoundFont, tuneVibrato, wakeAudio, GP_MASTER_VOLUME } from '../../audio/alphaTabSound';
+import { getAudioContext } from '../../audio/audioContext';
 import { PIANO_PROFILE_GM_PROGRAM, BASS_PROFILE_GM_PROGRAM } from '../../audio/instrumentProfiles';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave, bassTrackIndex, suggestedBassLine, addSuggestedBassTrack } from '../../music/lickTrainer/gpImport';
+import { buildChordChart, chordAt } from '../../music/chordChart';
+import { ChordChartView } from './ChordChartView';
+import { useChordPlayAlong } from './useChordPlayAlong';
 
 const TICKS_PER_BEAT = 960;
+
+// Personal (per profile: 'dudestar-p-' keys) Song-view memory: the tempo per
+// file, the loop trainer's settings and the chord chart's Simple switch.
+const TEMPO_KEY = 'dudestar-p-gp-tempo';
+const LOOP_KEY = 'dudestar-p-gp-loop';
+const CHORDS_KEY = 'dudestar-p-gp-chords';
+const MAX_TEMPO_FILES = 200;
+const RAMP_STEPS = [2, 5, 10];
+const RAMP_EVERY = [1, 2, 3];
+const RAMP_TARGETS = [70, 80, 90, 100, 110, 120];
+const LOOP_DEFAULTS = { ramp: false, step: 5, every: 2, target: 100, countIn: false };
+
+// One bar of clicks before a loop pass, at the tempo the loop starts in
+// (ours, not alphaTab's count-in: pausing + restarting into alphaTab's
+// count-in stalled its player now and then). Calls onDone when the bar is
+// over; returns a cancel function.
+function clickBar(api, tick, onDone) {
+  const lookups = api.tickCache?.masterBars ?? [];
+  const lookup = [...lookups].reverse().find((m) => m.start <= tick) ?? lookups[0];
+  const mb = lookup?.masterBar ?? api.score?.masterBars[0];
+  const bpm = (lookup?.tempo || api.score?.tempo || 90) * (api.playbackSpeed || 1);
+  const beats = mb?.timeSignatureNumerator ?? 4;
+  const beatSec = (60 / bpm) * (4 / (mb?.timeSignatureDenominator ?? 4));
+  const ctx = getAudioContext();
+  const t0 = ctx.currentTime + 0.06;
+  const nodes = [];
+  for (let i = 0; i < beats; i += 1) {
+    const at = t0 + i * beatSec;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = i === 0 ? 1760 : 1320;
+    gain.gain.setValueAtTime(0.0001, at);
+    gain.gain.exponentialRampToValueAtTime(0.5, at + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.07);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(at);
+    osc.stop(at + 0.08);
+    nodes.push(osc);
+  }
+  const timer = setTimeout(onDone, Math.max(0, (t0 - ctx.currentTime + beats * beatSec) * 1000 - 25));
+  return () => {
+    clearTimeout(timer);
+    for (const o of nodes) {
+      try {
+        o.stop();
+      } catch {
+        /* already stopped */
+      }
+    }
+  };
+}
+
+function readJson(key) {
+  try {
+    const v = JSON.parse(localStorage.getItem(key));
+    return v && typeof v === 'object' ? v : {};
+  } catch {
+    return {};
+  }
+}
+function writeJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable */
+  }
+}
+function savedTempo(fileKey) {
+  const v = fileKey ? readJson(TEMPO_KEY)[fileKey] : undefined;
+  return Number.isFinite(v) && v >= 25 && v <= 200 ? v : null;
+}
+function saveTempo(fileKey, pct) {
+  if (!fileKey) return;
+  const all = readJson(TEMPO_KEY);
+  delete all[fileKey];
+  all[fileKey] = pct; // most recent last
+  const keys = Object.keys(all);
+  for (const k of keys.slice(0, Math.max(0, keys.length - MAX_TEMPO_FILES))) delete all[k];
+  writeJson(TEMPO_KEY, all);
+}
 
 // Chord names get a row of their own: alphaTab lets them share the top row
 // with section markers ("Guitar Solo 1") and the two then print on top of
@@ -228,6 +312,73 @@ function staveProfileFor(tr) {
   return alphaTab.StaveProfile.Score;
 }
 
+// Loop trainer (shown while Loop is on): speed up every few passes up to a
+// target tempo, and/or click a bar in before each pass.
+function LoopTrainer({ rowRef, cfg, onChange, passes, countingIn, tempo, t }) {
+  const left = cfg.every - (passes % cfg.every);
+  const reached = tempo >= cfg.target;
+  return (
+    <div className="gp-loop-row" ref={rowRef} role="group" aria-label={t('gpx.loopTrainer')}>
+      <button
+        type="button"
+        className={'gp-loop-pill' + (cfg.ramp ? ' active' : '')}
+        aria-pressed={cfg.ramp}
+        onClick={() => onChange({ ramp: !cfg.ramp })}
+      >
+        {t('gpx.ramp')}
+      </button>
+      <InfoTooltip text={t('gpx.tip.ramp')} />
+      {cfg.ramp && (
+        <>
+          <label className="gp-inline-field">
+            <span>{t('gpx.step')}</span>
+            <select dir="ltr" value={cfg.step} onChange={(e) => onChange({ step: Number(e.target.value) })}>
+              {RAMP_STEPS.map((v) => (
+                <option key={v} value={v}>
+                  +{v}%
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="gp-inline-field">
+            <span>{t('gpx.every')}</span>
+            <select value={cfg.every} onChange={(e) => onChange({ every: Number(e.target.value) })}>
+              {RAMP_EVERY.map((v) => (
+                <option key={v} value={v}>
+                  {t(v === 1 ? 'gpx.passOne' : 'gpx.passMany', { n: v })}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="gp-inline-field">
+            <span>{t('gpx.target')}</span>
+            <select dir="ltr" value={cfg.target} onChange={(e) => onChange({ target: Number(e.target.value) })}>
+              {RAMP_TARGETS.map((v) => (
+                <option key={v} value={v}>
+                  {v}%
+                </option>
+              ))}
+            </select>
+          </label>
+        </>
+      )}
+      <button
+        type="button"
+        className={'gp-loop-pill' + (cfg.countIn ? ' active' : '')}
+        aria-pressed={cfg.countIn}
+        onClick={() => onChange({ countIn: !cfg.countIn })}
+      >
+        {t('gpx.countIn')}
+      </button>
+      <span className="gp-loop-status lt-small" role="status" aria-live="polite">
+        {countingIn ? `${t('gpx.counting')} · ` : ''}
+        {t('gpx.passStatus', { n: passes, tempo })}
+        {cfg.ramp && (reached ? ` · ${t('gpx.targetReached')}` : ` · ${t('gpx.nextStep', { step: Math.min(cfg.step, cfg.target - tempo), n: left })}`)}
+      </span>
+    </div>
+  );
+}
+
 // Small transport glyphs (drawn, so they look the same on every device).
 function TransportIcon({ kind }) {
   return (
@@ -259,7 +410,7 @@ function TransportIcon({ kind }) {
 // by its own synth with the track mixer applied — play along with the band.
 // The practiced part's current note also lights up on the shared Stage
 // fretboard (through the trainer's playhead).
-export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
+export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile, view = 'song' }) {
   const hostRef = useRef(null);
   const scrollRef = useRef(null);
   const apiRef = useRef(null);
@@ -286,6 +437,52 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
   // Tracks whose chord names were already written into this file's score.
   const labeledRef = useRef(new Set());
 
+  // Song-view tempo: remembered per file (its own value — Practice keeps
+  // the trainer's); a file never set falls back to the trainer's tempo.
+  const [songTempo, setSongTempoState] = useState(() => savedTempo(songKey) ?? trainer.tempoPct);
+  const tempoFileRef = useRef(songKey);
+  if (tempoFileRef.current !== songKey) {
+    tempoFileRef.current = songKey;
+    const saved = savedTempo(songKey);
+    if (saved != null && saved !== songTempo) setSongTempoState(saved);
+  }
+  const songTempoRef = useRef(songTempo);
+  songTempoRef.current = songTempo;
+  const setSongTempo = (pct, { manual = false } = {}) => {
+    setSongTempoState(pct);
+    saveTempo(songKey, pct);
+    // A hand-picked tempo is the trainer's too (as before), when it's one of its steps.
+    if (manual && TEMPO_OPTIONS.includes(pct)) trainer.setTempoPct(pct);
+  };
+
+  // Loop trainer: speed up by `step` % every `every` passes up to `target`,
+  // and/or a one-bar count-in before each pass.
+  const [loopCfg, setLoopCfg] = useState(() => ({ ...LOOP_DEFAULTS, ...readJson(LOOP_KEY) }));
+  const setLoop = (patch) =>
+    setLoopCfg((c) => {
+      const next = { ...c, ...patch };
+      writeJson(LOOP_KEY, next);
+      return next;
+    });
+  const [passes, setPasses] = useState(0);
+  const passesRef = useRef(0);
+  const loopStateRef = useRef(null);
+  loopStateRef.current = { looping, cfg: loopCfg };
+  // While the count-in restarts a pass, the brief pause isn't shown.
+  const restartingRef = useRef(false);
+  // A tempo step taken by the ramp: playback speed only, no MIDI rebuild.
+  const rampStepRef = useRef(false);
+  const resetPasses = () => {
+    passesRef.current = 0;
+    setPasses(0);
+  };
+
+  // Chords view: where the song is (written bar + ticks into it).
+  const posRef = useRef(null);
+  const [chartPos, setChartPos] = useState(null);
+  const chartRef = useRef(null);
+  const [simpleChords, setSimpleChords] = useState(() => !!readJson(CHORDS_KEY).simple);
+
   // One alphaTab instance per file shown.
   useEffect(() => {
     if (!song || !hostRef.current) return undefined;
@@ -294,6 +491,13 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
     setPlaying(false);
     setSolo(new Set());
     setError(null);
+    // A count-in still clicking for the previous file: drop it.
+    countInRef.current?.();
+    countInRef.current = null;
+    restartingRef.current = false;
+    setCountingIn(false);
+    passesRef.current = 0;
+    setPasses(0);
     giveChordNamesTheirOwnRow();
     const api = new alphaTab.AlphaTabApi(hostRef.current, {
       // Main-thread rendering (see giveChordNamesTheirOwnRow). Lazy loading
@@ -431,12 +635,42 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
     });
     api.playerStateChanged.on((e) => {
       const isPlaying = e.state === alphaTab.synth.PlayerState.Playing;
+      if (restartingRef.current) {
+        // The count-in's pause + play between two loop passes.
+        if (!isPlaying && !e.stopped) return;
+        restartingRef.current = false;
+      }
       setPlaying(isPlaying);
-      if (!isPlaying && e.stopped) followPlayhead(null);
+      if (!isPlaying && e.stopped) {
+        followPlayhead(null);
+        onStoppedRef.current?.();
+      }
     });
     api.playerPositionChanged.on((e) => {
       if (api.playerState === alphaTab.synth.PlayerState.Playing) followPlayhead((e.currentTick - tickStartRef.current) / TICKS_PER_BEAT);
+      // Written bar + position in it (repeats included) for the chord chart.
+      const bars = api.tickCache?.masterBars;
+      if (!bars?.length) return;
+      const tick = e.currentTick;
+      let lo = 0;
+      let hi = bars.length - 1;
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (bars[mid].start <= tick) lo = mid;
+        else hi = mid - 1;
+      }
+      const mbl = bars[lo];
+      const pos = { bar: mbl.masterBar.index, inBar: Math.max(0, tick - mbl.start), tick };
+      posRef.current = pos;
+      const chart = chartRef.current;
+      if (chart) {
+        const c = chordAt(chart, pos.bar, pos.inBar);
+        const key = `${pos.bar}|${c ? `${c.bar}:${c.idx}` : ''}`;
+        setChartPos((p) => (p?.key === key ? p : { ...pos, key }));
+      }
     });
+    // Each finished loop pass: count it, maybe speed up, maybe count in.
+    api.playerFinished.on(() => onLoopPassRef.current?.());
     api.error.on((e) => setError(e?.message ?? String(e)));
     let alive = true;
     (async () => {
@@ -458,6 +692,8 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
       resizeObserver?.disconnect();
       clearTimeout(relayout);
       followPlayhead(null);
+      posRef.current = null;
+      setChartPos(null);
       api.destroy();
       apiRef.current = null;
     };
@@ -570,10 +806,16 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
   useEffect(() => {
     const api = apiRef.current;
     if (!api || !ready || !api.score) return;
-    api.playbackSpeed = trainer.tempoPct / 100;
+    api.playbackSpeed = songTempo / 100;
+    // A loop speed-up step changes the speed live: no MIDI rebuild between
+    // passes (the vibrato rate catches up at the next tempo picked by hand).
+    if (rampStepRef.current) {
+      rampStepRef.current = false;
+      return;
+    }
     // Keep the vibrato at a real-time rate at this speed (regenerating the
     // MIDI stops playback, so carry on from the same spot).
-    if (tuneVibrato(api.settings, api.score.tempo, trainer.tempoPct / 100)) {
+    if (tuneVibrato(api.settings, api.score.tempo, songTempo / 100)) {
       const resumeAt = api.playerState === alphaTab.synth.PlayerState.Playing ? api.tickPosition : null;
       api.loadMidiForScore();
       // The synth worker handles messages in order, so the new MIDI is in
@@ -583,11 +825,111 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
         api.play();
       }
     }
-  }, [trainer.tempoPct, ready]);
+  }, [songTempo, ready]);
 
   useEffect(() => {
     if (apiRef.current) apiRef.current.isLooping = looping;
+    if (!looping) resetPasses();
   }, [looping, ready]);
+
+  // Count-in: a bar of clicks, then playback from `tick`.
+  const countInRef = useRef(null); // cancel function while clicking
+  const [countingIn, setCountingIn] = useState(false);
+  const cancelCountIn = () => {
+    countInRef.current?.();
+    countInRef.current = null;
+    restartingRef.current = false;
+    setCountingIn(false);
+  };
+  const countInThenPlay = (api, tick) => {
+    countInRef.current?.();
+    restartingRef.current = true;
+    setPlaying(true);
+    setCountingIn(true);
+    countInRef.current = clickBar(api, tick, () => {
+      countInRef.current = null;
+      setCountingIn(false);
+      if (apiRef.current !== api) return;
+      api.tickPosition = tick;
+      api.play();
+    });
+  };
+  useEffect(() => () => countInRef.current?.(), []);
+
+  // A loop pass just finished (alphaTab is already back at the loop start).
+  const onLoopPassRef = useRef(null);
+  onLoopPassRef.current = () => {
+    const api = apiRef.current;
+    const { looping: isLoop, cfg } = loopStateRef.current;
+    if (!api || !isLoop) return;
+    const n = passesRef.current + 1;
+    passesRef.current = n;
+    setPasses(n);
+    const cur = songTempoRef.current;
+    if (cfg.ramp && n % cfg.every === 0 && cur < cfg.target) {
+      rampStepRef.current = true;
+      setSongTempo(Math.min(cfg.target, cur + cfg.step));
+    }
+    if (cfg.countIn) {
+      // Pause at the loop start, a bar of clicks, then the next pass.
+      restartingRef.current = true;
+      api.pause();
+      const start = api.playbackRange?.startTick ?? 0;
+      api.tickPosition = start;
+      countInThenPlay(api, start);
+    }
+  };
+
+  // The loop trainer's row takes room from the score box (kept above the neck).
+  const loopRowRef = useRef(null);
+  const [loopRowH, setLoopRowH] = useState(0);
+  useLayoutEffect(() => {
+    const el = loopRowRef.current;
+    if (!el) {
+      setLoopRowH(0);
+      return undefined;
+    }
+    const measure = () => setLoopRowH(el.offsetHeight + 10); // + the column gap
+    measure();
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [looping]);
+
+  // Chords view: the chart (worked out once per file / Simple switch).
+  const chordsView = view === 'chords';
+  const chart = useMemo(() => {
+    const score = apiRef.current?.score;
+    return chordsView && score ? buildChordChart(score, { simple: simpleChords }) : null;
+  }, [chordsView, scoreVersion, simpleChords]); // eslint-disable-line react-hooks/exhaustive-deps
+  chartRef.current = chart;
+  useEffect(() => {
+    // Opening the chart: where the song is right now.
+    const pos = posRef.current;
+    if (!chart || !pos) return;
+    const c = chordAt(chart, pos.bar, pos.inBar);
+    setChartPos({ ...pos, key: `${pos.bar}|${c ? `${c.bar}:${c.idx}` : ''}` });
+  }, [chart]);
+  const playAlong = useChordPlayAlong({
+    chart,
+    posRef,
+    playing,
+    fileId: trainer.activeSoloId ?? songKey,
+    tempoPct: songTempo,
+    bpm: apiRef.current?.score ? Math.round((apiRef.current.score.tempo * songTempo) / 100) : undefined,
+    simple: simpleChords,
+  });
+  // Stop (or the song's end): the play-along run is scored.
+  const onStoppedRef = useRef(null);
+  onStoppedRef.current = () => {
+    resetPasses();
+    playAlong.finish();
+  };
+  // Leaving the chart turns the mic off.
+  const playAlongOn = playAlong.on;
+  useEffect(() => {
+    if (!chordsView && playAlongOn) playAlong.stop();
+  }, [chordsView, playAlongOn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Space bar = Play / Pause (as in Guitar Pro), unless typing in a field.
   const playPauseRef = useRef(null);
@@ -620,6 +962,20 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
     if (!api) return;
     // A real tap: make sure the player's audio is awake.
     wakeAudio();
+    // Tapped during a count-in: that's a pause.
+    if (countInRef.current) {
+      cancelCountIn();
+      setPlaying(false);
+      return;
+    }
+    // Looping with a count-in: click a bar in first.
+    if (!playing && looping && loopCfg.countIn) {
+      const bring = () => songRef.current?.scrollIntoView({ block: 'start' });
+      bring();
+      setTimeout(bring, 250);
+      countInThenPlay(api, api.tickPosition);
+      return;
+    }
     // Starting: bring the player to the top of the screen, so the
     // whole score area (which auto-scrolls with the cursor) is in view.
     if (!playing) {
@@ -632,7 +988,11 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
   playPauseRef.current = ready ? togglePlay : null;
 
   return (
-    <section className={'gp-song' + (trainer.pianoMode ? ' is-piano' : '')} ref={songRef}>
+    <section
+      className={'gp-song' + (trainer.pianoMode ? ' is-piano' : '')}
+      ref={songRef}
+      style={loopRowH ? { '--gp-loop-h': `${loopRowH}px` } : undefined}
+    >
       <div className="gp-transport">
         <button
           type="button"
@@ -643,7 +1003,17 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
           <TransportIcon kind={playing ? 'pause' : 'play'} />
           {t(playing ? 'gp.pause' : 'gp.play')}
         </button>
-        <button type="button" onClick={() => api?.stop()} disabled={!ready}>
+        <button
+          type="button"
+          onClick={() => {
+            if (countInRef.current) {
+              cancelCountIn();
+              setPlaying(false);
+            }
+            api?.stop();
+          }}
+          disabled={!ready}
+        >
           <TransportIcon kind="stop" />
           {t('gp.stop')}
         </button>
@@ -665,8 +1035,8 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
         </span>
         <label className="gp-inline-field">
           <span>{t('lickTrainer.tempo')}</span>
-          <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))}>
-            {TEMPO_OPTIONS.map((v) => (
+          <select dir="ltr" value={songTempo} onChange={(e) => setSongTempo(Number(e.target.value), { manual: true })}>
+            {[...new Set([...TEMPO_OPTIONS, songTempo])].sort((a, b) => a - b).map((v) => (
               <option key={v} value={v}>
                 {v}%
               </option>
@@ -683,6 +1053,20 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
           {t('gp.loop')}
         </button>
       </div>
+      {looping && (
+        <LoopTrainer
+          rowRef={loopRowRef}
+          cfg={loopCfg}
+          onChange={(patch) => {
+            if ('ramp' in patch || 'every' in patch) resetPasses();
+            setLoop(patch);
+          }}
+          passes={passes}
+          countingIn={countingIn}
+          tempo={songTempo}
+          t={t}
+        />
+      )}
       {trainer.activeSolo?.displayOnly && !trainer.activeSolo.pending && !trainer.pianoMode && (
         <p className="lt-muted lt-small">{t(trainer.bassMode ? 'gp.notBassPart' : 'gp.notationOnly')}</p>
       )}
@@ -708,12 +1092,38 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile }) {
             onClose={() => setMixerOpen(false)}
           />
         )}
-        <div className="gp-score-scroll" ref={scrollRef}>
+        <div className="gp-score-scroll" ref={scrollRef} aria-hidden={chordsView || undefined}>
           {loading && <p className="gp-score-loading">{t('gp.loading')}</p>}
           <div className="gp-score" ref={hostRef} />
         </div>
+        {/* Chords: the chart over the score (which stays laid out and
+            playing underneath — same player, same clock). */}
+        {chordsView && (
+          <div className="gpc-overlay">
+            {chart ? (
+              <ChordChartView
+                chart={chart}
+                pos={chartPos}
+                playing={playing}
+                simple={simpleChords}
+                onSimple={(v) => {
+                  setSimpleChords(v);
+                  writeJson(CHORDS_KEY, { simple: v });
+                }}
+                onSeek={(barIndex) => {
+                  const lookup = api?.tickCache?.masterBars?.find((m) => m.masterBar.index === barIndex);
+                  if (lookup && api) api.tickPosition = lookup.start;
+                }}
+                playAlong={playAlong}
+                t={t}
+              />
+            ) : (
+              <p className="gp-score-loading">{t('gp.loading')}</p>
+            )}
+          </div>
+        )}
       </div>
-      <p className="lt-muted lt-small">{t('gp.songHint')}</p>
+      <p className="lt-muted lt-small">{t(chordsView ? 'gpx.chordsHint' : 'gp.songHint')}</p>
     </section>
   );
 }

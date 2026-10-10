@@ -7,8 +7,13 @@ import { TIPS_TOOLS } from './tools';
 import { TIPS_PROFILE } from './profile';
 import { TIPS_COACH } from './coach';
 import { TIPS_MINUTE } from './minute';
+import { TIPS_TRAINERX } from './trainerx';
+import { TIPS_NOISE } from './noise';
+import { TIPS_TUNING } from './tuning';
+import { TIPS_CHALLENGE } from './challenge';
+import { TIPS_AMP } from './amp';
 
-const ALL = [TIPS_COMPOSE, TIPS_PRACTICE, TIPS_TOOLS, TIPS_PROFILE, TIPS_COACH, TIPS_MINUTE];
+const ALL = [TIPS_COMPOSE, TIPS_PRACTICE, TIPS_TOOLS, TIPS_PROFILE, TIPS_COACH, TIPS_MINUTE, TIPS_TRAINERX, TIPS_NOISE, TIPS_TUNING, TIPS_CHALLENGE, TIPS_AMP];
 
 export const TIPS = {
   en: Object.assign({}, ...ALL.map((x) => x.en)),

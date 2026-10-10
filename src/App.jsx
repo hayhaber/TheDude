@@ -12,6 +12,9 @@ import { SongsView } from './components/SongsView/SongsView';
 import { GuitarProView } from './components/GuitarPro/GuitarProView';
 import { FreePlayView } from './components/FreePlayView/FreePlayView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
+import { CoachView } from './components/Coach/CoachView';
+import { CoachBanner } from './components/Coach/CoachBanner';
+import { useCoach } from './coach/useCoach';
 import { NoteColorLegend } from './components/NoteColorLegend/NoteColorLegend';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './music/chordSymbolParser';
 import { computeChordPositions } from './music/computeChordPositions';
@@ -130,6 +133,8 @@ function App() {
     setPianoVolume,
   } = useAudioSettings();
   const { instrument, setInstrument } = useInstrument();
+  // A running coach block shows a banner over the practice tools.
+  const { running: coachRunning } = useCoach();
   // The home screen (instrument menu) opens first; the logo leads back to it.
   const [home, setHome] = useState(true);
   const [leftHome, setLeftHome] = useState(false);
@@ -674,7 +679,21 @@ function App() {
   }
   const launchPracticeRef = useRef(launchPractice);
   launchPracticeRef.current = launchPractice;
-  useEffect(() => registerLauncher((spec) => launchPracticeRef.current(spec)), []);
+  useEffect(
+    () =>
+      registerLauncher((spec) => {
+        const ok = launchPracticeRef.current(spec);
+        // Bring the tool itself into view (on phones it sits below the
+        // stats tiles); the tab row lands just under the coach banner.
+        if (ok)
+          setTimeout(() => {
+            const tabs = document.querySelector('.practice-tabs');
+            if (tabs) tabs.scrollIntoView({ block: 'start', behavior: 'smooth' });
+          }, 350);
+        return ok;
+      }),
+    []
+  );
 
   // Solo Opener also drives the shared metronome — same "leaving
   // Practice/switching tabs stops it" rule as Chord Rhythm above.
@@ -2032,6 +2051,7 @@ function App() {
         earTrainingOwnsInstrument ||
         activeSection === 'vocal' ||
         activeSection === 'freeplay' ||
+        activeSection === 'coach' ||
         (activeSection === 'practice' && practiceTab === 'minuteChanges') ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
@@ -2041,6 +2061,8 @@ function App() {
         )
       }
     >
+      {coachRunning && activeSection !== 'coach' && <CoachBanner onCoach={() => setActiveSection('coach')} />}
+
       {activeSection === 'compose' && (
         <ComposeView
           progressionText={progressionText}
@@ -2237,6 +2259,7 @@ function App() {
 
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
       {activeSection === 'vocal' && <VocalTrainingView />}
+      {activeSection === 'coach' && <CoachView />}
     </AppShell>
   );
 }

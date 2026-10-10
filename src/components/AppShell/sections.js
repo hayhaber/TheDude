@@ -18,6 +18,8 @@ export const SECTIONS = [
   { key: 'compose', labelKey: 'nav.compose', icon: '🎼' },
   { key: 'improvise', labelKey: 'nav.improvise', icon: GuitarIcon },
   { key: 'practice', labelKey: 'nav.practice', icon: TrainingIcon },
+  // Guitar only: the goal-based practice coach (plan, daily session, progress).
+  { key: 'coach', labelKey: 'nav.coach', icon: '🎯' },
   { key: 'studies', labelKey: 'nav.studies', icon: '📖' },
   { key: 'songs', labelKey: 'nav.songs', icon: '🔍' },
   // Guitar Pro files: play the song with its band, practice its solo.

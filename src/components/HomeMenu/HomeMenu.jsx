@@ -37,6 +37,14 @@ const ICON_PATHS = {
       <path d="M7 17h10" />
     </>
   ),
+  // A target: the coach's goal.
+  coach: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+    </>
+  ),
   studies: (
     <>
       <path d="M3 5c3-1 6-1 9 1v14c-3-2-6-2-9-1z" />
@@ -125,6 +133,7 @@ const CARDS = [
       { section: 'compose', icon: 'compose' },
       { section: 'improvise', icon: 'improvise' },
       { section: 'practice', icon: 'practice' },
+      { section: 'coach', icon: 'coach' },
       { section: 'guitarpro', icon: 'guitarpro' },
     ],
   },

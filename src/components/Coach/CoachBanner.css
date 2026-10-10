@@ -1,0 +1,156 @@
+/* Running coach block — a compact sticky bar at the top of the section. */
+.coach-banner {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 var(--space-4);
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  box-shadow: var(--shadow-md);
+  color: var(--text);
+  -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  backdrop-filter: saturate(1.4) blur(12px);
+}
+
+.coach-banner-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coach-banner-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.coach-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.coach-banner-title strong {
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.coach-banner-tag {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
+.coach-banner-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 12px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.coach-banner-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.coach-banner-time.is-over {
+  color: var(--accent);
+}
+
+.coach-banner-result {
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.coach-banner-result.is-met {
+  color: #248a3d;
+}
+
+.coach-banner-result.is-missed {
+  color: #b25000;
+}
+
+:root[data-theme='dark'] .coach-banner-result.is-met {
+  color: #30d158;
+}
+
+:root[data-theme='dark'] .coach-banner-result.is-missed {
+  color: #ffb340;
+}
+
+.coach-banner-wait {
+  font-style: italic;
+}
+
+.coach-banner-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+}
+
+.coach-banner-btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 980px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.coach-banner-btn:hover {
+  background: var(--accent-bg);
+}
+
+.coach-banner-btn.is-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+
+.coach-banner-btn.is-primary:hover {
+  background: var(--accent-hover);
+}
+
+@media (max-width: 480px) {
+  .coach-banner {
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .coach-banner-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .coach-banner-btn {
+    padding: 0 11px;
+  }
+}

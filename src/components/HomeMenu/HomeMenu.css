@@ -366,6 +366,12 @@
     flex: 0 0 50%;
   }
 
+  /* Five shortcuts: two rows (3 + 2) instead of 2 + 2 + 1. */
+  .home-option:first-child:nth-last-child(5),
+  .home-option:first-child:nth-last-child(5) ~ .home-option {
+    flex-basis: 33.333%;
+  }
+
   .home-arrow {
     display: none;
   }

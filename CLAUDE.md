@@ -483,6 +483,24 @@ on the container; content inside stays top-aligned). Stacked on a phone
   recognised 0/30 synthetic guitar voicings vs 22/30 now. Shared by Chord
   Changes, One-Minute Changes and the tab-audio chord guesser.
 
+- **Coach** (nav `coach`, guitar only; Guitar card shortcut; `components/Coach/`
+  CoachView / CoachBanner / ProgressChart, store `coach/useCoach.js`, personal
+  key `dudestar-coach`). Logic is pure in `coach/goals.js` (catalog: changes,
+  barre, timing, speed, pentatonic, blues, bending, ear — each a ladder of
+  measurable rungs with sourced method notes; weeks/rung are ESTIMATES at
+  30 min/day x 6) and `coach/engine.js` (a rung counts when met on 2
+  different days or once in placement; `estimateTime` scales by the
+  student's weekly goal minutes^0.8; `buildSession` = warm-up / goal ~50% /
+  support or top weak point / break >=45 min / music in the chosen style;
+  `findWeaknesses` over 14 days: slow chord pairs, slow direction, timing
+  drag/rush (Lick Trainer offsets), flat/sharp bends, wrong lick notes, ear
+  modes <70%, runs <75%). Wizard: welcome -> about you (minutes, days,
+  level, style) -> goal (free text via `matchGoalText` keywords EN/HE +
+  catalog) -> placement (`placementTests`, blockIds 'placement:...') -> plan.
+  A started block sets `setActiveCoachBlock(id)` then `launch(spec)`; the
+  banner shows the live result and Done/Coach. Launch scrolls `.practice-tabs`
+  into view. Free-text goals use keywords, not an AI model (no API key).
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

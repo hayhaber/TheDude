@@ -11,6 +11,7 @@ import { playReference, stopReference, preloadReference, referenceTracks, refere
 import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
+import { logPerf } from '../coach/perfLog';
 
 // Practice -> Lick Trainer: pick a lick, hear it, play it back, get judged.
 //
@@ -49,6 +50,37 @@ function writeJson(key, value) {
 }
 
 const TICKS_PER_BEAT = 960;
+
+const round3 = (v) => (Number.isFinite(v) ? Math.round(v * 1000) / 1000 : null);
+
+// One analysed take -> the performance log (coach/perfLog.js).
+function logTake(res, { item, bpm, tempoPct, solo, durationMs }) {
+  const sum = res.summary;
+  const correct = res.notes.filter((n) => n.status !== 'missed' && n.pitch !== 'wrong');
+  const bends = correct.filter((n) => n.bend).map((n) => (n.bend.reached - n.bend.target) * 100);
+  const vibratos = correct.filter((n) => n.vibrato);
+  logPerf({
+    tool: 'lick',
+    item,
+    bpm,
+    durationMs,
+    metrics: {
+      score: sum.score,
+      pitchScore: round3(sum.pitchScore),
+      timingScore: round3(sum.timingScore),
+      techniqueScore: round3(sum.techniqueScore),
+      meanOffsetMs: sum.meanOffsetMs,
+      spreadMs: sum.spreadMs,
+      correct: sum.correct,
+      total: sum.total,
+      tempoPct,
+      verdict: sum.verdict,
+      ...(bends.length ? { bendCentsMean: Math.round(bends.reduce((a, b) => a + b, 0) / bends.length), bends: bends.length } : {}),
+      ...(vibratos.length ? { vibratoOkRatio: round3(vibratos.filter((n) => n.vibrato.ok).length / vibratos.length) } : {}),
+      solo,
+    },
+  });
+}
 const NO_TRACKS = [];
 const NO_VOLUMES = {};
 
@@ -151,7 +183,16 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     setLevel(l);
     setLicksChosen(true);
   }, []);
-  const resetLickChoice = useCallback(() => setLicksChosen(false), []);
+  // A launched lick (launchLick below) must survive the Lick Trainer's own
+  // "start empty on every visit" reset when that launch is what mounts it.
+  const keepChoiceRef = useRef(false);
+  const resetLickChoice = useCallback(() => {
+    if (keepChoiceRef.current) {
+      keepChoiceRef.current = false;
+      return;
+    }
+    setLicksChosen(false);
+  }, []);
   const [lickId, setLickId] = useState(LICKS[0].id);
   const [tempoPct, setTempoPct] = useState(70);
   // Click through the take by default only on a direct (DI / interface)
@@ -651,6 +692,14 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
           setResult(entry);
           setPhase('results');
           if (!res.signal.tooQuiet) {
+            const isSolo = mode === 'solos';
+            logTake(res, {
+              item: isSolo ? `${activeSolo?.id ?? lick.id}#${sectionIndex}` : lick.id,
+              bpm,
+              tempoPct,
+              solo: isSolo,
+              durationMs: (sched.endTime - startTime) * 1000,
+            });
             setHistory((h) => {
               const prev = h[lick.id] ?? { attempts: 0, best: null };
               const best =
@@ -665,7 +714,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         }, 30);
       }, (sched.endTime + TAIL_S - ctx.currentTime) * 1000)
     );
-  }, [bpm, clickDuring, ensureInput, latency, lick, stop, tempoPct, backingTracks, volumes]);
+  }, [bpm, clickDuring, ensureInput, latency, lick, stop, tempoPct, backingTracks, volumes, mode, activeSolo, sectionIndex]);
 
   // The player picks any note on each of 8 clicks; the median delay from
   // click to captured attack is this setup's round-trip latency.
@@ -709,6 +758,25 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       }, (sched.endTime + 0.5 - ctx.currentTime) * 1000)
     );
   }, [ensureInput, result, stop]);
+
+  // Programmatic launch (coach): the lick library with this lick chosen and
+  // the tempo set. `expectMount`: the Lick Trainer tab is about to mount
+  // (its mount resets the choice — skip that once).
+  const launchLick = useCallback(
+    (id, pct, { expectMount = false } = {}) => {
+      stop();
+      setModeState('licks');
+      setGenre('all');
+      setLevel('all');
+      setLicksChosen(true);
+      keepChoiceRef.current = expectMount;
+      if (id) setLickId(id);
+      if (Number.isFinite(pct)) setTempoPct(pct);
+      setResult(null);
+      setPhase('idle');
+    },
+    [stop]
+  );
 
   const raiseTempo = useCallback(() => {
     setTempoPct((p) => TEMPO_OPTIONS.find((v) => v > p) ?? p);
@@ -909,6 +977,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     visibleLicks,
     lick,
     selectLick,
+    launchLick,
     tempoPct,
     setTempoPct,
     bpm,

@@ -454,6 +454,35 @@ on the container; content inside stays top-aligned). Stacked on a phone
   above capped at 980px).
 
 
+## Profiles, performance log, practice coach
+
+- **Profiles** (`src/profile/`): `import './profile/install.js'` must stay
+  main.jsx's FIRST import. It patches `Storage.prototype.get/set/removeItem`
+  for window.localStorage so PERSONAL keys live under `p:<profileId>:<key>`
+  (lists `PERSONAL_KEYS` / `PERSONAL_PREFIXES` in profileStorage.js — add
+  every new personal key there; device keys like audio/lang/theme/sync stay
+  global). Registry `dudestar-profiles`; first run migrates existing personal
+  keys into profile "Me". Switch/create/delete-active = page reload.
+  `ProfileChip` on the home screen (avatar-only in the dots row on upright
+  phones). IndexedDB imported licks stay shared.
+- **Performance log** (`src/coach/perfLog.js`, personal key
+  `dudestar-perf-log`): one entry per measured run — tools 'lick', 'rhythm',
+  'scale', 'chordChanges' (with per-change `pairs`), 'bending' (signed
+  cents), 'ear', 'drill', 'soloOpener', 'minuteChanges'. Rhythm offsets
+  include ~150-200 ms detector delay (compare runs, not absolute).
+- **launchBus** (`src/coach/launchBus.js`): App registers `launchPractice`
+  — `launch({tool, ...params})` opens a practice tool with parameters
+  (lick/rhythm/scale/chordChanges/bending/ear/drill/soloOpener/minuteChanges).
+- **One-Minute Changes** (Practice tab `minuteChanges`, guitar only,
+  `components/MinuteChanges/`, `hooks/useMinuteChanges.js`): the teachers'
+  benchmark (JustinGuitar) — alternate two chords for 60 s, mic counts
+  changes (2 detections >=100 ms confirm a chord). Stage hidden there.
+- **Chord detection** (`music/chromaChordDetector.js computeChroma`) uses
+  spectral PEAKS with parabolic interpolation (not every bin): the old
+  all-bins sum smeared low notes over neighbouring pitch classes and
+  recognised 0/30 synthetic guitar voicings vs 22/30 now. Shared by Chord
+  Changes, One-Minute Changes and the tab-audio chord guesser.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"
@@ -467,7 +496,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
 
 ## Backlog (user-approved ideas, not built yet)
 
-- **Personal profiles for the WHOLE app** (user, 2026-10-09: "for later"):
+- (DONE 2026-10-10, see above) **Personal profiles for the WHOLE app**:
   several people on one device, each with a named profile. Everything
   personal is in localStorage per device today (vocal range/level/progress,
   Lick Trainer progress, settings…), so a shared device mixes them. Plan

@@ -1,0 +1,31 @@
+// UI text (profile area) — EN + HE, keys 'profile.*'.
+export const TIPS_PROFILE = {
+  en: {
+    'profile.defaultName': 'Me',
+    'profile.chipLabel': 'Profile: {name}',
+    'profile.title': "Who's practising?",
+    'profile.hint': 'Each profile keeps its own progress, history and vocal range on this device.',
+    'profile.current': 'Current profile',
+    'profile.new': 'New',
+    'profile.rename': 'Rename',
+    'profile.delete': 'Delete',
+    'profile.save': 'Save',
+    'profile.cancel': 'Cancel',
+    'profile.namePlaceholder': 'Name',
+    'profile.confirmDelete': 'Delete “{name}” and all of its progress on this device?',
+  },
+  he: {
+    'profile.defaultName': 'אני',
+    'profile.chipLabel': 'פרופיל: {name}',
+    'profile.title': 'מי מתאמן?',
+    'profile.hint': 'לכל פרופיל התקדמות, היסטוריה וטווח קולי משלו במכשיר הזה.',
+    'profile.current': 'הפרופיל הנוכחי',
+    'profile.new': 'חדש',
+    'profile.rename': 'עריכה',
+    'profile.delete': 'מחיקה',
+    'profile.save': 'שמירה',
+    'profile.cancel': 'ביטול',
+    'profile.namePlaceholder': 'שם',
+    'profile.confirmDelete': 'למחוק את "{name}" ואת כל ההתקדמות שלו במכשיר הזה?',
+  },
+};

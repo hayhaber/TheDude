@@ -33,6 +33,15 @@
   letter-spacing: -0.01em;
 }
 
+/* Right side of the top bar: profile chip (far right), then "Back". The
+   page is RTL, so the first child sits rightmost. */
+.home-top-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .home-continue {
   font-size: 15px;
   font-weight: 590;

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { generateSoloOpenerPrompt } from '../music/soloOpenerPrompts';
+import { logPerf } from '../coach/perfLog';
 
 const BEATS_PER_BAR = 4;
 const DEFAULT_BARS = 4;
@@ -22,10 +23,13 @@ export function useSoloOpener(metronome) {
 
   const beatCounterRef = useRef(0);
   const firstBeatRef = useRef(true);
+  // For the performance log: beats counted since Start, and when it started.
+  const sessionRef = useRef(null); // { startedAt, beats, rounds } while running
 
   function newRound() {
     setPrompt(generateSoloOpenerPrompt());
     setRoundCount((r) => r + 1);
+    if (sessionRef.current) sessionRef.current.rounds += 1;
     beatCounterRef.current = 0;
     setCurrentBar(1);
   }
@@ -40,6 +44,7 @@ export function useSoloOpener(metronome) {
       firstBeatRef.current = false;
       return undefined;
     }
+    if (sessionRef.current) sessionRef.current.beats += 1;
     beatCounterRef.current += 1;
     const bar = Math.floor(beatCounterRef.current / BEATS_PER_BAR) + 1;
     if (bar > bars) {
@@ -54,6 +59,7 @@ export function useSoloOpener(metronome) {
   function play() {
     firstBeatRef.current = true;
     setRoundCount(0); // a fresh Start is a new session, not a continuation — newRound() below bumps it to 1
+    sessionRef.current = { startedAt: Date.now(), beats: 0, rounds: 0 };
     newRound();
     setIsPlaying(true);
     metronome.start();
@@ -62,6 +68,18 @@ export function useSoloOpener(metronome) {
   function stop() {
     metronome.stop();
     setIsPlaying(false);
+    // Logged once at least one full round (bars x 4 beats) went by.
+    const session = sessionRef.current;
+    sessionRef.current = null;
+    if (session && session.beats >= bars * BEATS_PER_BAR) {
+      logPerf({
+        tool: 'soloOpener',
+        item: `${bars}bars`,
+        bpm: metronome.bpm,
+        durationMs: Date.now() - session.startedAt,
+        metrics: { rounds: session.rounds, completedRounds: Math.floor(session.beats / (bars * BEATS_PER_BAR)), bars, beats: session.beats },
+      });
+    }
   }
 
   // Manually grab a new idea without waiting for the loop to come back

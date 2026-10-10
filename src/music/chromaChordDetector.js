@@ -16,12 +16,29 @@ export function computeChroma(freqData, sampleRate, fftSize) {
   const chroma = new Float32Array(12);
   const binHz = sampleRate / fftSize;
   const minBin = Math.max(1, Math.floor(MIN_HZ / binHz));
-  const maxBin = Math.min(freqData.length - 1, Math.ceil(MAX_HZ / binHz));
+  const maxBin = Math.min(freqData.length - 2, Math.ceil(MAX_HZ / binHz));
+
+  // Spectral PEAKS only, each at its interpolated frequency. Summing every
+  // bin smeared a note's window leakage into the neighbouring pitch
+  // classes — at a 4096 FFT one bin (~11 Hz) is wider than a semitone
+  // below ~200 Hz, so low guitar notes spilled into 2-3 classes and real
+  // chords often fell under MIN_CONFIDENCE. Peaks far below the frame's
+  // loudest (leakage, noise) are ignored too.
+  let frameMax = -Infinity;
+  for (let bin = minBin; bin <= maxBin; bin += 1) if (freqData[bin] > frameMax) frameMax = freqData[bin];
+  if (!Number.isFinite(frameMax)) return chroma;
+  const floor = Math.max(-90, frameMax - 45);
 
   for (let bin = minBin; bin <= maxBin; bin += 1) {
     const db = freqData[bin];
-    if (!Number.isFinite(db) || db < -90) continue; // treat near-silence as noise, not signal
-    const freq = bin * binHz;
+    if (!Number.isFinite(db) || db < floor) continue;
+    const left = freqData[bin - 1];
+    const right = freqData[bin + 1];
+    if (!(db >= left && db > right)) continue; // not a local maximum
+    // Parabolic interpolation of the true peak position (in bins).
+    const denom = left - 2 * db + right;
+    const offset = Number.isFinite(denom) && denom !== 0 ? Math.max(-0.5, Math.min(0.5, (0.5 * (left - right)) / denom)) : 0;
+    const freq = (bin + offset) * binHz;
     const midi = 69 + 12 * Math.log2(freq / 440);
     const pitchClass = ((Math.round(midi) % 12) + 12) % 12;
     const magnitude = 10 ** (db / 20); // dB -> linear amplitude

@@ -4,6 +4,7 @@ import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
 import { AppLogo } from '../AppLogo/AppLogo';
 import { INSTRUMENT_ART } from './instrumentArt';
+import { ProfileChip } from '../../profile/ProfileChip';
 import './HomeMenu.css';
 
 // Line icons for the per-instrument shortcuts (24px grid).
@@ -406,6 +407,8 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
     let sum = 0;
     let lockedUntil = 0;
     const onWheel = (e) => {
+      // The profile list scrolls by itself.
+      if (e.target instanceof Element && e.target.closest('.profile-pop')) return;
       const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
       e.preventDefault();
       const now = performance.now();
@@ -451,11 +454,15 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
           <AppLogo size={40} />
           <span dir="ltr">{t('app.name')}</span>
         </div>
-        {onContinue && (
-          <button type="button" className="home-continue" onClick={onContinue}>
-            {t('home.continue')}
-          </button>
-        )}
+        <div className="home-top-end">
+          {/* Who's practising (local profiles), at the far right. */}
+          <ProfileChip />
+          {onContinue && (
+            <button type="button" className="home-continue" onClick={onContinue}>
+              {t('home.continue')}
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="home-carousel">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { GUITAR_CHORD_RHYTHM_MODES, generateGuitarChordRhythmProgression, parseGuitarChordProgressionText } from '../music/guitarChordRhythmContent';
 import { useMicChordDetector } from './useMicChordDetector';
+import { logPerf } from '../coach/perfLog';
 
 // Same "how long before its window opens the block/chip is already
 // visible" convention as the piano version, and the same reasoning: a
@@ -14,6 +15,14 @@ const AUTO_SEQUENCE_LENGTH = 8;
 const AUTO_TOPUP_LENGTH = 8; // how many more chords 'timer'/'endless' auto mode generates once the queue is running low
 const AUTO_TIMER_S = 60; // the "60-second timer" auto-duration option
 const NEAR_END_THRESHOLD = 2; // top up once fewer than this many chords remain queued after the active one
+// Performance log (coach/perfLog.js): one entry per run — at its natural
+// end, or on Stop once at least this many chords were judged.
+const MIN_JUDGED_TO_LOG = 3;
+const MAX_LOGGED_PAIRS = 120; // an endless run keeps only its latest changes
+
+function emptyRun() {
+  return { hits: 0, misses: 0, combo: 0, maxCombo: 0, latencies: [], pairs: [], startedAt: null };
+}
 
 function repeatList(list, times) {
   const out = [];
@@ -121,9 +130,58 @@ export function useGuitarChordRhythm(metronome) {
   // The ORIGINAL (un-repeated-for-looping) chord list for 'custom'/'song' —
   // what gets re-appended each time the loop wraps back to the start.
   const baseLoopListRef = useRef(null);
+  // The current run's results for the performance log.
+  const runRef = useRef(emptyRun());
+  const bpmRef = useRef(metronome.bpm);
+  bpmRef.current = metronome.bpm;
+  const customTextRef = useRef(customText);
+  customTextRef.current = customText;
+
+  function flushPerf(minJudged = MIN_JUDGED_TO_LOG) {
+    const run = runRef.current;
+    runRef.current = emptyRun();
+    const judged = run.hits + run.misses;
+    if (judged === 0 || judged < minJudged) return;
+    const lat = run.latencies;
+    const source = sourceRef.current;
+    logPerf({
+      tool: 'chordChanges',
+      item: source === 'auto' ? modeRef.current : source,
+      bpm: bpmRef.current,
+      durationMs: run.startedAt != null ? performance.now() - run.startedAt : undefined,
+      metrics: {
+        source,
+        ...(source === 'custom' ? { chords: customTextRef.current.trim() } : {}),
+        beatsPerChord: beatsPerChordRef.current,
+        hits: run.hits,
+        misses: run.misses,
+        accuracyPct: Math.round((run.hits / judged) * 100),
+        maxCombo: run.maxCombo,
+        meanLatencyMs: lat.length ? Math.round(lat.reduce((a, b) => a + b, 0) / lat.length) : null,
+        pairs: run.pairs.slice(-MAX_LOGGED_PAIRS),
+        completed: minJudged <= 1,
+      },
+    });
+  }
 
   function judgeChord(index, isCorrect) {
     if (resultsRef.current[index] != null) return;
+    // For the performance log: how long after its window opened the chord
+    // was recognised, and the change into it from the chord before.
+    const run = runRef.current;
+    const chord = sequenceRef.current[index];
+    const latencyMs = isCorrect && chord ? Math.max(0, Math.round((nowRef.current - chord.startTime) * 1000)) : null;
+    if (isCorrect) {
+      run.hits += 1;
+      run.combo += 1;
+      run.maxCombo = Math.max(run.maxCombo, run.combo);
+      if (latencyMs != null) run.latencies.push(latencyMs);
+    } else {
+      run.misses += 1;
+      run.combo = 0;
+    }
+    const prev = index > 0 ? sequenceRef.current[index - 1] : null;
+    if (prev && chord) run.pairs.push({ from: prev.chordText ?? '', to: chord.chordText ?? '', ok: isCorrect, latencyMs });
     resultsRef.current = { ...resultsRef.current, [index]: isCorrect ? 'hit' : 'miss' };
     setResults(resultsRef.current);
     setScore((s) => (isCorrect ? { ...s, hits: s.hits + 1 } : { ...s, misses: s.misses + 1 }));
@@ -141,6 +199,7 @@ export function useGuitarChordRhythm(metronome) {
     mic.stopListening();
     setIsPlaying(false);
     setEnded(true);
+    flushPerf(1);
   }
 
   function activeIndexAt(t) {
@@ -312,6 +371,7 @@ export function useGuitarChordRhythm(metronome) {
   }
 
   async function play() {
+    flushPerf();
     const built = loadSequence();
     if (built.length === 0) return;
     setEnded(false);
@@ -320,6 +380,8 @@ export function useGuitarChordRhythm(metronome) {
     setNow(0);
     await mic.startListening();
     startPerfTimeRef.current = performance.now();
+    runRef.current = emptyRun();
+    runRef.current.startedAt = startPerfTimeRef.current;
     if (rafIdRef.current != null) cancelAnimationFrame(rafIdRef.current);
     rafIdRef.current = requestAnimationFrame(tick);
     metronome.start();
@@ -335,6 +397,7 @@ export function useGuitarChordRhythm(metronome) {
     metronome.stop();
     mic.stopListening();
     setIsPlaying(false);
+    flushPerf();
   }
 
   useEffect(() => {
@@ -363,6 +426,7 @@ export function useGuitarChordRhythm(metronome) {
     loop,
     setLoop,
     beatsPerChord,
+    setBeatsPerChord,
     viewMode,
     setViewMode,
     sequence,

@@ -1,3 +1,5 @@
+// Must stay the first import: per-profile localStorage (src/profile/).
+import './profile/install.js'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

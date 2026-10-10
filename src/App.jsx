@@ -97,6 +97,8 @@ import { TECHNIQUE_MASTERS_EXERCISES } from './music/techniqueMastersCurriculum'
 import { useTechniqueVisualizer } from './hooks/useTechniqueVisualizer';
 import { DRILLS } from './music/drills';
 import { fivePositionWindows } from './music/scaleShapes';
+import { logPerf } from './coach/perfLog';
+import { registerLauncher, setPendingMinuteChanges } from './coach/launchBus';
 import './App.css';
 
 
@@ -164,6 +166,8 @@ function App() {
   // — consumed and cleared by ScalePracticePanel itself so a plain manual
   // visit to that tab later doesn't replay a stale seed from an old click.
   const [scalePracticeSeed, setScalePracticeSeed] = useState(null);
+  // One-Minute Changes opened by the coach: {chords, n} (n re-keys the panel).
+  const [minuteSeed, setMinuteSeed] = useState(null);
   // Lifted the same way as practiceTab — the Studies -> CAGED course's
   // active lesson decides what the shared Stage Fretboard shows.
   const [studiesLessonId, setStudiesLessonId] = useState(CAGED_LESSONS[0].id);
@@ -257,7 +261,18 @@ function App() {
   });
   const practiceHistory = usePracticeHistory();
   const savedProgressions = useSavedProgressions();
-  const drill = usePracticeDrill(metronome, practiceHistory.logSession);
+  // A finished drill session goes to the practice history AND the coach's
+  // performance log.
+  const drill = usePracticeDrill(metronome, (session) => {
+    practiceHistory.logSession(session);
+    logPerf({
+      tool: 'drill',
+      item: session.exerciseId,
+      bpm: session.bpm,
+      durationMs: session.durationMs,
+      metrics: { context: session.context },
+    });
+  });
   // Practice -> Lick Trainer (the lick is drawn on the shared Stage Fretboard).
   const lickTrainer = useLickTrainer({ instrument });
   const { stop: stopLickTrainer } = lickTrainer;
@@ -365,13 +380,13 @@ function App() {
       lickTrainer.playingOrder != null ? lickTrainerMarkers.markerOf.get(lickTrainer.playingOrder) ?? null : null,
   };
   const earTraining = useEarTraining();
-  const rhythmGame = useRhythmGame(metronome);
+  const rhythmGame = useRhythmGame(metronome, { logAs: 'rhythm' });
   // Scale Practice reuses the EXACT same generic engine as Rhythm Practice
   // above (a second independent instance — same reasoning as this app's
   // other same-hook-twice cases: fully self-contained, no state to share)
   // fed a different content generator (music/scalePracticeContent.js)
   // instead of the Exercise Drawer's chord/lick catalog.
-  const scalePractice = useRhythmGame(metronome);
+  const scalePractice = useRhythmGame(metronome, { logAs: 'scale' });
   const bending = useBendingTraining();
   const soloOpener = useSoloOpener(metronome);
   const pianoPractice = usePianoPractice();
@@ -560,6 +575,106 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceTab]);
+
+  // Performance log: leaving Rhythm Practice / Scale Practice / Ear
+  // Training (another tab, another section, home) records a run that was
+  // left part way (each hook keeps a run too short to count, in case the
+  // player comes back to it).
+  const practicePlace = !home && activeSection === 'practice' ? practiceTab : null;
+  const prevPracticePlaceRef = useRef(practicePlace);
+  useEffect(() => {
+    const prev = prevPracticePlaceRef.current;
+    prevPracticePlaceRef.current = practicePlace;
+    if (prev === practicePlace) return;
+    if (prev === 'rhythm') rhythmGame.flushPerf();
+    if (prev === 'scalePractice') scalePractice.flushPerf();
+    if (prev === 'ear-training') earTraining.flushPerf();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practicePlace]);
+
+  // The coach's way in: open a practice tool set up with parameters
+  // (coach/launchBus.js lists the spec shapes). Registered once below; it
+  // always runs the latest render's version. Nothing changes until it's
+  // called. Tools are never auto-started (except an Ear Training session,
+  // which only opens — its first question waits for Play).
+  function launchPractice(spec) {
+    const { tool } = spec;
+    const finite = (v) => Number.isFinite(v);
+    const tabFor = {
+      lick: 'trainer',
+      rhythm: 'rhythm',
+      scale: 'scalePractice',
+      chordChanges: 'guitarChordRhythm',
+      bending: 'bending',
+      ear: 'ear-training',
+      drill: 'drills',
+      soloOpener: 'soloOpener',
+    };
+    if (tool !== 'minuteChanges' && !tabFor[tool]) return false;
+    const trainerOpen = !home && activeSection === 'practice' && practiceTab === 'trainer';
+    if (home) {
+      setHomeCard(null);
+      setHome(false);
+      setLeftHome(true);
+    }
+    setActiveSection('practice');
+    if (tool === 'minuteChanges') {
+      setPendingMinuteChanges(spec);
+      setMinuteSeed({ chords: spec.chords, n: Date.now() });
+      setPracticeTab('minuteChanges');
+      return true;
+    }
+    setPracticeTab(tabFor[tool]);
+
+    if (tool === 'lick') {
+      lickTrainer.launchLick(spec.lickId, finite(spec.tempoPct) ? spec.tempoPct : undefined, { expectMount: !trainerOpen });
+    } else if (tool === 'rhythm') {
+      const ex = DRILLS.find((d) => d.id === spec.drillId);
+      if (rhythmGame.isPlaying) rhythmGame.stop();
+      if (ex) rhythmGame.loadExercise(ex);
+      if (finite(spec.bpm)) metronome.setBpm(spec.bpm);
+    } else if (tool === 'scale') {
+      if (scalePractice.isPlaying) scalePractice.stop();
+      setScalePracticeSeed({
+        scaleKey: spec.scaleKey,
+        root: spec.root,
+        mode: spec.mode ?? 'position',
+        positionIndex: spec.positionIndex,
+        string: spec.string,
+        stringCount: spec.stringCount,
+        blueNote: spec.blueNote,
+        bpm: spec.bpm,
+      });
+    } else if (tool === 'chordChanges') {
+      if (guitarChordRhythm.isPlaying) guitarChordRhythm.stop();
+      if (Array.isArray(spec.chords) && spec.chords.length) {
+        guitarChordRhythm.setSource('custom');
+        guitarChordRhythm.setCustomText(spec.chords.join(' '));
+        guitarChordRhythm.setLoop(true);
+      }
+      guitarChordRhythm.setBeatsPerChord(finite(spec.beatsPerChord) && spec.beatsPerChord > 0 ? spec.beatsPerChord : 4);
+      if (finite(spec.bpm)) metronome.setBpm(spec.bpm);
+    } else if (tool === 'ear') {
+      if (spec.mode && earTraining.modes.some((m) => m.key === spec.mode)) earTraining.setModeKey(spec.mode);
+      if (spec.difficulty && earTraining.difficulties.some((d) => d.key === spec.difficulty)) earTraining.setDifficultyKey(spec.difficulty);
+      if (spec.practiceMode && earTraining.practiceModes.some((m) => m.key === spec.practiceMode)) earTraining.setPracticeMode(spec.practiceMode);
+      if (!earTraining.open) earTraining.start();
+    } else if (tool === 'drill') {
+      const ex = DRILLS.find((d) => d.id === spec.drillId);
+      if (drill.isPlaying) drill.pause();
+      if (ex) drill.loadExercise(ex, 'drills');
+      if (finite(spec.bpm)) metronome.setBpm(spec.bpm);
+    } else if (tool === 'soloOpener') {
+      if (soloOpener.isPlaying) soloOpener.stop();
+      // The panel offers 2 / 4 / 8 bars: the nearest of those.
+      if (finite(spec.bars)) soloOpener.setBars([2, 4, 8].reduce((best, n) => (Math.abs(n - spec.bars) < Math.abs(best - spec.bars) ? n : best), 4));
+      if (finite(spec.bpm)) metronome.setBpm(spec.bpm);
+    }
+    return true;
+  }
+  const launchPracticeRef = useRef(launchPractice);
+  launchPracticeRef.current = launchPractice;
+  useEffect(() => registerLauncher((spec) => launchPracticeRef.current(spec)), []);
 
   // Solo Opener also drives the shared metronome — same "leaving
   // Practice/switching tabs stops it" rule as Chord Rhythm above.
@@ -1914,7 +2029,10 @@ function App() {
       metronomeSlot={activeSection === 'vocal' ? null : <MetronomeBar metronome={metronome} drums={drums} />}
       stage={
         // The Vocal section draws the voice itself (no neck/keys under it).
-        earTrainingOwnsInstrument || activeSection === 'vocal' || activeSection === 'freeplay' ? null : (
+        earTrainingOwnsInstrument ||
+        activeSection === 'vocal' ||
+        activeSection === 'freeplay' ||
+        (activeSection === 'practice' && practiceTab === 'minuteChanges') ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
             pianoProps={stagePianoProps}
@@ -2034,6 +2152,7 @@ function App() {
           guitarChordRhythm={guitarChordRhythm}
           scalePractice={scalePractice}
           scalePracticeSeed={scalePracticeSeed}
+          minuteSeed={minuteSeed}
           onScalePracticeSeedConsumed={() => setScalePracticeSeed(null)}
           scalePracticeLabelMode={scalePracticeLabelMode}
           onScalePracticeLabelModeChange={setScalePracticeLabelMode}

@@ -10,9 +10,26 @@ import {
   generateBendProgression,
   resolveBendStep,
 } from '../music/bendingTraining';
+import { logPerf } from '../coach/perfLog';
 
 const SUSTAIN_TICK_MS = 60;
 const RECENT_CENTS_MAX = 12;
+// Performance log (coach/perfLog.js): one entry per round — when it's
+// complete, or when stopped/restarted after at least this many steps.
+const MIN_STEPS_TO_LOG = 3;
+
+function emptyRun() {
+  return { steps: [], startedAt: null };
+}
+
+function centsStats(list) {
+  const vals = list.filter((v) => Number.isFinite(v));
+  if (!vals.length) return { meanCents: null, meanAbsCents: null };
+  return {
+    meanCents: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
+    meanAbsCents: Math.round(vals.reduce((a, b) => a + Math.abs(b), 0) / vals.length),
+  };
+}
 
 // Demo playback timing: hold the start pitch briefly, glide up to the
 // target, hold that briefly too, then release — the same shape a real
@@ -57,7 +74,53 @@ export function useBendingTraining() {
 
   const bendState = classifyBendState(centsToTarget, recentCentsRef.current);
 
+  // For the performance log: each decided step (hit/miss, its bend type and
+  // how far off the target the pitch was at that moment, signed cents).
+  const runRef = useRef(emptyRun());
+  const centsNowRef = useRef(null);
+  centsNowRef.current = centsToTarget;
+  const stepNowRef = useRef(step);
+  stepNowRef.current = step;
+
+  const flushPerf = useCallback((minSteps = MIN_STEPS_TO_LOG) => {
+    const run = runRef.current;
+    runRef.current = emptyRun();
+    if (!run.steps.length || run.steps.length < minSteps) return;
+    const hits = run.steps.filter((x) => x.hit).length;
+    const byType = {};
+    for (const x of run.steps) {
+      const b = byType[x.type] ?? (byType[x.type] = { hits: 0, misses: 0, cents: [] });
+      if (x.hit) b.hits += 1;
+      else b.misses += 1;
+      if (x.cents != null) b.cents.push(x.cents);
+    }
+    const types = {};
+    for (const [k, b] of Object.entries(byType)) types[k] = { hits: b.hits, misses: b.misses, ...centsStats(b.cents) };
+    logPerf({
+      tool: 'bending',
+      item: 'progression',
+      durationMs: run.startedAt != null ? Date.now() - run.startedAt : undefined,
+      metrics: {
+        hits,
+        misses: run.steps.length - hits,
+        steps: run.steps.length,
+        accuracyPct: Math.round((hits / run.steps.length) * 100),
+        ...centsStats(run.steps.map((x) => x.cents)),
+        byType: types,
+        completed: minSteps <= 1,
+      },
+    });
+  }, []);
+
   const advance = useCallback((wasHit) => {
+    const run = runRef.current;
+    if (run.startedAt == null) run.startedAt = Date.now();
+    const cents = centsNowRef.current;
+    run.steps.push({
+      hit: !!wasHit,
+      type: stepNowRef.current?.bendType?.key ?? 'unknown',
+      cents: Number.isFinite(cents) ? Math.round(cents) : null,
+    });
     setScore((s) => (wasHit ? { ...s, hits: s.hits + 1 } : { ...s, misses: s.misses + 1 }));
     setStepIndex((i) => {
       const next = i + 1;
@@ -94,23 +157,31 @@ export function useBendingTraining() {
     return () => clearInterval(id);
   }, [bendState, pitch.isListening, isComplete, advance]);
 
+  // The round is over: record it.
+  useEffect(() => {
+    if (isComplete) flushPerf(1);
+  }, [isComplete, flushPerf]);
+
   const restart = useCallback(() => {
+    flushPerf();
     setStepIndex(0);
     setHoldProgress(0);
     setScore({ hits: 0, misses: 0 });
     setIsComplete(false);
     holdStartRef.current = null;
     recentCentsRef.current = [];
-  }, []);
+  }, [flushPerf]);
 
   const start = useCallback(async () => {
     restart();
+    runRef.current.startedAt = Date.now();
     await pitch.startListening();
   }, [pitch, restart]);
 
   const stop = useCallback(() => {
     pitch.stopListening();
-  }, [pitch]);
+    flushPerf();
+  }, [pitch, flushPerf]);
 
   // Plays what the bend is supposed to sound like — the start pitch, then a
   // glide up to the target — so the player has an actual reference to

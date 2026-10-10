@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { STANDARD_TUNING } from '../music/notes';
 import { useMicAnswerDetector } from './useMicAnswerDetector';
+import { logPerf } from '../coach/perfLog';
 
 // Generous on purpose — this has to absorb useMicAnswerDetector's own
 // ~120ms onset-stability debounce plus ordinary human timing variance. It's
@@ -24,7 +25,19 @@ function midiForStep(step) {
 // rest of the app already uses (passed in, not created here) and the same
 // music/drills.js sequence shape Practice Drills already plays through — no
 // new content format, no new audio engine.
-export function useRhythmGame(metronome) {
+// Results of a run are written to the performance log (coach/perfLog.js) as
+// tool `logAs` ('rhythm' | 'scale'; omitted = not logged): at the natural
+// end of the exercise, or — when a run is abandoned part way (Exit, Try
+// Again, another exercise loaded, the tab left: flushPerf) — once at least
+// MIN_JUDGED_TO_LOG notes were judged. A Pause (stop) doesn't log: Play
+// resumes the same run.
+const MIN_JUDGED_TO_LOG = 4;
+
+function emptyRun() {
+  return { hits: 0, misses: 0, combo: 0, maxCombo: 0, offsets: [], startedAt: null, playedMs: 0, runStart: null };
+}
+
+export function useRhythmGame(metronome, { logAs = null } = {}) {
   const [exercise, setExercise] = useState(null);
   const [stepIndex, setStepIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -44,12 +57,59 @@ export function useRhythmGame(metronome) {
   const judgedRef = useRef(true);
   const feedbackTimeoutRef = useRef(null);
   const exerciseRef = useRef(null);
+  // The current run's results for the performance log (refs: read outside render).
+  const runRef = useRef(emptyRun());
+  const bpmRef = useRef(metronome.bpm);
+  bpmRef.current = metronome.bpm;
+
+  // keepIfShort: too few notes judged to log yet — keep the run (it's
+  // paused, not over; Play resumes it).
+  function flushPerf(minJudged = MIN_JUDGED_TO_LOG, { keepIfShort = false } = {}) {
+    const run = runRef.current;
+    if (keepIfShort && run.hits + run.misses < minJudged) return;
+    if (run.runStart != null) {
+      run.playedMs += performance.now() - run.runStart;
+      run.runStart = null;
+    }
+    const judged = run.hits + run.misses;
+    const ex = exerciseRef.current;
+    runRef.current = emptyRun();
+    if (!logAs || !ex || judged === 0 || judged < minJudged) return;
+    const offs = run.offsets;
+    const mean = offs.length ? offs.reduce((a, b) => a + b, 0) / offs.length : null;
+    const spread = offs.length >= 2 ? Math.sqrt(offs.reduce((a, b) => a + (b - mean) ** 2, 0) / offs.length) : null;
+    logPerf({
+      tool: logAs,
+      item: ex.id ?? '',
+      bpm: bpmRef.current,
+      durationMs: run.playedMs,
+      metrics: {
+        hits: run.hits,
+        misses: run.misses,
+        total: ex.sequence.length,
+        accuracyPct: Math.round((run.hits / judged) * 100),
+        maxCombo: run.maxCombo,
+        meanOffsetMs: mean == null ? null : Math.round(mean),
+        spreadMs: spread == null ? null : Math.round(spread),
+        completed: minJudged <= 1,
+      },
+    });
+  }
 
   function judgeCurrentStep(isCorrect) {
     if (judgedRef.current || !exerciseRef.current) return;
     judgedRef.current = true;
     windowOpenRef.current = null;
     const step = exerciseRef.current.sequence[stepIndexRef.current];
+    const run = runRef.current;
+    if (isCorrect) {
+      run.hits += 1;
+      run.combo += 1;
+      run.maxCombo = Math.max(run.maxCombo, run.combo);
+    } else {
+      run.misses += 1;
+      run.combo = 0;
+    }
     setFeedbackCell({ cell: { stringIndex: step.string, fret: step.fret }, correct: isCorrect });
     setScore((s) => (isCorrect ? { ...s, hits: s.hits + 1 } : { ...s, misses: s.misses + 1 }));
     setCombo((c) => {
@@ -63,9 +123,14 @@ export function useRhythmGame(metronome) {
 
   function handleNoteDetected(midi) {
     if (!exerciseRef.current || windowOpenRef.current === null || judgedRef.current) return;
-    if (performance.now() - windowOpenRef.current > HIT_WINDOW_MS) return;
+    const offsetMs = performance.now() - windowOpenRef.current;
+    if (offsetMs > HIT_WINDOW_MS) return;
     const step = exerciseRef.current.sequence[stepIndexRef.current];
-    if (midi === midiForStep(step)) judgeCurrentStep(true);
+    if (midi === midiForStep(step)) {
+      // How late after its beat (the window opening) the right note came.
+      runRef.current.offsets.push(offsetMs);
+      judgeCurrentStep(true);
+    }
   }
 
   const mic = useMicAnswerDetector(handleNoteDetected);
@@ -75,6 +140,7 @@ export function useRhythmGame(metronome) {
     setIsPlaying(false);
     setEnded(true);
     windowOpenRef.current = null;
+    flushPerf(1);
   }
 
   // Advances exactly one note per metronome beat, judging whichever note
@@ -102,6 +168,7 @@ export function useRhythmGame(metronome) {
   }, [metronome.currentBeat]);
 
   function loadExercise(ex) {
+    flushPerf();
     exerciseRef.current = ex;
     setExercise(ex);
     setEnded(false);
@@ -121,6 +188,9 @@ export function useRhythmGame(metronome) {
     if (!exercise) return;
     setEnded(false);
     setIsPlaying(true);
+    const run = runRef.current;
+    if (run.startedAt == null) run.startedAt = Date.now();
+    run.runStart = performance.now();
     mic.startListening();
     metronome.start();
   }
@@ -134,6 +204,7 @@ export function useRhythmGame(metronome) {
   // single note could be judged.
   function restart() {
     if (!exercise) return;
+    flushPerf();
     stepIndexRef.current = -1;
     setStepIndex(-1);
     firstBeatRef.current = true;
@@ -150,10 +221,16 @@ export function useRhythmGame(metronome) {
     metronome.stop();
     mic.stopListening();
     setIsPlaying(false);
+    const run = runRef.current;
+    if (run.runStart != null) {
+      run.playedMs += performance.now() - run.runStart;
+      run.runStart = null;
+    }
   }
 
   function exit() {
     stop();
+    flushPerf();
     exerciseRef.current = null;
     setExercise(null);
     setStepIndex(-1);
@@ -170,11 +247,22 @@ export function useRhythmGame(metronome) {
 
   useEffect(() => () => clearTimeout(feedbackTimeoutRef.current), []);
 
+  // Closing/hiding the page mid-run still records it (if it was meaningful).
+  const flushRef = useRef(flushPerf);
+  flushRef.current = flushPerf;
+  useEffect(() => {
+    const onHide = () => flushRef.current();
+    window.addEventListener('pagehide', onHide);
+    return () => window.removeEventListener('pagehide', onHide);
+  }, []);
+
   const accuracyPct = score.hits + score.misses > 0 ? Math.round((score.hits / (score.hits + score.misses)) * 100) : null;
 
   return {
     exercise,
     loadExercise,
+    // Record an abandoned run now (e.g. its tab was left) — see logAs above.
+    flushPerf: () => flushPerf(MIN_JUDGED_TO_LOG, { keepIfShort: true }),
     stepIndex,
     isPlaying,
     ended,

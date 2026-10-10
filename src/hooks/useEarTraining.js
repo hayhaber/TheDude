@@ -14,6 +14,7 @@ import {
 } from '../music/earTraining';
 import { playQuestionAudio, playAnswerFeedbackAudio } from '../audio/earTrainingPlayer';
 import { useInstrument } from '../instruments/useInstrument';
+import { logPerf } from '../coach/perfLog';
 
 const MISTAKE_FLASH_MS = 700;
 // How long Timed mode holds the just-answered question's feedback on screen
@@ -42,6 +43,12 @@ const AUTO_ADVANCE_QUESTION_KINDS = new Set([
 ]);
 const AUTO_ADVANCE_CORRECT_MS = 1100;
 const AUTO_ADVANCE_WRONG_MS = 2600;
+// Performance log (coach/perfLog.js): answers are gathered per
+// mode/difficulty/pace and logged when the session finishes (Finish, the
+// Timed clock running out), when the mode/difficulty/pace changes mid-
+// session (≥1 answer), or when the player leaves (Exit, the tab left —
+// flushPerf) with at least MIN_ANSWERS_TO_LOG answers.
+const MIN_ANSWERS_TO_LOG = 5;
 
 // Owns the whole quiz session (mode/difficulty, current question, click/
 // choice progress, feedback flashes, score/streak). Talks to the Fretboard
@@ -95,6 +102,31 @@ export function useEarTraining() {
   // advance, Next, Skip, switching mode/difficulty mid-session) still
   // autoplays as before — by then the player is already actively practicing.
   const suppressAutoplayOnceRef = useRef(false);
+  // Answers not yet written to the performance log (see MIN_ANSWERS_TO_LOG).
+  const perfRunRef = useRef(null); // { mode, difficulty, practiceMode, correct, total, streak, bestStreak, startedAt }
+
+  // keepIfShort: too few answers to log yet — keep gathering them (the
+  // session is still open; the player may come back to it).
+  function flushPerf(minAnswers = MIN_ANSWERS_TO_LOG, { keepIfShort = false } = {}) {
+    const run = perfRunRef.current;
+    if (keepIfShort && run && run.total < minAnswers) return;
+    perfRunRef.current = null;
+    if (!run || run.total === 0 || run.total < minAnswers) return;
+    logPerf({
+      tool: 'ear',
+      item: run.mode,
+      durationMs: Date.now() - run.startedAt,
+      metrics: {
+        correct: run.correct,
+        total: run.total,
+        accuracyPct: Math.round((run.correct / run.total) * 100),
+        difficulty: run.difficulty,
+        practiceMode: run.practiceMode,
+        bestStreak: run.bestStreak,
+        instrument,
+      },
+    });
+  }
 
   const difficulty = EAR_TRAINING_DIFFICULTIES.find((d) => d.key === difficultyKey) ?? EAR_TRAINING_DIFFICULTIES[0];
 
@@ -220,6 +252,7 @@ export function useEarTraining() {
         feedbackHoldTimeoutRef.current = null;
       }
       setIsTimedOver(true);
+      flushPerf(1);
     }
   }
 
@@ -266,12 +299,14 @@ export function useEarTraining() {
   }
 
   function finish() {
+    flushPerf(1);
     clearTimers();
     timerIntervalRef.current = null;
     setIsFinished(true);
   }
 
   function exit() {
+    flushPerf();
     clearTimers();
     setOpen(false);
     setQuestion(null);
@@ -350,6 +385,19 @@ export function useEarTraining() {
   }
 
   function registerResult(wasCorrect) {
+    let run = perfRunRef.current;
+    if (run && (run.mode !== modeKey || run.difficulty !== difficultyKey || run.practiceMode !== practiceMode)) {
+      flushPerf(1);
+      run = null;
+    }
+    if (!run) {
+      run = { mode: modeKey, difficulty: difficultyKey, practiceMode, correct: 0, total: 0, streak: 0, bestStreak: 0, startedAt: Date.now() };
+      perfRunRef.current = run;
+    }
+    run.total += 1;
+    if (wasCorrect) run.correct += 1;
+    run.streak = wasCorrect ? run.streak + 1 : 0;
+    run.bestStreak = Math.max(run.bestStreak, run.streak);
     setScore((s) => ({ correct: s.correct + (wasCorrect ? 1 : 0), total: s.total + 1 }));
     setStreak((s) => {
       const next = wasCorrect ? s + 1 : 0;
@@ -563,6 +611,8 @@ export function useEarTraining() {
     quizRevealCells,
     quizPianoKeys,
     quizRevealPianoKeys,
+    // Record the session so far (e.g. the tab was left) — see MIN_ANSWERS_TO_LOG.
+    flushPerf: () => flushPerf(MIN_ANSWERS_TO_LOG, { keepIfShort: true }),
     skip: () => {
       if (isTimedOver || answered) return;
       registerResult(false);

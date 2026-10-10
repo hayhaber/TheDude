@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { buildPositionExercise, buildLinearExercise, buildTransitionExercise } from '../../music/scalePracticeContent';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -34,12 +34,26 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
   // whichever scale/key/position the student was just looking at, instead
   // of landing on this panel's own unrelated defaults. Consumed immediately
   // so a later, unrelated visit to this tab doesn't replay a stale seed.
+  // A seed WITH a `mode` (the coach's launch) sets every given parameter
+  // instead: mode, position or string(s), blue note, and a tempo that
+  // stays until Play (rebuilding the exercise would reset it otherwise).
+  const pendingBpmRef = useRef(null);
   useEffect(() => {
     if (!seed) return;
-    setScaleKey(seed.scaleKey);
-    setRoot(seed.root);
-    setMode('transition');
-    setPositionIndex(seed.positionIndex);
+    if (seed.scaleKey && SCALE_KEYS.includes(seed.scaleKey)) setScaleKey(seed.scaleKey);
+    if (Number.isInteger(seed.root)) setRoot(((seed.root % 12) + 12) % 12);
+    if (seed.mode == null) {
+      setMode('transition');
+      setPositionIndex(seed.positionIndex);
+    } else {
+      if (MODES.includes(seed.mode)) setMode(seed.mode);
+      if (Number.isInteger(seed.positionIndex)) setPositionIndex(Math.max(0, Math.min(4, seed.positionIndex)));
+      if (Number.isInteger(seed.string)) setStringIndex(Math.max(0, Math.min(5, seed.string)));
+      if (seed.stringCount === 1 || seed.stringCount === 2) setStringCount(seed.stringCount);
+      if (seed.blueNote != null) setIncludeBlueNote(!!seed.blueNote);
+      pendingBpmRef.current = Number.isFinite(seed.bpm) ? seed.bpm : null;
+      if (pendingBpmRef.current != null) metronome?.setBpm(pendingBpmRef.current);
+    }
     onSeedConsumed?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seed]);
@@ -58,7 +72,10 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
   }, [maxPositionIndex, positionIndex]);
 
   useEffect(() => {
-    if (isPlaying) return;
+    if (isPlaying) {
+      pendingBpmRef.current = null;
+      return;
+    }
     const blueNoteOpts = { includeBlueNote: scaleKey === 'minorPentatonic' && includeBlueNote };
     const built =
       mode === 'position'
@@ -66,7 +83,11 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
         : mode === 'linear'
         ? buildLinearExercise(scaleKey, root, { stringIndex, stringCount, ...blueNoteOpts })
         : buildTransitionExercise(scaleKey, root, positionIndex, blueNoteOpts);
-    scalePractice.loadExercise(built);
+    // A stable id from the parameters (for the performance log).
+    const where = mode === 'linear' ? `s${stringIndex}x${stringCount}` : `p${positionIndex}`;
+    const id = `${scaleKey}:${root}:${mode}:${where}${blueNoteOpts.includeBlueNote ? ':blue' : ''}`;
+    scalePractice.loadExercise({ ...built, id });
+    if (pendingBpmRef.current != null) metronome?.setBpm(pendingBpmRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scaleKey, root, mode, positionIndex, stringIndex, stringCount, includeBlueNote, isPlaying]);
 

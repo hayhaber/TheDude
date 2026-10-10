@@ -1,0 +1,356 @@
+/* Home screen profile chip ("who's practising?") + its popover. */
+.profile-chip-box {
+  position: relative;
+  z-index: 30; /* above the carousel's cards (z-index <= 10) */
+}
+
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 180px;
+  height: 38px;
+  padding: 0 14px 0 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 590;
+  cursor: pointer;
+  direction: ltr; /* avatar first, then the name */
+}
+
+.profile-chip:hover,
+.profile-chip.is-open {
+  background: var(--accent-bg);
+}
+
+.profile-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-avatar {
+  --size: 30px;
+  flex: 0 0 auto;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--size) * 0.46);
+  font-weight: 650;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(160deg, hsl(var(--hue) 70% 62%), hsl(var(--hue) 62% 46%));
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+/* ---- popover ---- */
+.profile-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(320px, calc(100vw - 32px));
+  max-height: min(460px, calc(100dvh - 90px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 12px 12px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-lg, 0 18px 40px rgba(0, 0, 0, 0.16));
+  font-size: 15px;
+  text-align: start;
+}
+
+.profile-pop-head {
+  padding: 0 6px 10px;
+}
+
+.profile-pop-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.profile-pop-hint {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.profile-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 12px;
+}
+
+.profile-item.is-active {
+  background: var(--accent-bg);
+}
+
+.profile-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* a list row (the global button reset centres) */
+  gap: 10px;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.profile-item:not(.is-active) .profile-row:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.profile-row-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 560;
+}
+
+.profile-check {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.profile-row-actions {
+  display: flex;
+  gap: 2px;
+  padding-inline-end: 4px;
+}
+
+.profile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 560;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.profile-btn:hover:not(:disabled) {
+  background: var(--accent-bg);
+}
+
+.profile-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.profile-btn.is-quiet {
+  height: 28px;
+  padding: 0 8px;
+  border-color: transparent;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.profile-btn.is-quiet:hover {
+  color: var(--text);
+}
+
+.profile-btn.is-danger-text:hover {
+  color: var(--danger);
+}
+
+.profile-btn.is-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.profile-btn.is-primary:hover:not(:disabled) {
+  background: var(--accent-hover, var(--accent));
+}
+
+.profile-btn.is-danger {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+}
+
+.profile-form {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+}
+
+.profile-form input {
+  flex: 1 1 0;
+  width: 0; /* the global input width mustn't push the buttons out */
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* >=16px: iOS doesn't zoom into the field */
+}
+
+.profile-item.is-confirm {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  background: var(--accent-bg);
+}
+
+.profile-confirm-text {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.profile-confirm-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.profile-pop-foot {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--divider);
+  display: flex;
+}
+
+.profile-new {
+  font-size: 14px;
+}
+
+.profile-new span {
+  font-size: 17px;
+  line-height: 1;
+}
+
+:root[data-theme='dark'] .profile-pop {
+  background: #1e1e22;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme='dark'] .profile-item:not(.is-active) .profile-row:hover {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+/* Phones upright: the top bar has no room beside the logo and "Back to
+   where I was", so the avatar alone sits in the dots row under the cards,
+   lined up with the card's right edge (cards are 84vw wide), and the list
+   opens upward. */
+@media (max-width: 640px) {
+  .profile-chip-box {
+    position: fixed;
+    right: 8vw;
+    bottom: 19px; /* centred on the dots (.home-nav: 34px padding, 8px dots) */
+  }
+
+  .profile-pop {
+    top: auto;
+    bottom: calc(100% + 8px);
+    max-height: min(460px, calc(100dvh - 140px));
+  }
+
+  .profile-chip {
+    padding: 0 3px;
+    height: 38px;
+    width: 38px;
+    justify-content: center;
+  }
+
+  .profile-chip-name {
+    display: none;
+  }
+}
+
+/* Phone sideways: a smaller chip in the low top bar (also undoes the
+   upright-phone placement for narrow phones turned sideways). */
+@media (orientation: landscape) and (max-height: 520px) {
+  .profile-chip-box {
+    position: relative;
+    right: auto;
+    bottom: auto;
+  }
+
+  .profile-pop {
+    top: calc(100% + 8px);
+    bottom: auto;
+  }
+
+  .profile-chip {
+    height: 30px;
+    font-size: 13px;
+    padding: 0 12px 0 3px;
+    width: auto;
+  }
+
+  .profile-chip-name {
+    display: inline;
+  }
+
+  .profile-avatar {
+    --size: 24px;
+  }
+
+  .profile-row .profile-avatar {
+    --size: 26px;
+  }
+
+  .profile-pop {
+    max-height: calc(100dvh - 56px);
+  }
+}
+
+/* Short phones upright (e.g. iPhone SE): the card nearly reaches the dots,
+   so a smaller avatar a little lower, clear of the card's corner. */
+@media (max-width: 640px) and (max-height: 740px) and (orientation: portrait) {
+  .profile-chip-box {
+    bottom: 10px;
+  }
+
+  .profile-chip {
+    width: 32px;
+    height: 32px;
+  }
+
+  .profile-chip .profile-avatar {
+    --size: 26px;
+  }
+}

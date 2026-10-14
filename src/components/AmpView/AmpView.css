@@ -1132,7 +1132,7 @@
     0 0.2em 0.35em rgba(0, 0, 0, 0.5);
 }
 
-.amp-pedal.pedal-comp   { --paint: #1aa391; --paint-dark: #0d7466; }
+.amp-pedal.pedal-comp   { --paint: #e4e7eb; --paint-dark: #9ea4ac; --ink: #1d2024; }
 .amp-pedal.pedal-drive  { --paint: #ffd21f; --paint-dark: #e8ac00; --ink: #18160f; }
 .amp-pedal.pedal-chorus { --paint: #7d48c4; --paint-dark: #55288f; }
 .amp-pedal.pedal-delay  { --paint: #2a6fe0; --paint-dark: #1748a6; }

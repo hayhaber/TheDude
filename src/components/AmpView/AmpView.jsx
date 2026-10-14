@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { Knob } from './Knob';
-import { LevelMeter } from './LevelMeter';
+import { LedMeter } from './LedMeter';
+import { Nameplate } from './Nameplate';
+import { ToggleSwitch } from './ToggleSwitch';
+import { TIPS_AMP } from '../../i18n/tips/amp';
 import {
   AMP_KNOBS,
   BUILTIN_PRESETS,
@@ -24,18 +27,10 @@ import './AmpView.css';
 
 const AMP_FACE = ['gate', ...AMP_KNOBS];
 
-function useIsPhone() {
-  const q = '(max-width: 640px)';
-  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia?.(q).matches);
-  useEffect(() => {
-    const mq = window.matchMedia?.(q);
-    if (!mq) return undefined;
-    const on = () => setPhone(mq.matches);
-    mq.addEventListener?.('change', on);
-    return () => mq.removeEventListener?.('change', on);
-  }, []);
-  return phone;
-}
+// Text printed on the hardware (amp panel, pedal enclosures) is English in
+// both languages, like on real gear; accessible names stay localized.
+const EN = TIPS_AMP.en;
+const engraved = (key) => EN[key] ?? key;
 
 /**
  * The virtual amp (Tools card -> Amp): the Settings input through gate,
@@ -44,7 +39,6 @@ function useIsPhone() {
  */
 export function AmpView() {
   const { t } = useLanguage();
-  const phone = useIsPhone();
   const [settings, setSettings] = useState(loadCurrentSettings);
   const [userPresets, setUserPresets] = useState(loadUserPresets);
   const [presetId, setPresetId] = useState(() => {
@@ -223,9 +217,8 @@ export function AmpView() {
     setMuted(false);
   };
 
-  const knobSize = phone ? 54 : 66;
-  const pedalKnobSize = phone ? 46 : 50;
   const isOn = power === 'on';
+  const statusText = t(isOn ? 'amp.statusOn' : power === 'starting' ? 'amp.statusStarting' : 'amp.statusOff');
 
   return (
     <div className={`amp-view voicing-${settings.voicing}` + (isOn ? ' is-on' : '')}>
@@ -246,59 +239,6 @@ export function AmpView() {
           </button>
         </div>
       )}
-
-      {/* Power, status, latency, meters */}
-      <section className="amp-head">
-        <button
-          type="button"
-          className={'amp-power' + (isOn ? ' is-on' : '') + (power === 'starting' ? ' is-starting' : '')}
-          aria-pressed={isOn}
-          onClick={() => (power === 'off' ? start() : stop())}
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path d="M12 3v8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-            <path d="M7 6.5a7.5 7.5 0 1 0 10 0" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-          </svg>
-          {t('amp.power')}
-        </button>
-        <div className="amp-status">
-          <span className="amp-status-state">
-            <span className={'amp-led' + (isOn ? ' is-on' : '')} aria-hidden="true" />
-            {t(isOn ? 'amp.statusOn' : power === 'starting' ? 'amp.statusStarting' : 'amp.statusOff')}
-          </span>
-          <span className="amp-status-latency">
-            {t('amp.latencyLabel')}{' '}
-            <b
-              dir="ltr"
-              title={
-                latency
-                  ? `in ${Math.round(latency.input * 1000)} · buffer ${Math.round(latency.base * 1000)} · out ${Math.round(latency.output * 1000)} ms`
-                  : undefined
-              }
-            >
-              {latency ? t('amp.latency', { ms: Math.round(latency.total * 1000) }) : '—'}
-            </b>
-            <InfoTooltip text={t('amp.tip.latency')} />
-          </span>
-        </div>
-        <div className="amp-meters">
-          <LevelMeter label={t('amp.in')} bind={inMeterRef} />
-          <LevelMeter label={t('amp.out')} bind={outMeterRef} />
-        </div>
-        {phonesOk && (
-          <button type="button" className={'amp-btn amp-mute' + (muted ? ' is-active' : '')} aria-pressed={muted} onClick={() => setMuted((m) => !m)}>
-            {t('amp.mute')}
-          </button>
-        )}
-      </section>
-
-      {error && (
-        <p className="amp-error" role="alert">
-          {t('amp.errMic', { msg: error })}
-        </p>
-      )}
-      {isOn && noGate && <p className="amp-hint">{t('amp.noGate')}</p>}
-      {isOn && inputName && <p className="amp-hint amp-input-name">{t('amp.input', { name: inputName })}</p>}
 
       {/* Presets */}
       <section className="amp-presets">
@@ -392,77 +332,167 @@ export function AmpView() {
         </div>
       </section>
 
-      {/* The amp face */}
-      <section className="amp-face" aria-label={t('amp.title')}>
-        <div className="amp-face-top">
-          <label className="amp-field">
-            <span>{t('amp.voicing')}</span>
-            <select
-              value={settings.voicing}
-              onChange={(e) => {
-                const voicing = e.target.value;
-                setSettings((s) => ({ ...s, voicing }));
-              }}
-            >
-              {VOICINGS.map((v) => (
-                <option key={v} value={v}>
-                  {t(`amp.voicing.${v}`)}
-                </option>
+      {/* The amp: tolex cabinet, brushed control panel, grille cloth */}
+      <section className="amp-rig" aria-label={t('amp.title')}>
+        <div className="amp-handle" aria-hidden="true" />
+        <div className="amp-cab" dir="ltr">
+          <div className="amp-face">
+            <span className="amp-screw s-tl" aria-hidden="true" />
+            <span className="amp-screw s-tr" aria-hidden="true" />
+            <span className="amp-screw s-bl" aria-hidden="true" />
+            <span className="amp-screw s-br" aria-hidden="true" />
+
+            <div className="amp-panel-input">
+              <div className="amp-jack-block" title={inputName ? t('amp.input', { name: inputName }) : undefined}>
+                <span className="amp-jack" aria-hidden="true">
+                  <span className="amp-jack-hole" />
+                </span>
+                <span className="amp-engrave">INPUT</span>
+              </div>
+              <label className="amp-channel">
+                <span className="amp-engrave">CHANNEL</span>
+                <select
+                  aria-label={t('amp.voicing')}
+                  value={settings.voicing}
+                  onChange={(e) => {
+                    const voicing = e.target.value;
+                    setSettings((s) => ({ ...s, voicing }));
+                  }}
+                >
+                  {VOICINGS.map((v) => (
+                    <option key={v} value={v}>
+                      {t(`amp.voicing.${v}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="amp-knobs">
+              {AMP_FACE.map((k) => (
+                <Knob
+                  key={k}
+                  variant="amp"
+                  label={t(`amp.knob.${k}`)}
+                  caption={engraved(`amp.knob.${k}`)}
+                  value={k === 'gate' ? settings.gate : settings.amp[k]}
+                  onChange={(v) => setAmp(k, v)}
+                  hint={t('amp.knobHint')}
+                  tip={k === 'gate' ? <InfoTooltip text={t('amp.tip.gate')} /> : undefined}
+                />
               ))}
-            </select>
-          </label>
-          <span className="amp-gate-tip">
-            <InfoTooltip text={t('amp.tip.gate')} />
-          </span>
-        </div>
-        <div className="amp-knobs">
-          {AMP_FACE.map((k) => (
-            <Knob
-              key={k}
-              label={t(`amp.knob.${k}`)}
-              value={k === 'gate' ? settings.gate : settings.amp[k]}
-              onChange={(v) => setAmp(k, v)}
-              size={knobSize}
-              hint={t('amp.knobHint')}
-            />
-          ))}
+            </div>
+
+            <div className="amp-panel-power">
+              <div className="amp-switches">
+                <div className="amp-jewel-block">
+                  <span className={'amp-jewel' + (isOn ? ' is-on' : '') + (power === 'starting' ? ' is-starting' : '')} aria-hidden="true">
+                    <span className="amp-jewel-glass" />
+                  </span>
+                  <span className="amp-engrave">PILOT</span>
+                </div>
+                <ToggleSwitch
+                  className={'amp-mute' + (muted ? ' is-active' : '')}
+                  caption="STANDBY"
+                  up={phonesOk && !muted}
+                  pressed={phonesOk ? muted : undefined}
+                  label={t('amp.mute')}
+                  disabled={!phonesOk}
+                  onClick={() => setMuted((m) => !m)}
+                />
+                <ToggleSwitch
+                  className={'amp-power' + (isOn ? ' is-on' : '') + (power === 'starting' ? ' is-starting' : '')}
+                  caption="POWER"
+                  up={power !== 'off'}
+                  pressed={isOn}
+                  busy={power === 'starting'}
+                  label={t('amp.power')}
+                  onClick={() => (power === 'off' ? start() : stop())}
+                />
+              </div>
+              <div className="amp-meters">
+                <LedMeter label="IN" bind={inMeterRef} />
+                <LedMeter label="OUT" bind={outMeterRef} />
+              </div>
+              <div className="amp-status">
+                <span className="amp-visually-hidden" role="status">
+                  {t('amp.title')}: {statusText}
+                </span>
+                <span className="amp-status-latency" dir="auto">
+                  <span>{t('amp.latencyLabel')}</span>{' '}
+                  <b
+                    dir="ltr"
+                    title={
+                      latency
+                        ? `in ${Math.round(latency.input * 1000)} · buffer ${Math.round(latency.base * 1000)} · out ${Math.round(latency.output * 1000)} ms`
+                        : undefined
+                    }
+                  >
+                    {latency ? t('amp.latency', { ms: Math.round(latency.total * 1000) }) : '—'}
+                  </b>
+                  <InfoTooltip text={t('amp.tip.latency')} />
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="amp-grille" aria-hidden="true">
+            <Nameplate />
+          </div>
         </div>
       </section>
 
-      {/* Pedal board (signal order) */}
+      {error && (
+        <p className="amp-error" role="alert">
+          {t('amp.errMic', { msg: error })}
+        </p>
+      )}
+      {isOn && noGate && <p className="amp-hint">{t('amp.noGate')}</p>}
+      {isOn && inputName && <p className="amp-hint amp-input-name">{t('amp.input', { name: inputName })}</p>}
+
+      {/* Pedal board (signal order, always left to right) */}
       <section className="amp-board">
         <h2 className="amp-board-title">{t('amp.pedals')}</h2>
-        <div className="amp-pedals">
-          {PEDALS.map((p) => {
-            const st = settings.pedals[p.id];
-            const name = t(`amp.pedal.${p.id}`);
-            return (
-              <div key={p.id} className={`amp-pedal pedal-${p.id}` + (st.on ? ' is-on' : '')}>
-                <button
-                  type="button"
-                  className="amp-pedal-switch"
-                  aria-pressed={st.on}
-                  aria-label={t('amp.pedalOn', { name })}
-                  onClick={() => setPedal(p.id, 'on', !st.on)}
-                >
+        <div className="amp-board-surface" dir="ltr">
+          <div className="amp-pedals">
+            {PEDALS.map((p) => {
+              const st = settings.pedals[p.id];
+              const name = t(`amp.pedal.${p.id}`);
+              return (
+                <div key={p.id} className={`amp-pedal pedal-${p.id}` + (st.on ? ' is-on' : '')} role="group" aria-label={name}>
+                  <span className="amp-pedal-jack j-in" aria-hidden="true" />
+                  <span className="amp-pedal-jack j-out" aria-hidden="true" />
                   <span className="amp-pedal-led" aria-hidden="true" />
-                  <span className="amp-pedal-name">{name}</span>
-                </button>
-                <div className="amp-pedal-knobs">
-                  {p.knobs.map((k) => (
-                    <Knob
-                      key={k}
-                      label={t(`amp.pk.${k}`)}
-                      value={st[k]}
-                      onChange={(v) => setPedal(p.id, k, v)}
-                      size={pedalKnobSize}
-                      hint={t('amp.knobHint')}
-                    />
-                  ))}
+                  <div className={`amp-pedal-knobs n${p.knobs.length}`}>
+                    {p.knobs.map((k) => (
+                      <Knob
+                        key={k}
+                        variant="pedal"
+                        label={`${name} ${t(`amp.pk.${k}`)}`}
+                        caption={engraved(`amp.pk.${k}`)}
+                        value={st[k]}
+                        onChange={(v) => setPedal(p.id, k, v)}
+                        hint={t('amp.knobHint')}
+                      />
+                    ))}
+                  </div>
+                  <div className="amp-pedal-print" aria-hidden="true">
+                    <span className="amp-pedal-name">{engraved(`amp.pedal.${p.id}`)}</span>
+                    <span className="amp-pedal-brand">DudeStar</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="amp-pedal-switch"
+                    aria-pressed={st.on}
+                    aria-label={t('amp.pedalOn', { name })}
+                    onClick={() => setPedal(p.id, 'on', !st.on)}
+                  >
+                    <span className="amp-pedal-stomp" aria-hidden="true" />
+                  </button>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
     </div>

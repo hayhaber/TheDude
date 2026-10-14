@@ -540,7 +540,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
   a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
   CRUNCH 0° / LEAD +60°, under INPUT where the dropdown was — knob row unchanged (user); tap = next, tap a printed
-  name, drag, arrows) — user's choice after a dropdown and a bat toggle), stompbox pedals all one size (comp silver, drive yellow, chorus purple, delay blue, reverb red).
+  name, drag, arrows) — user's choice after a dropdown and a bat toggle), stompbox pedals all one size (comp silver, drive yellow, chorus purple, delay blue, reverb red). A small
+  wireless receiver (InputReceiver: graphite body turned left, LED lit when
+  the amp is on) sits in the INPUT jack — the user rejected a drawn cable.
 - **Room calibration** (Settings -> Audio Input, `noiseCalibration.js`,
   RoomCalibration.jsx): 3 s room + 4 s playing -> gate + noise spectrum per
   mic/mode; detectors use max(own gate, calibrated) and subtract the noise

@@ -6,7 +6,7 @@ import { LedMeter } from './LedMeter';
 import { Nameplate } from './Nameplate';
 import { ToggleSwitch } from './ToggleSwitch';
 import { ChannelSwitch } from './ChannelSwitch';
-import { InputCable } from './InputCable';
+import { InputReceiver } from './InputReceiver';
 import { TIPS_AMP } from '../../i18n/tips/amp';
 import {
   AMP_KNOBS,
@@ -40,8 +40,6 @@ const engraved = (key) => EN[key] ?? key;
  */
 export function AmpView() {
   const { t } = useLanguage();
-  const cabRef = useRef(null);
-  const jackRef = useRef(null);
   const [settings, setSettings] = useState(loadCurrentSettings);
   const [userPresets, setUserPresets] = useState(loadUserPresets);
   const [presetId, setPresetId] = useState(() => {
@@ -338,8 +336,7 @@ export function AmpView() {
       {/* The amp: tolex cabinet, brushed control panel, grille cloth */}
       <section className="amp-rig" aria-label={t('amp.title')}>
         <div className="amp-handle" aria-hidden="true" />
-        <div className="amp-cab" dir="ltr" ref={cabRef}>
-          <InputCable cabRef={cabRef} jackRef={jackRef} />
+        <div className="amp-cab" dir="ltr">
           <div className="amp-face">
             <span className="amp-screw s-tl" aria-hidden="true" />
             <span className="amp-screw s-tr" aria-hidden="true" />
@@ -348,8 +345,9 @@ export function AmpView() {
 
             <div className="amp-panel-input">
               <div className="amp-jack-block" title={inputName ? t('amp.input', { name: inputName }) : undefined}>
-                <span className="amp-jack" aria-hidden="true" ref={jackRef}>
+                <span className="amp-jack" aria-hidden="true">
                   <span className="amp-jack-hole" />
+                  <InputReceiver on={isOn} />
                 </span>
                 <span className="amp-engrave">INPUT</span>
               </div>

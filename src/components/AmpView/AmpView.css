@@ -1399,13 +1399,31 @@
   cursor: pointer;
 }
 
-/* The guitar cable in the INPUT socket: over the panel, clipped to the
-   cabinet so it leaves past its left edge. */
-.amp-input-cable {
+/* Wireless receiver in the INPUT socket: swivel collar centred on the
+   socket, body turned to the left, small and quiet. */
+.amp-receiver {
   position: absolute;
-  inset: 0;
-  z-index: 3;
-  overflow: hidden;
-  border-radius: 16px;
+  z-index: 2;
+  top: 50%;
+  right: 50%;
+  width: 44px;
+  height: 22px;
+  margin-top: -10.5px;
+  margin-right: -9px;
   pointer-events: none;
+}
+
+.amp-receiver svg {
+  display: block;
+  overflow: visible;
+}
+
+.amp-receiver-led {
+  fill: #2c3a33;
+  transition: fill 0.3s, filter 0.3s;
+}
+
+.amp-receiver.is-on .amp-receiver-led {
+  fill: #5ef2a0;
+  filter: drop-shadow(0 0 2px rgba(94, 242, 160, 0.9));
 }

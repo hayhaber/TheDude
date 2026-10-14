@@ -197,6 +197,18 @@
   min-width: 150px;
 }
 
+/* Preset names centred in the menu (closed field + the list where the
+   browser draws it itself). */
+.amp-presets select {
+  text-align: center;
+  text-align-last: center;
+}
+
+.amp-presets select option,
+.amp-presets select optgroup {
+  text-align: center;
+}
+
 .amp-badge {
   padding: 3px 9px;
   border-radius: 999px;

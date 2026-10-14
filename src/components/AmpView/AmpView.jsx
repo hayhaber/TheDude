@@ -5,12 +5,12 @@ import { Knob } from './Knob';
 import { LedMeter } from './LedMeter';
 import { Nameplate } from './Nameplate';
 import { ToggleSwitch } from './ToggleSwitch';
+import { ChannelSwitch } from './ChannelSwitch';
 import { TIPS_AMP } from '../../i18n/tips/amp';
 import {
   AMP_KNOBS,
   BUILTIN_PRESETS,
   PEDALS,
-  VOICINGS,
   applyPreset,
   headphonesConfirmed,
   loadCurrentSettings,
@@ -349,23 +349,10 @@ export function AmpView() {
                 </span>
                 <span className="amp-engrave">INPUT</span>
               </div>
-              <label className="amp-channel">
-                <span className="amp-engrave">CHANNEL</span>
-                <select
-                  aria-label={t('amp.voicing')}
-                  value={settings.voicing}
-                  onChange={(e) => {
-                    const voicing = e.target.value;
-                    setSettings((s) => ({ ...s, voicing }));
-                  }}
-                >
-                  {VOICINGS.map((v) => (
-                    <option key={v} value={v}>
-                      {t(`amp.voicing.${v}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <ChannelSwitch
+                value={settings.voicing}
+                onChange={(voicing) => setSettings((st) => ({ ...st, voicing }))}
+              />
             </div>
 
             <div className="amp-knobs">

@@ -736,7 +736,7 @@
   transform-origin: 50% 100%;
   background: linear-gradient(90deg, #6f747c 0%, #f4f5f7 38%, #c9ccd1 62%, #6b7078 100%);
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.45);
-  transition: transform 0.14s cubic-bezier(0.3, 0.7, 0.4, 1.2);
+  transition: transform 0.14s cubic-bezier(0.3, 0.7, 0.4, 1.2), height 0.14s ease;
 }
 
 .amp-toggle-bat::before {
@@ -1356,4 +1356,49 @@
   .amp-board-surface {
     padding: 18px 10px 20px;
   }
+}
+
+/* 3-way channel toggle: same lever as Power; centre = lever straight out. */
+.amp-channel-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.amp-channel-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.amp-toggle.is-mid .amp-toggle-bat {
+  /* the lever points at you: only its ball shows, centred on the nut */
+  height: 0;
+  box-shadow: none;
+}
+
+.amp-toggle.is-mid .amp-toggle-bat::before {
+  top: -8px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.55);
+}
+
+.amp-channel-names {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 52px;
+  padding: 2px 0;
+}
+
+.amp-channel-names .amp-engrave {
+  font-size: 8px;
+  line-height: 1;
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.amp-channel-names .amp-engrave.is-on {
+  opacity: 1;
 }

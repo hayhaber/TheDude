@@ -539,7 +539,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   tagged with the profile id, dry or through the amp, count-in click).
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
   a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
-  CRUNCH 0° / LEAD +60°, first in the knob row; tap = next, tap a printed
+  CRUNCH 0° / LEAD +60°, under INPUT where the dropdown was — knob row unchanged (user); tap = next, tap a printed
   name, drag, arrows) — user's choice after a dropdown and a bat toggle), stompbox pedals all one size (comp silver, drive yellow, chorus purple, delay blue, reverb red).
 - **Room calibration** (Settings -> Audio Input, `noiseCalibration.js`,
   RoomCalibration.jsx): 3 s room + 4 s playing -> gate + noise spectrum per

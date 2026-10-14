@@ -481,7 +481,7 @@
   --knob-size: 76px;
   grid-area: knobs;
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: start;
   gap: 4px 2px;
 }
@@ -904,6 +904,10 @@
     gap: 18px;
   }
 
+  .amp-channel-knob {
+    --knob-size: 78px;
+  }
+
   .amp-knobs {
     --knob-size: 78px;
     padding-top: 6px;
@@ -1009,6 +1013,10 @@
     justify-content: flex-end;
   }
 
+  .amp-channel-knob {
+    --knob-size: 66px;
+  }
+
   .amp-knobs {
     --knob-size: 66px;
     grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -1019,7 +1027,9 @@
     grid-column: span 2;
   }
 
-  /* 8 knobs (channel + 7) = two even rows of 4 */
+  .amp-knobs > .amp-knob:nth-child(5) {
+    grid-column: 2 / span 2;
+  }
 
   .amp-knob.is-amp .amp-knob-label {
     font-size: 9px;
@@ -1379,6 +1389,10 @@
 
 .amp-knob .amp-scale-num.is-word.is-on {
   opacity: 1;
+}
+
+:where(.amp-channel-knob) {
+  --knob-size: 76px; /* the knob-row size; the @container rules above win */
 }
 
 .amp-channel-knob .amp-knob-dial {

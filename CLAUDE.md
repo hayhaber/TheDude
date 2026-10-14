@@ -538,8 +538,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
   (`components/RecorderView`, `audio/recorder*.js`: WAV takes in IndexedDB
   tagged with the profile id, dry or through the amp, count-in click).
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
-  3-way bat toggle up LEAD / centre CRUNCH (ball only) / down CLEAN, user's
-  request instead of a dropdown), stompbox pedals all one size (comp silver, drive yellow, chorus purple, delay blue, reverb red).
+  a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
+  CRUNCH 0° / LEAD +60°, first in the knob row; tap = next, tap a printed
+  name, drag, arrows) — user's choice after a dropdown and a bat toggle), stompbox pedals all one size (comp silver, drive yellow, chorus purple, delay blue, reverb red).
 - **Room calibration** (Settings -> Audio Input, `noiseCalibration.js`,
   RoomCalibration.jsx): 3 s room + 4 s playing -> gate + noise spectrum per
   mic/mode; detectors use max(own gate, calibrated) and subtract the noise

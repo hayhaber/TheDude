@@ -349,13 +349,14 @@ export function AmpView() {
                 </span>
                 <span className="amp-engrave">INPUT</span>
               </div>
+
+            </div>
+
+            <div className="amp-knobs">
               <ChannelSwitch
                 value={settings.voicing}
                 onChange={(voicing) => setSettings((st) => ({ ...st, voicing }))}
               />
-            </div>
-
-            <div className="amp-knobs">
               {AMP_FACE.map((k) => (
                 <Knob
                   key={k}

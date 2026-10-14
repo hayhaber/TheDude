@@ -9,12 +9,12 @@ const round1 = (v) => Math.round(v * 10) / 10;
 const START = -SWEEP / 2;
 const angleOf = (v) => START + ((v - MIN) / (MAX - MIN)) * SWEEP;
 
-function polar(cx, cy, r, deg) {
+export function polar(cx, cy, r, deg) {
   const a = ((deg - 90) * Math.PI) / 180;
   return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
 }
 
-const f2 = (n) => n.toFixed(2);
+export const f2 = (n) => n.toFixed(2);
 
 // Knurled edge: short radial grooves round the rim (drawn once, rotated with
 // the knob so the grip turns like a real one).
@@ -49,7 +49,7 @@ const AMP_NUMBERS = Array.from({ length: 10 }, (_, i) => {
   return { v, x: f2(x), y: f2(y) };
 });
 
-function AmpKnobArt({ angle, uid }) {
+export function AmpKnobArt({ angle, uid, scale = null }) {
   return (
     <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
       <defs>
@@ -68,9 +68,17 @@ function AmpKnobArt({ angle, uid }) {
           <stop offset="1" stopColor="#c9cdd3" />
         </radialGradient>
       </defs>
-      <path className="amp-scale-ticks" d={AMP_TICKS} />
-      {AMP_NUMBERS.map((n) => (
-        <text key={n.v} className="amp-scale-num" x={n.x} y={n.y} textAnchor="middle" dominantBaseline="central">
+      <path className="amp-scale-ticks" d={scale ? scale.ticks : AMP_TICKS} />
+      {(scale ? scale.labels : AMP_NUMBERS).map((n) => (
+        <text
+          key={n.v}
+          className={'amp-scale-num' + (n.on ? ' is-on' : '') + (scale ? ' is-word' : '')}
+          x={n.x}
+          y={n.y}
+          textAnchor={n.anchor ?? 'middle'}
+          dominantBaseline="central"
+          data-pos={n.index}
+        >
           {n.v}
         </text>
       ))}

@@ -1398,3 +1398,14 @@
 .amp-channel-knob .amp-knob-dial {
   cursor: pointer;
 }
+
+/* The guitar cable in the INPUT socket: over the panel, clipped to the
+   cabinet so it leaves past its left edge. */
+.amp-input-cable {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  border-radius: 16px;
+  pointer-events: none;
+}

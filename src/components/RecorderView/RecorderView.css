@@ -1,5 +1,5 @@
-/* Record yourself: a deck (big record button, time, level), options, and
-   the list of takes with waveforms. */
+/* Record yourself: a reel-to-reel deck (transport, meters, counter, keys,
+   options) and the list of takes with waveforms. */
 .rec-view {
   --rec-red: #ff3b30;
   --rec-panel: linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%);
@@ -18,155 +18,466 @@
   --rec-wave: rgba(255, 255, 255, 0.28);
 }
 
-/* ---- deck -------------------------------------------------------------- */
+/* ---- deck: a reel-to-reel tape recorder ---------------------------------
+   Walnut side cheeks, a brushed-aluminium face, two metal reels, VU meters,
+   piano-key transport. A physical object: the same in light and dark. */
 .rec-deck {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 18px 20px;
-  border-radius: 22px;
-  background: var(--rec-panel);
-  box-shadow: inset 0 0 0 1px var(--rec-panel-border);
+  --tape-ink: #24262a;
+  --tape-ink-soft: #4a4d53;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 22px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 18px 40px -12px rgba(0, 0, 0, 0.45),
+    0 3px 8px rgba(0, 0, 0, 0.2);
+  text-align: left;
 }
 
-.rec-button {
-  flex: none;
+.tape-cheek {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0) 0 2px,
+      rgba(0, 0, 0, 0.12) 2px 3px,
+      rgba(255, 220, 170, 0.06) 3px 5px,
+      rgba(0, 0, 0, 0.08) 5px 6px
+    ),
+    repeating-linear-gradient(
+      178deg,
+      rgba(255, 255, 255, 0) 0 23px,
+      rgba(40, 18, 6, 0.18) 23px 26px,
+      rgba(255, 255, 255, 0) 26px 61px
+    ),
+    linear-gradient(90deg, #4b2a17 0%, #6e3f22 35%, #7b4728 55%, #5a3219 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.12),
+    inset -2px 0 3px rgba(0, 0, 0, 0.35);
+}
+
+.tape-face {
+  min-width: 0;
+  padding: 12px 16px 16px;
+  color: var(--tape-ink);
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 1px, rgba(0, 0, 0, 0.035) 1px 2px, rgba(255, 255, 255, 0) 2px 3px),
+    linear-gradient(180deg, #e4e5e8 0%, #cfd1d5 55%, #c3c6cb 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.tape-plate {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px 2px;
+}
+
+.tape-brand {
+  font-size: 15px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--tape-ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.tape-model,
+.tape-engrave {
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tape-ink-soft);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+}
+
+.tape-transport {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 2px 0 6px;
+}
+
+/* Meters | counter | meters, on a thin black-lined lower panel. */
+.tape-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.tape-vu {
+  position: relative;
+  align-self: center;
+  max-width: 210px;
+  width: 100%;
+  justify-self: center;
+  padding: 5px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #2b2c30, #0f1012);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+.tape-vu svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.tape-vu-num {
+  font-size: 9.5px;
+  font-weight: 650;
+  fill: #1c1b18;
+}
+
+.tape-vu-num.is-red,
+.tape-vu-sign.is-red {
+  fill: #c4271d;
+}
+
+.tape-vu-sign {
+  font-size: 13px;
+  font-weight: 700;
+  fill: #1c1b18;
+}
+
+.tape-vu-big {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  fill: #1c1b18;
+}
+
+.tape-vu-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  fill: #d8d4c6;
+}
+
+.tape-vu-led {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4a1512;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.tape-vu-led.is-on {
+  background: #ff3b30;
+  box-shadow: 0 0 6px 1px rgba(255, 59, 48, 0.8);
+}
+
+.tape-center {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 96px;
-  height: 96px;
-  border: none;
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 650;
-  cursor: pointer;
-  box-shadow:
-    inset 0 0 0 1px var(--rec-panel-border),
-    0 4px 14px rgba(0, 0, 0, 0.08);
-  transition: transform 0.12s ease, box-shadow 0.2s ease;
+  gap: 8px;
 }
 
-.rec-button:active {
-  transform: scale(0.97);
-}
-
-.rec-button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.rec-button-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--rec-red);
-  transition: border-radius 0.2s ease, width 0.2s ease, height 0.2s ease;
-}
-
-.rec-button.is-busy .rec-button-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-}
-
-.rec-deck.is-recording .rec-button {
-  box-shadow:
-    inset 0 0 0 2px var(--rec-red),
-    0 0 0 6px color-mix(in srgb, var(--rec-red) 16%, transparent);
-  animation: rec-pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes rec-pulse {
-  50% {
-    box-shadow:
-      inset 0 0 0 2px var(--rec-red),
-      0 0 0 10px color-mix(in srgb, var(--rec-red) 8%, transparent);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rec-deck.is-recording .rec-button {
-    animation: none;
-  }
-}
-
-.rec-deck-info {
-  flex: 1;
-  min-width: 0;
+.tape-lamps {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.rec-time {
-  font-size: 40px;
-  font-weight: 650;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  text-align: start;
-}
-
-[dir='rtl'] .rec-time {
-  text-align: right;
-}
-
-.rec-state {
-  font-size: 14px;
-  font-weight: 590;
-  color: var(--text-secondary);
-}
-
-.rec-deck.is-recording .rec-state {
-  color: var(--rec-red);
-}
-
-/* ---- options ----------------------------------------------------------- */
-.rec-options {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 20px;
-}
-
-.rec-option {
-  display: inline-flex;
-  align-items: center;
   gap: 10px;
 }
 
-.rec-option-label {
+.tape-lamp {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.35);
+  background: #3a2422;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.tape-lamp.is-play {
+  background: #1e3324;
+}
+
+.tape-lamp.is-rec.is-on,
+.tape-lamp.is-rec.is-blink {
+  color: #fff;
+  background: #e0281c;
+  box-shadow: 0 0 10px rgba(255, 50, 30, 0.75);
+}
+
+.tape-lamp.is-rec.is-blink {
+  animation: tape-blink 0.6s steps(1) infinite;
+}
+
+.tape-lamp.is-play.is-on {
+  color: #f2fff4;
+  background: #23b04a;
+  box-shadow: 0 0 10px rgba(40, 200, 90, 0.6);
+}
+
+@keyframes tape-blink {
+  50% {
+    color: rgba(255, 255, 255, 0.35);
+    background: #3a2422;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Mechanical roller counter. */
+.tape-counter {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 5px;
+  background: #121315;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tape-digit {
+  width: 21px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 2px;
+  font-size: 21px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #f1efe8;
+  background: linear-gradient(180deg, #050505 0%, #2c2d30 22%, #3a3b3f 50%, #2c2d30 78%, #050505 100%);
+}
+
+.tape-counter-sep {
+  width: 8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1efe8;
+}
+
+.rec-state {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--tape-ink-soft);
+  text-align: center;
+}
+
+.rec-deck.is-recording .rec-state,
+.rec-deck.is-counting .rec-state {
+  color: #c4271d;
+}
+
+/* Piano-key transport. */
+.tape-keys {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.tape-key-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tape-key {
+  position: relative;
+  width: 62px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 4px 4px 6px 6px;
+  color: #e9e9ec;
+  background: linear-gradient(180deg, #4a4c52 0%, #2c2e33 40%, #1d1e22 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.45),
+    0 3px 0 #0b0b0c,
+    0 5px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+
+.tape-key:active:not(:disabled),
+.tape-key.is-down {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+    0 0 0 #0b0b0c,
+    0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.tape-key:disabled {
+  cursor: default;
+  color: rgba(233, 233, 236, 0.38);
+}
+
+.tape-key:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.tape-key.is-rec {
+  color: #ff4b3e;
+}
+
+.tape-key.is-rec:disabled {
+  color: rgba(255, 75, 62, 0.4);
+}
+
+.tape-key.is-rec.is-down {
+  color: #ff6a5e;
+  filter: drop-shadow(0 0 6px rgba(255, 60, 40, 0.45));
+}
+
+.tape-key.is-play.is-down,
+.tape-key.is-rew.is-down,
+.tape-key.is-ff.is-down {
+  color: #6cf08f;
+}
+
+/* Source knob, click, BPM. */
+.rec-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px 26px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.tape-source {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tape-source-title {
+  margin-bottom: 4px;
+}
+
+.tape-source-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tape-source-pos {
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(36, 38, 42, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.tape-source-pos.is-on {
+  color: var(--tape-ink);
+}
+
+.tape-source-pos:disabled,
+.tape-source-knob:disabled {
+  cursor: default;
+}
+
+.tape-source-knob {
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.tape-source-knob svg g {
+  transition: transform 0.18s ease;
+}
+
+.tape-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tape-field select,
+.tape-field .rec-bpm {
+  box-sizing: border-box;
+  height: 34px;
+  margin-top: 6px; /* centred on the Sound knob beside it */
+  border: none;
+  border-radius: 6px;
+  font: inherit;
   font-size: 14px;
-  font-weight: 590;
-  color: var(--text-secondary);
+  color: #f1efe8;
+  background: linear-gradient(180deg, #2c2e33, #18191c);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
-.rec-toggle {
-  margin: 0;
+.tape-field select {
+  max-width: 190px;
+  padding: 0 10px;
+  text-align: center;
+  text-align-last: center;
 }
 
-.rec-toggle button {
-  min-width: 72px;
+.tape-field select option {
+  color: initial;
+  background: initial;
 }
 
 .rec-bpm {
-  box-sizing: border-box;
-  width: 76px;
-  height: var(--control-height);
+  width: 72px;
   padding: 0 8px;
-  border: 1px solid var(--divider);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 15px;
+  text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+.tape-field select:disabled,
+.tape-field .rec-bpm:disabled {
+  opacity: 0.55;
 }
 
 .rec-note {
@@ -347,17 +658,50 @@
 
 @media (max-width: 640px) {
   .rec-deck {
-    gap: 16px;
-    padding: 14px;
+    grid-template-columns: 11px minmax(0, 1fr) 11px;
+    border-radius: 10px;
   }
 
-  .rec-button {
-    width: 84px;
-    height: 84px;
+  .tape-face {
+    padding: 8px 10px 12px;
   }
 
-  .rec-time {
-    font-size: 34px;
+  /* Counter on its own row, the two meters side by side under it. */
+  .tape-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .tape-center {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  .rec-state {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .tape-keys {
+    gap: 6px;
+  }
+
+  .tape-key-slot {
+    flex: 1 1 0;
+  }
+
+  .tape-key {
+    width: 100%;
+    max-width: 58px;
+    height: 44px;
+  }
+
+  .tape-engrave {
+    font-size: 9px;
+    letter-spacing: 0.08em;
   }
 
   .rec-take {
@@ -372,5 +716,26 @@
   .rec-take-actions {
     flex-basis: 100%;
     justify-content: flex-start;
+  }
+}
+
+/* Hebrew engraving: no letter-spacing (it breaks the letters apart). */
+.rec-deck.is-he .tape-engrave,
+.rec-deck.is-he .tape-model,
+.rec-deck.is-he .tape-source-pos {
+  letter-spacing: 0;
+  font-size: 11px;
+}
+
+.rec-deck.is-he .tape-vu-label {
+  letter-spacing: 0;
+  font-size: 10px;
+}
+
+/* Phone sideways: keep the whole deck readable without a huge scroll. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .rec-deck {
+    width: min(100%, 560px);
+    margin-inline: auto;
   }
 }

@@ -537,6 +537,18 @@ on the container; content inside stays top-aligned). Stacked on a phone
   wired headphones are confirmed once; presets device-level) and Record
   (`components/RecorderView`, `audio/recorder*.js`: WAV takes in IndexedDB
   tagged with the profile id, dry or through the amp, count-in click).
+  Recorder face = a vintage reel-to-reel deck (user's request, 2026-10-15),
+  always `dir="ltr"`, same in light/dark: walnut cheeks, brushed face,
+  `TapeTransport.jsx` (SVG: 2 NAB metal reels, pack radius area-proportional
+  to the share played / elapsed of a 15-min reel; reels turned by rAF at
+  constant tape speed = K/pack radius with motor inertia, NOT a CSS
+  animation), `VuMeter.jsx` (real VU ballistics, 0 VU = -20 dBFS RMS; the
+  Playback meter is fed from the take's stored `peaks`, no audio routing),
+  mechanical counter (`.rec-time`), REC/PLAY lamps, piano keys Rewind/Play/
+  Forward/Stop/Record (tap = ±5 s, hold = wind ~15x), Sound = 2-position knob
+  (AmpKnobArt). Hebrew labels: `.is-he` drops letter-spacing, `dir="auto"`.
+  Planned next (user-approved plan, not built): edit/cut/join, drums, import/
+  export, MP3, take lanes/comping, auto punch, pre/post-roll.
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
   a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
   CRUNCH 0° / LEAD +60°, under INPUT where the dropdown was — knob row unchanged (user); tap = next, tap a printed

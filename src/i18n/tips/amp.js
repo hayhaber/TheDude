@@ -103,6 +103,11 @@ export const TIPS_AMP = {
     'rec.soundAmp': 'Amp',
     'rec.soundDry': 'Dry',
     'rec.tip.format': 'Takes are kept on this device only, for the current profile. Download saves a WAV file (lossless, opens anywhere).',
+    'rec.deckModel': 'Reel recorder · 7½ ips',
+    'rec.meterIn': 'Input',
+    'rec.meterOut': 'Playback',
+    'rec.rewind': 'Rewind',
+    'rec.forward': 'Forward',
   },
   he: {
     'amp.homeDesc': 'מטרונום עם מכונת תופים, טיונר לגיטרה ולבס, מגבר, הקלטה, והגדרות.',
@@ -207,5 +212,10 @@ export const TIPS_AMP = {
     'rec.soundAmp': 'מגבר',
     'rec.soundDry': 'נקי',
     'rec.tip.format': 'ההקלטות נשמרות רק במכשיר הזה, בפרופיל הנוכחי. הורדה שומרת קובץ WAV (ללא איבוד איכות, נפתח בכל מקום).',
+    'rec.deckModel': 'טייפ סלילים · \u20667½ ips\u2069',
+    'rec.meterIn': 'כניסה',
+    'rec.meterOut': 'ניגון',
+    'rec.rewind': 'אחורה',
+    'rec.forward': 'קדימה',
   },
 };

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
-import { LevelMeter } from '../AmpView/LevelMeter';
+import { AmpKnobArt } from '../AmpView/Knob';
+import { TapeTransport } from './TapeTransport';
+import { VuMeter } from './VuMeter';
 import { createLiveContext, openLiveInput, readLevel } from '../../audio/amp/liveInput';
 import { createAmpEngine } from '../../audio/amp/ampEngine';
 import { headphonesConfirmed, loadCurrentSettings } from '../../audio/amp/ampSettings';
@@ -22,6 +24,34 @@ function loadPrefs() {
   } catch {
     return { sound: 'dry', click: 'off' };
   }
+}
+
+// Tape counter: mm:ss.
+function counter(sec) {
+  const s = Math.max(0, Math.floor(sec));
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+const WIND_TAP = 5; // seconds a tap on Rewind / Forward moves
+const WIND_HOLD_STEP = 1.2; // seconds per 80 ms while held (~15x)
+
+function KeyIcon({ kind }) {
+  const p = {
+    rew: 'M11.5 6v12L3 12zM21 6v12l-8.5-6z',
+    play: 'M7 5.5v13L18.5 12z',
+    ff: 'M3 6v12l8.5-6zM12.5 6v12L21 12z',
+  }[kind];
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      {kind === 'stop' ? (
+        <rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" />
+      ) : kind === 'rec' ? (
+        <circle cx="12" cy="12" r="6.5" fill="currentColor" />
+      ) : (
+        <path d={p} fill="currentColor" />
+      )}
+    </svg>
+  );
 }
 
 function fmt(sec) {
@@ -102,6 +132,9 @@ export function RecorderView({ metronome }) {
 
   const rig = useRef(null); // { ctx, input, engine, capture, analyser, sound }
   const meterRef = useRef(null);
+  const playMeterRef = useRef(null);
+  const [wind, setWind] = useState(null); // 'rew' | 'ff' while winding
+  const windRef = useRef(null);
   const audioRef = useRef(null);
   const urls = useRef(new Map());
   const countRef = useRef(null);
@@ -113,6 +146,7 @@ export function RecorderView({ metronome }) {
   const prefsRef = useRef(prefs);
   prefsRef.current = prefs;
 
+  const curPeaks = useRef(null);
   const tRef = useRef(t);
   tRef.current = t;
   const refresh = useCallback(async () => {
@@ -180,6 +214,13 @@ export function RecorderView({ metronome }) {
     const tick = () => {
       const r = rig.current;
       if (r?.analyser) meterRef.current?.(readLevel(r.analyser, buf));
+      // Playback meter from the take's stored peaks (no audio routing).
+      const a = audioRef.current;
+      const pk = curPeaks.current;
+      if (a && !a.paused && a.duration && pk?.length) {
+        const v = pk[Math.min(pk.length - 1, Math.floor((a.currentTime / a.duration) * pk.length))] || 0;
+        playMeterRef.current?.({ peak: v, rms: v * 0.35 });
+      } else playMeterRef.current?.(null);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -385,6 +426,67 @@ export function RecorderView({ metronome }) {
     };
   }, []);
 
+  const busy = phase === 'counting' || phase === 'recording';
+  const current = takes.find((x) => x.id === playing) || null;
+  curPeaks.current = current?.peaks || null;
+
+  // ---- transport keys --------------------------------------------------------
+  const seekBy = (sec) => {
+    const a = audioRef.current;
+    if (!a || !current || !a.duration) return;
+    a.currentTime = Math.min(a.duration, Math.max(0, a.currentTime + sec));
+    setProgress(a.currentTime / a.duration);
+  };
+  const seekRef = useRef(seekBy);
+  seekRef.current = seekBy;
+
+  const endWind = (commit) => {
+    const w = windRef.current;
+    if (!w) return;
+    windRef.current = null;
+    clearTimeout(w.timer);
+    clearInterval(w.iv);
+    if (!w.held && commit) {
+      // A tap: jump, with a short burst of the reels.
+      seekRef.current(w.dir === 'ff' ? WIND_TAP : -WIND_TAP);
+      setWind(w.dir);
+      w.flash = setTimeout(() => setWind((d) => (d === w.dir ? null : d)), 450);
+      windRef.current = null;
+      return;
+    }
+    setWind(null);
+  };
+  const startWind = (dir) => {
+    endWind(false);
+    const w = { dir, held: false, timer: null, iv: null };
+    windRef.current = w;
+    // Held: keep winding until released.
+    w.timer = setTimeout(() => {
+      w.held = true;
+      setWind(dir);
+      w.iv = setInterval(() => seekRef.current(dir === 'ff' ? WIND_HOLD_STEP : -WIND_HOLD_STEP), 80);
+    }, 320);
+  };
+  useEffect(
+    () => () => {
+      const w = windRef.current;
+      if (w) {
+        clearTimeout(w.timer);
+        clearInterval(w.iv);
+      }
+    },
+    []
+  );
+
+  const pressPlay = () => {
+    const take = current || takes[0];
+    if (take) togglePlay(take);
+  };
+  const pressStop = () => {
+    if (busy) finish();
+    else audioRef.current?.pause();
+  };
+
   const download = async (take) => {
     try {
       const a = document.createElement('a');
@@ -423,7 +525,11 @@ export function RecorderView({ metronome }) {
   };
 
   // ---- render --------------------------------------------------------------
-  const busy = phase === 'counting' || phase === 'recording';
+  // Reels: while recording the tape runs off a 15-minute reel; a loaded take
+  // sits where it is played to.
+  const share = busy || phase === 'saving' ? elapsed / MAX_SECONDS : current ? progress : 0;
+  const motion = phase === 'recording' ? 'play' : wind || (current && !paused ? 'play' : 'stop');
+  const shownTime = busy || phase === 'saving' ? elapsed : current ? progress * current.duration : 0;
   const dateFmt = new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : undefined, {
     day: 'numeric',
     month: 'short',
@@ -433,74 +539,157 @@ export function RecorderView({ metronome }) {
 
   return (
     <div className="rec-view">
-      <section className={'rec-deck' + (phase === 'recording' ? ' is-recording' : '')}>
-        <button
-          type="button"
-          className={'rec-button' + (busy ? ' is-busy' : '')}
-          onClick={() => (busy ? finish() : record())}
-          disabled={phase === 'opening' || phase === 'saving'}
-          aria-pressed={busy}
-        >
-          <span className="rec-button-icon" aria-hidden="true" />
-          <span className="rec-button-label">{t(busy ? 'rec.stop' : 'rec.record')}</span>
-        </button>
-        <div className="rec-deck-info">
-          <div className="rec-time" dir="ltr">
-            {fmt(elapsed)}
+      <section
+        className={'rec-deck' + (phase === 'recording' ? ' is-recording' : '') + (phase === 'counting' ? ' is-counting' : '') + (lang === 'he' ? ' is-he' : '')}
+        dir="ltr"
+        aria-label={t('rec.title')}
+      >
+        <div className="tape-cheek" aria-hidden="true" />
+        <div className="tape-face">
+          <div className="tape-plate">
+            <span className="tape-brand">DudeStar</span>
+            <span className="tape-model" dir="auto">{t('rec.deckModel')}</span>
           </div>
-          <div className="rec-state" aria-live="polite">
-            {phase === 'counting'
-              ? t('rec.countIn', { n: countLeft ?? '' })
-              : phase === 'recording'
-                ? t('rec.recording')
-                : phase === 'saving'
-                  ? t('rec.saving')
-                  : t('rec.ready')}
+          <TapeTransport share={share} motion={motion} />
+          <div className="tape-panel">
+            <VuMeter label={t('rec.meterIn')} bind={meterRef} />
+            <div className="tape-center">
+              <div className="tape-lamps" aria-hidden="true">
+                <span className={'tape-lamp is-rec' + (phase === 'recording' ? ' is-on' : phase === 'counting' ? ' is-blink' : '')}>REC</span>
+                <span className={'tape-lamp is-play' + (motion === 'play' && !busy ? ' is-on' : '')}>PLAY</span>
+              </div>
+              <div className="tape-counter rec-time" aria-label={fmt(shownTime)}>
+                {counter(shownTime)
+                  .split('')
+                  .map((ch, i) =>
+                    ch === ':' ? (
+                      <span key={i} className="tape-counter-sep">
+                        :
+                      </span>
+                    ) : (
+                      <span key={i} className="tape-digit">
+                        {ch}
+                      </span>
+                    )
+                  )}
+              </div>
+              <div className="rec-state" aria-live="polite" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+                {phase === 'counting'
+                  ? t('rec.countIn', { n: countLeft ?? '' })
+                  : phase === 'recording'
+                    ? t('rec.recording')
+                    : phase === 'saving'
+                      ? t('rec.saving')
+                      : current
+                        ? current.name
+                        : t('rec.ready')}
+              </div>
+            </div>
+            <VuMeter label={t('rec.meterOut')} bind={playMeterRef} />
           </div>
-          <LevelMeter label={t('amp.in')} bind={meterRef} />
-        </div>
-      </section>
 
-      <section className="rec-options">
-        <div className="rec-option">
-          <span className="rec-option-label">{t('rec.sound')}</span>
-          <div className="mode-toggle rec-toggle" role="group" aria-label={t('rec.sound')}>
-            {['dry', 'amp'].map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={prefs.sound === s ? 'active' : ''}
-                disabled={busy}
-                onClick={() => setPrefs((p) => ({ ...p, sound: s }))}
-              >
-                {t(s === 'dry' ? 'rec.soundDry' : 'rec.soundAmp')}
-              </button>
-            ))}
+          <div className="tape-keys" role="group" aria-label={t('rec.title')}>
+            {[
+              { kind: 'rew', label: t('rec.rewind'), disabled: busy || !current, down: wind === 'rew' },
+              { kind: 'play', label: t('rec.play'), aria: t(motion === 'play' && !busy ? 'rec.pause' : 'rec.play'), disabled: busy || phase === 'opening' || phase === 'saving' || !takes.length, down: !busy && !!current && !paused },
+              { kind: 'ff', label: t('rec.forward'), disabled: busy || !current, down: wind === 'ff' },
+              { kind: 'stop', label: t('rec.stop'), disabled: phase === 'opening' || phase === 'saving' || (!busy && paused) },
+              { kind: 'rec', label: t('rec.record'), disabled: phase === 'opening' || phase === 'saving', down: busy },
+            ].map((k) => {
+              const windKey = k.kind === 'rew' || k.kind === 'ff';
+              return (
+                <div key={k.kind} className="tape-key-slot">
+                  <button
+                    type="button"
+                    className={`tape-key is-${k.kind}` + (k.down ? ' is-down' : '')}
+                    aria-label={k.aria || k.label}
+                    aria-pressed={k.kind === 'stop' ? undefined : !!k.down}
+                    disabled={k.disabled}
+                    onPointerDown={windKey ? (e) => (e.button === 0 ? startWind(k.kind) : undefined) : undefined}
+                    onPointerUp={windKey ? () => endWind(true) : undefined}
+                    onPointerLeave={windKey ? () => endWind(false) : undefined}
+                    onPointerCancel={windKey ? () => endWind(false) : undefined}
+                    onClick={(e) => {
+                      if (windKey) {
+                        // Keyboard (no pointer): one jump.
+                        if (e.detail === 0) seekBy(k.kind === 'ff' ? WIND_TAP : -WIND_TAP);
+                        return;
+                      }
+                      if (k.kind === 'rec') (busy ? finish : record)();
+                      else if (k.kind === 'play') pressPlay();
+                      else pressStop();
+                    }}
+                  >
+                    <KeyIcon kind={k.kind} />
+                  </button>
+                  <span className="tape-engrave" dir="auto">{k.label}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="rec-options">
+            <div className="tape-source" role="radiogroup" aria-label={t('rec.sound')}>
+              <span className="tape-engrave tape-source-title" dir="auto">{t('rec.sound')}</span>
+              <div className="tape-source-row">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={prefs.sound === 'dry'}
+                  className={'tape-source-pos' + (prefs.sound === 'dry' ? ' is-on' : '')}
+                  disabled={busy}
+                  onClick={() => setPrefs((p) => ({ ...p, sound: 'dry' }))}
+                >
+                  {t('rec.soundDry')}
+                </button>
+                <button
+                  type="button"
+                  className="tape-source-knob"
+                  aria-label={t('rec.sound')}
+                  tabIndex={-1}
+                  disabled={busy}
+                  onClick={() => setPrefs((p) => ({ ...p, sound: p.sound === 'amp' ? 'dry' : 'amp' }))}
+                >
+                  <AmpKnobArt angle={prefs.sound === 'amp' ? 45 : -45} uid="tape-src" scale={{ ticks: '', labels: [] }} />
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={prefs.sound === 'amp'}
+                  className={'tape-source-pos' + (prefs.sound === 'amp' ? ' is-on' : '')}
+                  disabled={busy}
+                  onClick={() => setPrefs((p) => ({ ...p, sound: 'amp' }))}
+                >
+                  {t('rec.soundAmp')}
+                </button>
+              </div>
+            </div>
+            <label className="tape-field">
+              <span className="tape-engrave" dir="auto">{t('rec.click')}</span>
+              <select value={prefs.click} disabled={busy} onChange={(e) => setPrefs((p) => ({ ...p, click: e.target.value }))} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+                <option value="off">{t('rec.clickOff')}</option>
+                <option value="count">{t('rec.clickCount')}</option>
+                <option value="all">{t('rec.clickAll')}</option>
+              </select>
+            </label>
+            {prefs.click !== 'off' && (
+              <label className="tape-field">
+                <span className="tape-engrave" dir="auto">{t('rec.bpm')}</span>
+                <input
+                  className="rec-bpm"
+                  type="number"
+                  inputMode="numeric"
+                  min={metronome.minBpm}
+                  max={metronome.maxBpm}
+                  value={metronome.bpm}
+                  disabled={busy}
+                  onChange={(e) => metronome.setBpm(e.target.value)}
+                />
+              </label>
+            )}
           </div>
         </div>
-        <label className="rec-option">
-          <span className="rec-option-label">{t('rec.click')}</span>
-          <select value={prefs.click} disabled={busy} onChange={(e) => setPrefs((p) => ({ ...p, click: e.target.value }))}>
-            <option value="off">{t('rec.clickOff')}</option>
-            <option value="count">{t('rec.clickCount')}</option>
-            <option value="all">{t('rec.clickAll')}</option>
-          </select>
-        </label>
-        {prefs.click !== 'off' && (
-          <label className="rec-option">
-            <span className="rec-option-label">{t('rec.bpm')}</span>
-            <input
-              className="rec-bpm"
-              type="number"
-              inputMode="numeric"
-              min={metronome.minBpm}
-              max={metronome.maxBpm}
-              value={metronome.bpm}
-              disabled={busy}
-              onChange={(e) => metronome.setBpm(e.target.value)}
-            />
-          </label>
-        )}
+        <div className="tape-cheek" aria-hidden="true" />
       </section>
       <p className="rec-note">{t(prefs.sound === 'amp' ? 'rec.ampNote' : 'rec.dryNote')}</p>
       {notice && <p className="rec-note">{notice}</p>}

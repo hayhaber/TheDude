@@ -1,0 +1,811 @@
+/* The studio under the deck: song bar, timeline, region tools, panels.
+   Plain app surfaces (light / dark) — the deck is the only skeuomorphic
+   object; the editor stays clean and readable. */
+.st-studio {
+  --st-panel: var(--surface);
+  --st-line: var(--divider);
+  --st-row: rgba(120, 120, 128, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: start;
+}
+
+.st-studio .amp-btn {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.st-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.st-busy,
+.st-text,
+.st-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.st-text {
+  margin: 0;
+}
+
+.st-hint {
+  margin: -2px 2px 0;
+  line-height: 1.45;
+}
+
+.st-studio select,
+.st-songbar input,
+.st-region-tools select {
+  box-sizing: border-box;
+  height: 34px;
+  max-width: 100%;
+  padding: 0 10px;
+  border: 1px solid var(--divider);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+/* ---- song bar ------------------------------------------------------------ */
+.st-songbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+
+.st-song {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.st-song select {
+  flex: 1;
+  min-width: 0;
+  max-width: 320px;
+  font-weight: 600;
+}
+
+.st-btns,
+.st-rename {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.st-rename {
+  flex: 1 1 260px;
+}
+
+.st-rename input {
+  flex: 1 1 140px;
+  min-width: 0;
+  border-color: var(--accent);
+}
+
+.st-histbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+[dir='rtl'] .st-histbtn svg {
+  transform: scaleX(-1);
+}
+
+.st-sep {
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--divider);
+}
+
+/* ---- timeline ---------------------------------------------------------------- */
+.tl {
+  border-radius: 14px;
+  background: var(--st-panel);
+  box-shadow: inset 0 0 0 1px var(--border);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tl-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.tl-inner {
+  position: relative;
+}
+
+.tl-row {
+  display: flex;
+  border-bottom: 1px solid var(--st-line);
+}
+
+.tl-row:last-of-type {
+  border-bottom: none;
+}
+
+.tl-head {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--tl-header);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--st-panel);
+  border-right: 1px solid var(--st-line);
+  overflow: hidden;
+}
+
+.tl-lane-area {
+  position: relative;
+  flex: none;
+}
+
+/* Ruler */
+.tl-ruler-row {
+  height: 30px;
+  background: var(--st-row);
+}
+
+.tl-corner {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 0 6px;
+}
+
+.tl-zoom {
+  width: 24px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(120, 120, 128, 0.14);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tl-zoom.is-fit[aria-pressed='true'] {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.tl-ruler {
+  position: relative;
+  height: 30px;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.tl-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 2px 0 0 4px;
+  border-left: 1px solid rgba(120, 120, 128, 0.45);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.tl-tick {
+  position: absolute;
+  bottom: 0;
+  height: 10px;
+  border-left: 1px solid rgba(120, 120, 128, 0.35);
+  pointer-events: none;
+}
+
+.tl-tick.is-beat {
+  height: 6px;
+  border-color: rgba(120, 120, 128, 0.25);
+}
+
+.tl-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(120, 120, 128, 0.22);
+  border-left: 2px solid var(--text-secondary);
+  border-right: 2px solid var(--text-secondary);
+}
+
+.tl-range.is-loop {
+  background: color-mix(in srgb, #ffd60a 38%, transparent);
+  border-color: #c9a300;
+}
+
+.tl-range.is-punch {
+  background: color-mix(in srgb, #ff453a 26%, transparent);
+  border-color: #ff453a;
+}
+
+.tl-range-grip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.tl-range-grip.is-in {
+  left: -10px;
+}
+
+.tl-range-grip.is-out {
+  right: -10px;
+}
+
+.tl-range-shade {
+  position: absolute;
+  top: 30px;
+  bottom: 0;
+  z-index: 1;
+  background: rgba(120, 120, 128, 0.07);
+  pointer-events: none;
+}
+
+.tl-range-shade.is-loop {
+  background: color-mix(in srgb, #ffd60a 10%, transparent);
+}
+
+.tl-range-shade.is-punch {
+  background: color-mix(in srgb, #ff453a 7%, transparent);
+}
+
+/* Tracks */
+.tl-track-row {
+  height: 64px;
+}
+
+.tl-track-row .tl-head {
+  border-left: 4px solid var(--trk);
+  padding-left: 6px;
+}
+
+.tl-track-row.is-armed .tl-head {
+  background: color-mix(in srgb, #ff453a 7%, var(--st-panel));
+}
+
+.tl-track-name {
+  flex: none;
+  overflow: hidden;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  justify-content: flex-start;
+}
+
+.tl-track-name.is-static {
+  cursor: default;
+}
+
+.tl-track-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.tl-mini {
+  min-width: 22px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 4px;
+  border: none;
+  border-radius: 5px;
+  background: rgba(120, 120, 128, 0.16);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tl-mini:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tl-mini.is-on {
+  background: #ffd60a;
+  color: #1d1d1f;
+}
+
+.tl-mini.is-solo.is-on {
+  background: #30d158;
+}
+
+.tl-mini.is-lanes.is-on {
+  background: var(--accent);
+  color: #fff;
+}
+
+.tl-mini.is-arm span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid #ff453a;
+}
+
+.tl-mini.is-arm.is-on {
+  background: color-mix(in srgb, #ff453a 22%, transparent);
+}
+
+.tl-mini.is-arm.is-on span {
+  background: #ff453a;
+}
+
+.tl-mini.is-danger {
+  background: var(--danger);
+  color: #fff;
+  padding: 0 8px;
+}
+
+.tl-mini.is-x {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tl-vol {
+  width: 100%;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--trk);
+}
+
+.tl-rename {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tl-rename input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+/* Regions */
+.tl-region {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  z-index: 2;
+  box-sizing: border-box;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--trk) 22%, var(--st-panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--trk) 55%, transparent);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-x pan-y;
+}
+
+.tl-region.is-selected {
+  z-index: 3;
+  background: color-mix(in srgb, var(--trk) 34%, var(--st-panel));
+  box-shadow:
+    inset 0 0 0 2px var(--trk),
+    0 2px 8px rgba(0, 0, 0, 0.18);
+  touch-action: none;
+  overflow: visible;
+}
+
+.tl-wave {
+  position: absolute;
+  inset: 14px 0 2px;
+  width: 100%;
+  height: calc(100% - 16px);
+  pointer-events: none;
+}
+
+.tl-wave path {
+  fill: color-mix(in srgb, var(--trk) 80%, var(--text));
+}
+
+.tl-wave path.tl-fade {
+  fill: rgba(0, 0, 0, 0.18);
+}
+
+.tl-region-name {
+  position: absolute;
+  top: 1px;
+  left: 6px;
+  right: 6px;
+  overflow: hidden;
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 13px;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tl-handle {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 14px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.tl-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 22px;
+  margin-top: -11px;
+  border-radius: 2px;
+  background: var(--trk);
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+
+.tl-handle.is-start {
+  left: -7px;
+}
+
+.tl-handle.is-end {
+  right: -7px;
+}
+
+.tl-handle::after {
+  left: 5px;
+}
+
+.tl-split-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1.5px dashed var(--text);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.tl-recbar {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  z-index: 4;
+  border-radius: 7px;
+  background: color-mix(in srgb, #ff453a 30%, transparent);
+  box-shadow: inset 0 0 0 2px #ff453a;
+  pointer-events: none;
+}
+
+/* Take lanes (comping) */
+.tl-lane-row {
+  height: 40px;
+  background: var(--st-row);
+}
+
+.tl-lane-head {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 12px;
+  border-left: 4px solid color-mix(in srgb, var(--trk) 45%, transparent);
+}
+
+.tl-lane-label {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-lane-take {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 6px;
+  background: rgba(120, 120, 128, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(120, 120, 128, 0.3);
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.tl-lane-take .tl-wave {
+  inset: 2px 0;
+  height: calc(100% - 4px);
+}
+
+.tl-lane-take .tl-wave path {
+  fill: rgba(120, 120, 128, 0.55);
+}
+
+.tl-lane-used {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--trk) 30%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--trk);
+  pointer-events: none;
+}
+
+.tl-lane-pick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  pointer-events: none;
+}
+
+/* Drums */
+.tl-drum-row {
+  height: 34px;
+}
+
+.tl-drum-area {
+  background:
+    repeating-linear-gradient(90deg, rgba(120, 120, 128, 0.42) 0 1px, transparent 1px var(--bar)),
+    repeating-linear-gradient(90deg, rgba(120, 120, 128, 0.16) 0 1px, transparent 1px var(--beat)),
+    color-mix(in srgb, #ff9f0a 10%, transparent);
+}
+
+.tl-add-row {
+  height: 40px;
+}
+
+.tl-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.tl-add:disabled {
+  opacity: 0.45;
+}
+
+.tl-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  width: 2px;
+  margin-left: -1px;
+  background: #ff453a;
+  pointer-events: none;
+}
+
+.tl-playhead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -5px;
+  border: 6px solid transparent;
+  border-top: 8px solid #ff453a;
+}
+
+/* ---- region tools + panels ------------------------------------------------------ */
+.st-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--st-panel);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.st-region-tools {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 12px;
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.st-close {
+  margin-inline-start: auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(120, 120, 128, 0.14);
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Equal heights in a row (house rule 8); stacked on phones. */
+.st-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+}
+
+.st-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+[dir='rtl'] .st-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+}
+
+.st-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.st-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.st-field.is-grow {
+  flex: 1 1 140px;
+}
+
+.st-field input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.st-range-read {
+  align-self: center;
+  margin-inline-start: auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.st-toggle {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 590;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.st-toggle.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.st-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .st-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tl-track-row {
+    height: 66px;
+  }
+
+  .tl-track-row .tl-head {
+    gap: 3px;
+    padding: 4px 5px 4px 5px;
+  }
+
+  .tl-track-btns {
+    gap: 3px;
+  }
+
+  .tl-mini {
+    min-width: 21px;
+    height: 20px;
+    padding: 0 2px;
+  }
+
+  .tl-track-name {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .st-songbar .amp-btn {
+    height: 32px;
+    padding: 0 11px;
+    font-size: 13px;
+  }
+
+  /* Undo / Redo as icons on phones: the song bar stays one line. */
+  .st-histtext {
+    display: none;
+  }
+
+  .st-songbar .st-histbtn {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .st-sep {
+    display: none;
+  }
+}

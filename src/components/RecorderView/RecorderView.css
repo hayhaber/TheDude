@@ -739,3 +739,12 @@
     margin-inline: auto;
   }
 }
+
+/* The deck keeps its size on the wide studio page. */
+.rec-view > .rec-deck,
+.rec-view > .rec-note {
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}

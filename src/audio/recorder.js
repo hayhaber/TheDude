@@ -18,7 +18,7 @@ class DudeStarRecCapture extends AudioWorkletProcessor {
     this.n = 0;
     this.on = false;
     this.port.onmessage = (e) => {
-      if (e.data === 'start') { this.on = true; this.n = 0; }
+      if (e.data === 'start') { this.on = true; this.n = 0; this.first = true; }
       else if (e.data === 'stop') {
         this.on = false;
         if (this.n) this.port.postMessage(this.buf.slice(0, this.n));
@@ -30,6 +30,12 @@ class DudeStarRecCapture extends AudioWorkletProcessor {
   process(inputs) {
     const inp = inputs[0];
     if (!this.on || !inp || !inp.length) return true;
+    if (this.first) {
+      // The context frame of the first captured sample: lets the caller
+      // place the take on its own timeline to the sample.
+      this.first = false;
+      this.port.postMessage({ startFrame: currentFrame });
+    }
     const chs = inp.length;
     const len = inp[0].length;
     for (let i = 0; i < len; i++) {
@@ -62,7 +68,8 @@ function loadCapture(ctx) {
 
 /**
  * A capture tap on `node`. start() begins collecting; stop() resolves to
- * { samples: Float32Array, sampleRate }. dispose() unhooks it.
+ * { samples: Float32Array, sampleRate, startTime } — startTime = context
+ * time of the first sample. dispose() unhooks it.
  */
 export async function createCapture(ctx, node) {
   await loadCapture(ctx);
@@ -75,7 +82,12 @@ export async function createCapture(ctx, node) {
   let chunks = [];
   let count = 0;
   let resolveStop = null;
+  let startFrame = null;
   cap.port.onmessage = (e) => {
+    if (e.data && e.data.startFrame != null) {
+      startFrame = e.data.startFrame;
+      return;
+    }
     if (e.data === 'done') {
       const out = new Float32Array(count);
       let o = 0;
@@ -85,7 +97,7 @@ export async function createCapture(ctx, node) {
       }
       chunks = [];
       count = 0;
-      resolveStop?.({ samples: out, sampleRate: ctx.sampleRate });
+      resolveStop?.({ samples: out, sampleRate: ctx.sampleRate, startTime: startFrame == null ? null : startFrame / ctx.sampleRate });
       resolveStop = null;
       return;
     }
@@ -96,6 +108,7 @@ export async function createCapture(ctx, node) {
     start() {
       chunks = [];
       count = 0;
+      startFrame = null;
       cap.port.postMessage('start');
     },
     /** Seconds captured so far. */
@@ -169,4 +182,40 @@ export function computePeaks(samples, bins = 160) {
     out[b] = Math.round(Math.min(1, p) * 1000) / 1000;
   }
   return out;
+}
+
+/** 16-bit PCM WAV Blob from an AudioBuffer (mono or stereo). */
+export function encodeWavBuffer(buffer) {
+  const chs = Math.min(2, buffer.numberOfChannels);
+  const n = buffer.length;
+  const data = [];
+  for (let c = 0; c < chs; c++) data.push(buffer.getChannelData(c));
+  const bytes = n * chs * 2;
+  const ab = new ArrayBuffer(44 + bytes);
+  const v = new DataView(ab);
+  const str = (o, s) => {
+    for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i));
+  };
+  str(0, 'RIFF');
+  v.setUint32(4, 36 + bytes, true);
+  str(8, 'WAVE');
+  str(12, 'fmt ');
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, chs, true);
+  v.setUint32(24, buffer.sampleRate, true);
+  v.setUint32(28, buffer.sampleRate * chs * 2, true);
+  v.setUint16(32, chs * 2, true);
+  v.setUint16(34, 16, true);
+  str(36, 'data');
+  v.setUint32(40, bytes, true);
+  let o = 44;
+  for (let i = 0; i < n; i++) {
+    for (let c = 0; c < chs; c++) {
+      const x = Math.max(-1, Math.min(1, data[c][i]));
+      v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7fff, true);
+      o += 2;
+    }
+  }
+  return new Blob([ab], { type: 'audio/wav' });
 }

@@ -4,12 +4,14 @@
 // stores so listing the takes never loads the audio.
 //
 // take: { id, profileId, name, createdAt, duration, sampleRate, sound:
-//         'dry'|'amp', peaks: number[] }   audio: { id, blob }
+//         'dry'|'amp', peaks: number[], kind?: 'rec'|'import'|'bounce',
+//         channels? }   audio: { id, blob }  (blob = WAV, or the imported file)
+// project: the multitrack song (audio/studio/project.js), one record each.
 
 import { activeProfile } from '../profile/profileStorage';
 
 const DB = 'dudestar-recorder';
-const VERSION = 1;
+const VERSION = 2;
 
 let dbPromise = null;
 function db() {
@@ -20,6 +22,7 @@ function db() {
         const d = req.result;
         if (!d.objectStoreNames.contains('takes')) d.createObjectStore('takes', { keyPath: 'id' });
         if (!d.objectStoreNames.contains('audio')) d.createObjectStore('audio', { keyPath: 'id' });
+        if (!d.objectStoreNames.contains('projects')) d.createObjectStore('projects', { keyPath: 'id' });
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => {
@@ -95,4 +98,32 @@ export async function deleteTake(id) {
 
 export function newTakeId() {
   return `take-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+export async function getTake(id) {
+  const d = await db();
+  return request(d.transaction('takes').objectStore('takes').get(id));
+}
+
+// ---- projects (songs) ----------------------------------------------------------
+/** This profile's projects, most recently changed first. */
+export async function listProjects(profileId = currentProfileId()) {
+  const d = await db();
+  const all = await request(d.transaction('projects').objectStore('projects').getAll());
+  return all.filter((p) => (p.profileId ?? '') === profileId).sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+export async function saveProject(project) {
+  const d = await db();
+  const tx = d.transaction('projects', 'readwrite');
+  tx.objectStore('projects').put(project);
+  await done(tx);
+  return project;
+}
+
+export async function deleteProject(id) {
+  const d = await db();
+  const tx = d.transaction('projects', 'readwrite');
+  tx.objectStore('projects').delete(id);
+  await done(tx);
 }

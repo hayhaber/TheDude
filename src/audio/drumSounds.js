@@ -17,7 +17,7 @@ function getNoiseBuffer(ctx) {
   return buffer;
 }
 
-function playKick(ctx, time, velocity) {
+function playKick(ctx, time, velocity, out) {
   const osc = ctx.createOscillator();
   osc.type = 'sine';
   osc.frequency.setValueAtTime(150, time);
@@ -27,12 +27,12 @@ function playKick(ctx, time, velocity) {
   gain.gain.setValueAtTime(0.95 * velocity, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
 
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(out);
   osc.start(time);
   osc.stop(time + 0.32);
 }
 
-function playSnare(ctx, time, velocity) {
+function playSnare(ctx, time, velocity, out) {
   const buffer = getNoiseBuffer(ctx);
 
   const noise = ctx.createBufferSource();
@@ -43,7 +43,7 @@ function playSnare(ctx, time, velocity) {
   const noiseGain = ctx.createGain();
   noiseGain.gain.setValueAtTime(0.75 * velocity, time);
   noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
-  noise.connect(noiseFilter).connect(noiseGain).connect(ctx.destination);
+  noise.connect(noiseFilter).connect(noiseGain).connect(out);
 
   const body = ctx.createOscillator();
   body.type = 'triangle';
@@ -51,7 +51,7 @@ function playSnare(ctx, time, velocity) {
   const bodyGain = ctx.createGain();
   bodyGain.gain.setValueAtTime(0.3 * velocity, time);
   bodyGain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
-  body.connect(bodyGain).connect(ctx.destination);
+  body.connect(bodyGain).connect(out);
 
   const offset = Math.random() * (buffer.duration - 0.2);
   noise.start(time, offset, 0.18);
@@ -62,7 +62,7 @@ function playSnare(ctx, time, velocity) {
 // One shared shape for all three toms — just a different base pitch each
 // (high/mid/low) — same pitched-sine-with-downward-sweep recipe as the kick,
 // just shorter and higher so it reads as a drum voice, not another kick.
-function playTom(ctx, time, velocity, basePitch) {
+function playTom(ctx, time, velocity, basePitch, out) {
   const osc = ctx.createOscillator();
   osc.type = 'sine';
   osc.frequency.setValueAtTime(basePitch * 1.4, time);
@@ -72,12 +72,12 @@ function playTom(ctx, time, velocity, basePitch) {
   gain.gain.setValueAtTime(0.9 * velocity, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.32);
 
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(out);
   osc.start(time);
   osc.stop(time + 0.34);
 }
 
-function playCrash(ctx, time, velocity) {
+function playCrash(ctx, time, velocity, out) {
   const buffer = getNoiseBuffer(ctx);
   const duration = 1.1; // long, slow-decaying wash — distinct from the hi-hat's short flick
 
@@ -89,13 +89,13 @@ function playCrash(ctx, time, velocity) {
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.6 * velocity, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
-  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.connect(filter).connect(gain).connect(out);
 
   const offset = Math.random() * Math.max(0, buffer.duration - duration - 0.05);
   noise.start(time, offset, duration + 0.02);
 }
 
-function playHiHat(ctx, time, velocity, open) {
+function playHiHat(ctx, time, velocity, open, out) {
   const buffer = getNoiseBuffer(ctx);
   const duration = open ? 0.3 : 0.045;
 
@@ -107,7 +107,7 @@ function playHiHat(ctx, time, velocity, open) {
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.5 * velocity, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
-  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.connect(filter).connect(gain).connect(out);
 
   const offset = Math.random() * Math.max(0, buffer.duration - duration - 0.05);
   noise.start(time, offset, duration + 0.02);
@@ -116,15 +116,16 @@ function playHiHat(ctx, time, velocity, open) {
 // `instrument` is one of: 'kick' | 'snare' | 'hihatClosed' | 'hihatOpen' |
 // 'tomHigh' | 'tomMid' | 'tomLow' | 'crash'. `velocity` is 0-1 and already
 // folds in both the pattern's own accent weighting and the mixer's
-// per-instrument volume/mute.
-export function playDrumHit(ctx, instrument, time, velocity) {
+// per-instrument volume/mute. `out` (optional) is where the hit goes —
+// the speakers by default; the recorder routes it into its own mix.
+export function playDrumHit(ctx, instrument, time, velocity, out = ctx.destination) {
   if (!velocity || velocity <= 0) return;
-  if (instrument === 'kick') playKick(ctx, time, velocity);
-  else if (instrument === 'snare') playSnare(ctx, time, velocity);
-  else if (instrument === 'hihatClosed') playHiHat(ctx, time, velocity, false);
-  else if (instrument === 'hihatOpen') playHiHat(ctx, time, velocity, true);
-  else if (instrument === 'tomHigh') playTom(ctx, time, velocity, 220);
-  else if (instrument === 'tomMid') playTom(ctx, time, velocity, 150);
-  else if (instrument === 'tomLow') playTom(ctx, time, velocity, 100);
-  else if (instrument === 'crash') playCrash(ctx, time, velocity);
+  if (instrument === 'kick') playKick(ctx, time, velocity, out);
+  else if (instrument === 'snare') playSnare(ctx, time, velocity, out);
+  else if (instrument === 'hihatClosed') playHiHat(ctx, time, velocity, false, out);
+  else if (instrument === 'hihatOpen') playHiHat(ctx, time, velocity, true, out);
+  else if (instrument === 'tomHigh') playTom(ctx, time, velocity, 220, out);
+  else if (instrument === 'tomMid') playTom(ctx, time, velocity, 150, out);
+  else if (instrument === 'tomLow') playTom(ctx, time, velocity, 100, out);
+  else if (instrument === 'crash') playCrash(ctx, time, velocity, out);
 }

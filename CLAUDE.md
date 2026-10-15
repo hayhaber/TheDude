@@ -555,8 +555,34 @@ on the container; content inside stays top-aligned). Stacked on a phone
   — a jump > ~0.4 s of tape (waveform seek, Rewind/Forward tap, a new take)
   is eased to over ~0.6 s with the reels in ff/rew and the counter rolling;
   normal play/recording steps are followed exactly. Audio seeks at once.
-  Planned next (user-approved plan, not built): edit/cut/join, drums, import/
-  export, MP3, take lanes/comping, auto punch, pre/post-roll.
+  **Recorder studio (built 2026-10-15)** — the deck is the transport of a
+  small multitrack studio. Pure model `audio/studio/project.js` (project =
+  up to 4 tracks; REGIONS {takeId,start,offset,length,gain,fadeIn,fadeOut}
+  reference never-changed takes; LANES {takeId,base,from,to} = every pass;
+  place/split/trim/move ("moved wins")/compLane/addRecording/removeTake,
+  undo history = project snapshots). Engine `audio/studio/studioEngine.js`:
+  ONE live AudioContext plays + records; transport = SEGMENTS {from,to,when}
+  (loop = a segment per pass), regions as buffer sources per segment, drums
+  (`drumTrack.js` drumHits() = pure function of timeline time, same grooves
+  as the drum machine; `playDrumHit(..., out)` now takes an output node) and
+  click by look-ahead; capture is time-stamped (recorder.js startFrame) and
+  `capturePasses()` maps it onto the timeline minus latency. Latency: per
+  take from the count-in clicks the mic hears (`latencyFromCountIn`, the
+  default Click is Count-in), else the Calibrate value (device key
+  `dudestar-rec-latency`), else the browser estimate. The input stream stays
+  open between takes except on iOS (closed for the loudspeaker). Punch runs
+  0.3 s past the out point (latency shift). `renderMix()` = OfflineAudioContext
+  mixdown (export/bounce, 48 kHz stereo WAV via encodeWavBuffer); MP3 =
+  `audio/studio/mp3.js`, lamejs (@breezystack/lamejs, LGPL) lazy-loaded as
+  its own chunk. Projects in IndexedDB store 'projects' (recorder DB v2),
+  last open per profile `dudestar-p-rec-project`. UI: Deck.jsx, Timeline.jsx
+  (sticky headers, regions drag/trim, touch = select first then drag, ruler
+  tap = playhead / drag = range, lanes under a track for comping, data-start
+  etc. on regions for tests), StudioControls.jsx (song bar, region tools,
+  Loop & punch, Drums, Import & export, Timing), Library.jsx (takes; Add =
+  join at the end of the armed track), useStudio.js (state + actions).
+  Tests: `scripts/studio-test.mjs` (pure) + scratchpad studio1/studio2.cjs
+  (fake mic = the context's own output delayed 50 ms).
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
   a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
   CRUNCH 0° / LEAD +60°, under INPUT where the dropdown was — knob row unchanged (user); tap = next, tap a printed

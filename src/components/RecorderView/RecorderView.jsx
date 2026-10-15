@@ -54,6 +54,18 @@ function KeyIcon({ kind }) {
   );
 }
 
+// iOS sends ALL sound to the earpiece while the microphone is open, so the
+// mic is closed as soon as a take is saved and before anything plays, and
+// (Safari 16.4+) the page's audio session is set back to plain playback —
+// the loudspeaker. Other browsers ignore this.
+function setAudioSession(type) {
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = type;
+  } catch {
+    /* not supported */
+  }
+}
+
 function fmt(sec) {
   const s = Math.max(0, Math.floor(sec));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -246,6 +258,8 @@ export function RecorderView({ metronome }) {
       countRef.current = null;
       setCountLeft(null);
       metroRef.current.stop();
+      closeRig();
+      setAudioSession('playback');
       setPhase('idle');
       return;
     }
@@ -253,6 +267,9 @@ export function RecorderView({ metronome }) {
     setPhase('saving');
     if (prefsRef.current.click !== 'off') metroRef.current.stop();
     const { samples, sampleRate } = await r.capture.stop();
+    // Mic off right away: playback on a phone must come from the speaker.
+    closeRig();
+    setAudioSession('playback');
     if (samples.length < sampleRate * 0.3) {
       setPhase('idle');
       return;
@@ -276,7 +293,7 @@ export function RecorderView({ metronome }) {
     }
     setPhase((p) => (p === 'saving' ? 'idle' : p));
     refresh();
-  }, [profileId, refresh, t]);
+  }, [profileId, refresh, t, closeRig]);
 
   const record = useCallback(async () => {
     setError(null);
@@ -287,6 +304,7 @@ export function RecorderView({ metronome }) {
       closeRig();
       setPhase('opening');
       // In the tap: a fresh context (iOS unlock) + the shared one's nudge.
+      setAudioSession('auto');
       const ctx = createLiveContext();
       ctx.resume().catch(() => {});
       prepareAudioOutput();
@@ -370,6 +388,9 @@ export function RecorderView({ metronome }) {
   const togglePlay = async (take, at) => {
     const a = audioRef.current;
     if (!a) return;
+    // Mic still open (e.g. a failed take): close it so the speaker is used.
+    if (rig.current && phaseRef.current === 'idle') closeRig();
+    setAudioSession('playback');
     try {
       if (playing !== take.id) {
         a.pause();

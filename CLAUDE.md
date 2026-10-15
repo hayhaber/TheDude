@@ -547,6 +547,10 @@ on the container; content inside stays top-aligned). Stacked on a phone
   mechanical counter (`.rec-time`), REC/PLAY lamps, piano keys Rewind/Play/
   Forward/Stop/Record (tap = ±5 s, hold = wind ~15x), Sound = 2-position knob
   (AmpKnobArt). Hebrew labels: `.is-he` drops letter-spacing, `dir="auto"`.
+  iPhone playback = loudspeaker: the mic (rig) is closed as soon as a take
+  is saved / a count-in is cancelled and before any playback, and
+  `navigator.audioSession.type` is set to 'playback' (back to 'auto' on
+  Record) — with capture open iOS routes everything to the earpiece.
   Planned next (user-approved plan, not built): edit/cut/join, drums, import/
   export, MP3, take lanes/comping, auto punch, pre/post-roll.
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =

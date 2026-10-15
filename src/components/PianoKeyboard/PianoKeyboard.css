@@ -359,6 +359,10 @@
    keyboard — a ring, not a fill, so it never fights the key's own
    chord/quiz/drill highlight color (see keyFill/keyOpacity above); it just
    adds on top, visible on a plain unhighlighted key too. */
+/* Held keys (computer keys, MIDI, touch, mouse) — every one of them, so a
+   chord lights all its keys: a solid accent fill and the pressed-down look.
+   A key that already carries a note colour (inline background) keeps it and
+   gets the ring instead. */
 .piano-key.midi-held {
   box-shadow: inset 0 0 0 3px var(--accent);
 }
@@ -771,4 +775,27 @@
 .piano-panel .info-tooltip-trigger:focus-visible {
   color: #4dabf7;
   background: rgba(77, 171, 247, 0.18);
+}
+
+/* Placed last so it wins over :hover and the resting key colours. */
+.piano-key-white.midi-held:not(.active) {
+  background: color-mix(in srgb, var(--accent) 42%, #fdfdfb);
+  transform: translateY(2px) scaleY(0.985);
+  transform-origin: bottom;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+}
+
+.piano-key-black.midi-held:not(.active) {
+  background: var(--accent);
+  transform: translateY(1.5px) scaleY(0.96);
+  transform-origin: bottom;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.piano-key-white.midi-held::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.14) 0%, rgba(0, 0, 0, 0.02) 45%, rgba(255, 255, 255, 0.12) 100%);
+}
+
+.piano-key-black.midi-held::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(255, 255, 255, 0.05) 100%);
 }

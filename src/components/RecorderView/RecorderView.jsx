@@ -146,6 +146,45 @@ export function RecorderView({ metronome }) {
   const meterRef = useRef(null);
   const playMeterRef = useRef(null);
   const [wind, setWind] = useState(null); // 'rew' | 'ff' while winding
+  // Reels: a jump (seek on the waveform, a Rewind/Forward tap, a new
+  // recording) is WOUND to, not jumped to — the tape runs from one reel to
+  // the other at winding speed until it reaches the new point. `reel.shown`
+  // is the share drawn; `target` the real one. Small steps (normal play,
+  // recording) are followed exactly.
+  const reel = useRef({ shown: 0, winding: null, target: 0, step: 0.01 });
+  const [reelWind, setReelWind] = useState(null);
+  const [, setReelTick] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      const r = reel.current;
+      const d = r.target - r.shown;
+      if (!r.winding) {
+        if (Math.abs(d) > r.step) {
+          r.winding = d > 0 ? 'ff' : 'rew';
+          setReelWind(r.winding);
+        } else r.shown = r.target;
+      }
+      if (r.winding) {
+        // Fast at first, braking into the spot (plus a minimum speed so it
+        // arrives): about 0.5-0.9 s whatever the distance.
+        const move = d * (1 - Math.exp(-dt / 0.16)) + Math.sign(d) * 0.06 * dt;
+        r.shown = Math.abs(move) >= Math.abs(d) ? r.target : r.shown + move;
+        if (Math.abs(r.target - r.shown) < 0.0015) {
+          r.shown = r.target;
+          r.winding = null;
+          setReelWind(null);
+        }
+        setReelTick((n) => n + 1);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
   const windRef = useRef(null);
   const audioRef = useRef(null);
   const urls = useRef(new Map());
@@ -469,10 +508,8 @@ export function RecorderView({ metronome }) {
     clearInterval(w.iv);
     if (!w.held && commit) {
       // A tap: jump, with a short burst of the reels.
+      // (The reels wind to the new spot by themselves.)
       seekRef.current(w.dir === 'ff' ? WIND_TAP : -WIND_TAP);
-      setWind(w.dir);
-      w.flash = setTimeout(() => setWind((d) => (d === w.dir ? null : d)), 450);
-      windRef.current = null;
       return;
     }
     setWind(null);
@@ -548,9 +585,16 @@ export function RecorderView({ metronome }) {
   // ---- render --------------------------------------------------------------
   // Reels: while recording the tape runs off a 15-minute reel; a loaded take
   // sits where it is played to.
-  const share = busy || phase === 'saving' ? elapsed / MAX_SECONDS : current ? progress : 0;
-  const motion = phase === 'recording' ? 'play' : wind || (current && !paused ? 'play' : 'stop');
-  const shownTime = busy || phase === 'saving' ? elapsed : current ? progress * current.duration : 0;
+  const realShare = busy || phase === 'saving' ? elapsed / MAX_SECONDS : current ? progress : 0;
+  // A jump bigger than ~0.4 s of tape is wound to (see `reel` above).
+  reel.current.target = realShare;
+  reel.current.step = Math.max(0.004, 0.4 / (busy || phase === 'saving' || !current ? MAX_SECONDS : current.duration || 1));
+  // Until the reel loop picks a jump up (next frame), keep drawing where the
+  // tape was — otherwise one frame would show the jump.
+  const share = reel.current.winding || Math.abs(realShare - reel.current.shown) > reel.current.step ? reel.current.shown : realShare;
+  const motion = reelWind || (phase === 'recording' ? 'play' : wind || (current && !paused ? 'play' : 'stop'));
+  // The counter rolls with the tape while it winds.
+  const shownTime = busy || phase === 'saving' ? elapsed : current ? share * current.duration : 0;
   const dateFmt = new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : undefined, {
     day: 'numeric',
     month: 'short',

@@ -551,6 +551,10 @@ on the container; content inside stays top-aligned). Stacked on a phone
   is saved / a count-in is cancelled and before any playback, and
   `navigator.audioSession.type` is set to 'playback' (back to 'auto' on
   Record) — with capture open iOS routes everything to the earpiece.
+  Seeks WIND the tape (user's request): `reel` ref + rAF loop in RecorderView
+  — a jump > ~0.4 s of tape (waveform seek, Rewind/Forward tap, a new take)
+  is eased to over ~0.6 s with the reels in ff/rew and the counter rolling;
+  normal play/recording steps are followed exactly. Audio seeks at once.
   Planned next (user-approved plan, not built): edit/cut/join, drums, import/
   export, MP3, take lanes/comping, auto punch, pre/post-roll.
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =

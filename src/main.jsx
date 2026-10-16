@@ -8,6 +8,11 @@ import { LanguageProvider } from './i18n/LanguageContext.jsx'
 import { InstrumentProvider } from './instruments/InstrumentContext.jsx'
 import { InfoTooltipsProvider } from './hooks/InfoTooltipsProvider.jsx'
 import { unlockAudioContextOnFirstGesture } from './audio/audioContext.js'
+import { installMicSessionGuard } from './audio/micSession.js'
+
+// iOS: a 'playback' audio session (set by the Recorder) silences the mic —
+// every getUserMedia switches it back first (audio/micSession.js).
+installMicSessionGuard()
 
 // See audioContext.js's own comment — iOS Safari needs an explicit unlock
 // tied to the very first real touch/click the page receives, not just a

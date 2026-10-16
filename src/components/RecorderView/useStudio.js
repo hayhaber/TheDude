@@ -487,7 +487,12 @@ export function useStudio({ t, initialBpm = 100 }) {
       const done = phaseRef.current === 'recording' ? stopRef.current() : Promise.resolve();
       Promise.resolve(done)
         .catch(() => {})
-        .finally(() => engine.dispose());
+        .finally(() => {
+          engine.dispose();
+          // Leaving the Recorder: back to the normal session (a 'playback'
+          // session would keep the mic silent for the tuner etc. on iOS).
+          setAudioSession('auto');
+        });
     },
     [engine]
   );

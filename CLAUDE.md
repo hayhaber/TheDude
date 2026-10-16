@@ -583,6 +583,11 @@ on the container; content inside stays top-aligned). Stacked on a phone
   is saved / a count-in is cancelled and before any playback, and
   `navigator.audioSession.type` is set to 'playback' (back to 'auto' on
   Record) — with capture open iOS routes everything to the earpiece.
+  BUT a 'playback' session makes the iOS mic deliver SILENCE: it outlived the
+  Recorder and the tuner heard nothing (2026-10-16). `audio/micSession.js`
+  `installMicSessionGuard()` (main.jsx) patches getUserMedia once: an audio
+  request first switches a 'playback' session back to 'auto'. The Recorder
+  also resets to 'auto' when it unmounts.
   Seeks WIND the tape (user's request): `reel` ref + rAF loop in RecorderView
   — a jump > ~0.4 s of tape (waveform seek, Rewind/Forward tap, a new take)
   is eased to over ~0.6 s with the reels in ff/rew and the counter rolling;

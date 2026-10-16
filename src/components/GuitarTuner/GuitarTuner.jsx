@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { usePitchDetection, BASS_PITCH_RANGE } from '../../hooks/usePitchDetection';
+import { usePitchDetection, BASS_PITCH_RANGE, TUNER_PITCH_RANGE } from '../../hooks/usePitchDetection';
 import { useInfoTooltipsEnabled } from '../../hooks/useInfoTooltipsEnabled';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -57,7 +57,7 @@ export function GuitarTuner({ mode = 'guitar' }) {
   const { enabled: infoTooltipsEnabled } = useInfoTooltipsEnabled();
   const bass = mode === 'bass';
   const { isListening, startListening, stopListening, currentNote, frequency, error } = usePitchDetection(
-    bass ? BASS_PITCH_RANGE : undefined
+    bass ? BASS_PITCH_RANGE : TUNER_PITCH_RANGE
   );
   const [tuning, setTuningId] = useTunerTuning(bass ? 'bass' : 'guitar');
   const listeningRef = useRef(isListening);

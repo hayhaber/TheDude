@@ -112,6 +112,17 @@ on the container; content inside stays top-aligned). Stacked on a phone
   <select> sits invisibly over it) with ◀ ▶ step keys and the POWER key.
   Bass = ice-blue palette via CSS vars on `.tn-body`. The tool screen shows
   it without a card (`.tool-screen-card.is-device`). Pitch logic unchanged.
+  ACCURACY (2026-10-16, user saw a piano note read "needs tuning"): McLeod
+  alone reads inharmonic tones SHARP (piano B=0.0004 -> +8 ¢, outside the
+  ±5 ¢ green zone). The tuner (TUNER_PITCH_RANGE / BASS_PITCH_RANGE,
+  `refine: true` — other mic features keep the default) now refines with
+  `refineFundamental()` (pitchUtils.js): complex demodulation at the first
+  estimate over a one-period boxcar -> phase slope = the fundamental's exact
+  frequency; when the fundamental is weak/missing (phone speaker) partials
+  2 + 3 give B and f1 (f_k = k·f1·√(1+B·k²)). Measured: piano 0-1 ¢, guitar
+  0, missing fundamental 0. Test: `scripts/tuner-accuracy-test.mjs`.
+  The app's acoustic piano = Splendid Grand Piano recordings (smplr), a real
+  piano — not measurable here (sample host blocked).
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PitchDetector } from 'pitchy';
 import { getAudioContext } from '../audio/audioContext';
-import { frequencyToNote } from '../music/pitchUtils';
+import { frequencyToNote, refineFundamental } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { activeCalibration, createGate, frameRms } from '../audio/noiseCalibration';
 
@@ -12,7 +12,11 @@ const DEFAULT_RANGE = { fftSize: 2048, minHz: 60, maxHz: 1500 };
 // Bass: low E1 is ~41Hz (a 24ms period) — a longer window (4096 samples,
 // ~85ms) holds enough periods for a steady reading; the ceiling cuts off
 // stray upper harmonics.
-export const BASS_PITCH_RANGE = { fftSize: 4096, minHz: 35, maxHz: 500 };
+export const BASS_PITCH_RANGE = { fftSize: 4096, minHz: 35, maxHz: 500, refine: true };
+// The tuner (guitar): same window and range as the default, plus reading the
+// FUNDAMENTAL (refineFundamental) — inharmonic partials (piano!) otherwise
+// pull the reading sharp. Other mic features keep the default unchanged.
+export const TUNER_PITCH_RANGE = { ...DEFAULT_RANGE, refine: true };
 
 // Real-time mic pitch detection, built on an AnalyserNode + requestAnimationFrame
 // polling loop rather than a custom AudioWorkletProcessor. Pitchy's own analysis
@@ -67,7 +71,9 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     }
     setInputLevel(Math.min(1, peak));
 
-    const [pitch, detectedClarity] = detector.findPitch(buffer, getAudioContext().sampleRate);
+    const sr = getAudioContext().sampleRate;
+    let [pitch, detectedClarity] = detector.findPitch(buffer, sr);
+    if (rangeRef.current.refine && detectedClarity >= MIN_CLARITY && pitch > 0) pitch = refineFundamental(buffer, sr, pitch);
 
     setClarity(detectedClarity);
     const { minHz, maxHz } = rangeRef.current;

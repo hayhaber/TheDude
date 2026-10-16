@@ -87,7 +87,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /
   Tuner shortcuts: `onOpen({tool})` opens `components/ToolScreen/` — the tool
   ALONE on its own screen (App `toolScreen` state, rendered instead of home /
-  AppShell; Metronome | Tuner switch, Back / logo / Escape -> home on the
+  AppShell; NO Metronome | Tuner switch (removed, user's request), Home button / Escape -> home on the
   Tools card via `initialCard`; leaving stops the metronome). It uses the
   same `metronome`/`drums` instances as the app pills. The Tools card's 3rd
   shortcut is Settings: the same `SettingsBody` (exported from

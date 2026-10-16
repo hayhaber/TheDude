@@ -16,10 +16,9 @@ import './ToolScreen.css';
  * instrument page around it. The logo / Back / Escape return to the home
  * screen. Amp and Recorder close the mic when this screen goes away.
  */
-export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeChange, settingsProps, metronome, drums }) {
+export function ToolScreen({ tool, onBack, tunerMode, onTunerModeChange, settingsProps, metronome, drums }) {
   const { t, lang } = useLanguage();
   // The Metronome | Tuner switch only belongs to those two.
-  const noSwitch = tool !== 'metronome' && tool !== 'tuner';
 
   useEffect(() => {
     const onKey = (e) => {
@@ -33,20 +32,9 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
     <div className="tool-screen" dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <header className="tool-screen-top">
         <HomeButton className="tool-screen-home" onClick={onBack} />
-        {/* Metronome | Tuner (not on the Settings / Amp / Recorder pages). */}
-        <div
-          className={'mode-toggle tool-screen-switch' + (noSwitch ? ' is-hidden' : '')}
-          role="group"
-          aria-label={t('home.tools.title')}
-          inert={noSwitch}
-        >
-          <button type="button" className={tool === 'metronome' ? 'active' : ''} onClick={() => onToolChange('metronome')}>
-            {t('metronome.title')}
-          </button>
-          <button type="button" className={tool === 'tuner' ? 'active' : ''} onClick={() => onToolChange('tuner')}>
-            {t('tunerBar.label')}
-          </button>
-        </div>
+        {/* No Metronome | Tuner switch (user's request): each tool opens from
+            its own shortcut on the Tools card. */}
+        <span aria-hidden="true" />
         <span aria-hidden="true" />
       </header>
 

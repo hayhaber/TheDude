@@ -2001,7 +2001,6 @@ function App() {
     return (
       <ToolScreen
         tool={toolScreen}
-        onToolChange={setToolScreen}
         onBack={closeToolScreen}
         tunerMode={tunerMode}
         onTunerModeChange={setTunerMode}

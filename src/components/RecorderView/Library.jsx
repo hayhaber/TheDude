@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { RackHead } from './StudioControls';
 import { getTakeAudio } from '../../audio/recorderStore';
 
 // The library: every take of this profile (recordings, imports, bounces) —
@@ -194,11 +194,8 @@ export function Library({ t, lang, studio }) {
     take.kind === 'import' ? t('rec.badgeImport') : take.kind === 'bounce' ? t('rec.badgeMix') : take.sound === 'amp' ? t('rec.soundAmp') : null;
 
   return (
-    <section className="rec-takes">
-      <h2 className="rec-takes-title">
-        {t('rec.library')}
-        <InfoTooltip text={t('rec.tip.format')} />
-      </h2>
+    <section className="rec-takes rk-unit rk-wood">
+      <RackHead name={t('rec.library')} tip={t('rec.tip.format')} model={`${takes.length} REELS`} led={playing != null && !paused} tag="h2" />
       {takes.length === 0 ? (
         <p className="rec-empty">{t('rec.empty')}</p>
       ) : (

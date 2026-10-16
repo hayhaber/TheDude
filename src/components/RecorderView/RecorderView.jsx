@@ -4,7 +4,7 @@ import * as P from '../../audio/studio/project';
 import { useStudio } from './useStudio';
 import { Deck } from './Deck';
 import { Timeline } from './Timeline';
-import { DrumsPanel, FilePanel, RangePanel, RegionTools, SongBar, SyncPanel } from './StudioControls';
+import { DrumsPanel, FilePanel, RackHead, RangePanel, RegionTools, SongBar, SyncPanel } from './StudioControls';
 import { Library } from './Library';
 import '../ModeToggle/ModeToggle.css';
 import '../AmpView/AmpView.css';
@@ -84,10 +84,16 @@ export function RecorderView({ metronome }) {
       )}
 
       <section className="st-studio" aria-label={t('rec.studio')}>
-        <SongBar t={t} studio={studio} />
-        <Timeline t={t} studio={studio} />
-        <RegionTools t={t} studio={studio} />
-        {project && project.tracks.every((x) => !x.regions.length) && phase === 'idle' && <p className="st-hint">{t('rec.studioHint')}</p>}
+        {/* The multitrack unit: song display + keys, the screen, the edit keys. */}
+        <div className="rk-unit rk-black mt-unit">
+          <RackHead name={t('rec.studio')} model="MT-4" led={phase === 'recording' || phase === 'playing'} />
+          <SongBar t={t} studio={studio} />
+          <div className="mt-bezel">
+            <Timeline t={t} studio={studio} />
+          </div>
+          <RegionTools t={t} studio={studio} />
+          {project && project.tracks.every((x) => !x.regions.length) && phase === 'idle' && <p className="st-hint">{t('rec.studioHint')}</p>}
+        </div>
         <div className="st-panels">
           <RangePanel t={t} studio={studio} />
           <DrumsPanel t={t} studio={studio} />

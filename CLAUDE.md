@@ -583,6 +583,17 @@ on the container; content inside stays top-aligned). Stacked on a phone
   join at the end of the armed track), useStudio.js (state + actions).
   Tests: `scripts/studio-test.mjs` (pure) + scratchpad studio1/studio2.cjs
   (fake mic = the context's own output delayed 50 ms).
+  Studio LOOK (user's request: like studio hardware, in the deck's spirit;
+  physical = same in light/dark): Studio.css — every panel is a rack unit
+  (`.rk-unit` + `.rk-black` / `.rk-silver` / `.rk-drum` / `.rk-wood`; ears with
+  screws via ::before/::after, `RackHead` = status LED + engraved name + ⓘ +
+  model plate MT-4 / AL-2 / DR-7 / AD-24 / SY-1). The multitrack unit wraps
+  song bar + timeline (a dark screen in `.mt-bezel`, amber ruler, channel
+  strips with a white "scribble strip" name, lit R/M/S keys, fader) + EDIT
+  keys. Buttons = hardware keys (orange cap = primary, red = danger),
+  `.st-toggle` = latching key with an LED strip, selects = green LCD, range
+  readouts = red LED, range inputs = faders. Library = walnut cabinet, each
+  take a cardboard tape box with a typed label.
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
   a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
   CRUNCH 0° / LEAD +60°, under INPUT where the dropdown was — knob row unchanged (user); tap = next, tap a printed

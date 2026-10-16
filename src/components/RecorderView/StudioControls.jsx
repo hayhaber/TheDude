@@ -8,6 +8,23 @@ import { usePlayhead } from './useStudio';
 // The studio's controls under the timeline. Every new button is one word;
 // every choice of more than two is a <select> (house rules).
 
+/** The engraved head of a rack unit: status LED, name (+ ⓘ), model plate. */
+export function RackHead({ name, tip, model, led, tag = 'h3' }) {
+  const H = tag;
+  return (
+    <div className="rk-head">
+      <span className={'rk-led' + (led ? ' is-on' : '')} aria-hidden="true" />
+      <H className="rk-name" dir="auto">
+        {name}
+        {tip && <InfoTooltip text={tip} />}
+      </H>
+      <span className="rk-model" aria-hidden="true">
+        {model}
+      </span>
+    </div>
+  );
+}
+
 function Toggle({ on, onClick, children, disabled, title }) {
   return (
     <button type="button" className={'st-toggle' + (on ? ' is-on' : '')} aria-pressed={!!on} onClick={onClick} disabled={disabled} title={title}>
@@ -150,7 +167,10 @@ export function RegionTools({ t, studio }) {
   };
 
   return (
-    <div className="st-panel st-region-tools" role="toolbar" aria-label={t('rec.regionTools')}>
+    <div className="st-region-tools" role="toolbar" aria-label={t('rec.regionTools')}>
+      <span className="st-edit-plate" aria-hidden="true">
+        EDIT
+      </span>
       <button
         type="button"
         className="amp-btn"
@@ -220,11 +240,8 @@ export function RangePanel({ t, studio }) {
   const setOut = () =>
     studio.update((p) => ({ ...p, range: { in: p.range && p.range.in < position - 0.05 ? p.range.in : Math.max(0, position - P.barSeconds(p) * 2), out: Math.max(position, 0.05) } }));
   return (
-    <div className="st-panel">
-      <h3 className="st-title">
-        {t('rec.rangeTitle')}
-        <InfoTooltip text={t('rec.tip.range')} />
-      </h3>
+    <div className="st-panel rk-unit rk-silver">
+      <RackHead name={t('rec.rangeTitle')} tip={t('rec.tip.range')} model="AL-2" led={project.loop || project.punch} />
       <div className="st-row">
         <button type="button" className="amp-btn" disabled={!idle} onClick={setIn}>
           {t('rec.in')}
@@ -279,11 +296,8 @@ export function DrumsPanel({ t, studio }) {
   const locked = phase === 'recording' || phase === 'saving';
   const set = (patch, mix = false) => (mix ? studio.updateMix : studio.update)((p) => ({ ...p, drums: { ...p.drums, ...patch } }));
   return (
-    <div className="st-panel">
-      <h3 className="st-title">
-        {t('rec.drums')}
-        <InfoTooltip text={t('rec.tip.drums')} />
-      </h3>
+    <div className="st-panel rk-unit rk-black rk-drum">
+      <RackHead name={t('rec.drums')} tip={t('rec.tip.drums')} model="DR-7" led={d.on} />
       <div className="st-row">
         <Toggle on={d.on} disabled={locked} onClick={() => set({ on: !d.on })}>
           {t('rec.drums')}
@@ -327,11 +341,8 @@ export function FilePanel({ t, studio }) {
   const whatValue = what === 'mix' || project.tracks.some((x) => x.id === what) ? what : 'mix';
   const go = (to) => studio.exportAudio({ what: whatValue, span: span === 'range' && project.range ? 'range' : 'all', format, kbps, to });
   return (
-    <div className="st-panel">
-      <h3 className="st-title">
-        {t('rec.fileTitle')}
-        <InfoTooltip text={t('rec.tip.export')} />
-      </h3>
+    <div className="st-panel rk-unit rk-silver">
+      <RackHead name={t('rec.fileTitle')} tip={t('rec.tip.export')} model="AD-24" led={!!busyTask} />
       <div className="st-row">
         <button type="button" className="amp-btn" disabled={!idle || !!busyTask} onClick={() => fileRef.current?.click()}>
           {t('rec.import')}
@@ -413,11 +424,8 @@ export function FilePanel({ t, studio }) {
 export function SyncPanel({ t, studio }) {
   const { latencyMs, busyTask, phase } = studio;
   return (
-    <div className="st-panel">
-      <h3 className="st-title">
-        {t('rec.syncTitle')}
-        <InfoTooltip text={t('rec.tip.latency')} />
-      </h3>
+    <div className="st-panel rk-unit rk-black">
+      <RackHead name={t('rec.syncTitle')} tip={t('rec.tip.latency')} model="SY-1" led={latencyMs != null} />
       <p className="st-text">{latencyMs == null ? t('rec.latencyAuto') : t('rec.latencyMeasured', { ms: latencyMs })}</p>
       <div className="st-row">
         <button type="button" className="amp-btn" disabled={phase !== 'idle' || !!busyTask} onClick={studio.calibrate}>

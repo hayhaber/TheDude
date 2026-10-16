@@ -281,3 +281,12 @@ button {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* The round Home button (components/HomeButton). */
+.home-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 0;
+}

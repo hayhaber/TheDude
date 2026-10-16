@@ -118,6 +118,11 @@ on the container; content inside stays top-aligned). Stacked on a phone
   Settings are only on the home screen's Tools card (user's request).
   Phone/tablet: logo top-left, info top-right,
   metronome/tuner bar + feature tabs at the bottom.
+- **Round Home button** (`components/HomeButton/HomeButton.jsx`, user's
+  request 2026-10-16): replaces the logo at the top of every inner page —
+  AppShell desktop top bar (`.app-topbar-home`), phone/tablet top-left
+  (`.app-mobile-brand`), ToolScreen top-start (`.tool-screen-home`, also
+  replaced the "‹ Home" text link). The logo stays only on the home screen.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the
   bottom tabs. Each is mounted twice (one hidden by CSS), so anything that

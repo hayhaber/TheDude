@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { SECTIONS } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
-import { AppLogo } from '../AppLogo/AppLogo';
+import { HomeButton } from '../HomeButton/HomeButton';
 import { RewardToast } from '../Achievements/RewardToast';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
@@ -50,10 +50,8 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
 
   return (
     <div className={'app-shell' + (bare ? ' is-bare' : '')}>
-      {/* Phone/tablet: the logo (back to the home screen), top-left. */}
-      <button type="button" className="app-mobile-brand app-brand-home" onClick={() => onHome?.()} aria-label={t('home.open')}>
-        <AppLogo size={26} />
-      </button>
+      {/* Phone/tablet: the round Home button (back to the main menu), top-left. */}
+      <HomeButton className="app-mobile-brand" onClick={() => onHome?.()} />
 
       <div className="app-mobile-settings">
         <div className="app-mobile-settings-icons">
@@ -66,18 +64,9 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             metronome, tuner, info). The instrument itself is chosen
             on the home screen; there is no menu drawer any more. */}
         <header className="app-topbar">
-          {/* Left: the logo and the home button (both back to the cards). */}
+          {/* Left: the round Home button (back to the main menu). */}
           <div className="app-topbar-brand">
-            <button type="button" className="app-brand-home app-topbar-logo" onClick={() => onHome?.()} aria-label={t('home.open')} title={t('home.open')}>
-              <AppLogo size={30} />
-            </button>
-            <button type="button" className="app-topbar-home icon-circle-button" onClick={() => onHome?.()} aria-label={t('home.open')} title={t('home.open')}>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M4 11.5 12 5l8 6.5" />
-                <path d="M6.5 10v9h11v-9" />
-                <path d="M10 19v-5h4v5" />
-              </svg>
-            </button>
+            <HomeButton className="app-topbar-home" onClick={() => onHome?.()} />
           </div>
           {/* Features left to right in both languages (Compose first). */}
           <nav className={'app-topbar-nav mode-toggle wrap' + (bare ? ' is-empty' : '')} dir="ltr" aria-label={t('nav.mainLabel')}>

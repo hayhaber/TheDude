@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { AppLogo } from '../AppLogo/AppLogo';
+import { HomeButton } from '../HomeButton/HomeButton';
 import { Metronome } from '../Metronome/Metronome';
 import { GuitarTuner } from '../GuitarTuner/GuitarTuner';
 import { SettingsBody } from '../SettingsPanel/SettingsPanel';
@@ -32,10 +32,7 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
   return (
     <div className="tool-screen" dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <header className="tool-screen-top">
-        <button type="button" className="tool-screen-back" onClick={onBack} aria-label={t('home.open')}>
-          <span aria-hidden="true">{lang === 'he' ? '›' : '‹'}</span>
-          {t('toolScreen.back')}
-        </button>
+        <HomeButton className="tool-screen-home" onClick={onBack} />
         {/* Metronome | Tuner (not on the Settings / Amp / Recorder pages). */}
         <div
           className={'mode-toggle tool-screen-switch' + (noSwitch ? ' is-hidden' : '')}
@@ -50,9 +47,7 @@ export function ToolScreen({ tool, onToolChange, onBack, tunerMode, onTunerModeC
             {t('tunerBar.label')}
           </button>
         </div>
-        <button type="button" className="tool-screen-brand" onClick={onBack} aria-label={t('home.open')}>
-          <AppLogo size={30} />
-        </button>
+        <span aria-hidden="true" />
       </header>
 
       <main className="tool-screen-body">

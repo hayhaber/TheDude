@@ -3,6 +3,7 @@ export const TIPS_TUNING = {
   en: {
     'tuning.label': 'Tuning',
     'tuner.prev': 'Previous tuning',
+    'tuner.noSignal': 'No sound is reaching the tuner from the microphone. Tap Stop, then Start again; if it stays, check the microphone permission for this site.',
     'tuner.next': 'Next tuning',
     'tuning.standard': 'Standard',
     'tuning.dropD': 'Drop D',
@@ -24,6 +25,7 @@ export const TIPS_TUNING = {
   he: {
     'tuning.label': 'כיוון',
     'tuner.prev': 'הכיוון הקודם',
+    'tuner.noSignal': 'לא מגיע קול מהמיקרופון לטיונר. לחצו עצור ואז התחל כיוון שוב; אם זה נשאר, בדקו את הרשאת המיקרופון לאתר.',
     'tuner.next': 'הכיוון הבא',
     'tuning.standard': 'סטנדרטי',
     'tuning.dropD': 'Drop D',

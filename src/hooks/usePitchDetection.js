@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PitchDetector } from 'pitchy';
-import { getAudioContext } from '../audio/audioContext';
+import { getAudioContext, prepareAudioOutput, reviveAudioOutput } from '../audio/audioContext';
 import { frequencyToNote, refineFundamental } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { activeCalibration, createGate, frameRms } from '../audio/noiseCalibration';
@@ -36,6 +36,11 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
   const [clarity, setClarity] = useState(0);
   const [inputLevel, setInputLevel] = useState(0); // 0-1 peak amplitude, post-gain — drives a VU meter
   const [error, setError] = useState(null);
+  // true while listening but the mic delivers exact digital silence (a dead
+  // pipeline — e.g. an iOS audio session / context that never woke up), not
+  // just a quiet room (which always has some noise).
+  const [deadInput, setDeadInput] = useState(false);
+  const lastSignalAt = useRef(0);
 
   const streamRef = useRef(null);
   const sourceRef = useRef(null);
@@ -43,6 +48,7 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
   const analyserRef = useRef(null);
   const detectorRef = useRef(null);
   const bufferRef = useRef(null);
+  const resumeAt = useRef(0);
   const rafRef = useRef(null);
   // Room calibration (Settings -> Audio Input -> Calibrate) for this mic +
   // mode, read when the mic opens. null = none: no gate, exactly as before.
@@ -62,6 +68,17 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     // the click volume slider.
     if (gainNode) gainNode.gain.value = getAudioInputSettings().gain;
 
+    // Backstop: a context that stopped running (iOS interruption) is woken
+    // again, at most every ~0.5 s.
+    const actx = getAudioContext();
+    if (actx.state !== 'running') {
+      const now = performance.now();
+      if (!resumeAt.current || now - resumeAt.current > 500) {
+        resumeAt.current = now;
+        actx.resume().catch(() => {});
+      }
+    }
+
     analyser.getFloatTimeDomainData(buffer);
 
     let peak = 0;
@@ -70,6 +87,10 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
       if (abs > peak) peak = abs;
     }
     setInputLevel(Math.min(1, peak));
+    const nowMs = performance.now();
+    if (peak > 0) lastSignalAt.current = nowMs;
+    const dead = nowMs - lastSignalAt.current > 1500;
+    setDeadInput((d) => (d === dead ? d : dead));
 
     const sr = getAudioContext().sampleRate;
     let [pitch, detectedClarity] = detector.findPitch(buffer, sr);
@@ -111,10 +132,14 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     setCurrentNote(null);
     setClarity(0);
     setInputLevel(0);
+    setDeadInput(false);
   }, []);
 
   const startListening = useCallback(async () => {
     setError(null);
+    // iOS: wake the shared context IN the tap (before the await below) —
+    // the same as the Vocal mic, which works on iPhone.
+    prepareAudioOutput();
     try {
       // deviceId/inputMode come from Settings (audioInputSettingsStore.js) —
       // 'direct' keeps processing off (a clean instrument signal, e.g. an
@@ -132,6 +157,11 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
         },
       });
       const ctx = getAudioContext();
+      // iOS: opening the mic interrupts/suspends the shared context — while
+      // it isn't running the analyser gets no audio and the tuner "hears"
+      // nothing. Wake it again (as useVocalMic does).
+      reviveAudioOutput();
+      if (ctx.state !== 'running') await ctx.resume().catch(() => {});
       const source = ctx.createMediaStreamSource(stream);
       const gainNode = ctx.createGain();
       gainNode.gain.value = getAudioInputSettings().gain;
@@ -151,6 +181,8 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
       calRef.current = activeCalibration();
       gateRef.current = createGate();
 
+      lastSignalAt.current = performance.now();
+      setDeadInput(false);
       setIsListening(true);
       rafRef.current = requestAnimationFrame(tick);
     } catch (err) {
@@ -163,5 +195,5 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
   // caller forgets to, same guarantee useMetronome/useDrumEngine give.
   useEffect(() => stopListening, [stopListening]);
 
-  return { isListening, startListening, stopListening, currentNote, frequency, clarity, inputLevel, error };
+  return { isListening, startListening, stopListening, currentNote, frequency, clarity, inputLevel, error, deadInput };
 }

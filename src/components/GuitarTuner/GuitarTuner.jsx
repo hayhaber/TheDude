@@ -56,7 +56,7 @@ export function GuitarTuner({ mode = 'guitar' }) {
   const { t } = useLanguage();
   const { enabled: infoTooltipsEnabled } = useInfoTooltipsEnabled();
   const bass = mode === 'bass';
-  const { isListening, startListening, stopListening, currentNote, frequency, error } = usePitchDetection(
+  const { isListening, startListening, stopListening, currentNote, frequency, error, deadInput } = usePitchDetection(
     bass ? BASS_PITCH_RANGE : TUNER_PITCH_RANGE
   );
   const [tuning, setTuningId] = useTunerTuning(bass ? 'bass' : 'guitar');
@@ -255,9 +255,11 @@ export function GuitarTuner({ mode = 'guitar' }) {
             ? infoTooltipsEnabled
               ? t('tuner.micPermission')
               : null
-            : !currentNote
-              ? t('trainer.silence')
-              : null}
+            : deadInput
+              ? t('tuner.noSignal')
+              : !currentNote
+                ? t('trainer.silence')
+                : null}
       </p>
     </div>
   );

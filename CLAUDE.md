@@ -123,6 +123,14 @@ on the container; content inside stays top-aligned). Stacked on a phone
   0, missing fundamental 0. Test: `scripts/tuner-accuracy-test.mjs`.
   The app's acoustic piano = Splendid Grand Piano recordings (smplr), a real
   piano — not measurable here (sample host blocked).
+  iPhone "tuner hears nothing" (2026-10-16): usePitchDetection now does what
+  useVocalMic (works on iPhone) does — `prepareAudioOutput()` IN the tap
+  before getUserMedia (the shared context may otherwise be created after the
+  await = outside the gesture = stays silent on iOS), `reviveAudioOutput()` +
+  resume after it, and a backstop resume in tick() while the context isn't
+  running. `deadInput` (exact digital silence > 1.5 s, not a quiet room)
+  shows `tuner.noSignal` in the tuner's status line. NOT verified on a real
+  iPhone (no WebKit here) — Chromium can't reproduce iOS gesture rules.
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT

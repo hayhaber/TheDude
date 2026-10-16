@@ -63,7 +63,7 @@ export function ToolScreen({ tool, onBack, tunerMode, onTunerModeChange, setting
             ))}
           </div>
         )}
-        <div className={'tool-screen-card' + (tool === 'amp' || tool === 'record' ? ' is-wide' : '')}>
+        <div className={'tool-screen-card' + (tool === 'amp' || tool === 'record' ? ' is-wide' : '') + (tool === 'tuner' ? ' is-device' : '')}>
           {tool === 'tuner' ? (
             <GuitarTuner mode={tunerMode} />
           ) : tool === 'amp' ? (

@@ -103,6 +103,15 @@ on the container; content inside stays top-aligned). Stacked on a phone
   card's own Tuner shortcut was removed at the user's request — the
   plumbing for opening it in bass from a card is still there).
   Switching mode while listening restarts the mic.
+  LOOK (user's request 2026-10-16): a studio desk tuner (GuitarTuner.jsx/css,
+  `.tn-*`, always LTR, same in light/dark): black body with model plate
+  GT-6 / BT-4 + power LED; glass screen with GUITAR/BASS lamps, A4 = 440 Hz,
+  LED note + Polytune-style ▶ ◀ arrows, a 41-LED meter (2.5 ¢/LED, needle +
+  dim trail), a STROBE band moved by rAF at cents × 1.6 px/s (still when in
+  tune), cents + Hz readouts, string lamps; on the face the TUNING LCD (the
+  <select> sits invisibly over it) with ◀ ▶ step keys and the POWER key.
+  Bass = ice-blue palette via CSS vars on `.tn-body`. The tool screen shows
+  it without a card (`.tool-screen-card.is-device`). Pitch logic unchanged.
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT

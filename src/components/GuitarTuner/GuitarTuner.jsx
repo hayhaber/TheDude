@@ -29,14 +29,11 @@ const IN_TUNE_CENTS = 5; // vibrant-green "In Tune!" threshold
 const CLOSE_CENTS = 15; // amber "getting close" threshold; beyond this is red
 const MAX_CENTS = 50; // pitchUtils.frequencyToNote never returns more than +/-50
 
-// Segmented LED-style meter, not a swinging analog needle — modeled on a
-// real clip-on tuner's tri-color LED bar (e.g. D'Addario's Micro Headstock
-// Tuner: a dark display, a big color-coded note letter, and a row of LED
-// segments filling in from center toward however sharp/flat the note is,
-// red at the outer ends fading to green in the middle). SEGMENT_COUNT is
-// odd so there's a true center segment sitting exactly at 0 cents.
-const SEGMENT_COUNT = 15;
-const SEGMENT_CENTS_SPAN = (MAX_CENTS * 2) / SEGMENT_COUNT;
+// The meter: 41 LEDs (−50..+50 cents, 2.5 cents per LED) like a studio
+// rack tuner, plus a strobe band whose drift speed shows the error.
+const LED_HALF = 20;
+const STROBE_PX_PER_CENT = 1.6; // px per second per cent of error
+const STROBE_PERIOD = 24; // px — one stripe pair (matches the CSS pattern)
 
 function tuningZone(cents) {
   const abs = Math.abs(cents);
@@ -89,89 +86,163 @@ export function GuitarTuner({ mode = 'guitar' }) {
   const shownName = string ? string.name : currentNote ? currentNote.name.replace(/-?\d+$/, '') : '–';
   const isInTune = zone === 'in-tune';
 
-  // Segment index 0 is the leftmost (most-flat) segment, SEGMENT_COUNT-1 the
-  // rightmost (most-sharp); the exact center index is always "lit" as a
-  // reference tick even with no note playing. A segment "fills" when it
-  // sits between 0 cents and the current reading — i.e. the lit segments
-  // always form one continuous bar growing outward from center, the same
-  // visual language a real LED tuner bar uses.
-  const centerIndex = (SEGMENT_COUNT - 1) / 2;
-  const segments = Array.from({ length: SEGMENT_COUNT }, (_, i) => {
-    const segmentCents = (i - centerIndex) * SEGMENT_CENTS_SPAN;
-    const isCenter = i === centerIndex;
-    const lit =
-      isCenter || (currentNote != null && (cents >= 0 ? segmentCents > 0 && segmentCents <= cents : segmentCents < 0 && segmentCents >= cents));
-    return { key: i, isCenter, lit };
+  // The LED meter: 41 LEDs from -50 to +50 cents (2.5 cents each) — one
+  // "needle" LED lights at the reading (with a dim neighbour on each side
+  // for a soft trail), the centre LED is always a faint reference.
+  const ledIndex = currentNote ? Math.round(cents / (MAX_CENTS / LED_HALF)) + LED_HALF : null;
+  const leds = Array.from({ length: LED_HALF * 2 + 1 }, (_, i) => {
+    const off = Math.abs(i - LED_HALF);
+    const color = off <= IN_TUNE_CENTS / (MAX_CENTS / LED_HALF) ? 'g' : off <= CLOSE_CENTS / (MAX_CENTS / LED_HALF) ? 'a' : 'r';
+    const lit = ledIndex == null ? '' : i === ledIndex ? ' is-on' : Math.abs(i - ledIndex) === 1 ? ' is-dim' : '';
+    return { key: i, cls: `tn-led c-${color}${i === LED_HALF ? ' is-center' : ''}${lit}` };
   });
+
+  // Strobe band: the stripes drift at a speed proportional to how far off
+  // the note is (left = flat, right = sharp) and stand still when it's in
+  // tune — the way a strobe tuner reads. Moved in the DOM, not React state.
+  const strobeRef = useRef(null);
+  const strobeCents = useRef(null);
+  strobeCents.current = currentNote ? cents : null;
+  useEffect(() => {
+    let raf = 0;
+    let x = 0;
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      const c = strobeCents.current;
+      if (c != null) x = (x + c * STROBE_PX_PER_CENT * dt) % STROBE_PERIOD;
+      const el = strobeRef.current;
+      if (el) el.style.transform = `translateX(${(x - STROBE_PERIOD).toFixed(2)}px)`;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const list = tuningsFor(bass ? 'bass' : 'guitar');
+  const at = Math.max(0, list.findIndex((x) => x.id === tuning.id));
+  const stepTuning = (d) => setTuningId(list[(at + d + list.length) % list.length].id);
+  const flatOn = currentNote && (isInTune || cents < 0);
+  const sharpOn = currentNote && (isInTune || cents > 0);
+  const centsText = currentNote ? `${rawCents > 0 ? '+' : rawCents < 0 ? '−' : '±'}${Math.abs(Math.round(rawCents))}` : '--';
 
   return (
     <div className={'guitar-tuner' + (bass ? ' is-bass' : '')}>
-      <label className="guitar-tuner-tuning">
-        <span className="guitar-tuner-tuning-label">
-          {t('tuning.label')}
-          <InfoTooltip text={t('tuning.tip.select')} />
-        </span>
-        <select value={tuning.id} onChange={(e) => setTuningId(e.target.value)}>
-          {tuningsFor(bass ? 'bass' : 'guitar').map((x) => (
-            <option key={x.id} value={x.id}>
-              {t(`tuning.${x.id}`)} ({x.names.join(' ')})
-            </option>
-          ))}
-        </select>
-      </label>
-      {/* Always LTR (also in Hebrew): flat on the left, sharp on the right,
-          like every hardware tuner — in RTL the meter used to run backwards. */}
-      <div className={`guitar-tuner-screen${zone ? ` zone-${zone}` : ''}`} dir="ltr">
-        <span className="guitar-tuner-mode" aria-hidden="true">
-          {bass ? 'BASS' : 'GUITAR'}
-        </span>
-        <div className="guitar-tuner-note-row">
-          <span className={`guitar-tuner-flat-arrow${zone === 'off' && cents < 0 ? ' active' : ''}`} aria-hidden="true">
-            ♭
-          </span>
-          {/* Letter name only, no octave digit — a tuner tells you WHICH
-              string/pitch class you're on and how far off it is, not which
-              octave (a player already knows that; e.g. the low E string
-              reads "E", not "E2"). */}
-          <span className="guitar-tuner-note">{shownName}</span>
-          <span className={`guitar-tuner-sharp-arrow${zone === 'off' && cents > 0 ? ' active' : ''}`} aria-hidden="true">
-            ♯
-          </span>
+      {/* A studio desk tuner (always LTR, like the hardware: flat left). */}
+      <div className={'tn-body' + (isListening ? ' is-on' : '')} dir="ltr">
+        <div className="tn-head">
+          <span className="tn-brand">DudeStar</span>
+          <span className="tn-model">{bass ? 'BT-4' : 'GT-6'} · STROBE / CHROMATIC</span>
+          <span className={'tn-power-led' + (isListening ? ' is-on' : '')} aria-hidden="true" />
         </div>
 
-        <div className="guitar-tuner-meter" role="img" aria-hidden="true">
-          {segments.map((seg) => (
-            <span
-              key={seg.key}
-              className={
-                'guitar-tuner-segment' +
-                (seg.isCenter ? ' center' : '') +
-                (seg.lit ? ' lit' : '')
-              }
-            />
-          ))}
-        </div>
+        <div className={`tn-screen guitar-tuner-screen${zone ? ` zone-${zone}` : ''}`}>
+          <div className="tn-screen-top" aria-hidden="true">
+            <span className={'tn-lamp' + (!bass ? ' is-on' : '')}>GUITAR</span>
+            <span className={'tn-lamp' + (bass ? ' is-on' : '')}>BASS</span>
+            <span className="tn-a4">A4 = 440 Hz</span>
+          </div>
 
-        {/* The tuning's strings, low to high — the one being tuned lit. */}
-        <div className="guitar-tuner-strings" dir="ltr" aria-hidden="true">
-          {tuning.names.map((name, i) => (
-            <span
-              key={i}
-              className={'guitar-tuner-string' + (string?.index === i ? ` active zone-${zone}` : '')}
-            >
-              {name}
+          <div className="tn-note-row">
+            <span className={'tn-arrow is-flat' + (flatOn ? ' is-on' : '')} aria-hidden="true">
+              ▶
             </span>
-          ))}
+            {/* Letter name only, no octave digit (as on a hardware tuner). */}
+            <span className="guitar-tuner-note tn-note" aria-live="polite">
+              {shownName}
+            </span>
+            <span className={'tn-arrow is-sharp' + (sharpOn ? ' is-on' : '')} aria-hidden="true">
+              ◀
+            </span>
+          </div>
+
+          <div className="tn-meter" aria-hidden="true">
+            <div className="tn-leds">
+              {leds.map((l) => (
+                <span key={l.key} className={l.cls} />
+              ))}
+            </div>
+            <div className="tn-scale">
+              <span>−50</span>
+              <span>−25</span>
+              <span>0</span>
+              <span>+25</span>
+              <span>+50</span>
+            </div>
+          </div>
+
+          <div className={'tn-strobe' + (currentNote ? ' is-live' : '')} aria-hidden="true">
+            <div className="tn-strobe-band" ref={strobeRef} />
+          </div>
+
+          <div className="tn-readouts">
+            <span className="tn-readout">
+              <span className="tn-readout-value">{centsText}</span>
+              <span className="tn-readout-unit">CENT</span>
+            </span>
+            <span className={`tn-in-tune guitar-tuner-in-tune-badge${isInTune ? ' visible' : ''}`} dir="auto">{t('trainer.inTune')}</span>
+            <span className="tn-readout">
+              <span className="tn-readout-value">
+                {frequency ? frequency.toFixed(1) : '---.-'}
+                {string && Math.abs(rawCents) > MAX_CENTS && heardName ? ` ${heardName}` : ''}
+              </span>
+              <span className="tn-readout-unit">
+                Hz
+                <InfoTooltip text={t('tip.tools.tunerAccuracy')} />
+              </span>
+            </span>
+          </div>
+
+          {/* The tuning's strings, low to high — the one being tuned lit. */}
+          <div className="tn-strings" aria-hidden="true">
+            {tuning.names.map((name, i) => (
+              <span key={i} className={'tn-string' + (string?.index === i ? ` is-on zone-${zone}` : '')}>
+                <span className="tn-string-led" />
+                {name}
+              </span>
+            ))}
+          </div>
         </div>
 
-        <div className="guitar-tuner-frequency">
-          {frequency ? `${frequency.toFixed(1)} Hz` : '—'}
-          {/* Off by more than a semitone: which note is actually sounding. */}
-          {string && Math.abs(rawCents) > MAX_CENTS && heardName ? ` · ${heardName}` : ''}
-          <InfoTooltip text={t('tip.tools.tunerAccuracy')} />
+        <div className="tn-controls">
+          {/* TUNING: an LCD on the device (the <select> sits over it), with
+              keys to step through the tunings. */}
+          <div className="tn-tuning guitar-tuner-tuning">
+            <span className="tn-engrave" dir="auto">
+              {t('tuning.label')}
+              <InfoTooltip text={t('tuning.tip.select')} />
+            </span>
+            <div className="tn-tuning-row">
+              <button type="button" className="tn-key tn-step" onClick={() => stepTuning(-1)} aria-label={t('tuner.prev')} title={t('tuner.prev')}>
+                ◀
+              </button>
+              <label className="tn-lcd">
+                <span className="tn-lcd-name" dir="auto">
+                  {t(`tuning.${tuning.id}`)}
+                </span>
+                <span className="tn-lcd-notes">{tuning.names.join(' ')}</span>
+                <select value={tuning.id} onChange={(e) => setTuningId(e.target.value)} aria-label={t('tuning.label')}>
+                  {list.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {t(`tuning.${x.id}`)} ({x.names.join(' ')})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" className="tn-key tn-step" onClick={() => stepTuning(1)} aria-label={t('tuner.next')} title={t('tuner.next')}>
+                ▶
+              </button>
+            </div>
+          </div>
+          <div className="tn-power-wrap">
+            <span className="tn-engrave">POWER</span>
+            <button type="button" className={'tn-key tn-power guitar-tuner-toggle' + (isListening ? ' is-on' : '')} onClick={isListening ? stopListening : startListening} aria-pressed={isListening}>
+              <span className="tn-key-led" aria-hidden="true" />
+              <span dir="auto">{isListening ? t('trainer.stop') : t('tuner.start')}</span>
+            </button>
+          </div>
         </div>
-
-        <div className={`guitar-tuner-in-tune-badge${isInTune ? ' visible' : ''}`}>{t('trainer.inTune')}</div>
       </div>
 
       <p className="guitar-tuner-status" dir="auto">
@@ -188,10 +259,6 @@ export function GuitarTuner({ mode = 'guitar' }) {
               ? t('trainer.silence')
               : null}
       </p>
-
-      <button type="button" className="guitar-tuner-toggle" onClick={isListening ? stopListening : startListening}>
-        {isListening ? t('trainer.stop') : t('tuner.start')}
-      </button>
     </div>
   );
 }

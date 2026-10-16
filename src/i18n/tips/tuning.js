@@ -2,6 +2,8 @@
 export const TIPS_TUNING = {
   en: {
     'tuning.label': 'Tuning',
+    'tuner.prev': 'Previous tuning',
+    'tuner.next': 'Next tuning',
     'tuning.standard': 'Standard',
     'tuning.dropD': 'Drop D',
     'tuning.halfDown': 'Half step down',
@@ -21,6 +23,8 @@ export const TIPS_TUNING = {
   },
   he: {
     'tuning.label': 'כיוון',
+    'tuner.prev': 'הכיוון הקודם',
+    'tuner.next': 'הכיוון הבא',
     'tuning.standard': 'סטנדרטי',
     'tuning.dropD': 'Drop D',
     'tuning.halfDown': 'חצי טון למטה',

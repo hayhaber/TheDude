@@ -630,3 +630,11 @@
     transform: none !important;
   }
 }
+
+/* Diagnostic line under the no-signal message (context / mic state). */
+.guitar-tuner-diag {
+  margin: 4px 0 0;
+  text-align: center;
+  font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  opacity: 0.6;
+}

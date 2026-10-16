@@ -138,6 +138,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
   resumes it IN the Start tap, routes analyser -> gain 0 -> destination (keep
   the graph pulled), reuses it across stop/start + Guitar<->Bass restarts
   (those happen outside a tap) and closes it on unmount.
+  Still silent on the iPhone after that (2026-10-16) -> after getUserMedia, a
+  context that isn't running is replaced by a NEW one (WebKit lets a page
+  that is capturing start audio without a gesture); every resume() await is
+  bounded (`settle`, 400 ms — a refused resume can stay pending forever);
+  any tap while listening resumes a stopped context; with `tuner.noSignal`
+  a small LTR diagnostic line (`.guitar-tuner-diag`: ctx state/rate, mic
+  track readyState/muted, audioSession type) — ask for a screenshot of it.
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT

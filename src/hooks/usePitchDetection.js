@@ -6,6 +6,9 @@ import { frequencyToNote, refineFundamental } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { activeCalibration, createGate, frameRms } from '../audio/noiseCalibration';
 
+// A resume() that iOS refuses can stay pending forever: wait at most 400 ms.
+const settle = (p) => Promise.race([p.catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
+
 const MIN_CLARITY = 0.9; // pitchy's clarity is 0-1; below this, treat as noise/no pitch
 // Defaults = guitar: floor below the lowest open string (E2 ~= 82Hz) with
 // headroom, ceiling well above the practical fretted range.
@@ -46,6 +49,10 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
   // just a quiet room (which always has some noise).
   const [deadInput, setDeadInput] = useState(false);
   const lastSignalAt = useRef(0);
+  const trackRef = useRef(null);
+  // Shown with the no-signal message: context state + rate, mic track state —
+  // a screenshot then says where the sound stops.
+  const [diag, setDiag] = useState('');
 
   const streamRef = useRef(null);
   const sourceRef = useRef(null);
@@ -98,6 +105,11 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     if (peak > 0) lastSignalAt.current = nowMs;
     const dead = nowMs - lastSignalAt.current > 1500;
     setDeadInput((d) => (d === dead ? d : dead));
+    if (dead) {
+      const tr = trackRef.current;
+      const info = `ctx ${actx.state} · ${actx.sampleRate} Hz · mic ${tr ? tr.readyState + (tr.muted ? ' muted' : '') + (tr.enabled ? '' : ' disabled') : 'none'}${navigator.audioSession ? ' · session ' + navigator.audioSession.type : ''}`;
+      setDiag((d) => (d === info ? d : info));
+    }
 
     const sr = (ctxRef.current || getAudioContext()).sampleRate;
     let [pitch, detectedClarity] = detector.findPitch(buffer, sr);
@@ -136,6 +148,7 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     // Our own context stays (idle) for a restart — e.g. Guitar <-> Bass —
     // which happens outside a tap; it's closed when the tuner goes away.
     ctxRef.current = null;
+    trackRef.current = null;
     streamRef.current = null;
     setIsListening(false);
     setFrequency(null);
@@ -173,12 +186,27 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
           autoGainControl: processingEnabled,
         },
       });
+      // iOS: the permission prompt / the switch to play-and-record can leave
+      // the context created in the tap stuck (suspended / interrupted), and
+      // a resume outside the tap is refused. While the page is capturing,
+      // WebKit lets a NEW context start without a gesture — so if ours isn't
+      // running now, replace it.
+      if (own && own.state !== 'running') {
+        await settle(own.resume());
+        if (own.state !== 'running') {
+          own.close().catch(() => {});
+          own = createLiveContext();
+          ownCtxRef.current = own;
+          await settle(own.resume());
+        }
+      }
       const ctx = own || getAudioContext();
       ctxRef.current = ctx;
+      trackRef.current = stream.getAudioTracks()[0] || null;
       // iOS: opening the mic interrupts/suspends a context — while it isn't
       // running the analyser gets no audio. Wake it again.
       if (!own) reviveAudioOutput();
-      if (ctx.state !== 'running') await ctx.resume().catch(() => {});
+      if (ctx.state !== 'running') await settle(ctx.resume());
       const source = ctx.createMediaStreamSource(stream);
       const gainNode = ctx.createGain();
       gainNode.gain.value = getAudioInputSettings().gain;
@@ -215,6 +243,22 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     }
   }, [tick]);
 
+  // Any tap while listening wakes a context that isn't running (a resume
+  // inside a gesture is always allowed on iOS).
+  useEffect(() => {
+    if (!isListening) return undefined;
+    const wake = () => {
+      const c = ctxRef.current;
+      if (c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => {});
+    };
+    window.addEventListener('touchend', wake, true);
+    window.addEventListener('click', wake, true);
+    return () => {
+      window.removeEventListener('touchend', wake, true);
+      window.removeEventListener('click', wake, true);
+    };
+  }, [isListening]);
+
   // Cleanup on unmount — stop the mic stream and analysis loop even if the
   // caller forgets to, same guarantee useMetronome/useDrumEngine give.
   useEffect(
@@ -228,5 +272,5 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     [stopListening]
   );
 
-  return { isListening, startListening, stopListening, currentNote, frequency, clarity, inputLevel, error, deadInput };
+  return { isListening, startListening, stopListening, currentNote, frequency, clarity, inputLevel, error, deadInput, diag };
 }

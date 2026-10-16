@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PitchDetector } from 'pitchy';
 import { getAudioContext, prepareAudioOutput, reviveAudioOutput } from '../audio/audioContext';
+import { createLiveContext } from '../audio/amp/liveInput';
 import { frequencyToNote, refineFundamental } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { activeCalibration, createGate, frameRms } from '../audio/noiseCalibration';
@@ -12,11 +13,15 @@ const DEFAULT_RANGE = { fftSize: 2048, minHz: 60, maxHz: 1500 };
 // Bass: low E1 is ~41Hz (a 24ms period) — a longer window (4096 samples,
 // ~85ms) holds enough periods for a steady reading; the ceiling cuts off
 // stray upper harmonics.
-export const BASS_PITCH_RANGE = { fftSize: 4096, minHz: 35, maxHz: 500, refine: true };
+export const BASS_PITCH_RANGE = { fftSize: 4096, minHz: 35, maxHz: 500, refine: true, ownContext: true };
 // The tuner (guitar): same window and range as the default, plus reading the
 // FUNDAMENTAL (refineFundamental) — inharmonic partials (piano!) otherwise
 // pull the reading sharp. Other mic features keep the default unchanged.
-export const TUNER_PITCH_RANGE = { ...DEFAULT_RANGE, refine: true };
+// ownContext: the tuner analyses on an AudioContext of its own, created and
+// resumed IN the Start tap (the Recorder's pattern, which works on iPhone):
+// on iOS the shared context stayed paused after the mic opened and the
+// tuner got pure digital silence.
+export const TUNER_PITCH_RANGE = { ...DEFAULT_RANGE, refine: true, ownContext: true };
 
 // Real-time mic pitch detection, built on an AnalyserNode + requestAnimationFrame
 // polling loop rather than a custom AudioWorkletProcessor. Pitchy's own analysis
@@ -49,6 +54,8 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
   const detectorRef = useRef(null);
   const bufferRef = useRef(null);
   const resumeAt = useRef(0);
+  const ctxRef = useRef(null); // the context in use
+  const ownCtxRef = useRef(null); // our own (ownContext), closed on stop
   const rafRef = useRef(null);
   // Room calibration (Settings -> Audio Input -> Calibrate) for this mic +
   // mode, read when the mic opens. null = none: no gate, exactly as before.
@@ -70,7 +77,7 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
 
     // Backstop: a context that stopped running (iOS interruption) is woken
     // again, at most every ~0.5 s.
-    const actx = getAudioContext();
+    const actx = ctxRef.current || getAudioContext();
     if (actx.state !== 'running') {
       const now = performance.now();
       if (!resumeAt.current || now - resumeAt.current > 500) {
@@ -92,7 +99,7 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     const dead = nowMs - lastSignalAt.current > 1500;
     setDeadInput((d) => (d === dead ? d : dead));
 
-    const sr = getAudioContext().sampleRate;
+    const sr = (ctxRef.current || getAudioContext()).sampleRate;
     let [pitch, detectedClarity] = detector.findPitch(buffer, sr);
     if (rangeRef.current.refine && detectedClarity >= MIN_CLARITY && pitch > 0) pitch = refineFundamental(buffer, sr, pitch);
 
@@ -126,6 +133,9 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     detectorRef.current = null;
     bufferRef.current = null;
     streamRef.current?.getTracks().forEach((track) => track.stop());
+    // Our own context stays (idle) for a restart — e.g. Guitar <-> Bass —
+    // which happens outside a tap; it's closed when the tuner goes away.
+    ctxRef.current = null;
     streamRef.current = null;
     setIsListening(false);
     setFrequency(null);
@@ -137,9 +147,16 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
 
   const startListening = useCallback(async () => {
     setError(null);
-    // iOS: wake the shared context IN the tap (before the await below) —
-    // the same as the Vocal mic, which works on iPhone.
-    prepareAudioOutput();
+    // iOS: everything audio must start IN the tap (before the await below).
+    let own = null;
+    if (rangeRef.current.ownContext) {
+      own = ownCtxRef.current && ownCtxRef.current.state !== 'closed' ? ownCtxRef.current : createLiveContext();
+      own.resume().catch(() => {});
+      ownCtxRef.current = own;
+    } else {
+      // The same as the Vocal mic, which works on iPhone.
+      prepareAudioOutput();
+    }
     try {
       // deviceId/inputMode come from Settings (audioInputSettingsStore.js) —
       // 'direct' keeps processing off (a clean instrument signal, e.g. an
@@ -156,11 +173,11 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
           autoGainControl: processingEnabled,
         },
       });
-      const ctx = getAudioContext();
-      // iOS: opening the mic interrupts/suspends the shared context — while
-      // it isn't running the analyser gets no audio and the tuner "hears"
-      // nothing. Wake it again (as useVocalMic does).
-      reviveAudioOutput();
+      const ctx = own || getAudioContext();
+      ctxRef.current = ctx;
+      // iOS: opening the mic interrupts/suspends a context — while it isn't
+      // running the analyser gets no audio. Wake it again.
+      if (!own) reviveAudioOutput();
       if (ctx.state !== 'running') await ctx.resume().catch(() => {});
       const source = ctx.createMediaStreamSource(stream);
       const gainNode = ctx.createGain();
@@ -170,6 +187,13 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
       // source -> gain -> analyser; never connected to ctx.destination —
       // analysis only, no feedback loop through the speakers.
       source.connect(gainNode).connect(analyser);
+      // Our own context: keep the graph pulled by the output, silently
+      // (WebKit can leave a graph with no path to the speakers idle).
+      if (own) {
+        const mute = own.createGain();
+        mute.gain.value = 0;
+        analyser.connect(mute).connect(own.destination);
+      }
 
       streamRef.current = stream;
       sourceRef.current = source;
@@ -193,7 +217,16 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
 
   // Cleanup on unmount — stop the mic stream and analysis loop even if the
   // caller forgets to, same guarantee useMetronome/useDrumEngine give.
-  useEffect(() => stopListening, [stopListening]);
+  useEffect(
+    () => () => {
+      stopListening();
+      if (ownCtxRef.current) {
+        ownCtxRef.current.close().catch(() => {});
+        ownCtxRef.current = null;
+      }
+    },
+    [stopListening]
+  );
 
   return { isListening, startListening, stopListening, currentNote, frequency, clarity, inputLevel, error, deadInput };
 }

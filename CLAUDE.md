@@ -131,6 +131,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
   running. `deadInput` (exact digital silence > 1.5 s, not a quiet room)
   shows `tuner.noSignal` in the tuner's status line. NOT verified on a real
   iPhone (no WebKit here) — Chromium can't reproduce iOS gesture rules.
+  The user's iPhone then showed `tuner.noSignal` (mic open, pure digital
+  silence) => the SHARED context stayed paused. Tuner ranges now carry
+  `ownContext: true`: usePitchDetection creates its own context
+  (`createLiveContext()`, the Recorder/Amp pattern that works on iPhone) and
+  resumes it IN the Start tap, routes analyser -> gain 0 -> destination (keep
+  the graph pulled), reuses it across stop/start + Guitar<->Bass restarts
+  (those happen outside a tap) and closes it on unmount.
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT

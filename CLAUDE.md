@@ -123,6 +123,11 @@ on the container; content inside stays top-aligned). Stacked on a phone
   AppShell desktop top bar (`.app-topbar-home`), phone/tablet top-left
   (`.app-mobile-brand`), ToolScreen top-start (`.tool-screen-home`, also
   replaced the "‹ Home" text link). The logo stays only on the home screen.
+  Phone/tablet (<900px): content starts at `--mobile-top-clear` = safe-area
+  top + 16 + 37 (button) + 16 px — the old fixed 68px put the title on the
+  Home button under the iPhone's Dynamic Island — and `.app-shell::before`
+  is a fixed translucent blurred strip (z-index 5, buttons are 6) behind the
+  Home / ⓘ buttons so scrolled content never covers them.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the
   bottom tabs. Each is mounted twice (one hidden by CSS), so anything that

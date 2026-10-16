@@ -181,8 +181,32 @@
     padding-bottom: calc(var(--bottom-tabs-height) + var(--mobile-metronome-height) + env(safe-area-inset-bottom, 0px));
   }
 
+  /* Clears the round Home / ⓘ buttons at the top, below the notch /
+     Dynamic Island (safe area) — the old fixed 68px let the title sit on
+     the Home button on an iPhone. */
   .app-section-content {
-    padding: 68px var(--space-4) var(--space-4);
+    padding: var(--mobile-top-clear) var(--space-4) var(--space-4);
+  }
+
+  .app-shell {
+    --mobile-top-clear: calc(env(safe-area-inset-top, 0px) + var(--space-4) + 37px + 16px);
+  }
+
+  /* A translucent strip behind the fixed Home / ⓘ buttons: scrolled content
+     passes under it and never covers them. */
+  .app-shell::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    height: calc(env(safe-area-inset-top, 0px) + var(--space-4) + 37px + 8px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+    box-shadow: 0 1px 0 var(--border);
+    pointer-events: none;
   }
 
   .app-stage-anchor {
@@ -334,10 +358,9 @@
     flex-direction: row;
   }
 
-  /* Clears the logo / settings row at the top (no instrument switch
-     there any more — it's chosen on the home screen). */
+  /* Clears the Home / ⓘ row at the top (safe area included). */
   .app-section-content {
-    padding-top: 68px;
+    padding-top: var(--mobile-top-clear);
   }
 
   /* The row layout comes from the shared <900px rule now (flex, equal

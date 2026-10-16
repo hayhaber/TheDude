@@ -28,7 +28,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 22px;
+  font-size: 33px; /* name +50% (user, 2026-10-16) */
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -421,7 +421,7 @@
   }
 
   .home-brand {
-    font-size: 17px;
+    font-size: 25.5px;
   }
 
   .home-brand svg {

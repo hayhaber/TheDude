@@ -145,6 +145,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
   any tap while listening resumes a stopped context; with `tuner.noSignal`
   a small LTR diagnostic line (`.guitar-tuner-diag`: ctx state/rate, mic
   track readyState/muted, audioSession type) — ask for a screenshot of it.
+  The iPhone diag then read `ctx running · 48000 Hz · mic live · session
+  auto` with pure zeros => WebKit's AnalyserNode gave nothing while the
+  Recorder's AudioWorklet capture works. The tuner now reads its frames from
+  an AudioWorklet tap (`audio/micTap.js`, mono blocks -> ring of 2x fftSize)
+  and uses the analyser only when the tap has no data; it also asks for
+  `channelCount: 1` like the Recorder. Diag prefix: `wk|an an <peak> wk
+  <blocks>/<peak>` (which path fed the frame).
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT

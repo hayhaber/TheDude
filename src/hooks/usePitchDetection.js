@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PitchDetector } from 'pitchy';
 import { getAudioContext, prepareAudioOutput, reviveAudioOutput } from '../audio/audioContext';
 import { createLiveContext } from '../audio/amp/liveInput';
+import { createMicTap } from '../audio/micTap';
 import { frequencyToNote, refineFundamental } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { activeCalibration, createGate, frameRms } from '../audio/noiseCalibration';
@@ -50,6 +51,10 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
   const [deadInput, setDeadInput] = useState(false);
   const lastSignalAt = useRef(0);
   const trackRef = useRef(null);
+  // Worklet tap (ownContext ranges): the frames come from here when it
+  // delivers — on the iPhone the analyser read zeros, the worklet doesn't.
+  const tapRef = useRef(null);
+  const tapBufRef = useRef(null);
   // Shown with the no-signal message: context state + rate, mic track state —
   // a screenshot then says where the sound stops.
   const [diag, setDiag] = useState('');
@@ -94,11 +99,29 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     }
 
     analyser.getFloatTimeDomainData(buffer);
-
-    let peak = 0;
-    for (let i = 0; i < buffer.length; i += 1) {
-      const abs = Math.abs(buffer[i]);
-      if (abs > peak) peak = abs;
+    const peakOf = (b) => {
+      let m = 0;
+      for (let i = 0; i < b.length; i += 1) {
+        const abs = Math.abs(b[i]);
+        if (abs > m) m = abs;
+      }
+      return m;
+    };
+    const anPeak = peakOf(buffer);
+    let peak = anPeak;
+    let via = 'an';
+    const tap = tapRef.current;
+    let tapPeak = null;
+    if (tap && tapBufRef.current && tap.read(tapBufRef.current)) {
+      tapPeak = peakOf(tapBufRef.current);
+      // Prefer the worklet's frames whenever they carry sound (or the
+      // analyser's don't): the same samples, through the path that works
+      // on the iPhone.
+      if (tapPeak > 0 || anPeak === 0) {
+        buffer.set(tapBufRef.current);
+        peak = tapPeak;
+        via = 'wk';
+      }
     }
     setInputLevel(Math.min(1, peak));
     const nowMs = performance.now();
@@ -107,7 +130,7 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
     setDeadInput((d) => (d === dead ? d : dead));
     if (dead) {
       const tr = trackRef.current;
-      const info = `ctx ${actx.state} · ${actx.sampleRate} Hz · mic ${tr ? tr.readyState + (tr.muted ? ' muted' : '') + (tr.enabled ? '' : ' disabled') : 'none'}${navigator.audioSession ? ' · session ' + navigator.audioSession.type : ''}`;
+      const info = `${via} an ${anPeak.toFixed(4)} wk ${tap ? tap.blocks + '/' + (tapPeak == null ? '-' : tapPeak.toFixed(4)) : 'off'} · ctx ${actx.state} · ${actx.sampleRate} Hz · mic ${tr ? tr.readyState + (tr.muted ? ' muted' : '') + (tr.enabled ? '' : ' disabled') : 'none'}${navigator.audioSession ? ' · session ' + navigator.audioSession.type : ''}`;
       setDiag((d) => (d === info ? d : info));
     }
 
@@ -137,6 +160,9 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    tapRef.current?.dispose();
+    tapRef.current = null;
+    tapBufRef.current = null;
     sourceRef.current?.disconnect();
     gainNodeRef.current?.disconnect();
     sourceRef.current = null;
@@ -184,6 +210,8 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
           echoCancellation: processingEnabled,
           noiseSuppression: processingEnabled,
           autoGainControl: processingEnabled,
+          // The Recorder's request (works on the iPhone): one channel.
+          ...(rangeRef.current.ownContext ? { channelCount: 1 } : {}),
         },
       });
       // iOS: the permission prompt / the switch to play-and-record can leave
@@ -227,6 +255,14 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
       sourceRef.current = source;
       gainNodeRef.current = gainNode;
       analyserRef.current = analyser;
+      if (own) {
+        try {
+          tapRef.current = await createMicTap(own, gainNode, analyser.fftSize * 2);
+          tapBufRef.current = tapRef.current ? new Float32Array(analyser.fftSize) : null;
+        } catch {
+          tapRef.current = null; // the analyser alone, as before
+        }
+      }
       detectorRef.current = PitchDetector.forFloat32Array(analyser.fftSize);
       bufferRef.current = new Float32Array(analyser.fftSize);
 

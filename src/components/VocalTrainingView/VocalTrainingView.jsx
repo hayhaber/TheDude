@@ -17,6 +17,7 @@ import { VocalRunner } from './VocalRunner';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { RangeTest } from './RangeTest';
 import { RangeBar } from './RangeBar';
+import { VocalEarTraining } from './VocalEarTraining';
 import './VocalTrainingView.css';
 
 // Vocal section: a daily workout and an exercise library in the singer's own
@@ -33,11 +34,12 @@ function estimateMinutes(ids, range, level) {
   return Math.max(1, Math.round(s / 60));
 }
 
-export function VocalTrainingView() {
+// `initialScreen` 'ear' = opened from the Singing card's Ear Training.
+export function VocalTrainingView({ initialScreen = 'home' }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const mic = useVocalMic();
-  const [screen, setScreen] = useState({ name: 'home' });
+  const [screen, setScreen] = useState(() => ({ name: initialScreen === 'ear' ? 'ear' : 'home' }));
   const [range, setRange] = useState(() => loadRange());
   // "Skip" on the first range test: typical range for this visit only.
   const [skipped, setSkipped] = useState(false);
@@ -94,6 +96,19 @@ export function VocalTrainingView() {
     );
   }
 
+  if (screen.name === 'ear') {
+    return (
+      <div className="vocal-training-view" dir={dir}>
+        <VocalEarTraining
+          range={useRange}
+          onBack={goHome}
+          // Sing back = the 'echo' exercise; its Back returns here.
+          onSingBack={() => open({ name: 'run', id: 'echo', back: { name: 'ear' } })}
+        />
+      </div>
+    );
+  }
+
   if (screen.name === 'run') {
     const queue = screen.queue;
     const id = queue ? queue[screen.index] : screen.id;
@@ -108,7 +123,15 @@ export function VocalTrainingView() {
           level={level}
           mic={mic}
           step={queue ? { index: screen.index, count: queue.length } : null}
-          onBack={goHome}
+          onBack={
+            screen.back
+              ? () => {
+                  mic.stop();
+                  setProgress(loadProgress());
+                  setScreen(screen.back);
+                }
+              : goHome
+          }
           isLast={isLast}
           onNext={
             queue
@@ -209,6 +232,19 @@ export function VocalTrainingView() {
           return (
             <section key={cat} className="vocal-card vocal-cat">
               <h3>{t(`vocal.cat.${cat}`)}</h3>
+              {cat === 'ear' && (
+                <button type="button" className="vocal-row" onClick={() => setScreen({ name: 'ear' })}>
+                  <span className="vocal-row-text">
+                    <strong>{t('vocal.ear.title')}</strong>
+                    <span>{t('vocal.ear.rowDesc')}</span>
+                  </span>
+                  <span className="vocal-row-meta">
+                    <span className="vocal-chevron" aria-hidden="true">
+                      ›
+                    </span>
+                  </span>
+                </button>
+              )}
               {list.map((ex) => {
                 const st = exerciseStats(progress, ex.id);
                 return (

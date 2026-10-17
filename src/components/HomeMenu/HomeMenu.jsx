@@ -184,9 +184,11 @@ const CARDS = [
     descKey: 'home.vocal.desc',
     options: [
       { section: 'vocal', icon: 'vocal' },
+      // The singers' own ear training (Vocal section's ear screen) — not
+      // the instrument quiz on the guitar's Practice page.
       {
-        section: 'practice',
-        practiceTab: 'ear-training',
+        section: 'vocal',
+        vocalScreen: 'ear',
         icon: 'ear',
         labelKey: 'practice.tab.earTraining',
       },
@@ -463,6 +465,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       instrument: card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument),
       section: option.section,
       practiceTab: option.practiceTab ?? null,
+      vocalScreen: option.vocalScreen ?? null,
     });
   };
 

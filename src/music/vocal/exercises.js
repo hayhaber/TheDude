@@ -10,7 +10,7 @@
 import { keysForPattern, randomNoteIn, workingRange } from './voiceRange';
 
 // Categories, in the order the library shows them.
-export const CATEGORIES = ['warmup', 'pitch', 'scales', 'agility', 'range'];
+export const CATEGORIES = ['warmup', 'pitch', 'scales', 'agility', 'range', 'ear'];
 
 // kind:
 //   pattern  – notes in order (degrees = semitones above the key's root)
@@ -18,6 +18,7 @@ export const CATEGORIES = ['warmup', 'pitch', 'scales', 'agility', 'range'];
 //   sustain  – one long note
 //   match    – random single notes: hear, then match and hold
 //   interval – random intervals: hear two notes, sing both
+//   echo     – sing-back: a short random melody in a key, sung back
 // beats: one value for every note, or one per note. level: 1 = beginner
 // (both levels see it), 2 = advanced only.
 export const EXERCISES = [
@@ -40,6 +41,9 @@ export const EXERCISES = [
   { id: 'run', category: 'agility', level: 2, kind: 'pattern', syllable: 'ah', degrees: [0, 2, 4, 5, 7, 9, 11, 12, 14, 12, 11, 9, 7, 5, 4, 2, 0], beats: [...Array(16).fill(0.5), 1.5], bpm: 100, maxKeys: 5 },
   { id: 'leaps', category: 'agility', level: 2, kind: 'pattern', syllable: 'nay', degrees: [0, 12, 0, 7, 0, 12, 0], beats: [1, 1, 1, 1, 1, 1, 2], bpm: 84, maxKeys: 5 },
   // ---- Range ----
+  // ---- Ear (the voice answers: hear a phrase, sing it back) ----
+  { id: 'echo', category: 'ear', level: 1, kind: 'echo', syllable: 'ah', reps: 6, bpm: 80 },
+
   { id: 'extend', category: 'range', level: 2, kind: 'pattern', syllable: 'nay', degrees: [0, 4, 7, 4, 0], beats: [1, 1, 1.5, 1, 2], bpm: 96, maxKeys: 10, edge: true },
 ];
 
@@ -63,8 +67,13 @@ export function dailyWorkout(level, date = new Date()) {
     .map((e) => e.id);
   const count = level >= 2 ? 4 : 3;
   const picks = [];
+  // Walk the pool with a stride that shares no factor with its size (a
+  // stride of 5 over 5 exercises would pick the same one every time).
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  let stride = 5;
+  while (pool.length > 1 && gcd(stride, pool.length) !== 1) stride += 1;
   for (let i = 0; picks.length < Math.min(count, pool.length); i += 1) {
-    const id = pool[(day * 3 + i * 5) % pool.length];
+    const id = pool[(day * 3 + i * stride) % pool.length];
     if (!picks.includes(id)) picks.push(id);
     if (i > 50) break;
   }
@@ -186,6 +195,43 @@ export function buildReps(ex, range, { level = 1, tempo = 1, rand = Math.random 
           { midi: second, start: seconds, dur: seconds },
         ],
         length: seconds * 2,
+      });
+    }
+    return reps;
+  }
+  if (ex.kind === 'echo') {
+    // Beginner: 3 notes moving by step (1-2 scale steps). Advanced: 4-5
+    // notes with leaps up to a 5th. Always inside the major scale of the
+    // key, starting on a chord tone — a phrase a singer can hold in mind.
+    const scale = [0, 2, 4, 5, 7, 9, 11];
+    const pitchOf = (step) => scale[((step % 7) + 7) % 7] + 12 * Math.floor(step / 7);
+    const reps = [];
+    const count = ex.reps ?? 6;
+    for (let i = 0; i < count; i += 1) {
+      const len = level >= 2 ? 4 + Math.floor(rand() * 2) : 3;
+      const maxStep = level >= 2 ? 4 : 2;
+      let step = [0, 2, 4][Math.floor(rand() * 3)];
+      const steps = [step];
+      while (steps.length < len) {
+        let move = 1 + Math.floor(rand() * maxStep);
+        if (rand() < 0.5) move = -move;
+        const next = Math.max(-2, Math.min(9, step + move));
+        if (next === step) continue;
+        step = next;
+        steps.push(step);
+      }
+      const offs = steps.map(pitchOf);
+      const keys = keysForPattern(offs, work, { maxKeys: 20 });
+      const key = keys[Math.floor(rand() * Math.min(keys.length, Math.ceil(keys.length / 2) + 1))];
+      const targets = offs.map((o, j) => ({ midi: key + o, start: j * beat, dur: beat * 0.92 }));
+      const lead = beat * 1.5;
+      const t = offs.length * beat;
+      reps.push({
+        key,
+        cue: [...chord(key), ...targets.map((n) => ({ midi: n.midi, start: lead + n.start, dur: n.dur }))],
+        cueLength: lead + t + beat * 0.5,
+        targets,
+        length: t,
       });
     }
     return reps;

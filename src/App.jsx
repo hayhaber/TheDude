@@ -140,6 +140,8 @@ function App() {
   const [leftHome, setLeftHome] = useState(false);
   // A tool opened from the home screen's Tools card, on its own screen.
   const [toolScreen, setToolScreen] = useState(null);
+  // Which Vocal screen the Singing card opened (home / ear); n remounts it.
+  const [vocalStart, setVocalStart] = useState({ screen: 'home', n: 0 });
   // The tuner's guitar/bass setting there (bass only when opened from the
   // Bass card), and the card to return to.
   const [tunerMode, setTunerMode] = useState('guitar');
@@ -2014,7 +2016,7 @@ function App() {
   if (home) {
     return (
       <HomeMenu
-        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card }) => {
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen }) => {
           // Tools card (or the Bass card's tuner): the tool on its own
           // screen (home stays underneath).
           if (tool) {
@@ -2026,6 +2028,7 @@ function App() {
           setHomeCard(null);
           if (nextInstrument && nextInstrument !== instrument) setInstrument(nextInstrument);
           if (tab) setPracticeTab(tab);
+          if (section === 'vocal') setVocalStart((v) => ({ screen: vocalScreen ?? 'home', n: v.n + 1 }));
           setActiveSection(section);
           setHome(false);
           setLeftHome(true);
@@ -2257,7 +2260,7 @@ function App() {
       {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} />}
 
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
-      {activeSection === 'vocal' && <VocalTrainingView />}
+      {activeSection === 'vocal' && <VocalTrainingView key={vocalStart.n} initialScreen={vocalStart.screen} />}
       {activeSection === 'coach' && <CoachView />}
     </AppShell>
   );

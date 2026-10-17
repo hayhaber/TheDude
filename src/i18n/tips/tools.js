@@ -27,6 +27,8 @@ export const TIPS_TOOLS = {
       'The note you are singing and how far it is from the target, in cents (100 cents = a semitone). Green within 25, amber within 50; far off, an arrow says go up or down.',
     'tip.tools.vocalScore':
       "The exercise's score, 0–100. Each bar is one round: green from 85, amber from 60. A note's score combines how in tune it was and how much of it you actually sang.",
+    'tip.tools.vocalEar':
+      'Listen, then answer. Every note comes from your comfortable range, so try singing it quietly before you choose — hearing a note inside you is the skill. All-time = your accuracy in this mode over every session.',
     'tip.tools.vocalRoll':
       'The bars are the target notes (each about a semitone tall); the line is your voice — green in tune, amber close, red off. After a round each note shows ✓ or how many cents it was off.',
     // Tools
@@ -77,6 +79,8 @@ export const TIPS_TOOLS = {
       'התו שאתם שרים וכמה הוא רחוק מתו המטרה, בסנטים (100 סנט = חצי טון). ירוק עד 25, כתום עד 50; כשרחוקים מאוד, חץ מראה אם לעלות או לרדת.',
     'tip.tools.vocalScore':
       'הציון של התרגיל, 0–100. כל עמודה היא סבב אחד: ירוק מ-85, כתום מ-60. הציון של כל תו משלב כמה הוא היה מכוון וכמה ממנו באמת שרתם.',
+    'tip.tools.vocalEar':
+      'הקשיבו ואז ענו. כל הצלילים מתוך המנעד הנוח שלכם, אז נסו לשיר אותם בשקט לפני שבוחרים — לשמוע צליל בתוככם זו המיומנות. מצטבר = הדיוק שלכם במצב הזה בכל האימונים.',
     'tip.tools.vocalRoll':
       'המלבנים הם תווי המטרה (כל אחד בגובה של כחצי טון); הקו הוא הקול שלכם — ירוק מכוון, כתום קרוב, אדום רחוק. אחרי כל סבב מופיע ליד כל תו ✓ או בכמה סנטים הוא סטה.',
     // Tools

@@ -926,3 +926,118 @@
   display: inline-flex;
   align-items: center;
 }
+
+/* ---------- Ear training (singers) ---------- */
+.vocal-ear-setup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.vocal-ear-setup .vocal-field select {
+  min-width: 200px;
+}
+
+.vocal-ear-about {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.vocal-ear-play {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.vocal-ear-score {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.vocal-ear-score span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+}
+
+.vocal-ear-score b {
+  font-size: 20px;
+  color: var(--text-h);
+  letter-spacing: 0;
+}
+
+.vocal-ear-prompt {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.vocal-ear-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.vocal-ear-choices.is-wide {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.vocal-training-view .vocal-ear-choice {
+  border-radius: 12px;
+  min-height: 48px;
+  padding: 6px 12px;
+}
+
+.vocal-training-view .vocal-ear-choice:disabled {
+  opacity: 1;
+}
+
+.vocal-training-view .vocal-ear-choice.is-right {
+  background: var(--vocal-good);
+  border-color: transparent;
+  color: #fff;
+}
+
+.vocal-training-view .vocal-ear-choice.is-wrong {
+  background: var(--vocal-off);
+  border-color: transparent;
+  color: #fff;
+}
+
+.vocal-training-view .vocal-ear-choice.is-dim {
+  opacity: 0.45;
+}
+
+.vocal-ear-reveal {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vocal-ear-reveal.is-good {
+  color: var(--vocal-good);
+}
+
+.vocal-ear-reveal.is-off {
+  color: var(--vocal-off);
+}
+
+.vocal-ear .vocal-actions {
+  align-items: center;
+}

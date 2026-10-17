@@ -278,6 +278,25 @@ on the container; content inside stays top-aligned). Stacked on a phone
   gain + limiter (threshold -2 dB) into the piano's smplr channel
   (`setBoost` in pianoPlayer.js); every other piano path resets it to 1.
   Measured peaks: Normal 0.18, Loud 0.45, Max 0.80 (no clipping).
+- **Singers' ear training** (user's request 2026-10-17): the Singing card's
+  Ear Training opens the Vocal section's own `ear` screen (HomeMenu option
+  `vocalScreen: 'ear'` -> App `vocalStart` {screen, n} -> `VocalTrainingView
+  initialScreen`), NOT the guitar Practice page (that showed the guitar nav,
+  practice tabs, stats and neck). `VocalEarTraining.jsx` + pure
+  `music/vocal/vocalEar.js`: modes direction / scaledegree / interval /
+  chord (maj/min, +dim, +aug) / rhythm (reuses earTraining's exported
+  `generateRhythmQuestion`) x 3 levels, all notes inside `earRange()` (the
+  comfortable range, min 17 st) on the piano (`schedulePianoNotes`, the
+  Vocal volume); fret location, triad, scale ID and fretboard call &
+  response were left out as instrument skills. Mode/level per profile
+  (`dudestar-p-vocal-ear`), all-time accuracy via `earTrainingLifetime:vocal-<mode>`.
+  Last mode = Sing back -> the new `echo` exercise (kind 'echo', category
+  'ear': chord + 3 stepwise notes, level 2 = 4-5 notes with leaps, sung back
+  and scored in VocalRunner; Back returns to the ear screen via `screen.back`).
+  The library has an Ear Training card (quiz row + echo). The guitar/piano
+  Practice ear training is unchanged. `dailyWorkout` now walks the pool with
+  a stride coprime to its size (stride 5 over 5 or 10 exercises repeated the
+  same pick — level 2 had been getting 2 exercises instead of 4).
 - **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
   Compose-only for now). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each

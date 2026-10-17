@@ -728,7 +728,7 @@ function rhythmOnsetsMs(cells) {
   return onsets;
 }
 
-function generateRhythmQuestion(difficulty) {
+export function generateRhythmQuestion(difficulty) {
   const pool = RHYTHM_POOLS[difficulty.key] ?? RHYTHM_POOLS.advanced;
   const correctCells = pick(pool);
   const correctKey = syllablesFor(correctCells);

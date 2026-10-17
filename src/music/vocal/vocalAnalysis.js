@@ -235,7 +235,7 @@ export function analyzeRep(frames, rep, ex, level = 1) {
     if (n.glide) return analyzeGlide(frames, n, level);
     if (ex.kind === 'sustain') return analyzeSustain(shifted, n, level, { vibrato: !!ex.vibrato });
     const prev = rep.targets[i - 1];
-    const onset = !prev || prev.start + prev.dur < n.start - 0.1 || ex.kind === 'interval';
+    const onset = !prev || prev.start + prev.dur < n.start - 0.1 || ex.kind === 'interval' || ex.kind === 'echo';
     return analyzeNote(shifted, n, level, { onset });
   });
   const score = Math.round(notes.reduce((a, n) => a + n.score, 0) / Math.max(1, notes.length));

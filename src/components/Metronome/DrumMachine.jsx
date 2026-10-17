@@ -1,4 +1,4 @@
-import { SOUND_SOURCE_OPTIONS } from '../../music/drumPatterns';
+import { useEffect, useRef } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { BpmField } from './BpmField';
@@ -17,7 +17,7 @@ const PAD_COLORS = ['red', 'orange', 'yellow', 'cream'];
 
 // The drum machine — its own tool (Tools card), over the same metronome
 // clock + drum engine as the metronome (user's request 2026-10-17). Start
-// here plays the drums: a source still on plain Click switches to Drums.
+// here plays the drums only; the metronome's Start plays the click only.
 export function DrumMachine({
   bpm,
   setBpm,
@@ -52,8 +52,15 @@ export function DrumMachine({
     </select>
   );
   const volumeRow = (cls) => <VolumeRow className={cls} volume={volume} setVolume={setVolume} isMuted={isMuted} toggleMute={toggleMute} />;
+  // The drum machine plays the drums alone (no click with it — user's call,
+  // 2026-10-17); the metronome plays the click alone.
+  // Leaving the drum machine puts the shared clock back on the plain click,
+  // so the metronome (and drills, recorder count-in…) click again.
+  const setSourceRef = useRef(drums.setSoundSource);
+  setSourceRef.current = drums.setSoundSource;
+  useEffect(() => () => setSourceRef.current('standard'), []);
   const start = () => {
-    if (!isRunning && drums.soundSource === 'standard') drums.setSoundSource('drum');
+    if (!isRunning && drums.soundSource !== 'drum') drums.setSoundSource('drum');
     toggle();
   };
 
@@ -88,24 +95,7 @@ export function DrumMachine({
         ))}
       </div>
 
-      <div className="dm-section">
-        <span className="dm-lbl">{t('metronome.soundSource')}</span>
-        <div className="dm-keys" role="group" aria-label={t('metronome.soundSource')}>
-          {SOUND_SOURCE_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              className={'dm-key is-latch' + (drums.soundSource === opt.key ? ' is-active' : '')}
-              aria-pressed={drums.soundSource === opt.key}
-              onClick={() => drums.setSoundSource(opt.key)}
-            >
-              {t(`metronome.source.${opt.key}`)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className={'dm-drumpart' + (drums.drumsActive ? '' : ' is-idle')}>
+      <div className="dm-drumpart">
         <div className="dm-row">
           <label className="dm-lcd dm-grow">
             <span className="dm-lbl">{t('metronome.style')}</span>

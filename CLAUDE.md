@@ -184,9 +184,10 @@ on the container; content inside stays top-aligned). Stacked on a phone
   is the wooden face only; the DRUM MACHINE is its own tool (user's request
   2026-10-17): `DrumMachine.jsx`, Tools card shortcut `drums` (snare icon,
   `drums.nav`/`drums.title`), ToolScreen `is-device` — both over the SAME
-  useMetronome/drums state (Start on the drum machine switches a plain-Click
-  source to Drums; the metronome shows "drum machine is on" + a `Click` link
-  back to the plain click). WOOD: `WoodMetronome.jsx` — an SVG walnut pyramid
+  useMetronome/drums state. Never both (user's call): the drum machine has
+  NO source keys — its Start sets the source to 'drum' (drums only), the
+  metronome's Start sets 'standard' (click only), and leaving the drum
+  machine resets the source to 'standard' (drills/recorder click again). WOOD: `WoodMetronome.jsx` — an SVG walnut pyramid
   (Maelzel style), the pendulum swings by rAF and passes the CENTRE on each
   click (angle = side·24°·sin(π·phase), phase from the onBeat time; settles
   to rest when stopped), the brass weight sits at the tempo on the ivory
@@ -196,9 +197,8 @@ on the container; content inside stays top-aligned). Stacked on a phone
   theme-coloured tiles (BPM via `BpmField` −/+ hold-to-repeat + type-in,
   time signature, sound), volume, Tap / Start. DRUMS: an 808-spirit unit
   (`.dm-*`, physical = same in light/dark, `dir="ltr"`): orange BPM display,
-  one coloured step pad per beat lit on the beat, source latching keys
-  (Click / Drums / Both), style LCD select, Fills latching key, kick/snare/
-  hi-hat faders + M keys (dimmed while the source is Click), volume, Tap /
+  one coloured step pad per beat lit on the beat, style LCD select, Fills
+  latching key, kick/snare/hi-hat faders + M keys, volume, Tap /
   Start. `TIME_SIGNATURES` + `VolumeRow` are exported from Metronome.jsx. CSS in
   WoodMetronome.css; Metronome.css stays (others use `.metronome-toggle`).
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app

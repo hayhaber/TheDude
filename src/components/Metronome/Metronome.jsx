@@ -67,6 +67,12 @@ export function Metronome({
   drums,
 }) {
   const { t } = useLanguage();
+  // The metronome plays the click alone; the drum machine (its own tool)
+  // plays the drums alone — never both (user's call, 2026-10-17).
+  const start = () => {
+    if (!isRunning && drums && drums.soundSource !== 'standard') drums.setSoundSource('standard');
+    toggle();
+  };
   const bpmLabels = {
     down: t('piano.metronome.tempoDown'),
     up: t('piano.metronome.tempoUp'),
@@ -129,21 +135,11 @@ export function Metronome({
         <button type="button" className="mw-btn" onClick={tapTempo}>
           {t('metronome.tapTempo')}
         </button>
-        <button type="button" className={'mw-btn mw-start' + (isRunning ? ' running' : '')} onClick={toggle}>
+        <button type="button" className={'mw-btn mw-start' + (isRunning ? ' running' : '')} onClick={start}>
           {isRunning ? t('metronome.stop') : t('metronome.start')}
         </button>
       </div>
 
-      {/* The drum machine (its own tool) shares this clock: say so when it is
-          on, with a one-tap way back to the plain click. */}
-      {drums?.drumsActive && (
-        <p className="mw-note">
-          {t('metronome.drumsOn', { source: t(`metronome.source.${drums.soundSource}`) })}{' '}
-          <button type="button" className="mw-link" onClick={() => drums.setSoundSource('standard')}>
-            {t('metronome.clickOnly')}
-          </button>
-        </p>
-      )}
     </div>
   );
 }

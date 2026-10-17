@@ -146,6 +146,9 @@ function App() {
   // Bass card), and the card to return to.
   const [tunerMode, setTunerMode] = useState('guitar');
   const toolCardRef = useRef('tools');
+  // The home card an app page was opened from: Home returns to it (the
+  // Singing card opens Vocal with the guitar still selected).
+  const enteredCardRef = useRef(null);
   // The app always opens on the Guitar card (user's rule); coming back from
   // inside an instrument shows that instrument's card (null).
   const [homeCard, setHomeCard] = useState('guitar');
@@ -621,6 +624,7 @@ function App() {
     const trainerOpen = !home && activeSection === 'practice' && practiceTab === 'trainer';
     if (home) {
       setHomeCard(null);
+      enteredCardRef.current = null;
       setHome(false);
       setLeftHome(true);
     }
@@ -2026,6 +2030,7 @@ function App() {
             return;
           }
           setHomeCard(null);
+          enteredCardRef.current = card ?? null;
           if (nextInstrument && nextInstrument !== instrument) setInstrument(nextInstrument);
           if (tab) setPracticeTab(tab);
           if (section === 'vocal') setVocalStart((v) => ({ screen: vocalScreen ?? 'home', n: v.n + 1 }));
@@ -2042,7 +2047,7 @@ function App() {
   return (
     <AppShell
       onHome={() => {
-        setHomeCard(null);
+        setHomeCard(enteredCardRef.current);
         setHome(true);
       }}
       activeSection={activeSection}

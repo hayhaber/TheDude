@@ -466,6 +466,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       section: option.section,
       practiceTab: option.practiceTab ?? null,
       vocalScreen: option.vocalScreen ?? null,
+      card: card.key,
     });
   };
 

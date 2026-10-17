@@ -290,3 +290,30 @@ button {
   flex: none;
   padding: 0;
 }
+
+/* Touch screens (phone / iPad): a tap only works the app — no text
+   selection (the blue handles) and no Copy / Paste / Look Up callout on a
+   long press (user's request 2026-10-17). Typing fields keep normal
+   selection so text can still be edited. Mouse/desktop is unchanged. */
+@media (hover: none) and (pointer: coarse) {
+  html,
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input,
+  textarea,
+  [contenteditable='true'] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+
+  img,
+  svg {
+    -webkit-user-drag: none;
+  }
+}

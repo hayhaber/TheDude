@@ -724,6 +724,11 @@ on the container; content inside stays top-aligned). Stacked on a phone
 - **Left-handed** (Settings "Playing hand", device key 'left-handed',
   `Fretboard/handedness.js`): every neck mirrored, text un-mirrored, taps and
   scroll arrows mirrored. PNG export of the neck stays right-handed (open).
+- **Touch = action only** (user's request 2026-10-17): index.css, under
+  `@media (hover: none) and (pointer: coarse)`, turns off text selection,
+  the iOS long-press callout (Copy/Paste/Look Up) and the tap highlight on
+  html/body; input/textarea/contenteditable keep normal selection. Mouse
+  devices unchanged.
 - Build: main bundle > 4 MiB, so `workbox.maximumFileSizeToCacheInBytes` is
   6 MiB in vite.config.js.
 

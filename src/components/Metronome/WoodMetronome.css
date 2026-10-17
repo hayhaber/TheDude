@@ -9,9 +9,28 @@
   gap: 14px;
 }
 
-.mw-view {
-  align-self: center;
-  min-width: 240px;
+/* "Click" link in the drums-on note */
+.metronome.mw .mw-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* The drum machine on its own: the unit IS the page (no card). */
+.metronome.drum-machine {
+  border: none;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.metronome.drum-machine .metronome-title {
+  display: none;
 }
 
 /* ---------- wooden metronome ---------- */

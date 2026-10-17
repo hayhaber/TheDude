@@ -180,9 +180,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
   is a fixed translucent blurred strip (z-index 5, buttons are 6) behind the
   Home / ⓘ buttons so scrolled content never covers them.
 - **Metronome look** (user's choice 2026-10-17, option 3 of 5 + a drum
-  machine): `Metronome.jsx` has two faces over the same useMetronome/drums
-  state, switched by a bare `.mode-toggle` (Metronome | Drums, device key
-  `metronome-view`). WOOD: `WoodMetronome.jsx` — an SVG walnut pyramid
+  machine): the metronome (`Metronome.jsx`, tool screen + app pill drawer)
+  is the wooden face only; the DRUM MACHINE is its own tool (user's request
+  2026-10-17): `DrumMachine.jsx`, Tools card shortcut `drums` (snare icon,
+  `drums.nav`/`drums.title`), ToolScreen `is-device` — both over the SAME
+  useMetronome/drums state (Start on the drum machine switches a plain-Click
+  source to Drums; the metronome shows "drum machine is on" + a `Click` link
+  back to the plain click). WOOD: `WoodMetronome.jsx` — an SVG walnut pyramid
   (Maelzel style), the pendulum swings by rAF and passes the CENTRE on each
   click (angle = side·24°·sin(π·phase), phase from the onBeat time; settles
   to rest when stopped), the brass weight sits at the tempo on the ivory
@@ -195,7 +199,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   one coloured step pad per beat lit on the beat, source latching keys
   (Click / Drums / Both), style LCD select, Fills latching key, kick/snare/
   hi-hat faders + M keys (dimmed while the source is Click), volume, Tap /
-  Start. Same component in the tool screen and the app pill's drawer. CSS in
+  Start. `TIME_SIGNATURES` + `VolumeRow` are exported from Metronome.jsx. CSS in
   WoodMetronome.css; Metronome.css stays (others use `.metronome-toggle`).
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the

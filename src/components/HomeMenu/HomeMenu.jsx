@@ -104,6 +104,15 @@ const ICON_PATHS = {
       <path d="M7 13.5h10M7 16h10" opacity=".45" />
     </>
   ),
+  // A snare drum with two sticks.
+  drums: (
+    <>
+      <ellipse cx="12" cy="11" rx="7.5" ry="2.6" />
+      <path d="M4.5 11v5.5c0 1.4 3.4 2.6 7.5 2.6s7.5-1.2 7.5-2.6V11" />
+      <path d="M8 13.4v5M12 13.7v5.4M16 13.4v5" opacity=".45" />
+      <path d="M9.5 8.6 5 3.5M14.5 8.6 19 3.5" />
+    </>
+  ),
   // A record dot inside a ring.
   record: (
     <>
@@ -203,6 +212,7 @@ const CARDS = [
     descKey: 'amp.homeDesc',
     options: [
       { tool: 'metronome', icon: 'metronome', labelKey: 'metronome.title' },
+      { tool: 'drums', icon: 'drums', labelKey: 'drums.nav' },
       { tool: 'tuner', icon: 'tuner', labelKey: 'tunerBar.label' },
       { tool: 'amp', icon: 'amp', labelKey: 'amp.nav' },
       { tool: 'record', icon: 'record', labelKey: 'rec.nav' },

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { HomeButton } from '../HomeButton/HomeButton';
 import { Metronome } from '../Metronome/Metronome';
+import { DrumMachine } from '../Metronome/DrumMachine';
 import { GuitarTuner } from '../GuitarTuner/GuitarTuner';
 import { SettingsBody } from '../SettingsPanel/SettingsPanel';
 import { AmpView } from '../AmpView/AmpView';
@@ -51,7 +52,9 @@ export function ToolScreen({ tool, onBack, tunerMode, onTunerModeChange, setting
                   ? 'amp.title'
                   : tool === 'record'
                     ? 'rec.title'
-                    : 'metronome.title'
+                    : tool === 'drums'
+                      ? 'drums.title'
+                      : 'metronome.title'
           )}
         </h1>
         {tool === 'tuner' && (
@@ -63,13 +66,15 @@ export function ToolScreen({ tool, onBack, tunerMode, onTunerModeChange, setting
             ))}
           </div>
         )}
-        <div className={'tool-screen-card' + (tool === 'amp' || tool === 'record' ? ' is-wide' : '') + (tool === 'tuner' ? ' is-device' : '')}>
+        <div className={'tool-screen-card' + (tool === 'amp' || tool === 'record' ? ' is-wide' : '') + (tool === 'tuner' || tool === 'drums' ? ' is-device' : '')}>
           {tool === 'tuner' ? (
             <GuitarTuner mode={tunerMode} />
           ) : tool === 'amp' ? (
             <AmpView />
           ) : tool === 'record' ? (
             <RecorderView metronome={metronome} />
+          ) : tool === 'drums' ? (
+            <DrumMachine {...metronome} drums={drums} />
           ) : tool === 'settings' ? (
             <div className="settings-drawer-body">
               <SettingsBody {...settingsProps} allSounds />

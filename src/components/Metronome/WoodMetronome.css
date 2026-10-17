@@ -594,3 +594,201 @@
     font-size: 10px;
   }
 }
+
+/* ---------- step sequencer (drum machine, 2026-10-17) ---------- */
+.dm-lcds {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dm-lcds .dm-lcd:first-child {
+  flex: 1.7;
+}
+
+.dm-lcd-small {
+  flex: 0 0 96px;
+}
+
+.metronome.mw .dm-select:disabled {
+  opacity: 0.55;
+}
+
+.metronome.mw .dm-name {
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.dm-editbar {
+  display: flex;
+  gap: 8px;
+}
+
+.dm-keys-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.dm-keys-4 .dm-fills {
+  display: flex;
+}
+
+.dm-keys-4 .dm-fills .dm-key {
+  flex: 1;
+  min-width: 0;
+}
+
+.metronome.mw .dm-key:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.metronome.mw .dm-save {
+  background: linear-gradient(#ff9a3c, #e06a00);
+  color: #fff;
+}
+
+.metronome.mw .dm-danger:not(:disabled) {
+  color: #ff8a80;
+}
+
+.dm-seq-wrap {
+  background: #151412;
+  border-radius: 8px;
+  padding: 8px 6px 6px;
+  box-shadow: inset 0 1px 4px #000;
+  overflow-x: auto;
+}
+
+.dm-seq {
+  display: grid;
+  grid-template-columns: 66px repeat(var(--steps), minmax(15px, 1fr));
+  gap: 3px;
+  align-items: center;
+}
+
+.dm-seq-corner {
+  height: 12px;
+}
+
+.dm-seq-num {
+  font: 700 9px ui-monospace, Menlo, monospace;
+  color: #7c766a;
+  text-align: center;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.dm-seq-num.is-head {
+  background: rgba(255, 255, 255, 0.85);
+  color: #151412;
+}
+
+.metronome.mw .dm-row-name {
+  border: none;
+  background: none;
+  padding: 0 4px 0 0;
+  text-align: left;
+  justify-content: flex-start;
+  font: 800 9px/1.1 -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: 0.04em;
+  color: #c9c2b2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  min-height: 20px;
+}
+
+.metronome.mw .dm-row-name.is-muted {
+  color: #6b655a;
+  text-decoration: line-through;
+}
+
+.metronome.mw .dm-cell {
+  height: 20px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: #36332e;
+  box-shadow: inset 0 1px 2px #000;
+  cursor: pointer;
+  transition: background 0.06s linear;
+}
+
+/* the first step of every beat a touch lighter, so the beats read */
+.metronome.mw .dm-cell.is-beat {
+  background: #45413a;
+}
+
+.dm-cell.g-kick { --c: #e23b2b; }
+.dm-cell.g-drums { --c: #ff8a1f; }
+.dm-cell.g-cymbals { --c: #f6c22a; }
+.dm-cell.g-perc { --c: #7fd3c5; }
+
+.metronome.mw .dm-cell.is-on {
+  background: var(--c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.metronome.mw .dm-cell.is-soft {
+  background: color-mix(in srgb, var(--c) 45%, #36332e);
+}
+
+.metronome.mw .dm-cell.is-muted {
+  opacity: 0.35;
+}
+
+.metronome.mw .dm-cell.is-head {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: -2px;
+}
+
+.metronome.mw .dm-cell.is-head.is-on {
+  box-shadow: 0 0 10px var(--c);
+}
+
+.dm-empty,
+.dm-hint {
+  margin: 6px 2px 0;
+  font-size: 11px;
+  color: var(--dm-dim);
+}
+
+.dm-hint {
+  margin-top: -6px;
+}
+
+.dm-mixer {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 400px) {
+  .dm-seq {
+    grid-template-columns: 54px repeat(var(--steps), minmax(15px, 1fr));
+  }
+
+  .dm-lcd-small {
+    flex-basis: 92px;
+  }
+}
+
+/* Phones: tempo on its own row, style + time signature full width below. */
+@media (max-width: 480px) {
+  .dm-top {
+    flex-wrap: wrap;
+  }
+
+  .dm-top .dm-display {
+    flex: 1 1 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .dm-lcds {
+    flex: 1 1 100%;
+  }
+}

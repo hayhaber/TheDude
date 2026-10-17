@@ -1,6 +1,7 @@
 import { getAudioContext } from './audioContext';
 import { playDrumHit } from './drumSounds';
 import { DRUM_STYLES } from '../music/drumPatterns';
+import { MIX_BUCKET } from '../music/drumKit';
 
 // Same lookahead-scheduler approach as audio/metronome.js (see its comment
 // for why), just subdivided per-step instead of per-beat so patterns can use
@@ -16,29 +17,15 @@ const LOOKAHEAD_INTERVAL = 25;
 // length, not a magic number tied to any one genre.
 const FILL_INTERVAL_BARS = 4;
 
-// Toms ride the snare fader (they're the other "drum voice" on a kit, same
-// as a real mixer's tom sends usually don't get their own channel either),
-// crash rides the hi-hat fader (the other "cymbal" sound) — keeps the
-// mixer at its existing 3 channels instead of growing one per new sound.
-const MIX_BUCKET = {
-  kick: 'kick',
-  snare: 'snare',
-  hihatClosed: 'hihat',
-  hihatOpen: 'hihat',
-  tomHigh: 'snare',
-  tomMid: 'snare',
-  tomLow: 'snare',
-  crash: 'hihat',
-};
-
-// `getMix` is called fresh at each scheduled step (like metronome's
-// getVolume) so mixer sliders/mutes take effect live without restarting.
-// Returns { kick, snare, hihat } each 0-1 — already folds in the master
-// volume, so this is the final per-instrument gain to play at.
-export function startDrumEngine({ bpm, beatsPerMeasure, styleKey, getMix, fillsEnabled }) {
+// Each instrument rides one of the mixer's group faders (drumKit.js:
+// kick / drums (snare, rim, clap, toms) / cymbals / percussion).
+export function startDrumEngine({ bpm, beatsPerMeasure, styleKey, getPattern, getMix, fillsEnabled, onStep }) {
   const ctx = getAudioContext();
-  const style = DRUM_STYLES[styleKey] ?? DRUM_STYLES.rock;
-  const stepsPerBeat = style.stepsPerBeat;
+  // `getPattern` (the step sequencer: a user pattern or a draft being
+  // edited) is read on every step, so edits are heard at once; else the
+  // built-in style.
+  const fixed = DRUM_STYLES[styleKey] ?? DRUM_STYLES.rock;
+  const pattern = () => (getPattern && getPattern()) || fixed;
 
   let beatIndex = 0;
   let stepIndex = 0;
@@ -48,26 +35,31 @@ export function startDrumEngine({ bpm, beatsPerMeasure, styleKey, getMix, fillsE
   // defines one) lands exactly on the downbeat the fill was leading into —
   // layered on top of that beat's normal groove hit, not replacing it.
   let pendingCrash = false;
-  const secondsPerStep = () => 60 / bpm / stepsPerBeat;
 
   const intervalId = setInterval(() => {
     while (nextStepTime < ctx.currentTime + SCHEDULE_AHEAD_TIME) {
+      const style = pattern();
+      const stepsPerBeat = style.stepsPerBeat;
+      if (stepIndex >= stepsPerBeat) stepIndex = 0; // the grid changed mid-beat
       // The fill (if any) only ever replaces the LAST beat of a fill
-      // measure — every other beat plays the style's normal groove
-      // untouched, same as before this feature existed.
+      // measure — every other beat plays the style's normal groove.
       const isLastBeatOfMeasure = beatIndex === beatsPerMeasure - 1;
       const isFillMeasure = fillsEnabled && style.fill && measureIndex % FILL_INTERVAL_BARS === FILL_INTERVAL_BARS - 1;
-      const role = beatIndex % 4;
+      const role = beatIndex % style.cell.length;
       const hits = { ...(isLastBeatOfMeasure && isFillMeasure ? style.fill[stepIndex] ?? {} : style.cell[role]?.[stepIndex] ?? {}) };
       if (pendingCrash && beatIndex === 0 && stepIndex === 0) {
         hits.crash = style.fillCrashVelocity;
         pendingCrash = false;
       }
-      const mix = getMix ? getMix() : { kick: 1, snare: 1, hihat: 1 };
+      const mix = getMix ? getMix() : { kick: 1, snare: 1, hihat: 1, perc: 1 };
 
       for (const [instrument, velocity] of Object.entries(hits)) {
-        if (!velocity) continue;
-        playDrumHit(ctx, instrument, nextStepTime, velocity * mix[MIX_BUCKET[instrument] ?? 'snare']);
+        if (!velocity || mix.rows?.[instrument]) continue; // a row muted in the sequencer
+        playDrumHit(ctx, instrument, nextStepTime, velocity * (mix[MIX_BUCKET[instrument] ?? 'snare'] ?? 1));
+      }
+      if (onStep) {
+        const at = { role, step: stepIndex, beat: beatIndex };
+        setTimeout(() => onStep(at), Math.max(0, (nextStepTime - ctx.currentTime) * 1000));
       }
 
       stepIndex += 1;
@@ -81,7 +73,7 @@ export function startDrumEngine({ bpm, beatsPerMeasure, styleKey, getMix, fillsE
           if (finishedFillMeasure && style.fillCrashVelocity) pendingCrash = true;
         }
       }
-      nextStepTime += secondsPerStep();
+      nextStepTime += 60 / bpm / stepsPerBeat;
     }
   }, LOOKAHEAD_INTERVAL);
 

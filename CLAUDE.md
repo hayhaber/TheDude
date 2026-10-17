@@ -201,6 +201,24 @@ on the container; content inside stays top-aligned). Stacked on a phone
   latching key, kick/snare/hi-hat faders + M keys, volume, Tap /
   Start. `TIME_SIGNATURES` + `VolumeRow` are exported from Metronome.jsx. CSS in
   WoodMetronome.css; Metronome.css stays (others use `.metronome-toggle`).
+- **Drum machine = step sequencer** (user's choice 2026-10-17, option 1 of 5
+  + own patterns): `DrumMachine.jsx` shows the pattern as a grid (a row per
+  drum, a column per step of the bar, beat numbers, a white playhead from the
+  engine's `onStep` -> `drums.subscribeStep`). Full kit in `music/drumKit.js`
+  `DRUM_INSTRUMENTS` (16 rows: crash, ride, ride bell, open/closed/pedal hat,
+  3 toms, snare, rim, clap, kick, cowbell, tambourine, shaker; synthesized in
+  drumSounds.js) with mixer groups kick / drums / cymbals / perc (`MIX_BUCKET`,
+  4 faders; mix key `perc` added). View shows only the rows a pattern uses;
+  `Kit` shows all; tapping a row name mutes that row (`rowMutes`, engine skips
+  it). Tapping a square (or Edit / New) starts a DRAFT (`drums.draft`, played
+  live — the engine reads `getPattern()` every step): tap cycles full -> soft
+  (0.5) -> off; Name, Grid select (8ths / triplets / 16ths, `changeResolution`
+  moves hits to the nearest step), the draft follows the time signature;
+  Save / Clear / Cancel / Delete. Saved patterns per profile in
+  `dudestar-p-drum-patterns`, selected as style key `user:<id>` (select has a
+  "My patterns" optgroup; disabled while editing). Engine: role =
+  beatIndex % cell.length (built-ins are 4 beats = unchanged), fills only
+  for built-ins. The recorder studio's drum track still uses built-in styles.
 - **Drums pill** (`MetronomeBar/DrumsBar.jsx`, user's request 2026-10-17):
   wherever the metronome pill is (App's `metronomeSlot` now = MetronomeBar +
   DrumsBar), a same-shape pill (snare icon + `drums.nav`) opens the same

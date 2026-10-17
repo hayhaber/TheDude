@@ -14,6 +14,7 @@ const ROD_TOP = 26; // the rod's tip (y)
 const D_SLOW = 196; // weight distance from the pivot at the slowest tempo
 const D_FAST = 44; // … and at the fastest
 const SWING_DEG = 24;
+const DEFAULT_BPM = 120; // a tap on the metronome returns here
 const SCALE_MARKS = [40, 50, 60, 72, 84, 96, 108, 120, 138, 160, 184, 208, 240, 280];
 const LABELLED = new Set([40, 60, 84, 120, 184, 280]);
 
@@ -66,23 +67,28 @@ export function WoodMetronome({ bpm, setBpm, minBpm, maxBpm, isRunning, currentB
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Drag up/down = move the weight = set the tempo.
+  // A tap on the metronome = back to 120 (user's rule). A drag up/down
+  // slides the weight from where it is (relative — the first touch never
+  // jumps the tempo): up = slower, down = faster.
   const dragRef = useRef(null);
-  const yToBpm = (clientY) => {
-    const box = svgRef.current.getBoundingClientRect();
-    const y = ((clientY - box.top) / box.height) * 330;
-    return bpmFromDistance(PIVOT_Y - y, minBpm, maxBpm);
-  };
+  const unitsPerPx = () => 330 / (svgRef.current?.getBoundingClientRect().height || 330);
   const onPointerDown = (e) => {
-    dragRef.current = true;
+    dragRef.current = { y: e.clientY, d: weightDistance(bpm, minBpm, maxBpm), moved: false };
     e.currentTarget.setPointerCapture?.(e.pointerId);
-    setBpm(yToBpm(e.clientY));
   };
   const onPointerMove = (e) => {
-    if (dragRef.current) setBpm(yToBpm(e.clientY));
+    const dr = dragRef.current;
+    if (!dr) return;
+    const dy = e.clientY - dr.y;
+    if (!dr.moved && Math.abs(dy) < 6) return;
+    dr.moved = true;
+    // A third of the finger's travel: fine control over a 30..300 scale.
+    setBpm(bpmFromDistance(dr.d - dy * unitsPerPx() * 0.35, minBpm, maxBpm));
   };
-  const onPointerUp = () => {
+  const onPointerUp = (e) => {
+    const dr = dragRef.current;
     dragRef.current = null;
+    if (dr && !dr.moved && e.type === 'pointerup') setBpm(DEFAULT_BPM);
   };
   const onKeyDown = (e) => {
     const step = e.shiftKey ? 10 : 1;

@@ -186,8 +186,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
   (Maelzel style), the pendulum swings by rAF and passes the CENTRE on each
   click (angle = side·24°·sin(π·phase), phase from the onBeat time; settles
   to rest when stopped), the brass weight sits at the tempo on the ivory
-  scale (log 30..300, higher = slower; numbers left of the rod), drag up/down
-  or arrow keys set the tempo, beat lamps on the base (accent amber). Below:
+  scale (log 30..300, higher = slower; numbers left of the rod), a TAP on
+  it = 120 (user's rule), a drag (>6 px) slides the weight RELATIVE to where
+  it is at 0.35x the finger's travel, arrow keys ±1/±10, beat lamps on the base (accent amber). Below:
   theme-coloured tiles (BPM via `BpmField` −/+ hold-to-repeat + type-in,
   time signature, sound), volume, Tap / Start. DRUMS: an 808-spirit unit
   (`.dm-*`, physical = same in light/dark, `dir="ltr"`): orange BPM display,

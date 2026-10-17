@@ -60,6 +60,16 @@ export function DrumMachine({
   const [showKit, setShowKit] = useState(false);
   const [name, setName] = useState('');
   const [head, setHead] = useState(null); // { role, step } of the playhead
+  // Row name tap = hear that drum (a short flash on the name).
+  const [hitRow, setHitRow] = useState(null);
+  const hitTimer = useRef(0);
+  const audition = (inst) => {
+    drums.previewInstrument(inst);
+    setHitRow(inst);
+    clearTimeout(hitTimer.current);
+    hitTimer.current = setTimeout(() => setHitRow(null), 180);
+  };
+  useEffect(() => () => clearTimeout(hitTimer.current), []);
   const bpmLabels = {
     down: t('piano.metronome.tempoDown'),
     up: t('piano.metronome.tempoUp'),
@@ -247,16 +257,14 @@ export function DrumMachine({
               </span>
             ))}
             {rows.map((inst) => {
-              const muted = !!drums.rowMutes[inst];
               const src = editing ? draft : pattern;
               return [
                 <button
                   key={inst + '-l'}
                   type="button"
-                  className={'dm-row-name g-' + GROUP_OF[inst] + (muted ? ' is-muted' : '')}
-                  onClick={() => drums.toggleRowMute(inst)}
-                  title={t('drums.rowMute')}
-                  aria-pressed={muted}
+                  className={'dm-row-name g-' + GROUP_OF[inst] + (hitRow === inst ? ' is-hit' : '')}
+                  onClick={() => audition(inst)}
+                  title={t('drums.rowListen')}
                 >
                   {t(`drums.inst.${inst}`)}
                 </button>,
@@ -273,8 +281,7 @@ export function DrumMachine({
                         GROUP_OF[inst] +
                         (v > 0.7 ? ' is-on' : v > 0 ? ' is-soft' : '') +
                         (s === 0 ? ' is-beat' : '') +
-                        (c === headCol ? ' is-head' : '') +
-                        (muted ? ' is-muted' : '')
+                        (c === headCol ? ' is-head' : '')
                       }
                       aria-label={`${t(`drums.inst.${inst}`)} ${b + 1}.${s + 1}`}
                       aria-pressed={v > 0}

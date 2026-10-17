@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { startDrumEngine } from '../audio/drumEngine';
+import { getAudioContext } from '../audio/audioContext';
+import { playDrumHit } from '../audio/drumSounds';
+import { MIX_BUCKET } from '../music/drumKit';
 import { DRUM_STYLE_OPTIONS } from '../music/drumPatterns';
 import { isUserKey, loadUserPatterns, resolvePattern, saveUserPatterns } from '../music/drumKit';
 
@@ -93,6 +96,16 @@ export function useDrumEngine({ bpm, beatsPerMeasure, isRunning, masterVolume = 
 
   const toggleRowMute = (instrument) => setRowMutes((m) => ({ ...m, [instrument]: !m[instrument] }));
 
+  // Tapping a row name in the sequencer plays that drum once, so the user
+  // hears it before putting it in a beat (user's request 2026-10-17). At the
+  // row's mixer level; a silenced channel / master still sounds at 0.8.
+  const previewInstrument = useCallback((instrument) => {
+    const ctx = getAudioContext();
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    const level = mixRef.current[MIX_BUCKET[instrument] ?? 'snare'] || 0.8;
+    playDrumHit(ctx, instrument, ctx.currentTime + 0.01, level);
+  }, []);
+
   return {
     soundSource,
     setSoundSource,
@@ -113,6 +126,7 @@ export function useDrumEngine({ bpm, beatsPerMeasure, isRunning, masterVolume = 
     setDraft,
     rowMutes,
     toggleRowMute,
+    previewInstrument,
     subscribeStep,
     // The pattern on screen: draft / saved user pattern / built-in style.
     pattern: current ?? resolvePattern(styleKey, userPatterns) ?? resolvePattern('rock', []),

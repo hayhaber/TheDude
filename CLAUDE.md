@@ -209,8 +209,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
   3 toms, snare, rim, clap, kick, cowbell, tambourine, shaker; synthesized in
   drumSounds.js) with mixer groups kick / drums / cymbals / perc (`MIX_BUCKET`,
   4 faders; mix key `perc` added). View shows only the rows a pattern uses;
-  `Kit` shows all; tapping a row name mutes that row (`rowMutes`, engine skips
-  it). Tapping a square (or Edit / New) starts a DRAFT (`drums.draft`, played
+  `Kit` shows all; tapping a row name PLAYS that drum once (`drums.previewInstrument`,
+  at its mixer level, name flashes — user's request 2026-10-17; it used to mute
+  the row: `rowMutes` is still in the engine but has no UI). Tapping a square (or Edit / New) starts a DRAFT (`drums.draft`, played
   live — the engine reads `getPattern()` every step): tap cycles full -> soft
   (0.5) -> off; Name, Grid select (8ths / triplets / 16ths, `changeResolution`
   moves hits to the nearest step), the draft follows the time signature;

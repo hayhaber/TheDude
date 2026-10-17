@@ -699,11 +699,11 @@
   text-overflow: ellipsis;
   cursor: pointer;
   min-height: 20px;
+  transition: color 0.12s ease;
 }
 
-.metronome.mw .dm-row-name.is-muted {
-  color: #6b655a;
-  text-decoration: line-through;
+.metronome.mw .dm-row-name.is-hit {
+  color: #fff;
 }
 
 .metronome.mw .dm-cell {

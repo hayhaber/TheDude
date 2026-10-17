@@ -179,6 +179,23 @@ on the container; content inside stays top-aligned). Stacked on a phone
   Home button under the iPhone's Dynamic Island — and `.app-shell::before`
   is a fixed translucent blurred strip (z-index 5, buttons are 6) behind the
   Home / ⓘ buttons so scrolled content never covers them.
+- **Metronome look** (user's choice 2026-10-17, option 3 of 5 + a drum
+  machine): `Metronome.jsx` has two faces over the same useMetronome/drums
+  state, switched by a bare `.mode-toggle` (Metronome | Drums, device key
+  `metronome-view`). WOOD: `WoodMetronome.jsx` — an SVG walnut pyramid
+  (Maelzel style), the pendulum swings by rAF and passes the CENTRE on each
+  click (angle = side·24°·sin(π·phase), phase from the onBeat time; settles
+  to rest when stopped), the brass weight sits at the tempo on the ivory
+  scale (log 30..300, higher = slower; numbers left of the rod), drag up/down
+  or arrow keys set the tempo, beat lamps on the base (accent amber). Below:
+  theme-coloured tiles (BPM via `BpmField` −/+ hold-to-repeat + type-in,
+  time signature, sound), volume, Tap / Start. DRUMS: an 808-spirit unit
+  (`.dm-*`, physical = same in light/dark, `dir="ltr"`): orange BPM display,
+  one coloured step pad per beat lit on the beat, source latching keys
+  (Click / Drums / Both), style LCD select, Fills latching key, kick/snare/
+  hi-hat faders + M keys (dimmed while the source is Click), volume, Tap /
+  Start. Same component in the tool screen and the app pill's drawer. CSS in
+  WoodMetronome.css; Metronome.css stays (others use `.metronome-toggle`).
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the
   bottom tabs. Each is mounted twice (one hidden by CSS), so anything that

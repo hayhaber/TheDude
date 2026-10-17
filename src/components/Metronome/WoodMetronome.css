@@ -1,0 +1,577 @@
+/* Metronome faces (user's choice 2026-10-17): a classic wooden metronome
+   and a drum machine (808 spirit). The wood + the machine are physical
+   objects, the same in light and dark; the controls under the wood follow
+   the app theme. */
+
+.metronome.mw {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mw-view {
+  align-self: center;
+  min-width: 240px;
+}
+
+/* ---------- wooden metronome ---------- */
+.mw-stage {
+  display: flex;
+  justify-content: center;
+}
+
+.wood-metronome {
+  width: min(250px, 72%);
+  height: auto;
+  display: block;
+  touch-action: none;
+  cursor: ns-resize;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.32));
+  outline: none;
+}
+
+.wood-metronome:focus-visible {
+  filter: drop-shadow(0 0 0.5px var(--accent)) drop-shadow(0 14px 18px rgba(0, 0, 0, 0.32));
+}
+
+.wm-scale-text {
+  font: 700 9px Georgia, 'Times New Roman', serif;
+  fill: #5a3a14;
+}
+
+.wm-plaque-text {
+  font: 700 8.5px Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.16em;
+  fill: #3a2a08;
+}
+
+.wm-lamp {
+  fill: #2a1508;
+  stroke: #1a0b03;
+  stroke-width: 1;
+  transition: fill 0.06s linear;
+}
+
+.wm-lamp.is-on {
+  fill: #6dff8f;
+  filter: drop-shadow(0 0 4px #6dff8f);
+}
+
+.wm-lamp.is-accent.is-on {
+  fill: #ffc23d;
+  filter: drop-shadow(0 0 5px #ffc23d);
+}
+
+/* tiles: tempo · time signature · sound — equal heights in the row */
+.mw-tiles {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.mw-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px 8px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+  min-width: 0;
+}
+
+.mw-tile-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.metronome.mw .mw-tile-select {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-h, var(--text));
+  font: 700 17px Georgia, 'Times New Roman', serif;
+  text-align: center;
+  text-align-last: center;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+/* tempo field (shared shape; skinned per face) */
+.bpm-field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.metronome.mw .bpm-field-step,
+.metronome.mw .bpm-field-value {
+  font: inherit;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.metronome.mw .bpm-field-input {
+  font: inherit;
+  width: 3.2ch;
+  text-align: center;
+  border: none;
+  outline: 2px solid var(--accent);
+  border-radius: 6px;
+  padding: 0;
+}
+
+.mw-bpm .bpm-field-step {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent-bg, rgba(0, 113, 227, 0.1));
+  color: var(--text-h, var(--text));
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  justify-content: center;
+}
+
+.mw-bpm .bpm-field-value,
+.mw-bpm .bpm-field-input {
+  background: transparent;
+  color: var(--text-h, var(--text));
+  font: 700 24px Georgia, 'Times New Roman', serif;
+  min-width: 2.6ch;
+}
+
+.mw-volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metronome.mw .mw-vol-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 15px;
+  padding: 0;
+  flex: none;
+}
+
+.mw-vol-slider {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.mw-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 8px;
+}
+
+.metronome.mw .mw-btn {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.metronome.mw .mw-start {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+
+.metronome.mw .mw-start.running {
+  background: #d93a2f;
+}
+
+.mw-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ---------- drum machine ---------- */
+.dm {
+  --dm-ink: #ece4d0;
+  --dm-dim: #a59d8a;
+  --dm-orange: #ff7a2a;
+  background: linear-gradient(180deg, #3b3a38, #232220 60%, #1c1b19);
+  border-radius: 14px;
+  padding: 12px 14px 16px;
+  color: var(--dm-ink);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 12px 26px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dm-brand {
+  font-weight: 900;
+  font-style: italic;
+  font-size: 17px;
+}
+
+.dm-model {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--dm-orange);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dm-led {
+  margin-left: auto;
+  align-self: center;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4a140c;
+  flex: none;
+}
+
+.dm-led.is-on {
+  background: #ff3b2f;
+  box-shadow: 0 0 8px #ff3b2f;
+}
+
+.dm-strip {
+  height: 5px;
+  margin-top: -4px;
+  background: linear-gradient(90deg, #e23b2b 0 25%, #ff8a1f 25% 50%, #f6c22a 50% 75%, #f2efe6 75%);
+}
+
+.dm-lbl {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dm-dim);
+}
+
+.dm-top {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.dm-display {
+  background: #110d08;
+  border-radius: 6px;
+  padding: 6px 8px 4px;
+  box-shadow: inset 0 2px 6px #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dm-unit {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: #8a4a20;
+}
+
+.metronome.mw .dm-bpm .bpm-field-value,
+.metronome.mw .dm-bpm .bpm-field-input {
+  background: transparent;
+  color: var(--dm-orange);
+  font: 700 36px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  text-shadow: 0 0 10px rgba(255, 122, 42, 0.55);
+  min-width: 3ch;
+  line-height: 1.05;
+}
+
+.metronome.mw .dm-bpm .bpm-field-input {
+  outline-color: var(--dm-orange);
+}
+
+.metronome.mw .dm-bpm .bpm-field-step {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: linear-gradient(#4f4c47, #34322e);
+  color: var(--dm-ink);
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 2px 0 #0b0a09;
+}
+
+.dm-lcd {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.metronome.mw .dm-select {
+  width: 100%;
+  min-width: 0;
+  background: #110d08;
+  color: #ff9a5a;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 8px;
+  font: 600 13px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  box-shadow: inset 0 1px 4px #000;
+  cursor: pointer;
+}
+
+.dm-pads {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 4), 1fr);
+  gap: 8px;
+}
+
+.dm-pad {
+  position: relative;
+  height: 52px;
+  border-radius: 6px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5px;
+  transition: transform 0.05s ease;
+}
+
+.dm-pad b {
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.dm-pad i {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border-radius: 50%;
+  background: #3a0905;
+}
+
+.dm-pad.is-on {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.dm-pad.is-on i {
+  background: #ff2a1a;
+  box-shadow: 0 0 9px #ff2a1a;
+}
+
+.dm-pad.c-red { background: #e23b2b; }
+.dm-pad.c-orange { background: #ff8a1f; }
+.dm-pad.c-yellow { background: #f6c22a; }
+.dm-pad.c-cream { background: #f2efe6; }
+
+.dm-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dm-keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  align-items: stretch;
+}
+
+.metronome.mw .dm-key {
+  position: relative;
+  min-height: 40px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(#57544e, #3e3c37);
+  color: var(--dm-ink);
+  font: 800 11px/1.15 -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: 0.04em;
+  padding: 12px 6px 6px;
+  box-shadow: 0 3px 0 #0b0a09, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+
+.metronome.mw .dm-key:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0b0a09, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* latching keys: an LED strip on top */
+.metronome.mw .dm-key.is-latch::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 32%;
+  right: 32%;
+  height: 3px;
+  border-radius: 2px;
+  background: #3a2a10;
+}
+
+.metronome.mw .dm-key.is-latch.is-active::before {
+  background: #ffb02a;
+  box-shadow: 0 0 6px #ffb02a;
+}
+
+.dm-drumpart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 0.2s ease;
+}
+
+.dm-drumpart.is-idle {
+  opacity: 0.5;
+}
+
+.dm-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.dm-grow {
+  flex: 1;
+}
+
+.dm-fills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dm-fills .dm-key {
+  min-width: 84px;
+}
+
+.dm-mixer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: #151412;
+  border-radius: 8px;
+  padding: 10px 8px;
+  box-shadow: inset 0 1px 4px #000;
+}
+
+.dm-ch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.dm-fader {
+  width: 100%;
+  accent-color: var(--dm-orange);
+}
+
+.metronome.mw .dm-mute {
+  width: 30px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: linear-gradient(#57544e, #3e3c37);
+  color: var(--dm-dim);
+  font: 800 10px -apple-system, Arial, sans-serif;
+  padding: 0;
+  box-shadow: 0 2px 0 #0b0a09;
+  cursor: pointer;
+}
+
+.metronome.mw .dm-mute.is-muted {
+  background: #e23b2b;
+  color: #fff;
+}
+
+.dm-volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metronome.mw .dm-volume .mw-vol-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: linear-gradient(#57544e, #3e3c37);
+  box-shadow: 0 2px 0 #0b0a09;
+  font-size: 14px;
+  padding: 0;
+  flex: none;
+}
+
+.dm-volume .mw-vol-slider {
+  accent-color: var(--dm-orange);
+}
+
+.dm-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 8px;
+}
+
+.metronome.mw .dm-big {
+  min-height: 46px;
+  font-size: 14px;
+  padding: 6px;
+}
+
+.metronome.mw .dm-start {
+  background: linear-gradient(#ef4a39, #c42a1c);
+  color: #fff;
+}
+
+.metronome.mw .dm-start.running {
+  background: linear-gradient(#f6c22a, #d69c10);
+  color: #2a1f05;
+}
+
+.dm .info-tooltip-trigger {
+  color: var(--dm-dim);
+}
+
+@media (max-width: 400px) {
+  .mw-tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mw-tiles .mw-tile:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .metronome.mw .dm-key {
+    font-size: 10px;
+  }
+}

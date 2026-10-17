@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import * as P from '../../audio/studio/project';
 import { MP3_KBPS, MP3_DEFAULT_KBPS } from '../../audio/studio/mp3';
 import { DRUM_STYLE_OPTIONS } from '../../music/drumPatterns';
+import { USER_PREFIX, isUserKey, loadUserPatterns } from '../../music/drumKit';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { usePlayhead } from './useStudio';
 
@@ -294,6 +295,7 @@ export function DrumsPanel({ t, studio }) {
   if (!project) return null;
   const d = project.drums;
   const locked = phase === 'recording' || phase === 'saving';
+  const mine = loadUserPatterns();
   const set = (patch, mix = false) => (mix ? studio.updateMix : studio.update)((p) => ({ ...p, drums: { ...p.drums, ...patch } }));
   return (
     <div className="st-panel rk-unit rk-black rk-drum">
@@ -309,12 +311,36 @@ export function DrumsPanel({ t, studio }) {
       <div className="st-row">
         <label className="st-field is-grow">
           <span className="st-label">{t('rec.style')}</span>
-          <select value={d.style} disabled={locked || !d.on} onChange={(e) => set({ style: e.target.value })}>
-            {DRUM_STYLE_OPTIONS.map((o) => (
-              <option key={o.key} value={o.key}>
-                {o.label}
-              </option>
-            ))}
+          <select
+            value={d.style}
+            disabled={locked || !d.on}
+            onChange={(e) => {
+              const style = e.target.value;
+              // A pattern of your own (Drum Machine) is COPIED into the song,
+              // so the song keeps its groove even if the pattern is later
+              // edited or deleted.
+              const own = isUserKey(style) ? mine.find((m) => USER_PREFIX + m.id === style) : null;
+              set({ style, pattern: own ? { name: own.name, stepsPerBeat: own.stepsPerBeat, cell: own.cell } : null });
+            }}
+          >
+            <optgroup label={t('drums.builtIn')}>
+              {DRUM_STYLE_OPTIONS.map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
+            </optgroup>
+            {(mine.length > 0 || (isUserKey(d.style) && d.pattern)) && (
+              <optgroup label={t('drums.mine')}>
+                {mine.map((m) => (
+                  <option key={m.id} value={USER_PREFIX + m.id}>
+                    {m.name}
+                  </option>
+                ))}
+                {/* the song's copy of a pattern since deleted */}
+                {isUserKey(d.style) && d.pattern && !mine.some((m) => USER_PREFIX + m.id === d.style) && <option value={d.style}>{d.pattern.name}</option>}
+              </optgroup>
+            )}
           </select>
         </label>
       </div>

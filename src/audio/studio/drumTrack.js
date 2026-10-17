@@ -9,11 +9,13 @@ import { DRUM_STYLES } from '../../music/drumPatterns';
 // fill on the last beat of every 4th bar, a crash on the 1 after a fill.
 
 const FILL_EVERY = 4;
-const MIX = { kick: 1, snare: 1, hihatClosed: 0.9, hihatOpen: 0.9, tomHigh: 1, tomMid: 1, tomLow: 1, crash: 0.9 };
+const MIX = { kick: 1, snare: 1, hihatClosed: 0.9, hihatOpen: 0.9, hihatPedal: 0.9, tomHigh: 1, tomMid: 1, tomLow: 1, crash: 0.9, ride: 0.9, rideBell: 0.9 };
 
 /** [{ time, instrument, velocity }] with time in [t0, t1) (timeline s). */
-export function drumHits({ style: styleKey, fills }, bpm, beats, t0, t1) {
-  const style = DRUM_STYLES[styleKey] ?? DRUM_STYLES.rock;
+export function drumHits({ style: styleKey, fills, pattern }, bpm, beats, t0, t1) {
+  // `pattern`: the song's copy of a pattern of the user's own (Drum
+  // Machine step sequencer) — same shape as a style, no fill.
+  const style = (pattern && Array.isArray(pattern.cell) && pattern.cell.length ? pattern : null) ?? DRUM_STYLES[styleKey] ?? DRUM_STYLES.rock;
   const spb = style.stepsPerBeat;
   const step = 60 / bpm / spb;
   const out = [];
@@ -25,7 +27,7 @@ export function drumHits({ style: styleKey, fills }, bpm, beats, t0, t1) {
     const bar = Math.floor(beat / beats);
     const b = beat % beats;
     const fillBar = fills && style.fill && bar % FILL_EVERY === FILL_EVERY - 1;
-    const hits = { ...((fillBar && b === beats - 1 ? style.fill[s] : style.cell[b % 4]?.[s]) ?? {}) };
+    const hits = { ...((fillBar && b === beats - 1 ? style.fill[s] : style.cell[b % style.cell.length]?.[s]) ?? {}) };
     if (fills && style.fillCrashVelocity && bar > 0 && bar % FILL_EVERY === 0 && b === 0 && s === 0) hits.crash = style.fillCrashVelocity;
     for (const [instrument, v] of Object.entries(hits)) {
       if (v) out.push({ time, instrument, velocity: v * (MIX[instrument] ?? 1) });

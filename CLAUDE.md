@@ -218,7 +218,11 @@ on the container; content inside stays top-aligned). Stacked on a phone
   `dudestar-p-drum-patterns`, selected as style key `user:<id>` (select has a
   "My patterns" optgroup; disabled while editing). Engine: role =
   beatIndex % cell.length (built-ins are 4 beats = unchanged), fills only
-  for built-ins. The recorder studio's drum track still uses built-in styles.
+  for built-ins. The recorder studio's DR-7 Style select lists them too
+  ("My patterns" optgroup): choosing one COPIES it into the song
+  (`project.drums.pattern` {name, stepsPerBeat, cell}, style `user:<id>`), so
+  the song keeps its groove if the pattern is later edited/deleted;
+  `drumHits()` plays `drums.pattern` when present (role = beat % cell.length).
 - **Drums pill** (`MetronomeBar/DrumsBar.jsx`, user's request 2026-10-17):
   wherever the metronome pill is (App's `metronomeSlot` now = MetronomeBar +
   DrumsBar), a same-shape pill (snare icon + `drums.nav`) opens the same

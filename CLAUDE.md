@@ -201,6 +201,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
   latching key, kick/snare/hi-hat faders + M keys, volume, Tap /
   Start. `TIME_SIGNATURES` + `VolumeRow` are exported from Metronome.jsx. CSS in
   WoodMetronome.css; Metronome.css stays (others use `.metronome-toggle`).
+- **Drums pill** (`MetronomeBar/DrumsBar.jsx`, user's request 2026-10-17):
+  wherever the metronome pill is (App's `metronomeSlot` now = MetronomeBar +
+  DrumsBar), a same-shape pill (snare icon + `drums.nav`) opens the same
+  drawer style with `DrumMachine` in it. Closing the drawer leaves the drums
+  playing; only the tool SCREEN passes `resetOnLeave` (source back to
+  'standard' on leave). Pills light per source: metronome pill = running and
+  source != 'drum', drums pill = running and drumsActive.
 - **Metronome + Tuner pills** (`MetronomeBar`, `TunerBar`) live only in the app
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the
   bottom tabs. Each is mounted twice (one hidden by CSS), so anything that

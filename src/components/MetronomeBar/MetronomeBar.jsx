@@ -18,7 +18,9 @@ import './MetronomeBar.css';
 // hijack this drawer's fixed positioning (see TunerBar.jsx's comment).
 export function MetronomeBar({ metronome, drums }) {
   const [open, setOpen] = useState(false);
-  const { isRunning, bpm } = metronome;
+  const { bpm } = metronome;
+  // Lit for the click only — the drum machine's pill lights for the drums.
+  const isRunning = metronome.isRunning && drums?.soundSource !== 'drum';
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export function MetronomeBar({ metronome, drums }) {
         <>
           <div className={'metronome-drawer-scrim' + (open ? ' open' : '')} aria-hidden="true" onClick={() => setOpen(false)} />
           <div
-            className={'metronome-drawer' + (open ? ' open' : '') + (drums?.drumsActive ? ' expanded' : '')}
+            className={'metronome-drawer' + (open ? ' open' : '') + ''}
             role="dialog"
             aria-modal="true"
             aria-label={t('metronome.title')}

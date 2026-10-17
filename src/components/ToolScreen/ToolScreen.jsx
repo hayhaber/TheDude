@@ -74,7 +74,7 @@ export function ToolScreen({ tool, onBack, tunerMode, onTunerModeChange, setting
           ) : tool === 'record' ? (
             <RecorderView metronome={metronome} />
           ) : tool === 'drums' ? (
-            <DrumMachine {...metronome} drums={drums} />
+            <DrumMachine {...metronome} drums={drums} resetOnLeave />
           ) : tool === 'settings' ? (
             <div className="settings-drawer-body">
               <SettingsBody {...settingsProps} allSounds />

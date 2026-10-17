@@ -34,6 +34,7 @@ export function DrumMachine({
   isMuted,
   toggleMute,
   drums,
+  resetOnLeave = false,
 }) {
   const { t } = useLanguage();
   const bpmLabels = {
@@ -58,7 +59,13 @@ export function DrumMachine({
   // so the metronome (and drills, recorder count-in…) click again.
   const setSourceRef = useRef(drums.setSoundSource);
   setSourceRef.current = drums.setSoundSource;
-  useEffect(() => () => setSourceRef.current('standard'), []);
+  const resetRef = useRef(resetOnLeave);
+  resetRef.current = resetOnLeave;
+  // Only on its own screen (resetOnLeave): closing the app pill's drawer
+  // leaves the drums playing, like the metronome's drawer.
+  useEffect(() => () => {
+    if (resetRef.current) setSourceRef.current('standard');
+  }, []);
   const start = () => {
     if (!isRunning && drums.soundSource !== 'drum') drums.setSoundSource('drum');
     toggle();

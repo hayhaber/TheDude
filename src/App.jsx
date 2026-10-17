@@ -3,6 +3,7 @@ import { HomeMenu } from './components/HomeMenu/HomeMenu';
 import { AppShell } from './components/AppShell/AppShell';
 import { Stage } from './components/Stage/Stage';
 import { MetronomeBar } from './components/MetronomeBar/MetronomeBar';
+import { DrumsBar } from './components/MetronomeBar/DrumsBar';
 import { ToolScreen } from './components/ToolScreen/ToolScreen';
 import { ComposeView } from './components/ComposeView/ComposeView';
 import { ImproviseView } from './components/ImproviseView/ImproviseView';
@@ -2052,7 +2053,14 @@ function App() {
       }}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
-      metronomeSlot={activeSection === 'vocal' ? null : <MetronomeBar metronome={metronome} drums={drums} />}
+      metronomeSlot={
+        activeSection === 'vocal' ? null : (
+          <>
+            <MetronomeBar metronome={metronome} drums={drums} />
+            <DrumsBar metronome={metronome} drums={drums} />
+          </>
+        )
+      }
       stage={
         // The Vocal section draws the voice itself (no neck/keys under it).
         earTrainingOwnsInstrument ||

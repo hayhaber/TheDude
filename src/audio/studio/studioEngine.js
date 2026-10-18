@@ -19,6 +19,7 @@ import { getTakeAudio } from '../recorderStore';
 import { playDrumHit } from '../drumSounds';
 import { drumHits, clickTimes, playClick } from './drumTrack';
 import { audibleTracks, regionEnd, projectLength, MIN_REGION } from './project';
+import { createEqChain } from './eq';
 
 const AHEAD = 0.3; // s scheduled ahead
 const TICK = 25; // ms
@@ -180,13 +181,21 @@ export async function renderMix(project, buffers, { from = 0, to = null, trackId
   const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const ctx = new OC(2, len, sampleRate);
   const master = ctx.createGain();
-  master.connect(ctx.destination);
+  // The mix-bus EQ belongs to the whole mix, not to a single track's stem.
+  if (trackIds) master.connect(ctx.destination);
+  else {
+    const bus = createEqChain(ctx, project.masterEq);
+    master.connect(bus.input);
+    bus.output.connect(ctx.destination);
+  }
   const outs = new Map();
   for (const t of project.tracks) {
     if (trackIds && !trackIds.includes(t.id)) continue;
     const g = ctx.createGain();
     g.gain.value = trackIds ? t.volume ?? 0.9 : trackLevel(project, t);
-    g.connect(master);
+    const eq = createEqChain(ctx, t.eq);
+    g.connect(eq.input);
+    eq.output.connect(master);
     outs.set(t.id, g);
   }
   scheduleRegions(ctx, outs, project, buffers, { from, to: end, when: 0 });
@@ -204,6 +213,7 @@ export async function renderMix(project, buffers, { from = 0, to = null, trackId
 export function createStudioEngine() {
   let ctx = null;
   let master = null;
+  let masterEq = null; // mix-bus EQ (lives with the context)
   let outAnalyser = null;
   const buffers = new Map();
   const loading = new Map();
@@ -220,10 +230,12 @@ export function createStudioEngine() {
     ctx = createLiveContext();
     ctx.resume().catch(() => {});
     master = ctx.createGain();
+    masterEq = createEqChain(ctx, null);
     outAnalyser = ctx.createAnalyser();
     outAnalyser.fftSize = 1024;
-    master.connect(outAnalyser);
-    master.connect(ctx.destination);
+    master.connect(masterEq.input);
+    masterEq.output.connect(outAnalyser);
+    masterEq.output.connect(ctx.destination);
     return ctx;
   }
 
@@ -287,6 +299,7 @@ export function createStudioEngine() {
         /* gone */
       }
     }
+    for (const eq of t.trackEqs.values()) eq.disconnect();
     try {
       t.drumBus.disconnect();
       t.clickBus.disconnect();
@@ -326,6 +339,7 @@ export function createStudioEngine() {
       perc: T, // context time up to which drums/click are scheduled
       sources: [],
       trackOuts: new Map(),
+      trackEqs: new Map(),
       drumBus: ctx.createGain(),
       clickBus: ctx.createGain(),
       click,
@@ -337,9 +351,13 @@ export function createStudioEngine() {
     for (const tr of project.tracks) {
       const g = ctx.createGain();
       g.gain.value = trackLevel(project, tr);
-      g.connect(master);
+      const eq = createEqChain(ctx, tr.eq);
+      g.connect(eq.input);
+      eq.output.connect(master);
       t.trackOuts.set(tr.id, g);
+      t.trackEqs.set(tr.id, eq);
     }
+    masterEq.set(project.masterEq);
     t.drumBus.gain.value = project.drums?.on ? project.drums.volume ?? 0.7 : 0;
     t.drumBus.connect(master);
     t.clickBus.gain.value = 0.9;
@@ -417,11 +435,13 @@ export function createStudioEngine() {
 
   /** Live mix changes (volume / mute / solo / drum level) while playing. */
   function setMix(project) {
+    if (masterEq) masterEq.set(project.masterEq, true);
     if (!tp) return;
     tp.project = project;
     for (const tr of project.tracks) {
       const g = tp.trackOuts.get(tr.id);
       if (g) g.gain.setTargetAtTime(trackLevel(project, tr), ctx.currentTime, 0.02);
+      tp.trackEqs.get(tr.id)?.set(tr.eq, true);
     }
     tp.drumBus.gain.setTargetAtTime(project.drums?.on ? project.drums.volume ?? 0.7 : 0, ctx.currentTime, 0.02);
   }

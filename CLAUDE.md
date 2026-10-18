@@ -731,6 +731,18 @@ on the container; content inside stays top-aligned). Stacked on a phone
   `.st-toggle` = latching key with an LED strip, selects = green LCD, range
   readouts = red LED, range inputs = faders. Library = walnut cabinet, each
   take a cardboard tape box with a typed label.
+  **EQ-10** (user's request 2026-10-18): `EqPanel.jsx`, a full-width black
+  rack unit (blue top stripe) under the other panels — 10-band graphic EQ
+  (31 Hz..16 kHz, ±12 dB, 0.5 dB steps, peaking Q 1.41) with a green LCD
+  response curve (`eqResponseDb()` = RBJ math, checked equal to
+  BiquadFilterNode) and custom vertical faders (drag / tap, arrows ±0.5,
+  PageUp/Down ±3, double-tap = 0). Channel select: Whole mix
+  (`project.masterEq`) or a track (`track.eq`); `{on, gains[10]}`, missing =
+  flat. Edits go through `studio.updateMix` (no undo, heard at once via
+  `engine.setMix`). `audio/studio/eq.js` `createEqChain()`: live = track gain
+  -> track EQ -> master -> master EQ -> analyser/out; `renderMix` the same
+  (master EQ only for a whole-mix export, not single-track stems). Measured:
+  bypass export = identical, all bands -12 = tone -13 dB.
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
   a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
   CRUNCH 0° / LEAD +60°, under INPUT where the dropdown was — knob row unchanged (user); tap = next, tap a printed

@@ -4,6 +4,7 @@ import * as P from '../../audio/studio/project';
 import { useStudio } from './useStudio';
 import { Deck } from './Deck';
 import { Timeline } from './Timeline';
+import { EqPanel } from './EqPanel';
 import { DrumsPanel, FilePanel, RackHead, RangePanel, RegionTools, SongBar, SyncPanel } from './StudioControls';
 import { Library } from './Library';
 import '../ModeToggle/ModeToggle.css';
@@ -99,6 +100,7 @@ export function RecorderView({ metronome }) {
           <DrumsPanel t={t} studio={studio} />
           <FilePanel t={t} studio={studio} />
           <SyncPanel t={t} studio={studio} />
+          <EqPanel t={t} studio={studio} />
         </div>
       </section>
 

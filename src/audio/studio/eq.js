@@ -95,3 +95,27 @@ export function createEqChain(ctx, eq) {
     },
   };
 }
+
+// Starting points per style (gains for 31 Hz .. 16 kHz). Moderate on purpose:
+// a preset is where you start, then trim by ear.
+export const EQ_PRESETS = [
+  { key: 'flat', gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { key: 'rock', gains: [4, 3, 2, 0, -2, -1, 1, 3, 4, 4] },
+  { key: 'pop', gains: [-1, 0, 1, 3, 4, 3, 1, 0, -1, -1] },
+  { key: 'metal', gains: [5, 4, 2, 0, -3, -2, 1, 3, 5, 5] },
+  { key: 'blues', gains: [2, 3, 2, 1, 0, 1, 2, 1, 0, -1] },
+  { key: 'jazz', gains: [2, 2, 1, 1, -1, -1, 0, 1, 2, 2] },
+  { key: 'classical', gains: [3, 2, 1, 0, 0, 0, 0, 1, 2, 3] },
+  { key: 'hiphop', gains: [6, 5, 3, 1, -1, -1, 1, 0, 1, 2] },
+  { key: 'electronic', gains: [5, 4, 1, 0, -2, 1, 0, 2, 4, 5] },
+  { key: 'acoustic', gains: [2, 1, 1, 1, 0, 0, 1, 2, 2, 1] },
+  { key: 'vocal', gains: [-3, -2, -1, 1, 3, 4, 3, 2, 0, -1] },
+  { key: 'bass', gains: [6, 5, 4, 2, 0, 0, 0, 0, 0, 0] },
+  { key: 'treble', gains: [0, 0, 0, 0, 0, 1, 2, 4, 5, 6] },
+  { key: 'lowcut', gains: [-12, -8, -3, 0, 0, 0, 0, 0, 0, 0] },
+];
+
+/** The preset these gains match exactly, or null (= custom). */
+export function presetOf(gains) {
+  return EQ_PRESETS.find((p) => p.gains.every((g, i) => g === (gains[i] ?? 0)))?.key ?? null;
+}

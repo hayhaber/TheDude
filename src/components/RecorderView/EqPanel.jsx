@@ -1,141 +1,158 @@
-import { useMemo, useRef, useState } from 'react';
-import { EQ_BANDS, EQ_LABELS, EQ_RANGE, clampGain, eqActive, eqResponseDb, flatEq, normEq } from '../../audio/studio/eq';
+import { useEffect, useRef, useState } from 'react';
+import { EQ_BANDS, EQ_LABELS, EQ_PRESETS, EQ_RANGE, clampGain, eqActive, flatEq, normEq, presetOf } from '../../audio/studio/eq';
 import { RackHead } from './StudioControls';
 
-// EQ-10: a 10-band graphic equalizer rack unit (user's request 2026-10-18).
-// One EQ per track + one on the mix bus, chosen with the Channel select.
-// Changes are mix changes (heard at once while playing, no undo step) and go
-// into the export / bounce too.
+// EQ-10: a 10-band graphic equalizer rack unit (user's request 2026-10-18),
+// drawn after the classic studio 1/1-octave graphic EQs: a brushed aluminium
+// face, a black window with an LED spectrum ladder over every band, long
+// black-capped faders, presets per style. One EQ per track + one on the mix
+// bus (Channel select). Changes are mix changes (heard at once while
+// playing, no undo step) and go into the export / bounce too.
 
 const MASTER = 'master';
-const F_MIN = 20;
-const F_MAX = 20000;
-const W = 600;
-const H = 90;
+const LEDS = 10;
+// LED thresholds (band power from engine.outputBands(), dB): bottom LED at
+// -54, top (red) at -9, 5 dB apart. 7 green, 2 amber, 1 red.
+const LED_DB = Array.from({ length: LEDS }, (_, i) => -54 + i * 5);
+const RELEASE_DB_S = 24; // fall speed
+const HOLD_MS = 1000; // peak hold
 
-const xOf = (f) => (Math.log(f / F_MIN) / Math.log(F_MAX / F_MIN)) * W;
-const yOf = (db) => H / 2 - (db / (EQ_RANGE + 3)) * (H / 2);
-const fmt = (db) => (db > 0 ? '+' : db < 0 ? '−' : '') + Math.abs(db).toFixed(1) + ' dB';
+const fmt = (db) => (db > 0 ? '+' : db < 0 ? '-' : ' ') + Math.abs(db).toFixed(1);
 
-function Curve({ eq, active, label }) {
-  const path = useMemo(() => {
-    const pts = [];
-    for (let i = 0; i <= 120; i++) {
-      const f = F_MIN * Math.pow(F_MAX / F_MIN, i / 120);
-      pts.push(`${xOf(f).toFixed(1)},${yOf(eqResponseDb(eq, f)).toFixed(1)}`);
+/** The LED spectrum: drives the lamps straight in the DOM (no re-render per frame). */
+function useSpectrum(studio, cols) {
+  const playing = studio.phase === 'playing';
+  useEffect(() => {
+    const lamps = cols.current;
+    const level = EQ_BANDS.map(() => -120);
+    const peak = EQ_BANDS.map(() => ({ db: -120, at: 0 }));
+    const paint = (now) => {
+      lamps.forEach((col, b) => {
+        if (!col) return;
+        const lit = LED_DB.filter((th) => level[b] >= th).length;
+        const pk = LED_DB.filter((th) => peak[b].db >= th).length;
+        const hold = pk > lit && now - peak[b].at < HOLD_MS;
+        col.querySelectorAll('.eq-led').forEach((el, i) => {
+          el.classList.toggle('is-lit', i < lit || (hold && i === pk - 1));
+        });
+      });
+    };
+    if (!playing) {
+      paint(0);
+      return undefined;
     }
-    return 'M' + pts.join(' L');
-  }, [eq]);
-  const on = eq.on;
-  return (
-    <div className={'eq-screen' + (on ? '' : ' is-off')}>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-        {[-12, -6, 6, 12].map((d) => (
-          <line key={d} x1="0" x2={W} y1={yOf(d)} y2={yOf(d)} className="eq-grid" />
-        ))}
-        {[100, 1000, 10000].map((f) => (
-          <line key={f} x1={xOf(f)} x2={xOf(f)} y1="0" y2={H} className="eq-grid" />
-        ))}
-        <line x1="0" x2={W} y1={yOf(0)} y2={yOf(0)} className="eq-zero" />
-        <path d={`${path} L${W},${yOf(0)} L0,${yOf(0)} Z`} className="eq-fill" />
-        <path d={path} className="eq-line" vectorEffect="non-scaling-stroke" />
-        {EQ_BANDS.map((f, i) => (
-          <line
-            key={f}
-            x1={xOf(f)}
-            x2={xOf(f)}
-            y1={yOf(on ? eq.gains[i] : 0)}
-            y2={yOf(on ? eq.gains[i] : 0)}
-            className={'eq-dot' + (active === i ? ' is-active' : '')}
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
-      </svg>
-      <span className="eq-readout" dir="ltr">
-        {active != null ? `${EQ_LABELS[active]} Hz  ${fmt(eq.gains[active])}` : label}
-      </span>
-    </div>
-  );
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      const bands = studio.engine.outputBands?.();
+      EQ_BANDS.forEach((_, b) => {
+        const v = bands ? bands[b] : -120;
+        level[b] = v > level[b] ? v : Math.max(v, level[b] - RELEASE_DB_S * dt);
+        if (level[b] >= peak[b].db || now - peak[b].at > HOLD_MS) peak[b] = { db: level[b], at: now };
+      });
+      paint(now);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      level.fill(-120);
+      peak.forEach((p) => (p.db = -120));
+      paint(0);
+    };
+  }, [playing, studio.engine, cols]);
 }
 
 function Fader({ value, label, disabled, onChange, onActive }) {
   const slot = useRef(null);
   const valueAt = (clientY) => {
     const r = slot.current.getBoundingClientRect();
-    const share = 1 - Math.min(1, Math.max(0, (clientY - r.top - 8) / (r.height - 16)));
+    const share = 1 - Math.min(1, Math.max(0, (clientY - r.top - 9) / (r.height - 18)));
     return clampGain(-EQ_RANGE + share * 2 * EQ_RANGE);
   };
-  const pos = ((value + EQ_RANGE) / (2 * EQ_RANGE)) * 100;
+  const pos = (value + EQ_RANGE) / (2 * EQ_RANGE);
   return (
-    <div className="eq-band">
-      <div
-        ref={slot}
-        className="eq-slot"
-        role="slider"
-        tabIndex={disabled ? -1 : 0}
-        aria-label={`${label} Hz`}
-        aria-valuemin={-EQ_RANGE}
-        aria-valuemax={EQ_RANGE}
-        aria-valuenow={value}
-        aria-valuetext={fmt(value)}
-        aria-disabled={disabled || undefined}
-        onPointerDown={(e) => {
-          if (disabled) return;
+    <div
+      ref={slot}
+      className="eq-slot"
+      role="slider"
+      tabIndex={disabled ? -1 : 0}
+      aria-label={`${label} Hz`}
+      aria-valuemin={-EQ_RANGE}
+      aria-valuemax={EQ_RANGE}
+      aria-valuenow={value}
+      aria-valuetext={`${fmt(value)} dB`}
+      aria-disabled={disabled || undefined}
+      onPointerDown={(e) => {
+        if (disabled) return;
+        e.preventDefault();
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        e.currentTarget.focus({ preventScroll: true });
+        onActive(true);
+        onChange(valueAt(e.clientY));
+      }}
+      onPointerMove={(e) => {
+        if (!disabled && e.currentTarget.hasPointerCapture?.(e.pointerId)) onChange(valueAt(e.clientY));
+      }}
+      onPointerUp={() => onActive(false)}
+      onPointerCancel={() => onActive(false)}
+      onDoubleClick={() => !disabled && onChange(0)}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        const step = { ArrowUp: 0.5, ArrowRight: 0.5, ArrowDown: -0.5, ArrowLeft: -0.5, PageUp: 3, PageDown: -3 }[e.key];
+        if (step != null) {
           e.preventDefault();
-          e.currentTarget.setPointerCapture?.(e.pointerId);
-          e.currentTarget.focus({ preventScroll: true });
-          onActive(true);
-          onChange(valueAt(e.clientY));
-        }}
-        onPointerMove={(e) => {
-          if (!disabled && e.currentTarget.hasPointerCapture?.(e.pointerId)) onChange(valueAt(e.clientY));
-        }}
-        onPointerUp={() => onActive(false)}
-        onPointerCancel={() => onActive(false)}
-        onDoubleClick={() => !disabled && onChange(0)}
-        onKeyDown={(e) => {
-          if (disabled) return;
-          const step = { ArrowUp: 0.5, ArrowRight: 0.5, ArrowDown: -0.5, ArrowLeft: -0.5, PageUp: 3, PageDown: -3 }[e.key];
-          if (step != null) {
-            e.preventDefault();
-            onChange(clampGain(value + step));
-          } else if (e.key === 'Home' || e.key === '0') {
-            e.preventDefault();
-            onChange(0);
-          }
-        }}
-        onFocus={() => onActive(true)}
-        onBlur={() => onActive(false)}
-      >
-        <span className="eq-groove" />
-        <span className="eq-cap" style={{ bottom: `calc((100% - 16px) * ${pos / 100})` }} />
-      </div>
-      <span className="eq-freq">{label}</span>
+          onChange(clampGain(value + step));
+        } else if (e.key === 'Home' || e.key === '0') {
+          e.preventDefault();
+          onChange(0);
+        }
+      }}
+      onFocus={() => onActive(true)}
+      onBlur={() => onActive(false)}
+    >
+      <span className="eq-groove" />
+      <span className="eq-cap" style={{ bottom: `calc((100% - 18px) * ${pos})` }} />
     </div>
   );
 }
+
+const Scale = () => (
+  <div className="eq-scale" aria-hidden="true">
+    <span>+12</span>
+    <span>+6</span>
+    <span>0</span>
+    <span>-6</span>
+    <span>-12</span>
+  </div>
+);
 
 export function EqPanel({ t, studio }) {
   const { project } = studio;
   const [channel, setChannel] = useState(MASTER);
   const [active, setActive] = useState(null);
+  const cols = useRef([]);
+  useSpectrum(studio, cols);
   if (!project) return null;
   const track = project.tracks.find((x) => x.id === channel);
   const ch = track ? track.id : MASTER;
   const eq = normEq(track ? track.eq : project.masterEq);
+  const preset = presetOf(eq.gains);
   const anyOn = eqActive(project.masterEq) || project.tracks.some((x) => eqActive(x.eq));
   const setEq = (next) =>
     studio.updateMix((p) =>
       ch === MASTER ? { ...p, masterEq: next } : { ...p, tracks: p.tracks.map((x) => (x.id === ch ? { ...x, eq: next } : x)) }
     );
   const setBand = (i, v) => setEq({ ...eq, gains: eq.gains.map((g, k) => (k === i ? v : g)) });
-  const name = track ? track.name : t('rec.eqMix');
+  const readout = active != null ? `${EQ_LABELS[active].padStart(3)} ${fmt(eq.gains[active])}` : eq.on ? 'EQ  ON' : 'BYPASS';
 
   return (
-    <div className="st-panel rk-unit rk-black eq-unit">
+    <div className="st-panel rk-unit rk-silver eq-unit">
       <RackHead name={t('rec.eq')} tip={t('rec.tip.eq')} model="EQ-10" led={anyOn} />
-      <div className="st-row eq-top">
-        <label className="st-field">
+      <div className="eq-top">
+        <label className="st-field eq-field">
           <span className="st-label">{t('rec.eqChannel')}</span>
           <select value={ch} onChange={(e) => setChannel(e.target.value)} dir="auto">
             <option value={MASTER}>{t('rec.eqMix')}</option>
@@ -147,7 +164,28 @@ export function EqPanel({ t, studio }) {
             ))}
           </select>
         </label>
-        <div className="st-btns eq-keys">
+        <label className="st-field eq-field">
+          <span className="st-label">{t('rec.eqPreset')}</span>
+          <select
+            value={preset ?? 'custom'}
+            onChange={(e) => {
+              const p = EQ_PRESETS.find((x) => x.key === e.target.value);
+              if (p) setEq({ on: true, gains: [...p.gains] });
+            }}
+            dir="auto"
+          >
+            {EQ_PRESETS.map((p) => (
+              <option key={p.key} value={p.key}>
+                {t(`rec.eqp.${p.key}`)}
+              </option>
+            ))}
+            {!preset && <option value="custom">{t('rec.eqp.custom')}</option>}
+          </select>
+        </label>
+        <div className="eq-display" dir="ltr" aria-live="polite">
+          {readout}
+        </div>
+        <div className="eq-keys">
           <button
             type="button"
             className={'st-toggle' + (eq.on ? ' is-on' : '')}
@@ -162,15 +200,19 @@ export function EqPanel({ t, studio }) {
           </button>
         </div>
       </div>
-      <Curve eq={eq} active={active} label={name} />
-      <div className={'eq-faders' + (eq.on ? '' : ' is-off')} dir="ltr">
-        <div className="eq-scale" aria-hidden="true">
-          <span>+12</span>
-          <span>+6</span>
-          <span>0</span>
-          <span>−6</span>
-          <span>−12</span>
-        </div>
+
+      <div className={'eq-window' + (eq.on ? '' : ' is-off')} dir="ltr">
+        <span className="eq-corner" />
+        {EQ_BANDS.map((f, b) => (
+          <div key={f} className="eq-ladder" ref={(el) => (cols.current[b] = el)} aria-hidden="true">
+            {LED_DB.map((th, i) => (
+              <span key={th} className={'eq-led ' + (i >= LEDS - 1 ? 'is-red' : i >= LEDS - 3 ? 'is-amber' : 'is-green')} />
+            ))}
+          </div>
+        ))}
+        <span className="eq-corner" />
+
+        <Scale />
         {EQ_BANDS.map((f, i) => (
           <Fader
             key={f}
@@ -181,6 +223,15 @@ export function EqPanel({ t, studio }) {
             onActive={(on) => setActive(on ? i : null)}
           />
         ))}
+        <Scale />
+
+        <span className="eq-unit-hz">Hz</span>
+        {EQ_LABELS.map((l) => (
+          <span key={l} className="eq-freq">
+            {l}
+          </span>
+        ))}
+        <span className="eq-unit-hz">dB</span>
       </div>
     </div>
   );

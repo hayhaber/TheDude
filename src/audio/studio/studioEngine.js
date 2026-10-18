@@ -19,7 +19,7 @@ import { getTakeAudio } from '../recorderStore';
 import { playDrumHit } from '../drumSounds';
 import { drumHits, clickTimes, playClick } from './drumTrack';
 import { audibleTracks, regionEnd, projectLength, MIN_REGION } from './project';
-import { createEqChain } from './eq';
+import { createEqChain, EQ_BANDS } from './eq';
 
 const AHEAD = 0.3; // s scheduled ahead
 const TICK = 25; // ms
@@ -214,6 +214,8 @@ export function createStudioEngine() {
   let ctx = null;
   let master = null;
   let masterEq = null; // mix-bus EQ (lives with the context)
+  let specAnalyser = null; // the EQ's LED spectrum (after the mix-bus EQ)
+  let specBuf = null;
   let outAnalyser = null;
   const buffers = new Map();
   const loading = new Map();
@@ -235,6 +237,11 @@ export function createStudioEngine() {
     outAnalyser.fftSize = 1024;
     master.connect(masterEq.input);
     masterEq.output.connect(outAnalyser);
+    specAnalyser = ctx.createAnalyser();
+    specAnalyser.fftSize = 8192; // 5.9 Hz bins at 48 kHz: the 31 Hz band gets ~8 bins
+    specAnalyser.smoothingTimeConstant = 0.6;
+    specBuf = new Float32Array(specAnalyser.frequencyBinCount);
+    masterEq.output.connect(specAnalyser);
     masterEq.output.connect(ctx.destination);
     return ctx;
   }
@@ -544,6 +551,20 @@ export function createStudioEngine() {
   function inputLevel() {
     return rig?.analyser ? readLevel(rig.analyser, levelBuf) : null;
   }
+  /** Level of each EQ band (octave, dB, power sum) of what plays now, or null. */
+  function outputBands() {
+    if (!specAnalyser || !tp) return null;
+    specAnalyser.getFloatFrequencyData(specBuf);
+    const hz = ctx.sampleRate / specAnalyser.fftSize;
+    return EQ_BANDS.map((f) => {
+      const a = Math.max(1, Math.floor(f / Math.SQRT2 / hz));
+      const b = Math.min(specBuf.length - 1, Math.ceil((f * Math.SQRT2) / hz));
+      let p = 0;
+      for (let i = a; i <= b; i++) p += Math.pow(10, specBuf[i] / 10);
+      return 10 * Math.log10(p || 1e-12);
+    });
+  }
+
   function outputLevel() {
     return outAnalyser && tp ? readLevel(outAnalyser, levelBuf) : null;
   }
@@ -585,6 +606,7 @@ export function createStudioEngine() {
     measureLatency,
     inputLevel,
     outputLevel,
+    outputBands,
     on(fn) {
       listeners.add(fn);
       return () => listeners.delete(fn);

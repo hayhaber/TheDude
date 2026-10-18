@@ -1408,142 +1408,132 @@
   }
 }
 
-/* ---- EQ-10: graphic equalizer rack unit (2026-10-18) ------------------------------ */
+/* ---- EQ-10: graphic equalizer rack unit (2026-10-18) ------------------------------
+   After the classic studio 1/1-octave graphic EQs: brushed aluminium face,
+   a black silk-screened window with an LED ladder over each band and long
+   black-capped faders. Physical = same in light/dark. */
 .eq-unit {
   grid-column: 1 / -1;
-  background:
-    linear-gradient(180deg, rgba(64, 196, 255, 0.85) 0 4px, transparent 4px),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, rgba(0, 0, 0, 0.03) 1px 2px),
-    linear-gradient(180deg, #2b2c31 0%, #1d1e22 60%, #17181b 100%);
 }
 
 .eq-top {
-  justify-content: space-between;
+  display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
+  gap: 10px 12px;
+  margin-bottom: 10px;
 }
 
-.eq-top .st-field {
-  min-width: 170px;
+.eq-field {
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+.eq-field select {
+  width: 100%;
+}
+
+/* Red LED readout (the band / gain being set). */
+.eq-display {
+  flex: 0 0 auto;
+  min-width: 112px;
+  height: 38px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: #170303;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.6);
+  font: 700 15px/1 ui-monospace, 'SF Mono', Menlo, monospace;
+  letter-spacing: 0.06em;
+  white-space: pre;
+  color: #ff3a26;
+  text-shadow: 0 0 6px rgba(255, 58, 38, 0.75);
 }
 
 .eq-keys {
   display: flex;
   gap: 8px;
+  flex: 0 0 auto;
 }
 
-/* The response screen — same green LCD as the selects. */
-.eq-screen {
-  position: relative;
-  height: 96px;
-  margin: 4px 0 12px;
-  border-radius: 6px;
-  overflow: hidden;
+/* The black window: [scale] 10 columns [scale]; rows = LEDs, faders, labels. */
+.eq-window {
+  display: grid;
+  grid-template-columns: 26px repeat(10, minmax(0, 1fr)) 26px;
+  grid-template-rows: auto auto auto;
+  align-items: stretch;
+  column-gap: 2px;
+  row-gap: 6px;
+  padding: 10px 8px 8px;
+  border-radius: 5px;
   background:
-    radial-gradient(120% 140% at 50% 0%, rgba(120, 255, 170, 0.07), transparent 60%),
-    #07120c;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 30%),
+    #141518;
   box-shadow:
     inset 0 2px 6px rgba(0, 0, 0, 0.9),
-    0 1px 0 rgba(255, 255, 255, 0.08);
+    0 1px 0 rgba(255, 255, 255, 0.7),
+    0 -1px 0 rgba(0, 0, 0, 0.25);
+  color: #e9e7df;
 }
 
-.eq-screen svg {
+.eq-corner {
   display: block;
-  width: 100%;
-  height: 100%;
 }
 
-.eq-grid {
-  stroke: rgba(120, 255, 170, 0.09);
-  stroke-width: 1;
-}
-
-.eq-zero {
-  stroke: rgba(120, 255, 170, 0.28);
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
-}
-
-.eq-fill {
-  fill: rgba(110, 255, 160, 0.12);
-}
-
-.eq-line {
-  fill: none;
-  stroke: #7dffa8;
-  stroke-width: 2;
-  filter: drop-shadow(0 0 3px rgba(125, 255, 168, 0.7));
-}
-
-.eq-dot {
-  stroke: #7dffa8;
-  stroke-width: 7;
-  stroke-linecap: round;
-}
-
-.eq-dot.is-active {
-  stroke: #fff;
-  stroke-width: 10;
-}
-
-.eq-screen.is-off .eq-line,
-.eq-screen.is-off .eq-dot {
-  stroke: rgba(125, 255, 168, 0.35);
-  filter: none;
-}
-
-.eq-readout {
-  position: absolute;
-  top: 6px;
-  left: 10px;
-  font: 700 12px/1 ui-monospace, 'SF Mono', Menlo, monospace;
-  color: #7dffa8;
-  text-shadow: 0 0 4px rgba(125, 255, 168, 0.6);
-  white-space: pre;
-  pointer-events: none;
-}
-
-/* The faders: a dB scale + 10 slots. */
-.eq-faders {
-  display: grid;
-  grid-template-columns: 30px repeat(10, minmax(0, 1fr));
-  align-items: stretch;
+/* LED ladders */
+.eq-ladder {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
   gap: 2px;
+  padding: 3px 0;
+  border-radius: 2px;
+  background: #0b0b0d;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
-.eq-faders.is-off .eq-cap {
-  opacity: 0.45;
+.eq-led {
+  width: min(74%, 24px);
+  height: 4px;
+  border-radius: 1px;
+  background: var(--off);
+  transition: background 0.04s linear, box-shadow 0.04s linear;
 }
 
+.eq-led.is-green { --on: #3dff6e; --off: #10301a; }
+.eq-led.is-amber { --on: #ffc21a; --off: #33280a; }
+.eq-led.is-red { --on: #ff3b2b; --off: #3a0f0b; }
+
+.eq-led.is-lit {
+  background: var(--on);
+  box-shadow: 0 0 5px var(--on);
+}
+
+/* dB scales either side of the faders */
 .eq-scale {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 150px;
-  padding: 8px 0;
-  font: 700 9px/1 ui-monospace, 'SF Mono', Menlo, monospace;
-  color: var(--rk-ink, #c9cbd0);
-  opacity: 0.7;
-  text-align: right;
+  padding: 3px 0;
+  font: 700 8.5px/1 -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  color: #bdbab0;
+  text-align: center;
 }
 
-.eq-band {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
+/* Fader slots — the 0 dB line runs across the window. */
 .eq-slot {
   position: relative;
-  width: 100%;
-  height: 150px;
+  height: 118px;
   cursor: pointer;
   touch-action: none;
   outline: none;
-  /* dB ticks behind the groove: every 3 dB, 0 dB brighter */
   background:
-    linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28)) center 50% / 26px 1px no-repeat,
-    repeating-linear-gradient(180deg, transparent 0 calc((100% - 16px) / 8 - 1px), rgba(255, 255, 255, 0.1) calc((100% - 16px) / 8 - 1px) calc((100% - 16px) / 8)) center 8px / 18px calc(100% - 16px) no-repeat;
+    linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)) center 50% / 100% 1px no-repeat,
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px calc((100% - 18px) / 8)) center 9px / 12px calc(100% - 17px) no-repeat;
 }
 
 .eq-slot[aria-disabled] {
@@ -1553,61 +1543,83 @@
 .eq-groove {
   position: absolute;
   left: 50%;
-  top: 8px;
-  bottom: 8px;
-  width: 5px;
+  top: 9px;
+  bottom: 9px;
+  width: 4px;
   transform: translateX(-50%);
-  border-radius: 3px;
-  background: #050506;
+  border-radius: 2px;
+  background: #000;
   box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.9),
-    0 1px 0 rgba(255, 255, 255, 0.14);
+    inset 0 1px 2px rgba(0, 0, 0, 1),
+    0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
+/* Black pro cap with a white index line. */
 .eq-cap {
   position: absolute;
   left: 50%;
-  width: 26px;
-  height: 16px;
+  width: min(80%, 24px);
+  height: 18px;
   transform: translateX(-50%);
   border-radius: 2px;
   background:
-    linear-gradient(180deg, transparent 7px, #111 7px 9px, transparent 9px),
-    linear-gradient(180deg, #f4f4f2, #b9bcc1 50%, #e7e8ea);
+    linear-gradient(180deg, transparent 8px, #f2f0e8 8px 10px, transparent 10px),
+    linear-gradient(180deg, #4a4b50 0%, #1e1f22 45%, #0e0e10 55%, #2c2d31 100%);
   box-shadow:
-    0 2px 3px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+    0 3px 4px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6);
   pointer-events: none;
+  transition: bottom 0.05s linear;
+}
+
+.eq-window.is-off .eq-cap {
+  opacity: 0.5;
 }
 
 .eq-slot:focus-visible .eq-cap {
   box-shadow:
-    0 0 0 2px rgba(64, 196, 255, 0.9),
-    0 2px 3px rgba(0, 0, 0, 0.6);
+    0 0 0 2px rgba(255, 140, 26, 0.95),
+    0 3px 4px rgba(0, 0, 0, 0.7);
 }
 
-.eq-freq {
-  font: 700 10px/1 ui-monospace, 'SF Mono', Menlo, monospace;
-  color: var(--rk-ink, #c9cbd0);
-  letter-spacing: 0.02em;
+.eq-freq,
+.eq-unit-hz {
+  font: 800 9.5px/1 -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: 0.03em;
+  text-align: center;
+  color: #e9e7df;
+}
+
+.eq-unit-hz {
+  color: #8f8c84;
 }
 
 @media (max-width: 520px) {
-  .eq-faders {
-    grid-template-columns: 22px repeat(10, minmax(0, 1fr));
-    gap: 0;
+  .eq-window {
+    grid-template-columns: 18px repeat(10, minmax(0, 1fr)) 18px;
+    column-gap: 1px;
+    padding: 8px 4px 6px;
   }
 
-  .eq-cap {
-    width: 20px;
+  .eq-scale {
+    font-size: 7px;
   }
 
-  .eq-freq {
-    font-size: 8.5px;
+  .eq-freq,
+  .eq-unit-hz {
+    font-size: 8px;
+    letter-spacing: 0;
   }
 
-  .eq-top .st-field {
+  .eq-display {
     min-width: 0;
-    flex: 1;
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .eq-field {
+    flex-basis: 100%;
   }
 }

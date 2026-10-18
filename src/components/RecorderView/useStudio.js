@@ -475,6 +475,8 @@ export function useStudio({ t, initialBpm = 100 }) {
 
   /** Stop key: stop recording / playing; pressed again when stopped = back to the start. */
   const stop = useCallback(() => {
+    // Stop is THE stop key: it also stops a take playing in the library.
+    window.dispatchEvent(new CustomEvent('dudestar-rec-preview-stop'));
     if (phaseRef.current === 'recording') stopRecording();
     else if (phaseRef.current === 'playing') pause();
     else if (phaseRef.current === 'idle') seek(projectRef.current?.range && projectRef.current.loop ? projectRef.current.range.in : 0);

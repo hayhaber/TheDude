@@ -731,18 +731,28 @@ on the container; content inside stays top-aligned). Stacked on a phone
   `.st-toggle` = latching key with an LED strip, selects = green LCD, range
   readouts = red LED, range inputs = faders. Library = walnut cabinet, each
   take a cardboard tape box with a typed label.
-  **EQ-10** (user's request 2026-10-18): `EqPanel.jsx`, a full-width black
-  rack unit (blue top stripe) under the other panels — 10-band graphic EQ
-  (31 Hz..16 kHz, ±12 dB, 0.5 dB steps, peaking Q 1.41) with a green LCD
-  response curve (`eqResponseDb()` = RBJ math, checked equal to
-  BiquadFilterNode) and custom vertical faders (drag / tap, arrows ±0.5,
-  PageUp/Down ±3, double-tap = 0). Channel select: Whole mix
-  (`project.masterEq`) or a track (`track.eq`); `{on, gains[10]}`, missing =
-  flat. Edits go through `studio.updateMix` (no undo, heard at once via
-  `engine.setMix`). `audio/studio/eq.js` `createEqChain()`: live = track gain
-  -> track EQ -> master -> master EQ -> analyser/out; `renderMix` the same
-  (master EQ only for a whole-mix export, not single-track stems). Measured:
-  bypass export = identical, all bands -12 = tone -13 dB.
+  **EQ-10** (user's request 2026-10-18; redesigned the same day after the
+  classic studio 1/1-octave graphic EQs, 15% lower): `EqPanel.jsx`, a
+  full-width rk-silver unit under the other panels — Channel + Preset selects
+  (`EQ_PRESETS` in eq.js: flat/rock/pop/metal/blues/jazz/classical/hiphop/
+  electronic/acoustic/vocal/bass/treble/lowcut, moderate starting points;
+  `presetOf()` shows "Custom" otherwise), a red LED readout (band + gain while
+  setting, else EQ ON / BYPASS), EQ (bypass) + Flat keys; a black window with
+  an LED ladder per band (10 LEDs: 7 green / 2 amber / 1 red, -54..-9 dB in
+  5 dB steps, 24 dB/s release, 1 s peak hold; fed by `engine.outputBands()` =
+  octave-band power from an 8192-pt analyser AFTER the mix-bus EQ, so it
+  always shows the OUTPUT; driven in the DOM by rAF while playing), dB scales
+  both sides, custom vertical faders with black caps (drag / tap, arrows ±0.5,
+  PageUp/Down ±3, double-tap = 0), 31 Hz..16 kHz, ±12 dB, peaking Q 1.41.
+  Channel: Whole mix (`project.masterEq`) or a track (`track.eq`);
+  `{on, gains[10]}`, missing = flat. Edits go through `studio.updateMix` (no
+  undo, heard at once via `engine.setMix`). `audio/studio/eq.js`
+  `createEqChain()`: live = track gain -> track EQ -> master -> master EQ ->
+  analysers/out; `renderMix` the same (master EQ only for a whole-mix export,
+  not single-track stems). `eqResponseDb()` (RBJ, = BiquadFilterNode) is kept
+  for tests. Measured: bypass export = identical, all bands -12 = tone -13 dB.
+  The deck's Stop also stops a take playing in the Library (it dispatches
+  `dudestar-rec-preview-stop`; before, only Play/Record did).
   Amp face: real combo look (AmpView: Knob, ToggleSwitch, ChannelSwitch =
   a rotary selector drawn with the same amp knob art (3 detents CLEAN -60° /
   CRUNCH 0° / LEAD +60°, under INPUT where the dropdown was — knob row unchanged (user); tap = next, tap a printed

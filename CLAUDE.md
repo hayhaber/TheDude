@@ -266,6 +266,16 @@ on the container; content inside stays top-aligned). Stacked on a phone
   chord (`CHANGES_CHORDS` exported). Prefs per profile
   `dudestar-p-chord-library`. Text in `i18n/tips/chordlib.js`. Left-handed
   mirrors the diagrams too. Capo not in v1.
+  SIMPLE BY DEFAULT (user's call 2026-10-19, "like Ultimate Guitar"): a key
+  pill strip (12) + a type pill strip (`QUICK_TYPES`: major minor 7 maj7 m7
+  sus2 sus4 dim aug add9 5; a type chosen in Advanced is appended), ONE big
+  diagram (root position, easiest first) with ‹ › through the shapes, "n / N",
+  Strum; tap the diagram = strum. The strips are single scrolling rows (the
+  chosen pill is scrolled into view) — a deliberate exception to the >2
+  options = <select> rule, at the user's request. `Advanced` (pref
+  `advanced`) shows everything else: full type select, bass/inversions,
+  tuning, neck labels, notes + formula, Pick / Add / Practise changes, the
+  grid of all shapes in groups. Simple view always uses note labels.
 - **Piano Chord Rhythm** (`useChordRhythm`, `ChordRhythmPanel`): the clock
   starts on the metronome's FIRST click (`waitingRef`, `currentBeat` effect,
   700 ms fallback) and the lead-in is a whole number of beats, so chords

@@ -8,6 +8,13 @@
   min-width: 0;
 }
 
+.cl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .cl-head h1 {
   display: flex;
   align-items: center;
@@ -357,5 +364,163 @@
   .cl-changes {
     flex-basis: 100%;
     margin-inline-start: 0;
+  }
+}
+
+/* ---- simple view (default) ---- */
+.cl-adv-btn {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cl-adv-btn.is-on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+/* Key / type strips: one row of pills, scrolls sideways when it doesn't fit. */
+.cl-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 2px 4px;
+  margin: -2px -2px -4px;
+  scroll-snap-type: x proximity;
+}
+
+.cl-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.cl-chip {
+  flex: 0 0 auto;
+  min-width: 44px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.cl-strip.is-types .cl-chip {
+  font-size: 15px;
+}
+
+.cl-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.cl-simple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 12px 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.cl-simple-name {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-h);
+  line-height: 1.1;
+}
+
+.cl-simple-tuning {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cl-simple-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.cl-simple-diagram {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  width: min(240px, 60vw);
+}
+
+.cl-simple-diagram .cl-box {
+  max-width: none;
+}
+
+.cl-arrow {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.cl-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.cl-simple-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cl-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.cl-strips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .cl-simple-diagram {
+    width: min(190px, 50vw);
+  }
+
+  .cl-simple-name {
+    font-size: 30px;
   }
 }

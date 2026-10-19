@@ -9,6 +9,17 @@ import './HomeMenu.css';
 
 // Line icons for the per-instrument shortcuts (24px grid).
 const ICON_PATHS = {
+  // Piano Chord Library: a keyboard with a three-note chord marked on it.
+  pianoChords: (
+    <>
+      <rect x="2.5" y="4.5" width="19" height="15" rx="1.5" />
+      <path d="M6.3 4.5v15M10.1 4.5v15M13.9 4.5v15M17.7 4.5v15" opacity=".4" />
+      <path d="M6.3 4.5v6.2M10.1 4.5v6.2M17.7 4.5v6.2" strokeWidth="2.4" />
+      <circle cx="4.4" cy="16" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="16" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="19.6" cy="16" r="1.7" fill="currentColor" stroke="none" />
+    </>
+  ),
   // A chord box: nut, strings, frets, three dots.
   chords: (
     <>
@@ -182,7 +193,7 @@ const CARDS = [
     titleKey: 'home.piano.title',
     descKey: 'home.piano.desc',
     options: [
-      { section: 'chords', icon: 'chords' },
+      { section: 'chords', icon: 'pianoChords' },
       { section: 'compose', icon: 'compose' },
       { section: 'studies', icon: 'studies' },
       { section: 'practice', icon: 'practice' },

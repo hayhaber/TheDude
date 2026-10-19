@@ -296,6 +296,8 @@ on the container; content inside stays top-aligned). Stacked on a phone
   `identifyPianoChord()` (all 29 types + slash) and ✓ when the pitch classes
   equal the shown chord's. Stage: `playNotes` {midi, hand} + `fingerNumbers`.
   Prefs per profile `dudestar-p-piano-chord-library`. Text `pchord.*`.
+  Icon on piano (user's request): a keyboard with a 3-key chord marked
+  (HomeMenu `pianoChords`; `ChordsNavIcon` picks it via useInstrument()).
 - **Piano Chord Rhythm** (`useChordRhythm`, `ChordRhythmPanel`): the clock
   starts on the metronome's FIRST click (`waitingRef`, `currentBeat` effect,
   700 ms fallback) and the lead-in is a whole number of beats, so chords

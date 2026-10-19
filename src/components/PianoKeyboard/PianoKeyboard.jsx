@@ -190,6 +190,9 @@ export function PianoKeyboard({
   startMidi,
   // ...and the tallest the keys may be (the room the page has for them).
   maxKeyHeight,
+  // Shorter keys for a page with little room (Chords on a phone); undefined
+  // = the normal height. Ignored by the big FreePlay keyboard.
+  keyHeight,
   // Sustain pedal (FreePlay): while true, released keys keep ringing; let
   // go of the pedal and they stop.
   sustain = false,
@@ -383,7 +386,7 @@ export function PianoKeyboard({
   // wide), up to the room the page has for them.
   const whiteKeyHeight = bigMode
     ? Math.round(clamp(keyWidth * 6, WHITE_KEY_HEIGHT, Math.max(WHITE_KEY_HEIGHT, maxKeyHeight ?? 420)))
-    : WHITE_KEY_HEIGHT;
+    : keyHeight ?? WHITE_KEY_HEIGHT;
   const blackKeyHeight = Math.round(whiteKeyHeight * 0.6);
   const blackKeyWidth = Math.round(keyWidth * 0.62);
   const totalWidth = TOTAL_WHITE_KEYS * keyWidth;

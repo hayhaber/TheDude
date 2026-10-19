@@ -253,7 +253,7 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
           )}
           <span className="pc-fingers">{t('pchord.fingers')}</span>
         </div>
-        <div className={'pc-heard' + (match ? ' is-match' : '')} dir="auto" aria-live="polite">
+        <div className={'pc-heard' + (match ? ' is-match' : '') + (heldNotes?.length ? '' : ' is-idle')} dir="auto" aria-live="polite">
           {heldNotes?.length ? (
             <>
               {t('pchord.youPlay')} <b dir="ltr">{heardName ?? '…'}</b> {match ? '✓' : ''}

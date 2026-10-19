@@ -423,3 +423,19 @@
 .app-shell.no-tools {
   --mobile-metronome-height: 0px;
 }
+
+@media (max-width: 899px) {
+  /* The neck sits right on the bottom tabs (the phone rule above reserves a
+     fixed 60px for the tools bar — not here). */
+  .app-shell.no-tools .app-content {
+    padding-bottom: calc(var(--bottom-tabs-height) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 899px) {
+  /* Piano chords on a phone: just the keys (the sound / volume console
+     pushed the keyboard over the chord card; sound stays in Settings). */
+  .app-shell.no-tools .app-stage-anchor .piano-panel {
+    display: none;
+  }
+}

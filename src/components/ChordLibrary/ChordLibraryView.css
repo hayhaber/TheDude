@@ -636,3 +636,83 @@
     width: min(300px, 68vw);
   }
 }
+
+/* Phones/tablets: the neck (or keys) is pinned right above the bottom tabs,
+   so the whole chord card has to fit between the top strip and the neck.
+   Tighter header / pills / card, and the guitar diagram is sized to the room
+   that is left (its SVG is ~1.13x taller than wide). */
+@media (max-width: 899px) {
+  .chord-library {
+    gap: 10px;
+  }
+
+  .chord-library .cl-head h1 {
+    font-size: 20px;
+  }
+
+  .chord-library .cl-strips {
+    gap: 6px;
+  }
+
+  .chord-library .cl-chip {
+    height: 34px;
+    min-width: 38px;
+    padding: 0 10px;
+    font-size: 15px;
+  }
+
+  .chord-library .cl-simple {
+    gap: 2px;
+    padding: 8px 10px 10px;
+  }
+
+  .chord-library .cl-simple-name {
+    font-size: 26px;
+  }
+
+  .chord-library .cl-simple-diagram:not(.is-keys) {
+    width: clamp(
+      110px,
+      calc(
+          (
+              100svh - var(--stage-height, 160px) - var(--bottom-tabs-height) - env(safe-area-inset-bottom, 0px) -
+                var(--mobile-top-clear, 60px) - 232px
+            ) / 1.13
+        ),
+      min(220px, 52vw)
+    );
+  }
+}
+
+@media (max-width: 899px) {
+  /* the keyboard diagram, sized the same way (its SVG is ~0.47x as tall as wide) */
+  .chord-library .cl-simple-diagram.is-keys {
+    width: clamp(
+      200px,
+      calc(
+          (
+              100svh - var(--stage-height, 160px) - var(--bottom-tabs-height) - env(safe-area-inset-bottom, 0px) -
+                var(--mobile-top-clear, 60px) - 270px
+            ) / 0.47
+        ),
+      min(300px, 68vw)
+    );
+  }
+}
+
+@media (max-width: 899px) {
+  /* the "play it on the keys below" hint costs two lines a phone doesn't
+     have; the row keeps one line of room for "You play …" */
+  .chord-library .pc-heard {
+    min-height: 20px;
+    margin-top: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .chord-library .pc-heard.is-idle {
+    visibility: hidden;
+  }
+}

@@ -747,6 +747,15 @@ function App() {
   // Piano -> Chord Library: the voicing's keys [{midi, hand, finger}] and the
   // handler that hears the keys played on the Stage keyboard.
   const [pianoChordKeys, setPianoChordKeys] = useState(null);
+  // <900px = the phone/tablet layout (neck/keys pinned above the bottom tabs).
+  const [narrowScreen, setNarrowScreen] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 899px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia?.('(max-width: 899px)');
+    if (!mq) return undefined;
+    const on = () => setNarrowScreen(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const pianoChordNoteRef = useRef(null);
   const addToCompose = useCallback((symbol) => {
     if (symbol) setProgressionText((prev) => (prev.trim() ? `${prev.trim()} ${symbol}` : symbol));
@@ -1741,6 +1750,8 @@ function App() {
           playNotes: (pianoChordKeys ?? []).map((k) => ({ midi: k.midi, hand: k.hand })),
           fingerNumbers: (pianoChordKeys ?? []).filter((k) => k.finger).map((k) => ({ midi: k.midi, finger: k.finger })),
           onNoteEvent: (e) => pianoChordNoteRef.current?.(e),
+          // phones/tablets: shorter keys so the chord card above stays whole
+          keyHeight: narrowScreen ? 124 : undefined,
         }
       : activeSection === 'guitarpro'
       ? {

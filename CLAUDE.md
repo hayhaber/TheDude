@@ -279,6 +279,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
   grid of all shapes in groups. Simple view always uses note labels.
   The Chords section has NO metronome / drums / tuner bar (AppShell
   `noTools`, `.no-tools` zeroes `--mobile-metronome-height`; user's request).
+  Phone/tablet (<900px): the neck/keys sit RIGHT ON the bottom tabs
+  (`.no-tools .app-content` padding = tabs only — the phone rule's fixed
+  60px left a gap and pushed the neck up over the diagram), the piano
+  console is hidden and the keys are 124px (`keyHeight` prop, App
+  `narrowScreen`), and the chord card is compacted with the diagram sized
+  from the room left (100svh − --stage-height − tabs − top strip − chrome)
+  so the whole card shows above the neck. Too-short screens scroll.
 - **Piano Chord Library** (same nav `chords`, now guitar + piano; Piano card
   shortcut first; user's request 2026-10-19, ideas from Piano Companion /
   PG Music Piano Chord Dictionary): `PianoChordLibraryView.jsx` + `KeysBox.jsx`

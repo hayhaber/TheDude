@@ -13,6 +13,7 @@ import { SongsView } from './components/SongsView/SongsView';
 import { GuitarProView } from './components/GuitarPro/GuitarProView';
 import { FreePlayView } from './components/FreePlayView/FreePlayView';
 import { ChordLibraryView } from './components/ChordLibrary/ChordLibraryView';
+import { PianoChordLibraryView } from './components/ChordLibrary/PianoChordLibraryView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
 import { CoachView } from './components/Coach/CoachView';
 import { CoachBanner } from './components/Coach/CoachBanner';
@@ -743,6 +744,10 @@ function App() {
   // Guitar -> Chord Library: the voicing shown on the Stage neck
   // ({position, tuning, labelMode} | null), set by ChordLibraryView.
   const [chordLibStage, setChordLibStage] = useState(null);
+  // Piano -> Chord Library: the voicing's keys [{midi, hand, finger}] and the
+  // handler that hears the keys played on the Stage keyboard.
+  const [pianoChordKeys, setPianoChordKeys] = useState(null);
+  const pianoChordNoteRef = useRef(null);
   const addToCompose = useCallback((symbol) => {
     if (symbol) setProgressionText((prev) => (prev.trim() ? `${prev.trim()} ${symbol}` : symbol));
   }, []);
@@ -1730,7 +1735,14 @@ function App() {
   // active), so it always needs these two regardless of which branch's
   // notes/labelMode/etc. is in play.
   const stagePianoPropsBase =
-    activeSection === 'guitarpro'
+    activeSection === 'chords'
+      ? {
+          notes: [],
+          playNotes: (pianoChordKeys ?? []).map((k) => ({ midi: k.midi, hand: k.hand })),
+          fingerNumbers: (pianoChordKeys ?? []).filter((k) => k.finger).map((k) => ({ midi: k.midi, finger: k.finger })),
+          onNoteEvent: (e) => pianoChordNoteRef.current?.(e),
+        }
+      : activeSection === 'guitarpro'
       ? {
           notes: [],
           playNotes: lickTrainer.pianoKeys,
@@ -2294,7 +2306,10 @@ function App() {
       {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} />}
 
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
-      {activeSection === 'chords' && (
+      {activeSection === 'chords' && instrument === 'piano' && (
+        <PianoChordLibraryView onStage={setPianoChordKeys} onAddToCompose={addToCompose} noteEventRef={pianoChordNoteRef} />
+      )}
+      {activeSection === 'chords' && instrument !== 'piano' && (
         <ChordLibraryView
           onStage={setChordLibStage}
           onAddToCompose={addToCompose}

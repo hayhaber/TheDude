@@ -276,6 +276,26 @@ on the container; content inside stays top-aligned). Stacked on a phone
   `advanced`) shows everything else: full type select, bass/inversions,
   tuning, neck labels, notes + formula, Pick / Add / Practise changes, the
   grid of all shapes in groups. Simple view always uses note labels.
+- **Piano Chord Library** (same nav `chords`, now guitar + piano; Piano card
+  shortcut first; user's request 2026-10-19, ideas from Piano Companion /
+  PG Music Piano Chord Dictionary): `PianoChordLibraryView.jsx` + `KeysBox.jsx`
+  (SVG keyboard diagram: RH keys green, LH blue, root ringed orange, finger
+  numbers on the keys, names under) + pure `music/pianoChordLibrary.js`
+  (types/names/spelling shared with chordLibrary.js). Voicings are RULE-built
+  (`pianoVoicing`): close (one hand, `packed()` = bass + the rest inside the
+  octave above), two hands (LH root + plain 5th, RH the triad / colour notes,
+  RH always above the LH), spread (drop 2), shell (LH root, RH 3rd+7th(+top
+  ext)), rootless (Bill Evans A 3-5-7-9 / B 7-9-3-5, 13 replaces 5, natural 9
+  added; not for m7♭5/dim7/7sus4). Standard fingering (RH 1-3-5, 1st inv
+  1-2-5, 4 notes 1-2-3-5; LH 5-3-1 / 5-2-1 / 5-3-2-1). Simple view: key +
+  type strips (`QUICK_TYPES` has 6 instead of 5), one diagram, ‹ › = the
+  inversions (forms A/B for jazz voicings), Play. Advanced: full type,
+  Voicing select, bass (inversion / slash), notes + formula, Pick (arpeggio),
+  Add (Compose). Piano-only "You play": the Stage keyboard's `onNoteEvent`
+  (App `pianoChordNoteRef`) -> held keys + keys tapped in the last 1.5 s ->
+  `identifyPianoChord()` (all 29 types + slash) and ✓ when the pitch classes
+  equal the shown chord's. Stage: `playNotes` {midi, hand} + `fingerNumbers`.
+  Prefs per profile `dudestar-p-piano-chord-library`. Text `pchord.*`.
 - **Piano Chord Rhythm** (`useChordRhythm`, `ChordRhythmPanel`): the clock
   starts on the metronome's FIRST click (`waitingRef`, `currentBeat` effect,
   700 ms fallback) and the lead-in is a whole number of beats, so chords

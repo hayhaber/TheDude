@@ -182,6 +182,7 @@ const CARDS = [
     titleKey: 'home.piano.title',
     descKey: 'home.piano.desc',
     options: [
+      { section: 'chords', icon: 'chords' },
       { section: 'compose', icon: 'compose' },
       { section: 'studies', icon: 'studies' },
       { section: 'practice', icon: 'practice' },

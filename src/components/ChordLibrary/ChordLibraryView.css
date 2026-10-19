@@ -524,3 +524,115 @@
     font-size: 30px;
   }
 }
+
+/* ---- piano ---- */
+.cl-simple-diagram.is-keys {
+  width: min(420px, 72vw);
+}
+
+.kb-box {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.kb-white {
+  fill: #fdfdfb;
+  stroke: #8e8e93;
+  stroke-width: 0.8;
+}
+
+.kb-black {
+  fill: #1c1c1e;
+  stroke: #000;
+  stroke-width: 0.6;
+}
+
+.kb-on.is-right {
+  fill: #34c759;
+}
+
+.kb-on.is-left {
+  fill: #0a84ff;
+}
+
+.kb-on.is-bass {
+  fill: #8e8e93;
+}
+
+.kb-on.is-root {
+  stroke: var(--cl-root);
+  stroke-width: 2.2;
+}
+
+.kb-midc {
+  fill: #c7c7cc;
+}
+
+.kb-finger {
+  font: 800 9px -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  fill: #fff;
+}
+
+.kb-name {
+  font: 650 8.5px -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  fill: var(--text-secondary);
+}
+
+.kb-name.is-root {
+  fill: var(--cl-root);
+  font-weight: 800;
+}
+
+.pc-hands {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pc-hands span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pc-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.pc-dot.is-left {
+  background: #0a84ff;
+}
+
+.pc-dot.is-right {
+  background: #34c759;
+}
+
+.pc-heard {
+  min-height: 22px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.pc-heard b {
+  color: var(--text-h);
+}
+
+.pc-heard.is-match,
+.pc-heard.is-match b {
+  color: #1f9d48;
+}
+
+@media (max-width: 520px) {
+  .cl-simple-diagram.is-keys {
+    width: min(300px, 68vw);
+  }
+}

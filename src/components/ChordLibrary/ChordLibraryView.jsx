@@ -1,3 +1,4 @@
+import { AutoPlayToggle } from './AutoPlayToggle';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -30,7 +31,7 @@ import './ChordLibraryView.css';
 
 const STORE = 'dudestar-p-chord-library'; // per profile
 const ALL_BASSES = 'auto';
-const DEFAULTS = { root: 9, type: 'major', bass: ALL_BASSES, tuning: 'standard', labels: 'note', advanced: false };
+const DEFAULTS = { root: 9, type: 'major', bass: ALL_BASSES, tuning: 'standard', labels: 'note', advanced: false, autoPlay: true };
 // The quick picker's types (Ultimate Guitar style); the rest are in Advanced.
 const QUICK_TYPES = ['major', 'minor', 'dom7', 'maj7', 'm7', 'sus2', 'sus4', 'dim', 'aug', 'add9', 'power'];
 
@@ -127,7 +128,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
     if (!count) return;
     const index = (pick.index + d + count) % count;
     setPick({ group: pick.group, index });
-    play(group.voicings[index], 0.035);
+    if (prefs.autoPlay !== false) play(group.voicings[index], 0.035);
   };
   const big = voicing && group ? describe(group, voicing) : null;
   const bigPos = voicing ? voicingPosition(voicing.frets) : 0;
@@ -215,6 +216,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
               <button type="button" className="cl-btn is-primary" onClick={() => play(voicing, 0.035)}>
                 {t('chordlib.strum')}
               </button>
+              <AutoPlayToggle on={prefs.autoPlay !== false} onChange={(v) => set({ autoPlay: v })} label={t('chordlib.autoPlay')} />
             </div>
           )}
         </section>

@@ -1,3 +1,4 @@
+import { AutoPlayToggle } from './AutoPlayToggle';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -107,7 +108,7 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
     if (count < 2) return;
     const next = (index + d + count) % count;
     setInv(next);
-    playPianoChord(pianoVoicing(root, type, { voicing, inversion: next, bassPc }).map((k) => k.midi));
+    if (prefs.autoPlay !== false) playPianoChord(pianoVoicing(root, type, { voicing, inversion: next, bassPc }).map((k) => k.midi));
   };
 
   // "You play": what the keys being held right now make.
@@ -239,6 +240,7 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
           <button type="button" className="cl-btn is-primary" onClick={play}>
             {t('pchord.play')}
           </button>
+          <AutoPlayToggle on={prefs.autoPlay !== false} onChange={(v) => set({ autoPlay: v })} label={t('chordlib.autoPlay')} />
         </div>
         <div className="pc-hands" aria-hidden="true">
           {keys.some((k) => k.hand === 'left') && (

@@ -286,6 +286,10 @@ on the container; content inside stays top-aligned). Stacked on a phone
   `narrowScreen`), and the chord card is compacted with the diagram sized
   from the room left (100svh − --stage-height − tabs − top strip − chrome)
   so the whole card shows above the neck. Too-short screens scroll.
+  ‹ › sound the new shape / inversion unless the speaker toggle next to
+  Strum / Play is off (`AutoPlayToggle.jsx`, pref `autoPlay` in both
+  libraries' prefs, default on; user's request 2026-10-19). Strum / Play
+  and a tap on the diagram always sound.
 - **Piano Chord Library** (same nav `chords`, now guitar + piano; Piano card
   shortcut first; user's request 2026-10-19, ideas from Piano Companion /
   PG Music Piano Chord Dictionary): `PianoChordLibraryView.jsx` + `KeysBox.jsx`

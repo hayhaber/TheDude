@@ -418,3 +418,8 @@
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* Chord Library: no tools bar, so nothing is reserved for it. */
+.app-shell.no-tools {
+  --mobile-metronome-height: 0px;
+}

@@ -34,6 +34,8 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   // Singing is a single page: no section tabs, no tuner, and no metronome
   // (App passes no metronomeSlot there).
   const bare = activeSection === 'vocal';
+  // Chord Library: no metronome / drums / tuner bar — the chord gets the room (user's request).
+  const noTools = activeSection === 'chords';
   const visibleSections = bare ? [] : SECTIONS.filter((s) => s.key !== 'vocal' && supportsInstrument(s.key, instrument));
   // On the piano the Guitar Pro player is "PianoPro".
   const label = (s) => t(s.key === 'guitarpro' && instrument === 'piano' ? 'nav.pianopro' : s.labelKey);
@@ -49,7 +51,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   }, [stage != null]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={'app-shell' + (bare ? ' is-bare' : '')}>
+    <div className={'app-shell' + (bare ? ' is-bare' : '') + (noTools ? ' no-tools' : '')}>
       {/* Phone/tablet: the round Home button (back to the main menu), top-left. */}
       <HomeButton className="app-mobile-brand" onClick={() => onHome?.()} />
 
@@ -87,8 +89,8 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             ))}
           </nav>
           <div className="app-topbar-tools" dir={dir}>
-            {metronomeSlot}
-            {!bare && <TunerBar />}
+            {!noTools && metronomeSlot}
+            {!bare && !noTools && <TunerBar />}
             <InfoTooltipsToggle />
           </div>
         </header>
@@ -96,7 +98,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
         {stage && <div className="app-stage-anchor" ref={stageRef}>{stage}</div>}
       </main>
 
-      {!bare && (
+      {!bare && !noTools && (
         <div className="app-mobile-metronome">
           {metronomeSlot}
           <TunerBar />

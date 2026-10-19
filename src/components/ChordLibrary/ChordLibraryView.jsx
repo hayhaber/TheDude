@@ -76,8 +76,8 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
     return basses
       .map((b) => {
         const list = libraryVoicings(root, type, { tuning, bassPc: b }, b === root ? 8 : 6);
-        // simple view: easiest first, then by difficulty (‹ › walks them)
-        return { bass: b, name: chordName(root, type, b), voicings: advanced ? list : [...list].sort((x, y) => x.score - y.score) };
+        // in neck order, open position first (‹ › walk up the neck — user's rule)
+        return { bass: b, name: chordName(root, type, b), voicings: list };
       })
       .filter((g) => g.voicings.length);
   }, [root, type, bass, tones, chordType.power, tuning, advanced]);

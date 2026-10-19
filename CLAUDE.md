@@ -269,13 +269,16 @@ on the container; content inside stays top-aligned). Stacked on a phone
   SIMPLE BY DEFAULT (user's call 2026-10-19, "like Ultimate Guitar"): a key
   pill strip (12) + a type pill strip (`QUICK_TYPES`: major minor 7 maj7 m7
   sus2 sus4 dim aug add9 5; a type chosen in Advanced is appended), ONE big
-  diagram (root position, easiest first) with ‹ › through the shapes, "n / N",
+  diagram (root position) with ‹ › through the shapes IN NECK ORDER, open
+  position first (user's rule 2026-10-19; was easiest-first), "n / N",
   Strum; tap the diagram = strum. The strips are single scrolling rows (the
   chosen pill is scrolled into view) — a deliberate exception to the >2
   options = <select> rule, at the user's request. `Advanced` (pref
   `advanced`) shows everything else: full type select, bass/inversions,
   tuning, neck labels, notes + formula, Pick / Add / Practise changes, the
   grid of all shapes in groups. Simple view always uses note labels.
+  The Chords section has NO metronome / drums / tuner bar (AppShell
+  `noTools`, `.no-tools` zeroes `--mobile-metronome-height`; user's request).
 - **Piano Chord Library** (same nav `chords`, now guitar + piano; Piano card
   shortcut first; user's request 2026-10-19, ideas from Piano Companion /
   PG Music Piano Chord Dictionary): `PianoChordLibraryView.jsx` + `KeysBox.jsx`

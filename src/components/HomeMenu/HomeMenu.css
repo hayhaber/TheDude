@@ -300,6 +300,10 @@
 @media (max-width: 640px) {
   .home-menu {
     --home-card-w: 84vw;
+    /* The art takes what the screen has left after the logo row, the text,
+       two rows of shortcuts and the dots — so the whole card and the dots
+       always fit (iPhone 15 Pro in Safari = ~790px tall). */
+    --home-art-h: clamp(96px, calc(100dvh - 560px), 244px);
   }
 
   .home-top {
@@ -318,29 +322,33 @@
   }
 
   .home-art {
-    flex: 0 0 200px;
+    flex: 0 0 calc(var(--home-art-h) * 0.82);
     width: 100%;
+  }
+
+  .home-art::after {
+    bottom: calc(var(--home-art-h) * 0.1);
   }
 
   .home-art-guitar svg,
   .home-art-bass svg {
-    height: 230px;
+    height: calc(var(--home-art-h) * 0.94);
   }
 
   .home-art-guitar svg {
-    height: 244px;
+    height: var(--home-art-h);
   }
 
   .home-art-piano svg {
-    width: 230px;
+    width: min(230px, calc(var(--home-art-h) * 1.25));
   }
 
   .home-art-vocal svg {
-    height: 190px;
+    height: calc(var(--home-art-h) * 0.78);
   }
 
   .home-art-tools svg {
-    height: 200px;
+    height: calc(var(--home-art-h) * 0.82);
   }
 
   .home-title {
@@ -366,10 +374,13 @@
     flex: 0 0 50%;
   }
 
-  /* Five shortcuts: two rows (3 + 2) instead of 2 + 2 + 1. */
+  /* Five or six shortcuts: two rows of three (not three rows of two). */
   .home-option:first-child:nth-last-child(5),
-  .home-option:first-child:nth-last-child(5) ~ .home-option {
+  .home-option:first-child:nth-last-child(5) ~ .home-option,
+  .home-option:first-child:nth-last-child(6),
+  .home-option:first-child:nth-last-child(6) ~ .home-option {
     flex-basis: 33.333%;
+    font-size: 13px;
   }
 
   .home-arrow {
@@ -377,31 +388,15 @@
   }
 }
 
-/* Short phones (e.g. iPhone SE): smaller art so the whole card fits. */
+/* Short phones (e.g. iPhone SE): the logo row moves up, which leaves the
+   art 32px more room. */
 @media (max-width: 640px) and (max-height: 740px) {
   .home-top {
     padding-top: 20px;
   }
 
-  .home-art {
-    flex-basis: 150px;
-  }
-
-  .home-art-guitar svg,
-  .home-art-bass svg {
-    height: 170px;
-  }
-
-  .home-art-piano svg {
-    width: 180px;
-  }
-
-  .home-art-vocal svg {
-    height: 140px;
-  }
-
-  .home-art-tools svg {
-    height: 150px;
+  .home-menu {
+    --home-art-h: clamp(96px, calc(100dvh - 528px), 244px);
   }
 
   .home-title {

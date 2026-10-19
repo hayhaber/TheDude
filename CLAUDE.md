@@ -81,7 +81,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   (flicker) — dark titles use text-shadow. No WebKit in this container to
   test with; the user checks on his iPhone. The app ALWAYS opens on the Guitar card (App `homeCard`
   starts as 'guitar', user's rule); back from inside an instrument (logo) =
-  that instrument's card — more exactly the CARD the page was opened from (App `enteredCardRef`, set from HomeMenu's `card` on open; the Singing card opens Vocal with the guitar still selected, so the instrument alone sent Home to Guitar; user's request 2026-10-17). Phone sideways (`orientation: landscape` + max-height 520px): a low card (art beside the text, one row of shortcuts) sized to fit under the logo, notch-safe padding. `onOpen({instrument, section,
+  that instrument's card — more exactly the CARD the page was opened from (App `enteredCardRef`, set from HomeMenu's `card` on open; the Singing card opens Vocal with the guitar still selected, so the instrument alone sent Home to Guitar; user's request 2026-10-17). Upright phones (<=640px): the art height is `--home-art-h` = clamp(96px, 100dvh − 560px (−528 on short screens), 244px) and 5–6 shortcuts sit in 2 rows of 3, so card + dots + profile chip always fit (iPhone 15 Pro in Safari, ~790px tall, hid the dots — 2026-10-19). Phone sideways (`orientation: landscape` + max-height 520px): a low card (art beside the text, one row of shortcuts) sized to fit under the logo, notch-safe padding. `onOpen({instrument, section,
   practiceTab})` sets them in App. The home button (desktop top bar) / logo (phone/tablet,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
   first visit. A 5th card, **Tools** (not an instrument), has Metronome /

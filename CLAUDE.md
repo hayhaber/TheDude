@@ -238,8 +238,8 @@ on the container; content inside stays top-aligned). Stacked on a phone
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
-- **Chord Library** (nav `chords`, guitar only, Guitar card shortcut after
-  Compose; user's request 2026-10-19 after a chord-library screenshot +
+- **Chord Library** (nav `chords`, guitar only, Guitar card shortcut FIRST,
+  before Compose (user's order); user's request 2026-10-19 after a chord-library screenshot +
   review of GtrLib / Ultimate Guitar / Chord! / JustinGuitar forum asks):
   `components/ChordLibrary/` (ChordLibraryView, ChordBox diagram,
   ChordsNavIcon) + pure `music/chordLibrary.js`. 29 chord types

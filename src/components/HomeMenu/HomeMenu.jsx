@@ -167,8 +167,9 @@ const CARDS = [
     titleKey: 'home.guitar.title',
     descKey: 'home.guitar.desc',
     options: [
-      { section: 'compose', icon: 'compose' },
+      // Chord Library first, then Compose (user's order, 2026-10-19).
       { section: 'chords', icon: 'chords' },
+      { section: 'compose', icon: 'compose' },
       { section: 'improvise', icon: 'improvise' },
       { section: 'practice', icon: 'practice' },
       { section: 'coach', icon: 'coach' },

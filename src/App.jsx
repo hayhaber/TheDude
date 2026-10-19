@@ -12,6 +12,7 @@ import { StudiesSection } from './components/StudiesSection/StudiesSection';
 import { SongsView } from './components/SongsView/SongsView';
 import { GuitarProView } from './components/GuitarPro/GuitarProView';
 import { FreePlayView } from './components/FreePlayView/FreePlayView';
+import { ChordLibraryView } from './components/ChordLibrary/ChordLibraryView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
 import { CoachView } from './components/Coach/CoachView';
 import { CoachBanner } from './components/Coach/CoachBanner';
@@ -739,6 +740,12 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drums.clickSilenced, drillHearSilencesClick]);
   const [progressionText, setProgressionText] = useState('');
+  // Guitar -> Chord Library: the voicing shown on the Stage neck
+  // ({position, tuning, labelMode} | null), set by ChordLibraryView.
+  const [chordLibStage, setChordLibStage] = useState(null);
+  const addToCompose = useCallback((symbol) => {
+    if (symbol) setProgressionText((prev) => (prev.trim() ? `${prev.trim()} ${symbol}` : symbol));
+  }, []);
   const [activeIndex, setActiveIndex] = useState(0);
   const [mode, setMode] = useState('chord');
   const [labelMode, setLabelMode] = useState('note');
@@ -1640,6 +1647,20 @@ function App() {
             progressionStep: progressionPlayer.current,
             chordToneLabels: cagedChordToneLabels,
           })
+      : activeSection === 'chords'
+      ? chordLibStage
+        ? {
+            position: chordLibStage.position,
+            tuning: chordLibStage.tuning.map((midi, i, all) => ({
+              stringNumber: all.length - i,
+              openNote: ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][midi % 12],
+              pitchClass: midi % 12,
+              baseMidi: midi,
+            })),
+            labelMode: chordLibStage.labelMode,
+            capoFret: 0,
+          }
+        : { position: null }
       : activeSection === 'guitarpro'
       ? lickTrainerStageProps
       : activeSection === 'songs'
@@ -2273,6 +2294,13 @@ function App() {
       {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} />}
 
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
+      {activeSection === 'chords' && (
+        <ChordLibraryView
+          onStage={setChordLibStage}
+          onAddToCompose={addToCompose}
+          onPracticeChanges={(chords) => launchPracticeRef.current({ tool: 'minuteChanges', chords })}
+        />
+      )}
       {activeSection === 'vocal' && <VocalTrainingView key={vocalStart.n} initialScreen={vocalStart.screen} />}
       {activeSection === 'coach' && <CoachView />}
     </AppShell>

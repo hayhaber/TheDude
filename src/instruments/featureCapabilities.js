@@ -25,6 +25,7 @@ export const FEATURE_CAPABILITIES = {
   songs: ['guitar', 'piano'],
   guitarpro: ['guitar', 'piano', 'bass'], // Guitar Pro song player (+ solo trainer on guitar; piano/bass = song view on their instrument)
   freeplay: ['piano'], // Piano -> FreePlay: the big keyboard
+  chords: ['guitar'], // Guitar -> Chord Library (voicings, inversions, slash chords)
   improvise: ['guitar'], // lick/phrase/solo-coach generation — guitar technique
   drills: ['guitar'], // picking/speed/position-switch drills
   caged: ['guitar'], // the CAGED system is guitar-specific by definition

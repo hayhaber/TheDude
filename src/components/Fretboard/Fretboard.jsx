@@ -270,7 +270,8 @@ export function Fretboard({
   // barre bar below (drawn whenever one finger frets 2+ strings) is useful
   // in Note mode too, not just Fingering mode; only the dot *label* text
   // itself (labelFor, below) actually depends on labelMode.
-  const fingers = useMemo(() => (position ? assignFingers(position) : null), [position]);
+  // A position may bring its own fingering (Chord Library); else derived.
+  const fingers = useMemo(() => (position ? position.fingers ?? assignFingers(position) : null), [position]);
 
   useEffect(() => {
     if (noteSound === 'bass') preloadBassSamples();

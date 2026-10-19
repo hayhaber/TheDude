@@ -238,6 +238,34 @@ on the container; content inside stays top-aligned). Stacked on a phone
   scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
+- **Chord Library** (nav `chords`, guitar only, Guitar card shortcut after
+  Compose; user's request 2026-10-19 after a chord-library screenshot +
+  review of GtrLib / Ultimate Guitar / Chord! / JustinGuitar forum asks):
+  `components/ChordLibrary/` (ChordLibraryView, ChordBox diagram,
+  ChordsNavIcon) + pure `music/chordLibrary.js`. 29 chord types
+  (`CHORD_TYPES`: triads, power, sus, add9, 6, 6/9, all 7ths, m7♭5, 9/♭9/♯9,
+  11, 13; `base` = the CHORD_QUALITIES key Compose/Changes know, else null)
+  x 12 roots, in any GUITAR_TUNINGS tuning. Voicings are SEARCHED
+  (`findVoicings`): per 4-fret window every string muted/open/a chord tone;
+  kept when the lowest note = the bass, every non-optional tone sounds,
+  ≤1 muted string inside, span ≤3, and `fingerChord()` finds ≤4 fingers
+  (barre only when >4 notes; no open string under the barre; a 2nd partial
+  barre if needed; fingers by fret then from the bass string). Scored for
+  difficulty; the app's own SHAPE_TEMPLATES shapes (standard tuning, root
+  bass) get a bonus so open + CAGED barre shapes always show.
+  `libraryVoicings` = best 8 (6 for inversions), no subsets of a better one,
+  ≤2 per neck area (3 open), in neck order, `easiest` flagged. Bass select:
+  root position + all inversions as groups (default), one inversion, or a
+  slash bass (any other note, only under the chord). Spelling = theory
+  spelling except double accidentals / Cb Fb E# B# (plain name). Labels on
+  the neck: notes / intervals / fingers (the position carries
+  `fingers` — Fretboard now uses `position.fingers ?? assignFingers()`).
+  Strum / Pick (`playMidis()` in chordPlayer.js, any tuning), Add (appends
+  `appSymbol()` to Compose's progressionText), Practise changes select ->
+  `launch({tool:'minuteChanges'})`; MinuteChanges now accepts any parseable
+  chord (`CHANGES_CHORDS` exported). Prefs per profile
+  `dudestar-p-chord-library`. Text in `i18n/tips/chordlib.js`. Left-handed
+  mirrors the diagrams too. Capo not in v1.
 - **Piano Chord Rhythm** (`useChordRhythm`, `ChordRhythmPanel`): the clock
   starts on the metronome's FIRST click (`waitingRef`, `currentBeat` effect,
   700 ms fallback) and the lead-in is a whole number of beats, so chords

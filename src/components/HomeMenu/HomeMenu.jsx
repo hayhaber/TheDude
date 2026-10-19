@@ -9,6 +9,17 @@ import './HomeMenu.css';
 
 // Line icons for the per-instrument shortcuts (24px grid).
 const ICON_PATHS = {
+  // A chord box: nut, strings, frets, three dots.
+  chords: (
+    <>
+      <path d="M5 4h14" strokeWidth="2.2" />
+      <path d="M5 4v16M9.7 4v16M14.3 4v16M19 4v16" opacity=".55" />
+      <path d="M5 9.3h14M5 14.6h14M5 20h14" opacity=".55" />
+      <circle cx="9.7" cy="6.7" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="14.3" cy="12" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none" />
+    </>
+  ),
   // A few piano keys.
   freeplay: (
     <>
@@ -157,6 +168,7 @@ const CARDS = [
     descKey: 'home.guitar.desc',
     options: [
       { section: 'compose', icon: 'compose' },
+      { section: 'chords', icon: 'chords' },
       { section: 'improvise', icon: 'improvise' },
       { section: 'practice', icon: 'practice' },
       { section: 'coach', icon: 'coach' },

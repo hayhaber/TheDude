@@ -76,3 +76,12 @@ export function playPosition(strings, capoFret = 0) {
 export function playNote(midi) {
   playNoteAt(midi, getAudioContext().currentTime);
 }
+
+/**
+ * Plays MIDI notes low -> high as a strum (`gap` s apart; 0.03 = a strum,
+ * ~0.32 = picked one by one). For voicings in any tuning (Chord Library).
+ */
+export function playMidis(midis, gap = STRUM_STAGGER) {
+  const now = getAudioContext().currentTime;
+  midis.forEach((midi, i) => playNoteAt(midi, now + i * gap));
+}

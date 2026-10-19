@@ -1,6 +1,7 @@
 import { TrainingIcon } from '../TrainingIcon/TrainingIcon';
 import { GuitarIcon } from '../GuitarIcon/GuitarIcon';
 import { GuitarProNavIcon } from '../GuitarProIcon/GuitarProIcon';
+import { ChordsNavIcon } from '../ChordLibrary/ChordsNavIcon';
 
 // Top-level destinations — see the IA in the redesign plan: Compose (build
 // the progression), Improvise (generate over it), Practice (skill-building,
@@ -16,6 +17,8 @@ import { GuitarProNavIcon } from '../GuitarProIcon/GuitarProIcon';
 // music-practice symbol, and distinctive against the emoji icons around it.
 export const SECTIONS = [
   { key: 'compose', labelKey: 'nav.compose', icon: '🎼' },
+  // Guitar only: every chord in every key, its voicings, inversions, slash chords.
+  { key: 'chords', labelKey: 'nav.chords', icon: ChordsNavIcon },
   { key: 'improvise', labelKey: 'nav.improvise', icon: GuitarIcon },
   { key: 'practice', labelKey: 'nav.practice', icon: TrainingIcon },
   // Guitar only: the goal-based practice coach (plan, daily session, progress).

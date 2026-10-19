@@ -1,0 +1,361 @@
+/* Guitar -> Chord Library (2026-10-19). */
+.chord-library {
+  --cl-root: #ff6b3d;
+  --cl-dot: var(--text-h);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.cl-head h1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text-h);
+}
+
+.cl-sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+/* ---- controls ---- */
+.cl-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.cl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 120px;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 590;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cl-field.is-wide {
+  flex-basis: 200px;
+}
+
+.cl-field > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cl-field select {
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.cl-field select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-bg);
+}
+
+/* ---- the chosen chord ---- */
+.cl-info {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'name tones'
+    'name formula'
+    'actions actions';
+  align-items: center;
+  gap: 6px 18px;
+  padding: 16px 18px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.cl-name {
+  grid-area: name;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-h);
+  line-height: 1;
+}
+
+.cl-tones {
+  grid-area: tones;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cl-tone {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.cl-tone small {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+.cl-tone.r-root {
+  background: color-mix(in srgb, var(--cl-root) 18%, transparent);
+}
+
+.cl-tone.r-root small {
+  color: var(--cl-root);
+}
+
+.cl-tone.r-bass {
+  background: color-mix(in srgb, #8e8e93 18%, transparent);
+}
+
+.cl-formula {
+  grid-area: formula;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cl-actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cl-btn {
+  height: var(--control-height);
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cl-btn.is-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.cl-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.cl-changes {
+  flex: 0 1 220px;
+  margin-inline-start: auto;
+}
+
+/* ---- groups of diagrams ---- */
+.cl-group-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.cl-group-sub {
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text-secondary);
+}
+
+.cl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  align-items: stretch;
+  gap: 10px;
+}
+
+.cl-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 8px 6px 6px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.cl-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.cl-card.is-on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.cl-card:active {
+  transform: scale(0.98);
+}
+
+.cl-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+.cl-badge {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #34c759 18%, transparent);
+  color: #1f9d48;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.cl-box {
+  width: 100%;
+  max-width: 132px;
+  height: auto;
+}
+
+.cl-string {
+  stroke: var(--text-secondary);
+  stroke-width: 0.8;
+}
+
+.cl-string.is-wound {
+  stroke-width: 1.3;
+}
+
+.cl-fret {
+  stroke: var(--text-secondary);
+  stroke-width: 0.8;
+  opacity: 0.7;
+}
+
+.cl-nut {
+  stroke: var(--text-h);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+}
+
+.cl-fr {
+  font: 700 10px -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  fill: var(--text-secondary);
+}
+
+.cl-mute {
+  font: 700 11px -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  fill: var(--text-secondary);
+}
+
+.cl-open {
+  fill: none;
+  stroke: var(--text-h);
+  stroke-width: 1.3;
+}
+
+.cl-open.is-root {
+  stroke: var(--cl-root);
+  stroke-width: 1.8;
+}
+
+.cl-dot,
+.cl-barre {
+  fill: var(--cl-dot);
+}
+
+.cl-dot.is-root {
+  fill: var(--cl-root);
+}
+
+.cl-dot.is-bass {
+  fill: #8e8e93;
+}
+
+.cl-finger {
+  font: 700 8.5px -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  fill: var(--surface);
+  pointer-events: none;
+}
+
+.cl-note {
+  font: 600 8px -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  fill: var(--text-secondary);
+}
+
+.cl-note.is-root {
+  fill: var(--cl-root);
+  font-weight: 800;
+}
+
+.cl-empty {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 520px) {
+  .cl-info {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'name' 'tones' 'formula' 'actions';
+  }
+
+  .cl-name {
+    font-size: 32px;
+  }
+
+  .cl-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .cl-changes {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
+}

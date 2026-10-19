@@ -3,7 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { colorForChord } from '../../styles/colors';
 import { perfFor } from '../../coach/perfLog';
-import { pairIndexOf, useMinuteChanges } from '../../hooks/useMinuteChanges';
+import { pairIndexOf, parseChord, useMinuteChanges } from '../../hooks/useMinuteChanges';
 import './MinuteChanges.css';
 
 // Practice: One-Minute Changes — pick two chords, Start, alternate one
@@ -16,6 +16,8 @@ const CHORD_GROUPS = [
   { key: 'minute.groupBarre', chords: ['F', 'B', 'Bb', 'Bm', 'F#m', 'Cm', 'Gm'] },
 ];
 const ALL_CHORDS = CHORD_GROUPS.flatMap((g) => g.chords);
+/** The chords to practise changes with (Chord Library's Changes select). */
+export const CHANGES_CHORDS = ALL_CHORDS;
 const DEFAULT_PAIR = ['A', 'D'];
 
 const RING_R = 88;
@@ -29,7 +31,9 @@ const ltr = (s) => `⁦${s}⁩`;
 function validPair(pair) {
   if (!Array.isArray(pair) || pair.length !== 2) return DEFAULT_PAIR;
   const [a, b] = pair;
-  return ALL_CHORDS.includes(a) && ALL_CHORDS.includes(b) && a !== b ? [a, b] : DEFAULT_PAIR;
+  // Any chord the detector knows (the Chord Library can send e.g. Dmaj7).
+  const ok = (c) => ALL_CHORDS.includes(c) || !!parseChord(c);
+  return ok(a) && ok(b) && a !== b ? [a, b] : DEFAULT_PAIR;
 }
 
 function historyFor(a, b) {
@@ -47,6 +51,7 @@ function ChordSelect({ id, value, onChange, disabled, label, t }) {
     <label className="minute-field" htmlFor={id}>
       <span className="minute-field-label">{label}</span>
       <select id={id} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} dir="ltr">
+        {!ALL_CHORDS.includes(value) && <option value={value}>{value}</option>}
         {CHORD_GROUPS.map((g) => (
           <optgroup key={g.key} label={t(g.key)}>
             {g.chords.map((c) => (

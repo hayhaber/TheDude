@@ -183,6 +183,7 @@ const CARDS = [
       { section: 'compose', icon: 'compose' },
       { section: 'improvise', icon: 'improvise' },
       { section: 'practice', icon: 'practice' },
+      { section: 'studies', icon: 'studies' },
       { section: 'coach', icon: 'coach' },
       { section: 'guitarpro', icon: 'guitarpro' },
     ],

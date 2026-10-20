@@ -383,6 +383,16 @@
     font-size: 13px;
   }
 
+  /* Seven or eight: two rows of four (keeps the card's height). */
+  .home-option:first-child:nth-last-child(7),
+  .home-option:first-child:nth-last-child(7) ~ .home-option,
+  .home-option:first-child:nth-last-child(8),
+  .home-option:first-child:nth-last-child(8) ~ .home-option {
+    flex-basis: 25%;
+    font-size: 12px;
+    padding-inline: 2px;
+  }
+
   .home-arrow {
     display: none;
   }

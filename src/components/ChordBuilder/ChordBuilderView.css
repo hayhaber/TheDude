@@ -1,0 +1,364 @@
+/* Studies -> Chord Structure. Reuses the Chord Library's buttons, fields and
+   ChordBox (.cl-*); role colours: 1 orange, 3 blue, 5 green, 7 purple,
+   6/9/11/13 amber — the same everywhere in the lesson (legend, dots, names). */
+.chord-builder {
+  --cl-root: #ff6b3d;
+  --cl-dot: var(--text-h);
+  --cb-third: #2f7cf6;
+  --cb-fifth: #1fa35a;
+  --cb-seventh: #8b5cf6;
+  --cb-ext: #d98a06;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cb-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cb-head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  color: var(--text-h);
+}
+
+.cb-sub {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.cb-lesson {
+  flex: 0 1 300px;
+  min-width: 220px;
+}
+
+.cb-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.cb-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cb-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cl-dot);
+}
+
+.cb-dot.r-root { background: var(--cl-root); }
+.cb-dot.r-third { background: var(--cb-third); }
+.cb-dot.r-fifth { background: var(--cb-fifth); }
+.cb-dot.r-seventh { background: var(--cb-seventh); }
+.cb-dot.r-extension { background: var(--cb-ext); }
+
+.cb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.cb-card h3 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--text-h);
+}
+
+.cb-why {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.cb-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cb-family {
+  align-self: flex-start;
+  min-width: 220px;
+}
+
+.cb-family button.is-off {
+  opacity: 0.55;
+}
+
+/* Start -> Result: equal-height diagram cards in one row (rule 8). */
+.cb-pair {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cb-pair-btn {
+  flex: 0 1 190px;
+  display: flex;
+  justify-content: center;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.cb-pair-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.cb-arrow {
+  align-self: center;
+  font-size: 26px;
+  color: var(--text-secondary);
+}
+
+.cb-diagram {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.cb-diagram figcaption {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cb-diagram .cl-box {
+  max-width: 150px;
+}
+
+.cb-diagram-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+/* role colours in the diagrams */
+.chord-builder .cl-dot.r-third { fill: var(--cb-third); }
+.chord-builder .cl-dot.r-fifth { fill: var(--cb-fifth); }
+.chord-builder .cl-dot.r-seventh { fill: var(--cb-seventh); }
+.chord-builder .cl-dot.r-extension { fill: var(--cb-ext); }
+.chord-builder .cl-open.r-third { stroke: var(--cb-third); stroke-width: 1.8; }
+.chord-builder .cl-open.r-fifth { stroke: var(--cb-fifth); stroke-width: 1.8; }
+.chord-builder .cl-open.r-seventh { stroke: var(--cb-seventh); stroke-width: 1.8; }
+.chord-builder .cl-open.r-extension { stroke: var(--cb-ext); stroke-width: 1.8; }
+.chord-builder .cl-note { font-size: 9px; font-weight: 700; }
+.chord-builder .cl-note.r-third { fill: var(--cb-third); }
+.chord-builder .cl-note.r-fifth { fill: var(--cb-fifth); }
+.chord-builder .cl-note.r-seventh { fill: var(--cb-seventh); }
+.chord-builder .cl-note.r-extension { fill: var(--cb-ext); }
+
+/* the string that changed: a pulsing ring, and a dashed ghost where it was */
+.cl-moved-ring {
+  fill: none;
+  stroke: var(--text-h);
+  stroke-width: 1.4;
+  animation: cb-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cb-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-moved-ring {
+    animation: none;
+  }
+}
+
+.chord-builder .cl-note.is-moved {
+  text-decoration: underline;
+}
+
+.cl-ghost {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 2;
+}
+
+.cb-moves h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+.cb-count {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.cb-moves ol {
+  margin: 0;
+  padding-inline-start: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.cb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cb-actions .cl-btn.is-on {
+  border-color: #ff3b30;
+  color: #ff3b30;
+}
+
+.cb-off {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, #ff9500 12%, transparent);
+}
+
+.cb-off p {
+  margin: 0;
+  flex: 1 1 220px;
+  font-size: 14px;
+}
+
+/* barre slider */
+.cb-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cb-slide-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.cb-slide-head b {
+  color: var(--text-h);
+  font-size: 16px;
+}
+
+.cb-slide-name {
+  margin-inline-start: auto;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.cb-slide input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.cb-slide-roots {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.cb-slide-roots button {
+  padding: 4px 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cb-slide-roots button.is-on {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* practice */
+.cb-practice h3 {
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.cb-task {
+  font-size: 32px;
+  font-weight: 750;
+  color: var(--text-h);
+}
+
+.cb-status {
+  margin: 0;
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.cb-status.is-ok {
+  color: #1f9d48;
+  font-weight: 700;
+}
+
+.cb-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 520px) {
+  .cb-card {
+    padding: 12px;
+  }
+
+  .cb-pair-btn {
+    flex-basis: 150px;
+    padding: 8px 4px;
+  }
+
+  .cb-task {
+    font-size: 28px;
+  }
+
+  .cb-slide-roots button {
+    font-size: 9.5px;
+  }
+}

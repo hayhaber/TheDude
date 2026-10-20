@@ -5,6 +5,7 @@ import { CircleOfFifthsView } from '../CircleOfFifthsView/CircleOfFifthsView';
 import { HarmonyView } from '../HarmonyView/HarmonyView';
 import { ChordsByEarView } from '../ChordsByEarView/ChordsByEarView';
 import { PianoView } from '../PianoView/PianoView';
+import { ChordBuilderView } from '../ChordBuilder/ChordBuilderView';
 import { CAGED_LESSONS } from '../../music/cagedCurriculum';
 import { SCALES_LESSONS } from '../../music/scalesCurriculum';
 import { CIRCLE_LESSONS } from '../../music/circleOfFifthsCurriculum';
@@ -20,7 +21,7 @@ import './StudiesSection.css';
 // works on every instrument) — used to hide a course tab entirely on an
 // instrument it doesn't support, instead of showing it and then blocking its
 // content behind a "not available" message.
-const COURSE_FEATURE = { caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum' };
+const COURSE_FEATURE = { caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum', chordBuilder: 'chordBuilder' };
 
 // Studies now holds two independent courses. StudiesView (the CAGED system)
 // is completely untouched — this just wraps it as one tab alongside the new
@@ -63,6 +64,7 @@ export function StudiesSection({
   chordsByEarProgress,
   pianoLesson,
   pianoCurriculumProgress,
+  onChordBuilderStage,
 }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
@@ -88,6 +90,11 @@ export function StudiesSection({
       </div>
 
       <div className="studies-course-tabs" role="group" aria-label={t('studies.courseLabel')}>
+        {courseSupported('chordBuilder') && (
+          <button type="button" className={course === 'chordBuilder' ? 'active' : ''} onClick={() => onCourseChange('chordBuilder')}>
+            {t('studies.course.chordBuilder')}
+          </button>
+        )}
         {courseSupported('caged') && (
           <button type="button" className={course === 'caged' ? 'active' : ''} onClick={() => onCourseChange('caged')}>
             {t('studies.course.caged')}
@@ -128,6 +135,8 @@ export function StudiesSection({
           </button>
         )}
       </div>
+
+      {course === 'chordBuilder' && <ChordBuilderView onStage={onChordBuilderStage} />}
 
       {course === 'caged' && (
         <StudiesView

@@ -290,6 +290,34 @@ on the container; content inside stays top-aligned). Stacked on a phone
   Strum / Play is off (`AutoPlayToggle.jsx`, pref `autoPlay` in both
   libraries' prefs, default on; user's request 2026-10-19). Strum / Play
   and a tap on the diagram always sound.
+- **Chord Structure** (Studies course `chordBuilder`, "מבנה אקורדים", guitar
+  only for now — piano later; user's request 2026-10-20): every chord type =
+  the open E or A chord with 1–2 fingers moved (1 fret = 1 semitone), then
+  barred up the neck like the plain barre chords (barre at 3 = G / C).
+  Pure `music/chordBuilder.js`: `BUILDER_TYPES` (open shapes per family E/A,
+  `from` = parent shape; null + `whyE/whyA` when a family can't play it as a
+  barre: sus2/add9/6/dim7 only A, 9 only E), `shapeMoves()` (lift / press /
+  up / down / mute per string, with old -> new interval), `shapeTones()`,
+  `LESSONS` = map (1-3-5), slide, 14 types, quiz. Every shape verified (right
+  tones, root in the bass, `fingerChord` playable at fret 3).
+  UI `components/ChordBuilder/ChordBuilderView.jsx`: lesson <select>, role
+  legend (1 orange / 3 blue / 5 green / 7 purple / 6-9-11-13 amber),
+  Start -> Result ChordBox diagrams (ChordBox props `roleColors`, `moved` =
+  pulsing ring, `ghosts` = dashed old spot), move list, Before / After, barre
+  slider (Stage neck shows the shape there via App `chordBuilderStage`),
+  practice "Play X" with mic: Listen / Show / Next. Prefs per profile
+  `dudestar-p-chord-builder`. Text `i18n/tips/chordbuilder.js` — Hebrew
+  strings use maqaf (־) and LRI/PDI-isolated Latin/number tokens, or bidi
+  scrambles "ל-2" / "♭7".
+  MIC: `judgeShape()` = cosine of the averaged chroma vs the shape's
+  harmonic model (8 partials, 1/k^0.7) and vs rivals (parent shape, same
+  shape ±1 fret); must beat each by 15 % of the models' gap; 2 passing
+  0.5-s checks in a row. `useMicChordDetector` gained `averageChroma()`:
+  frames near the strum's attack only (within 10 dB of the loudest recent),
+  chroma computed with `computeChroma(..., {maxCents: 22})` (new option:
+  drops off-tune partials, e.g. G's 7th harmonic that read as F). Synthetic
+  Karplus-Strong test: ~63 % of right chords, ~5 % of parents accepted —
+  weakest add9 / 9 / dim7. NOT verified on a real guitar yet.
 - **Piano Chord Library** (same nav `chords`, now guitar + piano; Piano card
   shortcut first; user's request 2026-10-19, ideas from Piano Companion /
   PG Music Piano Chord Dictionary): `PianoChordLibraryView.jsx` + `KeysBox.jsx`

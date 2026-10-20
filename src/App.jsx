@@ -244,7 +244,7 @@ function App() {
     }
   }, [instrument, practiceTab]);
   useEffect(() => {
-    const studiesFeatureByCourse = { caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum' };
+    const studiesFeatureByCourse = { caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum', chordBuilder: 'chordBuilder' };
     const feature = studiesFeatureByCourse[studiesCourse];
     if (feature && !supportsInstrument(feature, instrument)) {
       setStudiesCourse('scales');
@@ -744,6 +744,8 @@ function App() {
   // Guitar -> Chord Library: the voicing shown on the Stage neck
   // ({position, tuning, labelMode} | null), set by ChordLibraryView.
   const [chordLibStage, setChordLibStage] = useState(null);
+  // Studies -> Chord Structure: the shape it shows on the neck ({position, tuning, labelMode} | null)
+  const [chordBuilderStage, setChordBuilderStage] = useState(null);
   // Piano -> Chord Library: the voicing's keys [{midi, hand, finger}] and the
   // handler that hears the keys played on the Stage keyboard.
   const [pianoChordKeys, setPianoChordKeys] = useState(null);
@@ -1648,6 +1650,10 @@ function App() {
             chordsByEarLesson.previewScaleContext,
             chordsByEarLesson.previewPosition
           )
+        : studiesCourse === 'chordBuilder'
+        ? chordBuilderStage
+          ? { position: chordBuilderStage.position, labelMode: chordBuilderStage.labelMode, capoFret: 0 }
+          : { position: null }
         : studiesCourse === 'pianoCurriculum'
         ? { position: null } // piano-only course; guitar mode can never actually select it (gated in StudiesSection)
         : activeCagedLesson.kind === 'exercise'
@@ -2251,6 +2257,7 @@ function App() {
         <StudiesSection
           course={studiesCourse}
           onCourseChange={setStudiesCourse}
+          onChordBuilderStage={setChordBuilderStage}
           cagedLessonId={studiesLessonId}
           onSelectCagedLesson={setStudiesLessonId}
           cagedProgress={cagedProgress}

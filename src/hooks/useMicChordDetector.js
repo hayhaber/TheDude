@@ -39,6 +39,25 @@ export function useMicChordDetector() {
   // synchronously rather than however many ticks behind a React state
   // update would be.
   const guessRef = useRef(null);
+  // The last few chroma frames (null = a quiet frame), for callers that
+  // judge a SPECIFIC chord shape themselves (Studies -> Chord Structure):
+  // averageChroma() = the mean of the recent non-quiet frames (~1 s).
+  const recentChromaRef = useRef([]);
+  const averageChroma = useCallback((frames = 4) => {
+    // Only frames near the strum's attack (within 10 dB of the loudest
+    // recent one): as a strum dies away the low strings and their
+    // harmonics take over and a plain G starts to look like G7.
+    const recent = recentChromaRef.current.filter(Boolean);
+    const loudest = Math.max(-Infinity, ...recent.map((f) => f.peakDb));
+    const list = recentChromaRef.current
+      .slice(-frames)
+      .filter((f) => f && f.peakDb >= loudest - 10)
+      .map((f) => f.chroma);
+    if (list.length < Math.min(2, frames)) return null;
+    const out = new Float32Array(12);
+    for (const c of list) for (let i = 0; i < 12; i++) out[i] += c[i] / list.length;
+    return out;
+  }, []);
 
   const stopListening = useCallback(() => {
     if (intervalRef.current != null) {
@@ -56,6 +75,7 @@ export function useMicChordDetector() {
     setIsListening(false);
     setGuess(null);
     guessRef.current = null;
+    recentChromaRef.current = [];
   }, []);
 
   const startListening = useCallback(async () => {
@@ -117,6 +137,13 @@ export function useMicChordDetector() {
         if (cal) subtractNoiseProfile(buf, cal, g ? g.gain.value : 1, FFT_SIZE, ctx.sampleRate);
         const chroma = computeChroma(buf, ctx.sampleRate, FFT_SIZE);
         const next = quiet ? null : matchChordFromChroma(chroma);
+        // For averageChroma(): any frame with real sound counts (a rich chord
+        // like G7 often falls under matchChordFromChroma's confidence floor).
+        let peakDb = -Infinity;
+        for (let i = 8; i < 190; i++) if (buf[i] > peakDb) peakDb = buf[i]; // ~90 Hz .. 2.2 kHz
+        const recent = recentChromaRef.current;
+        recent.push(quiet || (!next && peakDb < -68) ? null : { chroma: computeChroma(buf, ctx.sampleRate, FFT_SIZE, { maxCents: 22 }), peakDb });
+        if (recent.length > 10) recent.shift();
         guessRef.current = next;
         setGuess(next);
       }, GUESS_INTERVAL_MS);
@@ -128,5 +155,5 @@ export function useMicChordDetector() {
 
   useEffect(() => stopListening, [stopListening]);
 
-  return { isListening, startListening, stopListening, guess, guessRef, error };
+  return { isListening, startListening, stopListening, guess, guessRef, averageChroma, error };
 }

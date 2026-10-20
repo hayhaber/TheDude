@@ -12,7 +12,10 @@ const MAX_HZ = 2000; // covers fretted range + a couple of harmonics, without hi
 // simple template match rather than a trained model — there's no pretrained
 // ML model available to this app, so this is a best-effort heuristic, not
 // a Chordino-equivalent.
-export function computeChroma(freqData, sampleRate, fftSize) {
+// `maxCents` (optional): count only peaks within that many cents of an
+// equal-tempered note — drops the 7th harmonic (31 cents flat: G's 7th
+// harmonic would otherwise count as an F) and the 11th/13th. Off by default.
+export function computeChroma(freqData, sampleRate, fftSize, { maxCents = null } = {}) {
   const chroma = new Float32Array(12);
   const binHz = sampleRate / fftSize;
   const minBin = Math.max(1, Math.floor(MIN_HZ / binHz));
@@ -40,6 +43,7 @@ export function computeChroma(freqData, sampleRate, fftSize) {
     const offset = Number.isFinite(denom) && denom !== 0 ? Math.max(-0.5, Math.min(0.5, (0.5 * (left - right)) / denom)) : 0;
     const freq = (bin + offset) * binHz;
     const midi = 69 + 12 * Math.log2(freq / 440);
+    if (maxCents != null && Math.abs(midi - Math.round(midi)) * 100 > maxCents) continue;
     const pitchClass = ((Math.round(midi) % 12) + 12) % 12;
     const magnitude = 10 ** (db / 20); // dB -> linear amplitude
     chroma[pitchClass] += magnitude;

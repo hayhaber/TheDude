@@ -855,3 +855,36 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* ---- one frame (user's request 2026-10-21): the whole page is ONE white
+   card; the guide, the pictures (and the QR on a computer) sit inside it
+   with no frames of their own and no grey behind the pictures ---- */
+.inst-main {
+  box-sizing: border-box;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+  padding: 4px 0 10px;
+  gap: 0;
+  overflow: hidden;
+}
+
+.inst-main > .inst-card {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.inst-showcase {
+  padding-top: 0;
+}
+
+.reel-stage {
+  background: transparent;
+}
+
+.reel-shot {
+  filter: none; /* the shots carry their own soft shadows (transparent bg) */
+}

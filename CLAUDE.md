@@ -914,7 +914,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
   vars into `@keyframes reel-in`: fade + grow/slide, then slow drift; the old
   one grows on and fades), caption per language under it, NO progress bar
   (user removed it), tap = next shot, nothing opens. The old `.inst-wheel*`
-  CSS is unused. The page fits one screen (height 100svh, the
+  CSS is unused. ONE FRAME (user's request 2026-10-21): `.inst-main` is the
+  only white card (border/shadow/radius); the inner `.inst-card`s have no
+  frame of their own and the reel stage no grey — the pictures are part of
+  the page. The shots have TRANSPARENT backgrounds (keyed with scratchpad
+  keybg.py: light neutral pixels flood-filled from the border -> black with
+  alpha = darkness, so shadows stay and look identical on white); no CSS
+  drop-shadow. The page fits one screen (height 100svh, the
   picture takes the height left; desktop = guide | picture | QR in a row;
   scrolls only under 560px tall); EN/HE pill in the guide card's corner.
   The text link under Install = "Continue in the browser" (`inst.browser`): iOS

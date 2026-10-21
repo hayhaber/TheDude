@@ -278,6 +278,24 @@
   border: 1px solid var(--border);
 }
 
+/* what's inside: the instruments + the app, one scaling picture */
+.inst-showcase {
+  padding: 18px 12px 14px;
+  box-shadow: 0 10px 30px rgba(40, 30, 90, 0.08), var(--shadow-sm);
+}
+
+.inst-showcase > svg {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.inst-page.has-qr .inst-showcase {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 720px) {
   .inst-page.has-qr .inst-main {
     grid-template-columns: minmax(0, 1fr);

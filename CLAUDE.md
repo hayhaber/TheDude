@@ -891,6 +891,12 @@ on the container; content inside stays top-aligned). Stacked on a phone
   QR code on computers (`qrcode-generator`, MIT). Settings (Tools card) has
   an "Install the app" row (Install when the prompt exists + Guide ->
   /install), hidden inside the installed app. Text `i18n/tips/install.js`.
+  Under the guide: `.inst-showcase` = `install/showcaseArt.js` (user's pick
+  2026-10-21 of 8 mock-ups: the home cards' instrument art + a tilted phone
+  showing the app, chord bubbles, feature icons, NO text, white card + soft
+  shadow) — one inline SVG (viewBox 358x450, art nested as <svg x y w h>),
+  so the CSS must target `.inst-showcase > svg` only (a plain `svg` rule
+  resized the nested art).
 - Build: main bundle > 4 MiB, so `workbox.maximumFileSizeToCacheInBytes` is
   6 MiB in vite.config.js.
 

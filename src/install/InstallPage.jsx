@@ -8,6 +8,7 @@ import qrcode from 'qrcode-generator';
 import { useLanguage } from '../i18n/LanguageContext';
 import { LanguageToggle } from '../components/LanguageToggle/LanguageToggle';
 import { INSTALL_URL, canPrompt, detectPlatform, isPhoneOrTablet, isStandalone, promptInstall, subscribeInstall } from './pwaInstall';
+import { showcaseSvg } from './showcaseArt';
 import './InstallPage.css';
 
 function ShareIcon() {
@@ -207,6 +208,7 @@ export function InstallPage({ onOpen }) {
             <p className="inst-note">{t('inst.qr.text')}</p>
           </section>
         )}
+        <section className="inst-card inst-showcase" aria-hidden="true" dangerouslySetInnerHTML={{ __html: showcaseSvg() }} />
       </main>
     </div>
   );

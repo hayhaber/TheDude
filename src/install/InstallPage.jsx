@@ -131,102 +131,126 @@ export function InstallPage({ onOpen }) {
     </ol>
   );
 
-  let body;
-  if (standalone || done) {
-    body = (
-      <div className="inst-state">
-        <span className="inst-ok">
-          <CheckIcon />
-        </span>
-        <p>{t(done ? 'inst.done' : 'inst.already')}</p>
-        {standalone && (
-          <button type="button" className="inst-btn is-primary" onClick={onOpen}>
-            {t('inst.open')}
-          </button>
-        )}
-      </div>
-    );
-  } else if (prompt) {
-    body = (
-      <div className="inst-state">
-        <button type="button" className="inst-btn is-primary is-big" onClick={install}>
-          {t('inst.install')}
-        </button>
-        <p className="inst-note">{t('inst.oneTap')}</p>
-      </div>
-    );
-  } else if (platform === 'ios-safari') {
+  // Two screens (user's request 2026-10-21): the page we designed with ONE
+  // Install button, then — only where the browser can't install by itself —
+  // the steps (iPhone/iPad: with the moving demo and the arrow).
+  const [view, setView] = useState('intro');
+  const inApp = platform === 'ios-inapp' || platform === 'android-inapp';
+  const installed = standalone || done;
+  const onInstall = () => {
+    if (prompt) install();
+    else if (!inApp && platform !== 'desktop-other') setView('guide');
+  };
+
+  let guide = null;
+  if (platform === 'ios-safari') {
     // Safari (iOS 26): Share lives in the ••• menu
-    body = steps([
+    guide = steps([
       [<MoreIcon key="m" />, t('inst.ios.0'), t('inst.ios.0.sub')],
       [<ShareIcon key="s" />, t('inst.ios.1'), t('inst.ios.1.sub')],
       [<AddIcon key="a" />, t('inst.ios.2'), t('inst.ios.2.sub')],
       [<CheckIcon key="c" />, t('inst.ios.3'), t('inst.ios.3.sub')],
     ]);
   } else if (platform === 'ios-other') {
-    body = steps([
+    guide = steps([
       [<ShareIcon key="s" />, t('inst.ios.1'), t('inst.iosOther.1.sub')],
       [<AddIcon key="a" />, t('inst.ios.2'), t('inst.ios.2.sub')],
       [<CheckIcon key="c" />, t('inst.ios.3'), t('inst.ios.3.sub')],
     ]);
-  } else if (platform === 'ios-inapp' || platform === 'android-inapp') {
-    body = <p className="inst-warn">{t('inst.inapp')}</p>;
   } else if (platform === 'android') {
-    body = steps([
+    guide = steps([
       [<MenuIcon key="m" />, t('inst.android.1'), t('inst.android.1.sub')],
       [<AddIcon key="a" />, t('inst.android.2')],
       [<CheckIcon key="c" />, t('inst.android.3'), t('inst.android.3.sub')],
     ]);
   } else if (platform === 'mac-safari') {
-    body = steps([
+    guide = steps([
       [<ShareIcon key="s" />, t('inst.mac.1'), t('inst.mac.1.sub')],
       [<CheckIcon key="c" />, t('inst.mac.2')],
     ]);
-  } else if (platform === 'desktop-other') {
-    body = <p className="inst-warn">{t('inst.desktopOther')}</p>;
   } else {
-    body = steps([
+    guide = steps([
       [<MonitorIcon key="d" />, t('inst.desktop.1'), t('inst.desktop.1.sub')],
       [<CheckIcon key="c" />, t('inst.desktop.2')],
     ]);
   }
 
-  const showQr = !isPhoneOrTablet(platform) && !standalone;
-  // iPhone / iPad Safari, not installed yet: the 4-tap demo instead of the wheel
-  const iosDemo = platform === 'ios-safari' && !standalone && !done;
+  const showQr = !isPhoneOrTablet(platform) && !standalone && view === 'intro';
+  const inGuide = view === 'guide' && !installed;
+  // iPhone / iPad Safari guide: the 4-tap demo + the arrow to the real •••
+  const iosDemo = inGuide && platform === 'ios-safari';
+
+  const linkRow = (
+    <div className="inst-link">
+      <span dir="ltr">{INSTALL_URL.replace('https://', '')}</span>
+      <button type="button" className="inst-btn" onClick={copy}>
+        {copied ? t('inst.copied') : t('inst.copy')}
+      </button>
+      {typeof navigator !== 'undefined' && navigator.share && (
+        <button type="button" className="inst-btn" onClick={share}>
+          {t('inst.share')}
+        </button>
+      )}
+    </div>
+  );
 
   return (
-    <div className={'inst-page' + (showQr ? ' has-qr' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+    <div className={'inst-page' + (showQr ? ' has-qr' : '') + (inGuide ? ' is-guide' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
       {iosDemo && <IosArrow />}
       <main className="inst-main">
-        <section className="inst-card inst-guide">
-          <div className="inst-lang">
-            <LanguageToggle />
-          </div>
-          <img className="inst-icon" src="/pwa-192.png" alt="" width="96" height="96" />
-          <h1>{t('inst.title')}</h1>
-          <p className="inst-sub">{t('inst.subtitle')}</p>
-          {body}
-          <div className="inst-link">
-            <span dir="ltr">{INSTALL_URL.replace('https://', '')}</span>
-            <button type="button" className="inst-btn" onClick={copy}>
-              {copied ? t('inst.copied') : t('inst.copy')}
-            </button>
-            {typeof navigator !== 'undefined' && navigator.share && (
-              <button type="button" className="inst-btn" onClick={share}>
-                {t('inst.share')}
+        {!inGuide ? (
+          <section className="inst-card inst-guide">
+            <div className="inst-lang">
+              <LanguageToggle />
+            </div>
+            <img className="inst-icon" src="/pwa-192.png" alt="" width="96" height="96" />
+            <h1>{t('inst.title')}</h1>
+            <p className="inst-sub">{t('inst.subtitle')}</p>
+            {installed ? (
+              <div className="inst-state">
+                <span className="inst-ok">
+                  <CheckIcon />
+                </span>
+                <p>{t(done ? 'inst.done' : 'inst.already')}</p>
+                {standalone && (
+                  <button type="button" className="inst-btn is-primary is-big" onClick={onOpen}>
+                    {t('inst.open')}
+                  </button>
+                )}
+              </div>
+            ) : inApp ? (
+              <>
+                <p className="inst-warn">{t('inst.inapp')}</p>
+                {linkRow}
+              </>
+            ) : platform === 'desktop-other' ? (
+              <p className="inst-warn">{t('inst.desktopOther')}</p>
+            ) : (
+              <div className="inst-state">
+                <button type="button" className="inst-btn is-primary is-big" onClick={onInstall}>
+                  {t('inst.install')}
+                </button>
+                <p className="inst-note">{t(prompt ? 'inst.oneTap' : platform.startsWith('ios') ? 'inst.iosNote' : 'inst.guideNote')}</p>
+              </div>
+            )}
+            {!standalone && (
+              <button type="button" className="inst-open" onClick={onOpen}>
+                {t('inst.open')} {'⁦DudeStar⁩'}
               </button>
             )}
-          </div>
-          {!standalone && (
-            <button type="button" className="inst-open" onClick={onOpen}>
-              {t('inst.open')} {'\u2066DudeStar\u2069'}
+          </section>
+        ) : (
+          <section className="inst-card inst-guide is-steps">
+            <button type="button" className="inst-back" onClick={() => setView('intro')}>
+              <span aria-hidden="true">{lang === 'he' ? '›' : '‹'}</span> {t('inst.back')}
             </button>
-          )}
-        </section>
-        <section className="inst-card inst-showcase">
-          {iosDemo ? <IosGuide onStep={setIosStep} /> : <InstallCarousel />}
-        </section>
+            <h1>{t(platform.startsWith('ios') ? 'inst.guide.ios' : platform === 'android' ? 'inst.guide.android' : 'inst.guide.desktop')}</h1>
+            {guide}
+          </section>
+        )}
+        {(!inGuide || iosDemo) && (
+          <section className="inst-card inst-showcase">{iosDemo ? <IosGuide onStep={setIosStep} /> : <InstallCarousel />}</section>
+        )}
         {showQr && (
           <section className="inst-card inst-qr-card">
             <h2>{t('inst.qr.title')}</h2>

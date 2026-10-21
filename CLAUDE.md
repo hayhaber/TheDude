@@ -891,7 +891,12 @@ on the container; content inside stays top-aligned). Stacked on a phone
   QR code on computers (`qrcode-generator`, MIT). Settings (Tools card) has
   an "Install the app" row (Install when the prompt exists + Guide ->
   /install), hidden inside the installed app. Text `i18n/tips/install.js`.
-  iPhone/iPad SAFARI instead of the wheel: `install/IosGuide.jsx` (user's
+  TWO SCREENS (user's request 2026-10-21): intro = icon, title, ONE Install
+  button + the card wheel (+ QR on computers); Install = the browser's own
+  dialog when `beforeinstallprompt` exists (Android/Chrome/Edge: done in one
+  tap, nothing else shown), otherwise the steps screen (Back returns); in-app
+  browsers / Firefox desktop get their warning on the intro instead.
+  iPhone/iPad SAFARI steps screen, under the list: `install/IosGuide.jsx` (user's
   request 2026-10-21) — a looping drawn "video" of the 4 taps (page ->
   ••• menu -> share sheet -> Add dialog -> icon on the home screen), the
   finger ring placed by MEASURING the scene's `.is-target` element; the list

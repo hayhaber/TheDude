@@ -699,3 +699,47 @@
     font-size: 11.5px;
   }
 }
+
+/* ---- two screens: intro (Install) -> steps ---- */
+.inst-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inst-back span {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.inst-guide.is-steps {
+  gap: 10px;
+}
+
+.inst-guide.is-steps h1 {
+  font-size: 21px;
+  margin-top: -6px;
+}
+
+.inst-guide .inst-state {
+  margin: 4px 0 2px;
+}
+
+.inst-guide .inst-btn.is-big {
+  height: 50px;
+  min-width: 220px;
+}
+
+/* the steps screen without the iPhone demo: the card stands alone */
+.inst-page.is-guide .inst-main {
+  justify-content: flex-start;
+}

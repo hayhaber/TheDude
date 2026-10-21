@@ -135,12 +135,10 @@ export function IosArrow() {
   const ipad = isIpad();
   const mirror = systemRtl();
   return (
-    <div className={'ios-arrow' + (ipad ? ' is-ipad' : '') + (mirror ? ' is-mirrored' : '')} aria-hidden="true">
-      <span>
-        {tx.here} <b>•••</b>
-      </span>
-      <svg viewBox="0 0 24 24">
-        <path d="M12 3v16M5 12l7 7 7-7" />
+    <div className={'ios-arrow' + (ipad ? ' is-ipad' : '') + (mirror ? ' is-mirrored' : '')} aria-label={tx.here + ' •••'} role="img">
+      <span className="ios-arrow-btn">•••</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 9l6 6 6-6" />
       </svg>
     </div>
   );

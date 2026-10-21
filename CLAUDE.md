@@ -897,7 +897,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
   finger ring placed by MEASURING the scene's `.is-target` element; the list
   step it shows is highlighted (`is-now`, onStep); mirrored when the PHONE's
   language is RTL (iOS mirrors its buttons). `IosArrow` = a fixed bouncing
-  "Tap here •••" arrow at the page's bottom corner (iPad: top, pointing up).
+  round ••• button look-alike with a pulsing ring + small chevron at the page's
+  bottom corner (iPad: top, pointing up) — user's call: a circle like the
+  real button, not a text arrow.
   A page can't see taps on Safari's own UI — the guide only shows. The
   ••• position assumes iOS 26's compact bar; NOT verified on a real iPhone.
   Under the guide: `.inst-showcase` = `install/InstallCarousel.jsx` (user's

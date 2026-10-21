@@ -8,7 +8,7 @@ import qrcode from 'qrcode-generator';
 import { useLanguage } from '../i18n/LanguageContext';
 import { LanguageToggle } from '../components/LanguageToggle/LanguageToggle';
 import { INSTALL_URL, canPrompt, detectPlatform, isPhoneOrTablet, isStandalone, promptInstall, subscribeInstall } from './pwaInstall';
-import { InstallCarousel } from './InstallCarousel';
+import { ShowcaseReel } from './ShowcaseReel';
 import { IosGuide, IosArrow } from './IosGuide';
 import './IosGuide.css';
 import './InstallPage.css';
@@ -249,7 +249,7 @@ export function InstallPage({ onOpen }) {
           </section>
         )}
         {(!inGuide || iosDemo) && (
-          <section className="inst-card inst-showcase">{iosDemo ? <IosGuide onStep={setIosStep} /> : <InstallCarousel />}</section>
+          <section className="inst-card inst-showcase">{iosDemo ? <IosGuide onStep={setIosStep} /> : <ShowcaseReel />}</section>
         )}
         {showQr && (
           <section className="inst-card inst-qr-card">

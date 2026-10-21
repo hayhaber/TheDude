@@ -906,14 +906,15 @@ on the container; content inside stays top-aligned). Stacked on a phone
   the ••• in it sits in a white circle like Safari's button (user's call).
   A page can't see taps on Safari's own UI — the guide only shows. The
   ••• position assumes iOS 26's compact bar; NOT verified on a real iPhone.
-  Under the guide: `.inst-showcase` = `install/InstallCarousel.jsx` (user's
-  choice 2026-10-21, replaced a static picture): a mini home-screen wheel of
-  Guitar / Piano / Tools cards (art + name only), 6 slots on the ring (the 3
-  cards twice) so the wrap happens out of sight, 3 in view (neighbours turned
-  33deg), auto-turns (first after 0.9 s, then every 2.1 s) until touched (resumes after 7 s idle), swipe
-  = one card, tap = side card to the middle / middle moves on — NOTHING opens.
-  Cards sized by container units (`.inst-wheel-track` container-type: size,
-  width min(50cqw, 68cqh), aspect .72). The page fits one screen (height 100svh, the
+  Intro screen picture: `.inst-showcase` = `install/ShowcaseReel.jsx` (user's
+  choice 2026-10-21, replaced a card wheel): a self-playing reel of 16 REAL
+  app screenshots (`public/install/*.webp`, 2x captures, ~405 KB; instruments
+  -> learning features -> tools -> studio), each held 1.8 s (`HOLD_MS`),
+  entering from a different place each time (10 `ENTRIES` {dx,dy,r,s} as CSS
+  vars into `@keyframes reel-in`: fade + grow/slide, then slow drift; the old
+  one grows on and fades), caption per language under it, NO progress bar
+  (user removed it), tap = next shot, nothing opens. The old `.inst-wheel*`
+  CSS is unused. The page fits one screen (height 100svh, the
   picture takes the height left; desktop = guide | picture | QR in a row;
   scrolls only under 560px tall); EN/HE pill in the guide card's corner.
   Language = the device language until the visitor picks one (LanguageContext).

@@ -896,7 +896,10 @@ on the container; content inside stays top-aligned). Stacked on a phone
   showing the app, chord bubbles, feature icons, NO text, white card + soft
   shadow) — one inline SVG (viewBox 358x450, art nested as <svg x y w h>),
   so the CSS must target `.inst-showcase > svg` only (a plain `svg` rule
-  resized the nested art).
+  resized the nested art). The page fits one screen (height 100svh, the
+  picture takes the height left; desktop = guide | picture | QR in a row;
+  scrolls only under 560px tall); EN/HE pill in the guide card's corner.
+  Language = the device language until the visitor picks one (LanguageContext).
 - Build: main bundle > 4 MiB, so `workbox.maximumFileSizeToCacheInBytes` is
   6 MiB in vite.config.js.
 

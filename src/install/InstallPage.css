@@ -302,3 +302,197 @@
     max-width: 460px;
   }
 }
+
+/* ---- one screen, no scrolling (user's request 2026-10-21) ---- */
+.inst-page {
+  height: 100svh;
+  min-height: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
+  overflow-y: auto;
+}
+
+.inst-main {
+  height: 100%;
+  min-height: 0;
+  gap: 10px;
+}
+
+.inst-guide {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.inst-lang {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+}
+
+.inst-lang .mode-toggle {
+  transform: scale(0.82);
+  transform-origin: top right;
+}
+
+.inst-card {
+  gap: 8px;
+  padding: 16px 14px 12px;
+  border-radius: 22px;
+}
+
+.inst-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+}
+
+.inst-card h1 {
+  font-size: 22px;
+}
+
+.inst-sub {
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.inst-steps {
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.inst-steps li {
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 14px;
+}
+
+.inst-step-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.inst-step-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.inst-step-icon::before {
+  width: 17px;
+  height: 17px;
+  line-height: 17px;
+  font-size: 10.5px;
+  top: -5px;
+  inset-inline-start: -5px;
+}
+
+.inst-step-text b {
+  font-size: 14.5px;
+}
+
+.inst-step-text span {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.inst-link {
+  padding-top: 8px;
+  gap: 6px;
+}
+
+.inst-link .inst-btn {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.inst-open {
+  font-size: 14px;
+  padding: 0;
+}
+
+/* the picture takes whatever height is left */
+.inst-showcase {
+  flex: 1 1 0;
+  min-height: 120px;
+  padding: 10px;
+  justify-content: center;
+}
+
+.inst-showcase > svg {
+  width: 100%;
+  height: 100%;
+  max-width: 420px;
+  max-height: 100%;
+}
+
+/* computer: guide | picture | QR, side by side, equal heights */
+.inst-page.has-qr .inst-main {
+  max-width: 1180px;
+  height: auto;
+  max-height: 100%;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.8fr);
+  align-content: center;
+}
+
+.inst-page.has-qr .inst-showcase {
+  grid-column: auto;
+  min-height: 0;
+}
+
+.inst-page.has-qr {
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .inst-page.has-qr .inst-main {
+    grid-template-columns: minmax(0, 1fr);
+    height: 100%;
+  }
+  .inst-page.has-qr .inst-qr-card {
+    display: none;
+  }
+}
+
+/* very short screens: let the page scroll rather than squash the guide */
+@media (max-height: 560px) {
+  .inst-page {
+    height: auto;
+    min-height: 100svh;
+  }
+  .inst-showcase {
+    flex: 0 0 auto;
+    height: 260px;
+  }
+}
+
+.inst-page[dir='rtl'] .inst-lang .mode-toggle {
+  transform-origin: top left;
+}
+
+.inst-lang .mode-toggle {
+  width: auto;
+}
+
+/* a small EN / HE pill in the card's corner */
+.inst-page .inst-lang .mode-toggle {
+  transform: none;
+  width: 84px;
+  min-width: 0;
+  padding: 2px;
+}
+
+.inst-page .inst-lang .mode-toggle button {
+  min-height: 0;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11.5px;
+}
+
+.inst-page .inst-lang .mode-toggle {
+  grid-template-columns: 1fr 1fr;
+}
+
+.inst-page .inst-lang .mode-toggle button {
+  min-width: 0;
+  width: auto;
+}

@@ -175,11 +175,11 @@ export function InstallPage({ onOpen }) {
 
   return (
     <div className={'inst-page' + (showQr ? ' has-qr' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
-      <div className="inst-lang">
-        <LanguageToggle />
-      </div>
       <main className="inst-main">
-        <section className="inst-card">
+        <section className="inst-card inst-guide">
+          <div className="inst-lang">
+            <LanguageToggle />
+          </div>
           <img className="inst-icon" src="/pwa-192.png" alt="" width="96" height="96" />
           <h1>{t('inst.title')}</h1>
           <p className="inst-sub">{t('inst.subtitle')}</p>
@@ -201,6 +201,7 @@ export function InstallPage({ onOpen }) {
             </button>
           )}
         </section>
+        <section className="inst-card inst-showcase" aria-hidden="true" dangerouslySetInnerHTML={{ __html: showcaseSvg() }} />
         {showQr && (
           <section className="inst-card inst-qr-card">
             <h2>{t('inst.qr.title')}</h2>
@@ -208,7 +209,6 @@ export function InstallPage({ onOpen }) {
             <p className="inst-note">{t('inst.qr.text')}</p>
           </section>
         )}
-        <section className="inst-card inst-showcase" aria-hidden="true" dangerouslySetInnerHTML={{ __html: showcaseSvg() }} />
       </main>
     </div>
   );

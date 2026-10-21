@@ -9,6 +9,8 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { LanguageToggle } from '../components/LanguageToggle/LanguageToggle';
 import { INSTALL_URL, canPrompt, detectPlatform, isPhoneOrTablet, isStandalone, promptInstall, subscribeInstall } from './pwaInstall';
 import { InstallCarousel } from './InstallCarousel';
+import { IosGuide, IosArrow } from './IosGuide';
+import './IosGuide.css';
 import './InstallPage.css';
 
 function ShareIcon() {
@@ -86,6 +88,7 @@ export function InstallPage({ onOpen }) {
   const [prompt, setPrompt] = useState(canPrompt);
   const [done, setDone] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [iosStep, setIosStep] = useState(0);
   useEffect(
     () =>
       subscribeInstall(() => {
@@ -117,7 +120,7 @@ export function InstallPage({ onOpen }) {
   const steps = (list) => (
     <ol className="inst-steps">
       {list.map(([icon, title, sub], i) => (
-        <li key={i}>
+        <li key={i} className={platform === 'ios-safari' && i === iosStep ? 'is-now' : undefined}>
           <span className="inst-step-icon">{icon}</span>
           <span className="inst-step-text">
             <b>{title}</b>
@@ -189,9 +192,12 @@ export function InstallPage({ onOpen }) {
   }
 
   const showQr = !isPhoneOrTablet(platform) && !standalone;
+  // iPhone / iPad Safari, not installed yet: the 4-tap demo instead of the wheel
+  const iosDemo = platform === 'ios-safari' && !standalone && !done;
 
   return (
     <div className={'inst-page' + (showQr ? ' has-qr' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+      {iosDemo && <IosArrow />}
       <main className="inst-main">
         <section className="inst-card inst-guide">
           <div className="inst-lang">
@@ -219,7 +225,7 @@ export function InstallPage({ onOpen }) {
           )}
         </section>
         <section className="inst-card inst-showcase">
-          <InstallCarousel />
+          {iosDemo ? <IosGuide onStep={setIosStep} /> : <InstallCarousel />}
         </section>
         {showQr && (
           <section className="inst-card inst-qr-card">

@@ -891,6 +891,15 @@ on the container; content inside stays top-aligned). Stacked on a phone
   QR code on computers (`qrcode-generator`, MIT). Settings (Tools card) has
   an "Install the app" row (Install when the prompt exists + Guide ->
   /install), hidden inside the installed app. Text `i18n/tips/install.js`.
+  iPhone/iPad SAFARI instead of the wheel: `install/IosGuide.jsx` (user's
+  request 2026-10-21) — a looping drawn "video" of the 4 taps (page ->
+  ••• menu -> share sheet -> Add dialog -> icon on the home screen), the
+  finger ring placed by MEASURING the scene's `.is-target` element; the list
+  step it shows is highlighted (`is-now`, onStep); mirrored when the PHONE's
+  language is RTL (iOS mirrors its buttons). `IosArrow` = a fixed bouncing
+  "Tap here •••" arrow at the page's bottom corner (iPad: top, pointing up).
+  A page can't see taps on Safari's own UI — the guide only shows. The
+  ••• position assumes iOS 26's compact bar; NOT verified on a real iPhone.
   Under the guide: `.inst-showcase` = `install/InstallCarousel.jsx` (user's
   choice 2026-10-21, replaced a static picture): a mini home-screen wheel of
   Guitar / Piano / Tools cards (art + name only), 6 slots on the ring (the 3

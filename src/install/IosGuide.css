@@ -1,0 +1,405 @@
+/* iPhone / iPad Safari: the looping 4-tap demo + the arrow at the page edge.
+   Physical (a drawn phone), same in light and dark. */
+.ios-guide {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.ios-phone {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 9 / 18.5;
+  max-width: 100%;
+  border-radius: 13% / 6.3%;
+  background: #1c1c1e;
+  padding: 3.2%;
+  box-shadow: 0 12px 28px rgba(40, 30, 90, 0.2);
+  box-sizing: border-box;
+  container-type: size;
+}
+
+.ios-island {
+  position: absolute;
+  top: 3.6%;
+  left: 50%;
+  width: 30%;
+  height: 3.4%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #000;
+  z-index: 9;
+}
+
+.ios-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 11% / 5.4%;
+  overflow: hidden;
+  background: #f2f2f7;
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 6.4cqw;
+  color: #1c1c1e;
+}
+
+/* the web page */
+.ios-page {
+  position: absolute;
+  inset: 0;
+  padding: 26% 9% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5cqw;
+  transition: filter 0.3s ease;
+}
+
+.ios-page-icon {
+  width: 28cqw;
+  height: 28cqw;
+  border-radius: 22%;
+  background: url('/pwa-192.png') center / cover;
+}
+
+.ios-page i {
+  width: 100%;
+  height: 4cqw;
+  border-radius: 2cqw;
+  background: #dcdce2;
+}
+
+.ios-page i.short {
+  width: 60%;
+}
+
+/* Safari's compact bar at the bottom */
+.ios-bar {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 3%;
+  height: 9%;
+  display: flex;
+  align-items: center;
+  gap: 3%;
+  padding: 0 4%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
+}
+
+.ios-bar-back {
+  font-size: 8cqw;
+  line-height: 1;
+  color: #8e8e93;
+}
+
+.ios-bar-url {
+  flex: 1;
+  text-align: center;
+  font-size: 4.8cqw;
+  color: #3c3c43;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: ltr;
+}
+
+.ios-bar-more {
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  color: #0a84ff;
+}
+
+/* shared look of the menu / sheet / dialog */
+.ios-menu,
+.ios-sheet,
+.ios-dialog,
+.ios-home {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+
+.ios-row {
+  display: flex;
+  align-items: center;
+  gap: 4cqw;
+  padding: 4cqw 5cqw;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.14);
+  white-space: nowrap;
+}
+
+.ios-row:last-child {
+  border-bottom: none;
+}
+
+.ios-glyph {
+  width: 8cqw;
+  height: 8cqw;
+  fill: none;
+  stroke: #0a84ff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+}
+
+.ios-menu {
+  right: 5%;
+  bottom: 14%;
+  width: 78%;
+  border-radius: 6cqw;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.22);
+  transform: translateY(10%) scale(0.92);
+  transform-origin: bottom right;
+}
+
+.ios-sheet {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60%;
+  padding: 6cqw 4cqw;
+  border-radius: 8cqw 8cqw 0 0;
+  background: #f2f2f7;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+  transform: translateY(100%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4cqw;
+}
+
+.ios-sheet-apps {
+  display: flex;
+  justify-content: space-around;
+}
+
+.ios-sheet-apps i {
+  width: 14cqw;
+  height: 14cqw;
+  border-radius: 24%;
+  background: linear-gradient(135deg, #34c759, #30b0c7);
+}
+
+.ios-sheet-apps i:nth-child(2) { background: linear-gradient(135deg, #0a84ff, #5e5ce6); }
+.ios-sheet-apps i:nth-child(3) { background: linear-gradient(135deg, #ff9f0a, #ff375f); }
+.ios-sheet-apps i:nth-child(4) { background: linear-gradient(135deg, #8e8e93, #636366); }
+
+.ios-sheet .ios-row {
+  background: #fff;
+  border-radius: 4cqw;
+  border: none;
+}
+
+.ios-dialog {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: #f2f2f7;
+  padding: 16% 5% 0;
+  box-sizing: border-box;
+  transform: translateY(100%);
+}
+
+.ios-dialog-top {
+  display: flex;
+  justify-content: space-between;
+  color: #0a84ff;
+  margin-bottom: 8cqw;
+}
+
+.ios-dialog-app {
+  display: flex;
+  align-items: center;
+  gap: 4cqw;
+  padding: 4cqw;
+  border-radius: 4cqw;
+  background: #fff;
+  font-weight: 600;
+}
+
+.ios-dialog-app img {
+  width: 16cqw;
+  height: 16cqw;
+  border-radius: 22%;
+}
+
+.ios-home {
+  inset: 0;
+  padding: 22% 8% 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-content: start;
+  gap: 7cqw 5cqw;
+  background: linear-gradient(160deg, #5e5ce6 0%, #bf5af2 55%, #ff9f0a 120%);
+  box-sizing: border-box;
+}
+
+.ios-home i,
+.ios-home-icon {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 24%;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.ios-home-icon {
+  background: none;
+  transform: scale(0.2);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- scenes ---- */
+.scene-1 .ios-page,
+.scene-2 .ios-page {
+  filter: brightness(0.82);
+}
+
+.scene-1 .ios-menu {
+  opacity: 1;
+  transform: none;
+}
+
+.scene-2 .ios-sheet {
+  opacity: 1;
+  transform: none;
+}
+
+.scene-3 .ios-dialog {
+  opacity: 1;
+  transform: none;
+}
+
+.scene-4 .ios-home {
+  opacity: 1;
+  transform: none;
+}
+
+.scene-4 .ios-home-icon {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.35s;
+}
+
+.ios-row.is-target,
+.ios-dialog-top .is-target {
+  position: relative;
+}
+
+.scene-1 .ios-menu .is-target,
+.scene-2 .ios-sheet .is-target {
+  background: rgba(10, 132, 255, 0.12);
+}
+
+/* the finger: a ring that taps where each scene needs it */
+.ios-tap {
+  position: absolute;
+  width: 15cqw;
+  height: 15cqw;
+  margin: -7.5cqw 0 0 -7.5cqw;
+  border-radius: 50%;
+  background: rgba(10, 132, 255, 0.28);
+  border: 2px solid rgba(10, 132, 255, 0.9);
+  z-index: 8;
+  transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease;
+  animation: ios-tap 1.2s ease-in-out infinite;
+}
+
+@keyframes ios-tap {
+  0%, 40% { transform: scale(1); }
+  55% { transform: scale(0.72); }
+  75%, 100% { transform: scale(1); }
+}
+
+/* the phone's language is right-to-left: iOS mirrors its buttons */
+.ios-guide.is-mirrored .ios-menu { right: auto; left: 5%; transform-origin: bottom left; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-tap { animation: none; }
+}
+
+/* ---- the arrow at the page's edge, toward Safari's real ••• ---- */
+.ios-arrow {
+  position: fixed;
+  z-index: 40;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  animation: ios-bounce 1.1s ease-in-out infinite;
+}
+
+.ios-arrow span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #0a84ff;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.35);
+}
+
+.ios-arrow svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: #0a84ff;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ios-arrow.is-mirrored {
+  right: auto;
+  left: 14px;
+}
+
+/* iPad: Safari's buttons are at the top right */
+.ios-arrow.is-ipad {
+  bottom: auto;
+  top: calc(env(safe-area-inset-top, 0px) + 4px);
+  flex-direction: column-reverse;
+}
+
+.ios-arrow.is-ipad svg {
+  transform: rotate(180deg);
+}
+
+@keyframes ios-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.ios-arrow.is-ipad { animation-name: ios-bounce-up; }
+
+@keyframes ios-bounce-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* the list step that the demo is showing */
+.inst-steps li {
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.inst-steps li.is-now {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent);
+}

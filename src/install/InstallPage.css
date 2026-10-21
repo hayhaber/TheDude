@@ -673,3 +673,29 @@
 .inst-wheel-card.is-guitar .inst-wheel-art svg {
   height: 104%;
 }
+
+/* short phones (Safari bars showing): drop the subtitle and tighten the
+   steps so the wheel keeps a useful size */
+@media (max-height: 720px) {
+  .inst-sub {
+    display: none;
+  }
+
+  .inst-card h1 {
+    font-size: 20px;
+  }
+
+  .inst-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .inst-steps li {
+    padding: 6px 10px;
+  }
+
+  .inst-step-text span {
+    font-size: 11.5px;
+  }
+}

@@ -43,6 +43,15 @@ function MenuIcon() {
     </svg>
   );
 }
+function MoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="6" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="18" cy="12" r="1.6" />
+    </svg>
+  );
+}
 function MonitorIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -143,9 +152,17 @@ export function InstallPage({ onOpen }) {
         <p className="inst-note">{t('inst.oneTap')}</p>
       </div>
     );
-  } else if (platform === 'ios-safari' || platform === 'ios-other') {
+  } else if (platform === 'ios-safari') {
+    // Safari (iOS 26): Share lives in the ••• menu
     body = steps([
-      [<ShareIcon key="s" />, t('inst.ios.1'), t(platform === 'ios-other' ? 'inst.iosOther.1.sub' : 'inst.ios.1.sub')],
+      [<MoreIcon key="m" />, t('inst.ios.0'), t('inst.ios.0.sub')],
+      [<ShareIcon key="s" />, t('inst.ios.1'), t('inst.ios.1.sub')],
+      [<AddIcon key="a" />, t('inst.ios.2'), t('inst.ios.2.sub')],
+      [<CheckIcon key="c" />, t('inst.ios.3'), t('inst.ios.3.sub')],
+    ]);
+  } else if (platform === 'ios-other') {
+    body = steps([
+      [<ShareIcon key="s" />, t('inst.ios.1'), t('inst.iosOther.1.sub')],
       [<AddIcon key="a" />, t('inst.ios.2'), t('inst.ios.2.sub')],
       [<CheckIcon key="c" />, t('inst.ios.3'), t('inst.ios.3.sub')],
     ]);

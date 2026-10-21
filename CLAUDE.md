@@ -883,7 +883,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   what the device needs (`install/pwaInstall.js detectPlatform()`): Install
   button = the browser's own dialog (`beforeinstallprompt`, caught at start-up
   by `captureInstallPrompt()` in main.jsx) on Android / Chrome / Edge;
-  iPhone/iPad = 3 steps Share -> Add to Home Screen (Apple allows nothing
+  iPhone/iPad Safari = 4 steps ••• -> Share -> Add to Home Screen -> Add (iOS 26 Safari keeps Share in the ••• menu; other iOS browsers 3 steps) (Apple allows nothing
   programmatic; the address is reset to '/' on iOS so the icon opens the
   app); in-app browsers (WhatsApp/Instagram/…) = "open in Safari/Chrome";
   Mac Safari = File -> Add to Dock; Firefox desktop = use Chrome/Edge;

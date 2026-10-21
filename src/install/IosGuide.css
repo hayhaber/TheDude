@@ -345,40 +345,20 @@
   animation: ios-bounce 1.1s ease-in-out infinite;
 }
 
-.ios-arrow-btn {
-  position: relative;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.96);
-  color: #0a84ff;
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-}
-
-/* a ring that keeps pulsing out of the button */
-.ios-arrow-btn::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  border: 2.5px solid #0a84ff;
-  animation: ios-ring 1.4s ease-out infinite;
-}
-
-@keyframes ios-ring {
-  0% { transform: scale(1); opacity: 0.9; }
-  100% { transform: scale(1.55); opacity: 0; }
+.ios-arrow span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #0a84ff;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.35);
 }
 
 .ios-arrow svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: #0a84ff;
   stroke-width: 2.6;
@@ -422,4 +402,32 @@
 .inst-steps li.is-now {
   background: color-mix(in srgb, var(--accent) 12%, var(--surface));
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* the ••• inside "Tap here": drawn as Safari's round button */
+.ios-arrow span b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-inline-start: 4px;
+  border-radius: 50%;
+  background: #fff;
+  color: #0a84ff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  vertical-align: middle;
+}
+
+.ios-arrow span {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 4px 3px 10px;
+}
+
+.ios-arrow.is-mirrored span,
+[dir='rtl'] .ios-arrow span {
+  padding: 3px 10px 3px 4px;
 }

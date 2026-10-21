@@ -922,7 +922,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
   alpha = darkness, so shadows stay and look identical on white); no CSS
   drop-shadow. The page fits one screen (height 100svh, the
   picture takes the height left; desktop = guide | picture | QR in a row;
-  scrolls only under 560px tall); EN/HE pill in the guide card's corner.
+  scrolls only under 560px tall); EN/HE pill in the guide card's top-RIGHT
+  corner in both languages, always EN | HE order (`direction: ltr`; user's rule
+  2026-10-22).
   The text link under Install = "Continue in the browser" (`inst.browser`): iOS
   can't open the installed app from a page, only its home-screen icon is full
   screen (user expected "Open DudeStar" to go full screen, 2026-10-21).

@@ -888,3 +888,17 @@
 .reel-shot {
   filter: none; /* the shots carry their own soft shadows (transparent bg) */
 }
+
+/* the language switch stays top-RIGHT and in the same order in both
+   languages (user's request 2026-10-22) */
+.inst-page .inst-lang {
+  inset-inline-end: auto;
+  left: auto;
+  right: 10px;
+  direction: ltr;
+}
+
+.inst-page .inst-lang .mode-toggle,
+.inst-page[dir='rtl'] .inst-lang .mode-toggle {
+  transform-origin: top right;
+}

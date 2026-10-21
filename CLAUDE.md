@@ -876,6 +876,21 @@ on the container; content inside stays top-aligned). Stacked on a phone
   the iOS long-press callout (Copy/Paste/Look Up) and the tap highlight on
   html/body; input/textarea/contenteditable keep normal selection. Mouse
   devices unchanged.
+- **Install as an app** (user's request 2026-10-21): the app is a PWA
+  (vite-plugin-pwa manifest: id/scope/start_url '/', standalone, icons).
+  `https://the-dude.vercel.app/install` (vercel.json rewrite -> index.html;
+  main.jsx `Root` renders `install/InstallPage.jsx` instead of App) shows only
+  what the device needs (`install/pwaInstall.js detectPlatform()`): Install
+  button = the browser's own dialog (`beforeinstallprompt`, caught at start-up
+  by `captureInstallPrompt()` in main.jsx) on Android / Chrome / Edge;
+  iPhone/iPad = 3 steps Share -> Add to Home Screen (Apple allows nothing
+  programmatic; the address is reset to '/' on iOS so the icon opens the
+  app); in-app browsers (WhatsApp/Instagram/…) = "open in Safari/Chrome";
+  Mac Safari = File -> Add to Dock; Firefox desktop = use Chrome/Edge;
+  already installed (display-mode standalone) = "Open". Copy / Share link,
+  QR code on computers (`qrcode-generator`, MIT). Settings (Tools card) has
+  an "Install the app" row (Install when the prompt exists + Guide ->
+  /install), hidden inside the installed app. Text `i18n/tips/install.js`.
 - Build: main bundle > 4 MiB, so `workbox.maximumFileSizeToCacheInBytes` is
   6 MiB in vite.config.js.
 

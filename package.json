@@ -17,6 +17,7 @@
     "@vercel/blob": "^2.8.0",
     "pdfjs-dist": "^6.2.108",
     "pitchy": "^4.1.0",
+    "qrcode-generator": "^1.4.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "smplr": "^1.0.0",

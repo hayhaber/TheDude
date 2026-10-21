@@ -10,6 +10,7 @@ import { AudioInputSettings } from '../AudioInputSettings/AudioInputSettings';
 import { YoutubeApiKeySettings } from '../YoutubeApiKeySettings/YoutubeApiKeySettings';
 import { KeyboardShortcutsSettings } from '../KeyboardShortcutsSettings/KeyboardShortcutsSettings';
 import { useLeftHanded } from '../Fretboard/handedness';
+import { canPrompt, isStandalone, promptInstall, subscribeInstall } from '../../install/pwaInstall';
 import '../ModeToggle/ModeToggle.css';
 import './SettingsPanel.css';
 
@@ -87,6 +88,32 @@ export function SettingsPanel(settings) {
  * instrument's sound picker (the home screen has no "current" instrument
  * page); otherwise only the instrument in use.
  */
+// "Install the app" — hidden inside the installed app. Install = the
+// browser's own dialog where it has one (Android / Chrome / Edge); Guide =
+// the /install page (iPhone / iPad steps, QR code for a phone).
+function InstallField() {
+  const { t } = useLanguage();
+  const [prompt, setPrompt] = useState(canPrompt);
+  useEffect(() => subscribeInstall(() => setPrompt(canPrompt())), []);
+  if (isStandalone()) return null;
+  return (
+    <div className="settings-field settings-install">
+      <span className="settings-field-label">{t('inst.settings.title')}</span>
+      <span className="settings-install-text">{t('inst.settings.text')}</span>
+      <span className="settings-install-actions">
+        {prompt && (
+          <button type="button" className="settings-install-btn is-primary" onClick={() => promptInstall()}>
+            {t('inst.install')}
+          </button>
+        )}
+        <a className="settings-install-btn" href="/install">
+          {t('inst.settings.page')}
+        </a>
+      </span>
+    </div>
+  );
+}
+
 export function SettingsBody({
   theme,
   onThemeChange,
@@ -111,6 +138,7 @@ export function SettingsBody({
 
   return (
     <div className="settings-drawer-body">
+      <InstallField />
       <div className="settings-field">
         <span className="settings-field-label">{t('languageToggle.label')}</span>
         <LanguageToggle />

@@ -1,4 +1,5 @@
 {
+  "rewrites": [{ "source": "/install", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/soundfont/(.*)",

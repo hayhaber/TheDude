@@ -253,3 +253,35 @@
   box-shadow: none;
   transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0s linear 0.26s;
 }
+
+/* Install the app (hidden inside the installed app) */
+.settings-install-text {
+  flex: 1 1 160px;
+  color: var(--text-secondary);
+}
+
+.settings-install-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.settings-install-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.settings-install-btn.is-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}

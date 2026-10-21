@@ -895,7 +895,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   choice 2026-10-21, replaced a static picture): a mini home-screen wheel of
   Guitar / Piano / Tools cards (art + name only), 6 slots on the ring (the 3
   cards twice) so the wrap happens out of sight, 3 in view (neighbours turned
-  33deg), auto-turns every 3 s until touched (resumes after 7 s idle), swipe
+  33deg), auto-turns (first after 0.9 s, then every 2.1 s) until touched (resumes after 7 s idle), swipe
   = one card, tap = side card to the middle / middle moves on — NOTHING opens.
   Cards sized by container units (`.inst-wheel-track` container-type: size,
   width min(50cqw, 68cqh), aspect .72). The page fits one screen (height 100svh, the

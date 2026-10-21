@@ -1,7 +1,7 @@
 // The picture under the install guide (user's choice 2026-10-21): a small
 // copy of the home screen's card wheel — Guitar, Piano, Tools (art + name
 // only), three in view (the middle one flat, the neighbours turned), turning
-// by itself every 3 s until touched. Touch only turns it: a swipe moves one
+// by itself (first after 0.9 s, then every 2.1 s) until touched. Touch only turns it: a swipe moves one
 // card, a tap on a side card brings it to the middle, a tap on the middle
 // one moves on — nothing opens.
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -22,7 +22,8 @@ const TURN = 33; // degrees, like the home screen
 const SHRINK = 0.14;
 const FADE = 0.45;
 const ANIM_MS = 520;
-const AUTO_MS = 3000;
+const AUTO_MS = 2100; // was 3000 (user: 30 % shorter)
+const FIRST_MS = 900; // the first turn comes sooner
 const IDLE_MS = 7000; // auto-turn resumes this long after a touch
 
 function ringDist(i, pos) {
@@ -91,11 +92,13 @@ export function InstallCarousel() {
   // Turn by itself until the visitor touches it (then again after a pause).
   useEffect(() => {
     if (reduceMotion) return undefined;
-    const id = setInterval(() => {
-      if (document.hidden || drag.current || Date.now() - touchedAt.current < IDLE_MS) return;
-      animateTo(Math.round(posRef.current) + 1);
-    }, AUTO_MS);
-    return () => clearInterval(id);
+    let id;
+    const turn = () => {
+      if (!document.hidden && !drag.current && Date.now() - touchedAt.current >= IDLE_MS) animateTo(Math.round(posRef.current) + 1);
+      id = setTimeout(turn, AUTO_MS);
+    };
+    id = setTimeout(turn, FIRST_MS);
+    return () => clearTimeout(id);
   }, [animateTo, reduceMotion]);
 
   const onPointerDown = (e) => {

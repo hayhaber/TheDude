@@ -235,7 +235,7 @@ export function InstallPage({ onOpen }) {
             )}
             {!standalone && (
               <button type="button" className="inst-open" onClick={onOpen}>
-                {t('inst.open')} {'⁦DudeStar⁩'}
+                {t('inst.browser')}
               </button>
             )}
           </section>

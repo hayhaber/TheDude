@@ -496,3 +496,180 @@
   min-width: 0;
   width: auto;
 }
+
+/* ---- the card wheel (replaces the static picture, 2026-10-21) ---- */
+.inst-showcase {
+  padding: 10px 8px 8px;
+  overflow: hidden;
+}
+
+.inst-wheel {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inst-wheel-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.inst-wheel-track:active {
+  cursor: grabbing;
+}
+
+.inst-wheel-card {
+  grid-area: 1 / 1;
+  /* tall like the home cards, sized by the height left (and the width) */
+  height: 100%;
+  aspect-ratio: 0.72;
+  max-width: 46%;
+  max-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8% 6% 7%;
+  border-radius: 18px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--border), 0 10px 24px rgba(0, 0, 0, 0.1);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.inst-wheel-card b {
+  font-size: clamp(12px, 4.5cqh, 18px);
+  font-weight: 700;
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
+.inst-wheel-track {
+  container-type: size;
+}
+
+.inst-wheel-art {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inst-wheel-art svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: 100%;
+  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.2));
+}
+
+/* the home screen's poses, in a small box */
+.inst-wheel-card.is-guitar .inst-wheel-art svg {
+  height: 112%;
+  transform: rotate(38deg);
+}
+
+.inst-wheel-card.is-piano .inst-wheel-art svg {
+  width: 100%;
+  height: auto;
+  transform: scaleY(0.8) rotate(-8deg);
+}
+
+.inst-wheel-card.is-tools .inst-wheel-art svg {
+  width: 100%;
+  height: auto;
+}
+
+.inst-wheel-dots {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.inst-wheel-dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+}
+
+.inst-wheel-dots button.on {
+  background: var(--text-h);
+}
+
+@media (max-height: 560px) {
+  .inst-showcase {
+    height: 240px;
+  }
+}
+
+.inst-wheel-card {
+  height: auto;
+  max-width: none;
+  max-height: none;
+  width: min(44cqw, 70cqh);
+  aspect-ratio: 0.72;
+}
+
+.inst-wheel-card b {
+  font-size: clamp(12px, 9cqh, 18px);
+}
+
+.inst-showcase {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.inst-wheel {
+  flex: 1 1 auto;
+  height: auto;
+}
+
+.inst-wheel-card {
+  width: min(40cqw, 68cqh);
+}
+
+.inst-wheel-card.is-guitar .inst-wheel-art svg {
+  height: 84%;
+}
+
+.inst-wheel-card {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.inst-wheel-art {
+  flex: 1 1 0;
+  overflow: visible;
+}
+
+.inst-page.has-qr .inst-showcase {
+  min-height: 200px;
+}
+
+.inst-wheel-card {
+  width: min(50cqw, 68cqh);
+}
+
+.inst-wheel-card.is-guitar .inst-wheel-art svg {
+  height: 104%;
+}

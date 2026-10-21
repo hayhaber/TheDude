@@ -891,12 +891,14 @@ on the container; content inside stays top-aligned). Stacked on a phone
   QR code on computers (`qrcode-generator`, MIT). Settings (Tools card) has
   an "Install the app" row (Install when the prompt exists + Guide ->
   /install), hidden inside the installed app. Text `i18n/tips/install.js`.
-  Under the guide: `.inst-showcase` = `install/showcaseArt.js` (user's pick
-  2026-10-21 of 8 mock-ups: the home cards' instrument art + a tilted phone
-  showing the app, chord bubbles, feature icons, NO text, white card + soft
-  shadow) — one inline SVG (viewBox 358x450, art nested as <svg x y w h>),
-  so the CSS must target `.inst-showcase > svg` only (a plain `svg` rule
-  resized the nested art). The page fits one screen (height 100svh, the
+  Under the guide: `.inst-showcase` = `install/InstallCarousel.jsx` (user's
+  choice 2026-10-21, replaced a static picture): a mini home-screen wheel of
+  Guitar / Piano / Tools cards (art + name only), 6 slots on the ring (the 3
+  cards twice) so the wrap happens out of sight, 3 in view (neighbours turned
+  33deg), auto-turns every 3 s until touched (resumes after 7 s idle), swipe
+  = one card, tap = side card to the middle / middle moves on — NOTHING opens.
+  Cards sized by container units (`.inst-wheel-track` container-type: size,
+  width min(50cqw, 68cqh), aspect .72). The page fits one screen (height 100svh, the
   picture takes the height left; desktop = guide | picture | QR in a row;
   scrolls only under 560px tall); EN/HE pill in the guide card's corner.
   Language = the device language until the visitor picks one (LanguageContext).

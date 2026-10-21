@@ -8,7 +8,7 @@ import qrcode from 'qrcode-generator';
 import { useLanguage } from '../i18n/LanguageContext';
 import { LanguageToggle } from '../components/LanguageToggle/LanguageToggle';
 import { INSTALL_URL, canPrompt, detectPlatform, isPhoneOrTablet, isStandalone, promptInstall, subscribeInstall } from './pwaInstall';
-import { showcaseSvg } from './showcaseArt';
+import { InstallCarousel } from './InstallCarousel';
 import './InstallPage.css';
 
 function ShareIcon() {
@@ -201,7 +201,9 @@ export function InstallPage({ onOpen }) {
             </button>
           )}
         </section>
-        <section className="inst-card inst-showcase" aria-hidden="true" dangerouslySetInnerHTML={{ __html: showcaseSvg() }} />
+        <section className="inst-card inst-showcase">
+          <InstallCarousel />
+        </section>
         {showQr && (
           <section className="inst-card inst-qr-card">
             <h2>{t('inst.qr.title')}</h2>

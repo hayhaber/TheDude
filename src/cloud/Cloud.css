@@ -1,0 +1,143 @@
+/* Account + sync (cloud/) */
+.cloud-g {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.settings-install-btn.cloud-google {
+  gap: 8px;
+}
+
+.settings-install-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.settings-install-btn.cloud-danger {
+  border-color: #d93025;
+  background: #d93025;
+  color: #fff;
+}
+
+.cloud-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cloud-email {
+  color: var(--text-h);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cloud-sub {
+  font-size: 0.9em;
+}
+
+.cloud-sub.is-error {
+  color: #d93025;
+}
+
+.cloud-delete-link {
+  flex: 1 0 100%;
+  justify-content: flex-start;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.88em;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  text-align: start;
+}
+
+.cloud-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.cloud-modal {
+  width: min(400px, 100%);
+  padding: 22px 20px 18px;
+  border-radius: 20px;
+  background: var(--surface, #fff);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.cloud-modal h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  color: var(--text-h);
+}
+
+.cloud-modal p {
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.cloud-modal-note {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.cloud-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.cloud-modal-btn {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cloud-modal-btn.is-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.cloud-toast {
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(28, 28, 30, 0.92);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: cloud-toast-in 260ms ease both;
+}
+
+@keyframes cloud-toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

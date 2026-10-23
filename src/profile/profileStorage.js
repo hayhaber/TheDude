@@ -65,6 +65,46 @@ const nsKey = (id, key) => `${NS}${id}:${key}`;
 // ---------------------------------------------------------------------------
 
 let installed = false;
+const changeListeners = new Set();
+let muted = false;
+
+function notifyChange(key) {
+  if (typeof key !== 'string' || key.startsWith(NS)) return;
+  changeListeners.forEach((fn) => {
+    try {
+      fn(key);
+    } catch {
+      /* a listener must never break a write */
+    }
+  });
+}
+
+/** fn(key) after a write that changed a (logical, un-namespaced) key. */
+export function onStorageChange(fn) {
+  changeListeners.add(fn);
+  return () => changeListeners.delete(fn);
+}
+
+/** Write a logical key WITHOUT telling onStorageChange listeners (cloud pulls). null = remove. */
+export function writeSilently(key, value) {
+  muted = true;
+  try {
+    if (value == null) window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, value);
+  } finally {
+    muted = false;
+  }
+}
+
+export function activeProfileId() {
+  return activeId;
+}
+
+/** Logical names of the active profile's personal keys. */
+export function personalLogicalKeys() {
+  const pre = activeId ? `${NS}${activeId}:` : null;
+  return pre ? personalKeys(activeId).map((k) => k.slice(pre.length)) : [];
+}
 let store = null; // window.localStorage
 let raw = null; // the original Storage methods
 let activeId = null; // the profile THIS page uses (fixed until a reload)
@@ -177,11 +217,22 @@ export function installProfileStorage() {
   Storage.prototype.getItem = function getItem(key) {
     return get.call(this, map(this, key));
   };
+  // Writes that really change a value are reported to onStorageChange()
+  // listeners (cloud sync marks them for upload); a write of the same value
+  // (hooks re-saving their state on mount) is not a change.
   Storage.prototype.setItem = function setItem(key, value) {
-    return set.call(this, map(this, key), value);
+    const k = map(this, key);
+    const before = this === store && changeListeners.size && !muted ? get.call(this, k) : undefined;
+    const out = set.call(this, k, value);
+    if (before !== undefined && before !== String(value)) notifyChange(key);
+    return out;
   };
   Storage.prototype.removeItem = function removeItem(key) {
-    return remove.call(this, map(this, key));
+    const k = map(this, key);
+    const before = this === store && changeListeners.size && !muted ? get.call(this, k) : undefined;
+    const out = remove.call(this, k);
+    if (before !== undefined && before !== null) notifyChange(key);
+    return out;
   };
   installed = true;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { CloudField } from '../../cloud/CloudField';
 import { LibraryBar } from '../LickTrainer/LickTrainer';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -138,6 +139,7 @@ export function SettingsBody({
 
   return (
     <div className="settings-drawer-body">
+      <CloudField />
       <InstallField />
       <div className="settings-field">
         <span className="settings-field-label">{t('languageToggle.label')}</span>

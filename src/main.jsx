@@ -11,6 +11,8 @@ import { unlockAudioContextOnFirstGesture } from './audio/audioContext.js'
 import { installMicSessionGuard } from './audio/micSession.js'
 import { captureInstallPrompt, detectPlatform } from './install/pwaInstall.js'
 import { InstallPage } from './install/InstallPage.jsx'
+import { startCloud } from './cloud/cloudState.js'
+import { CloudPrompt } from './cloud/CloudPrompt.jsx'
 
 // The browser's "install this app" event fires once, early: keep it for the
 // Install buttons (install/pwaInstall.js).
@@ -52,6 +54,10 @@ if ('serviceWorker' in navigator) {
 const startOnInstall = /^\/install\/?$/.test(window.location.pathname)
 if (startOnInstall && detectPlatform().startsWith('ios')) window.history.replaceState(null, '', '/')
 
+// Sync with the user's account (cloud/): only loads when this profile is
+// linked, or when the Google sign-in redirect comes back.
+startCloud()
+
 function Root() {
   const [install, setInstall] = useState(startOnInstall)
   if (install)
@@ -67,6 +73,7 @@ function Root() {
     <InstrumentProvider>
       <InfoTooltipsProvider>
         <App />
+        <CloudPrompt />
       </InfoTooltipsProvider>
     </InstrumentProvider>
   )

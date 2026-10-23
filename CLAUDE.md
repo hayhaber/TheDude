@@ -932,6 +932,52 @@ on the container; content inside stays top-aligned). Stacked on a phone
 - Build: main bundle > 4 MiB, so `workbox.maximumFileSizeToCacheInBytes` is
   6 MiB in vite.config.js.
 
+## Cloud sync between devices (built 2026-10-23)
+
+- Supabase project `dudestar` (org dudestar, account dudestar365@gmail.com,
+  eu-west-1), URL `https://fcisgnpdpjgayptiurkc.supabase.co`, publishable key
+  in `src/cloud/cloudState.js` (public by design). The SECRET key and the DB
+  password are the user's only — never ask for them or put them in the repo.
+  Schema = `supabase/migrations/001_user_kv.sql` (run once in the SQL Editor
+  by the user; the auto-mode classifier refuses running SQL on the prod DB
+  from the browser): table `user_kv` (user_id, key, value text, deleted,
+  updated_at = server clock via trigger, user_id forced to auth.uid()), RLS
+  own-rows-only, anon revoked, `delete_my_account()` rpc. Verified: anon
+  read -> 401 permission denied.
+- Auth: Google only (Supabase Google provider; Google Cloud project
+  `dudestar`, OAuth client "DudeStar web", origin https://the-dude.vercel.app,
+  redirect https://fcisgnpdpjgayptiurkc.supabase.co/auth/v1/callback; consent
+  screen External, IN TESTING mode -> only test users can sign in until the
+  user publishes it). Supabase Site URL https://the-dude.vercel.app, redirect
+  allow-list https://the-dude.vercel.app/**. Email login NOT set up (the
+  built-in Supabase mailer only sends to team members; needs custom SMTP).
+- A LOCAL PROFILE is linked to an account (one Supabase session per profile:
+  `storageKey` `dudestar-cloud-auth:<profileId>`). Synced = the profile's
+  personal keys (profileStorage) + `SYNCED_SETTINGS` (left-handed, sound
+  profiles, piano volume, info switch, tuner tuning, piano labels); not
+  `dudestar-p-rec-project`; values > 1.9 MB stay local. Recordings /
+  IndexedDB are NOT synced (Drive backup = planned step 2).
+- profileStorage's patched setItem/removeItem report REAL changes (value
+  differs) to `onStorageChange`; `writeSilently` writes without reporting.
+  cloudState (light, at boot via profile/install.js): dirty set per profile,
+  `applyPendingAtBoot()` writes rows pulled last session BEFORE the app
+  reads storage. cloudSync.js (lazy chunk ~57 KB gz, loaded only when linked
+  or returning from Google): push dirty 4 s after a change and on hide; pull
+  (`updated_at > lastPull`) on start / visible / every 5 min; a dirty key is
+  never overwritten. Pull right after opening (no tap yet, < 6 s) = apply +
+  reload; later = pending for the next start (writing under running hooks
+  would be overwritten by their in-memory state). Conflicts = last change
+  per key wins (two devices editing the same list offline: one wins).
+- First link: account empty -> upload this device; this device has no real
+  data ([] / {} defaults don't count) -> take the account's; both -> the
+  CloudPrompt modal "Account | Device" (winner where both have a key;
+  one-sided keys kept), then reload. UI: Settings -> "Your account"
+  (`CloudField`: Sign in / synced as / Sync / Disconnect / Delete account).
+  Text `i18n/tips/cloud.js`. Test with a fake Supabase via Playwright
+  page.route (scratchpad cloud1.cjs: 3 devices, push / pull / pending /
+  choose) — the container can't reach supabase.co.
+- iPhone installed app (standalone) + Google redirect is NOT verified yet.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

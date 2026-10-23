@@ -253,12 +253,39 @@ export async function deleteAccount() {
 
 export const syncNowFromUi = () => syncNow();
 
+let attached = false;
+function attach() {
+  if (attached) return;
+  attached = true;
+  setPushHandler(schedulePush);
+  document.addEventListener('visibilitychange', () => {
+    if (!getLink()) return;
+    if (document.visibilityState === 'visible') syncNow();
+    else if (Object.keys(getDirty()).length) push().catch(() => {});
+  });
+  setInterval(() => {
+    if (getLink() && document.visibilityState === 'visible') syncNow();
+  }, POLL_MS);
+}
+
+/** A session is in hand (Google redirect, password, email code): link or sync. */
+async function onSession(session, { fresh: isFresh = false } = {}) {
+  attach();
+  const linked = getLink();
+  if (!linked || linked.userId !== session.user.id) {
+    if (linked) clearLinkData(); // a different account than before
+    await link(session);
+  } else {
+    await syncNow({ reloadIfFresh: isFresh });
+  }
+}
+
 let booted = false;
 /** Called once (cloudState.startCloud) when this profile is linked or a sign-in is returning. */
 export async function boot() {
   if (booted) return;
   booted = true;
-  setPushHandler(schedulePush);
+  attach();
   const returning = localStorage.getItem(signingKey());
   try {
     const { data } = await sb().auth.getSession(); // also exchanges ?code= after the Google redirect
@@ -276,21 +303,82 @@ export async function boot() {
       else if (returning) setCloudState({ status: 'error', error: 'signin' });
       return;
     }
-    const linked = getLink();
-    if (!linked || linked.userId !== session.user.id) {
-      if (linked) clearLinkData(); // a different account than before
-      await link(session);
-    } else {
-      await syncNow({ reloadIfFresh: true });
-    }
+    await onSession(session, { fresh: true });
   } catch (e) {
     setCloudState({ status: 'error', error: e?.message || 'boot' });
   }
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') syncNow();
-    else if (Object.keys(getDirty()).length) push().catch(() => {});
-  });
-  setInterval(() => {
-    if (document.visibilityState === 'visible') syncNow();
-  }, POLL_MS);
+}
+
+// ---- email + password -------------------------------------------------------
+// Emails carry a CODE (the templates use {{ .Token }}), not a link: a link
+// opened in another browser (the Gmail app, the installed app on iPhone)
+// couldn't finish a PKCE sign-in. Each function resolves to
+// { ok } | { next: 'code' | 'newPassword' } | { error: <cloud.err.* key> }.
+
+function errKey(error) {
+  const m = `${error?.code || ''} ${error?.message || ''}`.toLowerCase();
+  if (/invalid_credentials|invalid login/.test(m)) return 'cloud.err.credentials';
+  if (/email_not_confirmed|not confirmed/.test(m)) return 'cloud.err.unconfirmed';
+  if (/user_already_exists|already registered/.test(m)) return 'cloud.err.exists';
+  if (/weak_password|password should|at least/.test(m)) return 'cloud.err.weak';
+  if (/otp_expired|token has expired|invalid.*(otp|token)|expired/.test(m)) return 'cloud.err.code';
+  if (/rate|too many|security purposes/.test(m)) return 'cloud.err.rate';
+  if (/email_address_invalid|invalid email|unable to validate email/.test(m)) return 'cloud.err.email';
+  if (/fetch|network|failed to/.test(m)) return 'cloud.err.network';
+  return 'cloud.err.generic';
+}
+
+async function finish(session) {
+  try {
+    await onSession(session);
+    return { ok: true };
+  } catch (e) {
+    return { error: errKey(e) };
+  }
+}
+
+export async function emailSignIn(email, password) {
+  const { data, error } = await sb().auth.signInWithPassword({ email, password });
+  if (error) {
+    if (errKey(error) === 'cloud.err.unconfirmed') {
+      await sb().auth.resend({ type: 'signup', email });
+      return { next: 'code', type: 'signup' };
+    }
+    return { error: errKey(error) };
+  }
+  return finish(data.session);
+}
+
+export async function emailSignUp(email, password) {
+  const { data, error } = await sb().auth.signUp({ email, password });
+  if (error) return { error: errKey(error) };
+  if (data.session) return finish(data.session); // confirmation turned off in the project
+  // An existing, confirmed address comes back with no identities (no email is sent).
+  if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length) return { error: 'cloud.err.exists' };
+  return { next: 'code', type: 'signup' };
+}
+
+export async function emailVerify(email, code, type) {
+  const { data, error } = await sb().auth.verifyOtp({ email, token: code.trim(), type });
+  if (error) return { error: errKey(error) };
+  if (type === 'recovery') return { next: 'newPassword' }; // signed in; now choose a new password
+  return finish(data.session);
+}
+
+export async function emailForgot(email) {
+  const { error } = await sb().auth.resetPasswordForEmail(email);
+  if (error) return { error: errKey(error) };
+  return { next: 'code', type: 'recovery' };
+}
+
+export async function emailNewPassword(password) {
+  const { error } = await sb().auth.updateUser({ password });
+  if (error) return { error: errKey(error) };
+  const { data } = await sb().auth.getSession();
+  return data?.session ? finish(data.session) : { error: 'cloud.err.generic' };
+}
+
+export async function emailResend(email, type) {
+  const { error } = type === 'recovery' ? await sb().auth.resetPasswordForEmail(email) : await sb().auth.resend({ type: 'signup', email });
+  return error ? { error: errKey(error) } : { ok: true };
 }

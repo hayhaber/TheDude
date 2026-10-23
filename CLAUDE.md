@@ -977,6 +977,12 @@ on the container; content inside stays top-aligned). Stacked on a phone
   page.route (scratchpad cloud1.cjs: 3 devices, push / pull / pending /
   choose) — the container can't reach supabase.co.
 - iPhone installed app (standalone) + Google redirect is NOT verified yet.
+- Email + password (`cloud/EmailAuth.jsx`, cloudSync `email*`): register /
+  sign in / forgot; emails carry a 6-digit CODE ({{ .Token }}, verifyOtp
+  'signup' / 'recovery'), not a link (a link opened in another browser can't
+  finish PKCE). Sender = Gmail SMTP (smtp.gmail.com:465, dudestar365@gmail.com,
+  Google app password typed by the user only). Hidden behind
+  `EMAIL_AUTH_ENABLED` in CloudField.jsx until SMTP + templates are verified.
 
 ## ⓘ explanations (info switch)
 

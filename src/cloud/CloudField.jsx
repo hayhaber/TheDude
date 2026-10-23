@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getLink, loadCloud } from './cloudState';
 import { useCloud } from './useCloud';
+import { EmailAuth } from './EmailAuth';
 import './Cloud.css';
+
+// Email + password sign-in: off until the Gmail SMTP sender is saved in
+// Supabase and the code emails are verified (2026-10-23).
+const EMAIL_AUTH_ENABLED = false;
 
 export function GoogleG() {
   return (
@@ -13,6 +18,15 @@ export function GoogleG() {
       <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
       <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
       <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.3-.4-3.5z" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg className="cloud-g" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m4 7 8 6 8-6" />
     </svg>
   );
 }
@@ -31,6 +45,7 @@ export function CloudField() {
   const cloud = useCloud();
   const now = useNow(30000);
   const [confirm, setConfirm] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
   const link = getLink();
   const email = cloud.email || link?.email;
   const signIn = () => loadCloud().then((m) => m.signIn());
@@ -44,28 +59,29 @@ export function CloudField() {
   };
 
   let body;
-  if (!link || !email) {
+  const choices = (
+    <span className="settings-install-actions">
+      <button type="button" className="settings-install-btn cloud-google" onClick={signIn}>
+        <GoogleG />
+        {t('cloud.google')}
+      </button>
+      {EMAIL_AUTH_ENABLED && (
+      <button type="button" className={'settings-install-btn' + (emailOpen ? ' is-on' : '')} onClick={() => setEmailOpen((v) => !v)} aria-expanded={emailOpen}>
+        <MailIcon />
+        {t('cloud.withEmail')}
+      </button>
+      )}
+    </span>
+  );
+  if (!link || !email || cloud.status === 'signedOut') {
+    const signedOut = link && email && cloud.status === 'signedOut';
     body = (
       <>
-        <span className="settings-install-text">{cloud.error === 'signin' ? t('cloud.errorSignin') : t('cloud.intro')}</span>
-        <span className="settings-install-actions">
-          <button type="button" className="settings-install-btn cloud-google" onClick={signIn}>
-            <GoogleG />
-            {t('cloud.signIn')}
-          </button>
+        <span className="settings-install-text">
+          {signedOut ? t('cloud.expired', { email }) : cloud.error === 'signin' ? t('cloud.errorSignin') : t('cloud.intro')}
         </span>
-      </>
-    );
-  } else if (cloud.status === 'signedOut') {
-    body = (
-      <>
-        <span className="settings-install-text">{t('cloud.expired', { email })}</span>
-        <span className="settings-install-actions">
-          <button type="button" className="settings-install-btn cloud-google" onClick={signIn}>
-            <GoogleG />
-            {t('cloud.signIn')}
-          </button>
-        </span>
+        {choices}
+        {emailOpen && <EmailAuth onDone={() => setEmailOpen(false)} />}
       </>
     );
   } else if (confirm) {

@@ -9,7 +9,7 @@ import './Cloud.css';
 
 // Email + password sign-in: off until the Gmail SMTP sender is saved in
 // Supabase and the code emails are verified (2026-10-23).
-const EMAIL_AUTH_ENABLED = false;
+const EMAIL_AUTH_ENABLED = true;
 
 export function GoogleG() {
   return (
@@ -66,7 +66,7 @@ export function CloudField() {
         {t('cloud.google')}
       </button>
       {EMAIL_AUTH_ENABLED && (
-      <button type="button" className={'settings-install-btn' + (emailOpen ? ' is-on' : '')} onClick={() => setEmailOpen((v) => !v)} aria-expanded={emailOpen}>
+      <button type="button" className={'settings-install-btn cloud-mail' + (emailOpen ? ' is-on' : '')} onClick={() => setEmailOpen((v) => !v)} aria-expanded={emailOpen}>
         <MailIcon />
         {t('cloud.withEmail')}
       </button>

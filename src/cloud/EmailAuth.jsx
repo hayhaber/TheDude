@@ -49,6 +49,9 @@ export function EmailAuth({ onDone }) {
     e.preventDefault();
     if (busy) return;
     const em = email.trim();
+    if ((mode === 'signin' || mode === 'signup' || mode === 'forgot') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return setError('cloud.err.email');
+    if (mode === 'signin' && !password) return setError('cloud.err.credentials');
+    if (mode === 'code' && code.length < 6) return setError('cloud.err.code');
     if (mode === 'signin') run('emailSignIn', em, password);
     else if (mode === 'signup') {
       if (password.length < 8) return setError('cloud.err.weak');
@@ -101,7 +104,7 @@ export function EmailAuth({ onDone }) {
   const primary = { signin: 'cloud.signIn', signup: 'cloud.register', forgot: 'cloud.send', code: 'cloud.confirm', newPassword: 'cloud.save' }[mode];
 
   return (
-    <form className="cloud-form" onSubmit={submit} noValidate={false}>
+    <form className="cloud-form" onSubmit={submit} noValidate>
       {mode === 'forgot' && <p className="cloud-form-text">{t('cloud.forgotText')}</p>}
       {mode === 'code' && <p className="cloud-form-text">{t('cloud.codeSent', { email: email.trim() })}</p>}
       {mode === 'newPassword' && <p className="cloud-form-text">{t('cloud.newPasswordText')}</p>}

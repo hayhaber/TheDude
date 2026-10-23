@@ -950,7 +950,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   screen External, IN TESTING mode -> only test users can sign in until the
   user publishes it). Supabase Site URL https://the-dude.vercel.app, redirect
   allow-list https://the-dude.vercel.app/**. Email login NOT set up (the
-  built-in Supabase mailer only sends to team members; needs custom SMTP).
+  built-in Supabase mailer only sends to team members) -> see email below.
 - A LOCAL PROFILE is linked to an account (one Supabase session per profile:
   `storageKey` `dudestar-cloud-auth:<profileId>`). Synced = the profile's
   personal keys (profileStorage) + `SYNCED_SETTINGS` (left-handed, sound
@@ -981,8 +981,12 @@ on the container; content inside stays top-aligned). Stacked on a phone
   sign in / forgot; emails carry a 6-digit CODE ({{ .Token }}, verifyOtp
   'signup' / 'recovery'), not a link (a link opened in another browser can't
   finish PKCE). Sender = Gmail SMTP (smtp.gmail.com:465, dudestar365@gmail.com,
-  Google app password typed by the user only). Hidden behind
-  `EMAIL_AUTH_ENABLED` in CloudField.jsx until SMTP + templates are verified.
+  Google app password typed by the user only; SMTP saved 2026-10-24).
+  Templates "Confirm sign up" + "Reset password" = HE+EN body with
+  {{ .Token }} (no link). Email provider: confirm email ON, min password 8,
+  OTP length 6 (was 8), expiry 3600 s. `EMAIL_AUTH_ENABLED` = true in
+  CloudField.jsx. Gmail SMTP limit ~500 mails/day. Real delivery NOT yet
+  confirmed by a test sign-up (the user does it — no account creation by Claude).
 
 ## ⓘ explanations (info switch)
 

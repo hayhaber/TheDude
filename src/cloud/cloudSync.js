@@ -287,20 +287,30 @@ export async function boot() {
   booted = true;
   attach();
   const returning = localStorage.getItem(signingKey());
+  // What Google / Supabase sent back, kept for the error notice (query or hash).
+  let reason = '';
   try {
-    const { data } = await sb().auth.getSession(); // also exchanges ?code= after the Google redirect
+    const u = new URL(window.location.href);
+    const h = new URLSearchParams(u.hash.replace(/^#/, ''));
+    reason = u.searchParams.get('error_description') || h.get('error_description') || u.searchParams.get('error') || h.get('error') || '';
+  } catch {
+    /* ignore */
+  }
+  try {
+    const { data, error: sessionError } = await sb().auth.getSession(); // also exchanges ?code= after the Google redirect
+    if (sessionError && !reason) reason = sessionError.message || String(sessionError);
     if (returning) {
       localStorage.removeItem(signingKey());
       const url = new URL(window.location.href);
       if (url.searchParams.has('code') || url.searchParams.has('error')) {
         for (const p of ['code', 'error', 'error_code', 'error_description', 'state']) url.searchParams.delete(p);
-        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+        window.history.replaceState(null, '', url.pathname + url.search);
       }
     }
     const session = data?.session;
     if (!session) {
       if (getLink()) setCloudState({ status: 'signedOut' }); // session expired / revoked: ask to sign in again
-      else if (returning) setCloudState({ status: 'error', error: 'signin' });
+      else if (returning) setCloudState({ status: 'error', error: 'signin', errorDetail: reason.replace(/\+/g, ' ').slice(0, 160) || 'no session' });
       return;
     }
     await onSession(session, { fresh: true });

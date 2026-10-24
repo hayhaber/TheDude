@@ -241,3 +241,11 @@
 .settings-install-btn.cloud-mail {
   gap: 8px;
 }
+
+.cloud-toast-detail {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+}

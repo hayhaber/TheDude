@@ -39,8 +39,13 @@ export function CloudPrompt() {
   const text = cloud.notice === 'uploaded' ? t('cloud.uploaded') : cloud.error === 'signin' ? t('cloud.errorSignin') : null;
   if (!text) return null;
   return (
-    <div className="cloud-toast" role="status" dir={dir}>
+    <div className="cloud-toast" role="status" dir={dir} onClick={() => setCloudState({ error: null, notice: null })}>
       {text}
+      {cloud.error === 'signin' && cloud.errorDetail && (
+        <span className="cloud-toast-detail" dir="ltr">
+          {cloud.errorDetail}
+        </span>
+      )}
     </div>
   );
 }

@@ -131,6 +131,9 @@ export function CloudField() {
     <div className="settings-field settings-install cloud-field">
       <span className="settings-field-label">{t('cloud.title')}</span>
       {body}
+      <a className="cloud-privacy" href="/privacy">
+        {t('cloud.privacy')}
+      </a>
     </div>
   );
 }

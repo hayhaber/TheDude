@@ -249,3 +249,10 @@
   opacity: 0.75;
   overflow-wrap: anywhere;
 }
+
+.cloud-privacy {
+  flex: 1 0 100%;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  text-underline-offset: 2px;
+}

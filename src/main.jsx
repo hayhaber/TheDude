@@ -13,6 +13,7 @@ import { captureInstallPrompt, detectPlatform } from './install/pwaInstall.js'
 import { InstallPage } from './install/InstallPage.jsx'
 import { startCloud } from './cloud/cloudState.js'
 import { CloudPrompt } from './cloud/CloudPrompt.jsx'
+import { PrivacyPage } from './privacy/PrivacyPage.jsx'
 
 // The browser's "install this app" event fires once, early: keep it for the
 // Install buttons (install/pwaInstall.js).
@@ -58,8 +59,21 @@ if (startOnInstall && detectPlatform().startsWith('ios')) window.history.replace
 // linked, or when the Google sign-in redirect comes back.
 startCloud()
 
+// /privacy = the privacy policy (privacy/PrivacyPage.jsx); Back -> the app.
+const startOnPrivacy = /^\/privacy\/?$/.test(window.location.pathname)
+
 function Root() {
   const [install, setInstall] = useState(startOnInstall)
+  const [privacy, setPrivacy] = useState(startOnPrivacy)
+  if (privacy)
+    return (
+      <PrivacyPage
+        onBack={() => {
+          window.history.replaceState(null, '', '/')
+          setPrivacy(false)
+        }}
+      />
+    )
   if (install)
     return (
       <InstallPage

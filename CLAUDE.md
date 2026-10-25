@@ -977,6 +977,17 @@ on the container; content inside stays top-aligned). Stacked on a phone
   page.route (scratchpad cloud1.cjs: 3 devices, push / pull / pending /
   choose) — the container can't reach supabase.co.
 - iPhone installed app (standalone) + Google redirect is NOT verified yet.
+  First real try (2026-10-24) failed because the consent screen was in
+  Testing with 0 test users; the failure toast now shows Google/Supabase's
+  `error_description` (CloudPrompt, `errorDetail`).
+- **Privacy policy** `/privacy` (vercel.json rewrite, main.jsx `Root` ->
+  `privacy/PrivacyPage.jsx`, HE + EN, user-approved 2026-10-25: NO operator
+  name — "for any matter contact dudestar365@gmail.com"; minors may open an
+  account with a parent's consent). Linked from CloudField. Needed for the
+  Google consent screen's Branding (home page, privacy link, authorized
+  domain the-dude.vercel.app) before Publish app. Keep it true to what the
+  app does (no analytics, mic audio never leaves the device, recordings
+  not synced, Supabase in Ireland) — update it with any change to that.
 - Email + password (`cloud/EmailAuth.jsx`, cloudSync `email*`): register /
   sign in / forgot; emails carry a 6-digit CODE ({{ .Token }}, verifyOtp
   'signup' / 'recovery'), not a link (a link opened in another browser can't

@@ -947,8 +947,9 @@ on the container; content inside stays top-aligned). Stacked on a phone
 - Auth: Google only (Supabase Google provider; Google Cloud project
   `dudestar`, OAuth client "DudeStar web", origin https://the-dude.vercel.app,
   redirect https://fcisgnpdpjgayptiurkc.supabase.co/auth/v1/callback; consent
-  screen External, IN TESTING mode -> only test users can sign in until the
-  user publishes it). Supabase Site URL https://the-dude.vercel.app, redirect
+  screen External; Branding filled (home page, /privacy, authorized domains
+  the-dude.vercel.app + the supabase.co project host) and the user reported
+  it PUBLISHED on 2026-10-25 — anyone with a Google account can sign in). Supabase Site URL https://the-dude.vercel.app, redirect
   allow-list https://the-dude.vercel.app/**. Email login NOT set up (the
   built-in Supabase mailer only sends to team members) -> see email below.
 - A LOCAL PROFILE is linked to an account (one Supabase session per profile:

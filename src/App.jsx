@@ -17,6 +17,7 @@ import { PianoChordLibraryView } from './components/ChordLibrary/PianoChordLibra
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
 import { CoachView } from './components/Coach/CoachView';
 import { CoachBanner } from './components/Coach/CoachBanner';
+import { TeacherView } from './components/Teacher/TeacherView';
 import { useCoach } from './coach/useCoach';
 import { NoteColorLegend } from './components/NoteColorLegend/NoteColorLegend';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './music/chordSymbolParser';
@@ -746,6 +747,10 @@ function App() {
   const [chordLibStage, setChordLibStage] = useState(null);
   // Studies -> Chord Structure: the shape it shows on the neck ({position, tuning, labelMode} | null)
   const [chordBuilderStage, setChordBuilderStage] = useState(null);
+  // The teacher's neck: null = no neck (outside a lesson), {position} in a lesson.
+  const [teacherStage, setTeacherStage] = useState(null);
+  // Which teacher screen the home card opened: {screen, n} (n re-keys the view).
+  const [teacherStart, setTeacherStart] = useState({ screen: 'today', n: 0 });
   // Piano -> Chord Library: the voicing's keys [{midi, hand, finger}] and the
   // handler that hears the keys played on the Stage keyboard.
   const [pianoChordKeys, setPianoChordKeys] = useState(null);
@@ -1667,6 +1672,10 @@ function App() {
             progressionStep: progressionPlayer.current,
             chordToneLabels: cagedChordToneLabels,
           })
+      : activeSection === 'teacher'
+      ? teacherStage?.position
+        ? { position: teacherStage.position, labelMode: teacherStage.labelMode ?? 'note', capoFret: 0 }
+        : { position: null }
       : activeSection === 'chords'
       ? chordLibStage
         ? {
@@ -2071,7 +2080,7 @@ function App() {
   if (home) {
     return (
       <HomeMenu
-        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen }) => {
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen, teacherScreen }) => {
           // Tools card (or the Bass card's tuner): the tool on its own
           // screen (home stays underneath).
           if (tool) {
@@ -2085,6 +2094,7 @@ function App() {
           if (nextInstrument && nextInstrument !== instrument) setInstrument(nextInstrument);
           if (tab) setPracticeTab(tab);
           if (section === 'vocal') setVocalStart((v) => ({ screen: vocalScreen ?? 'home', n: v.n + 1 }));
+          if (section === 'teacher') setTeacherStart((v) => ({ screen: teacherScreen ?? 'today', n: v.n + 1 }));
           setActiveSection(section);
           setHome(false);
           setLeftHome(true);
@@ -2117,6 +2127,7 @@ function App() {
         activeSection === 'vocal' ||
         activeSection === 'freeplay' ||
         activeSection === 'coach' ||
+        (activeSection === 'teacher' && !teacherStage) ||
         (activeSection === 'practice' && practiceTab === 'minuteChanges') ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
@@ -2126,7 +2137,14 @@ function App() {
         )
       }
     >
-      {coachRunning && activeSection !== 'coach' && <CoachBanner onCoach={() => setActiveSection('coach')} />}
+      {coachRunning && activeSection !== 'coach' && activeSection !== 'teacher' && (
+        <CoachBanner
+          onCoach={() => {
+            setTeacherStart((v) => ({ screen: 'coach', n: v.n + 1 }));
+            setActiveSection('teacher');
+          }}
+        />
+      )}
 
       {activeSection === 'compose' && (
         <ComposeView
@@ -2336,6 +2354,9 @@ function App() {
       )}
       {activeSection === 'vocal' && <VocalTrainingView key={vocalStart.n} initialScreen={vocalStart.screen} />}
       {activeSection === 'coach' && <CoachView />}
+      {activeSection === 'teacher' && (
+        <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} onStage={setTeacherStage} />
+      )}
     </AppShell>
   );
 }

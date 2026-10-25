@@ -36,6 +36,7 @@ export const FEATURE_CAPABILITIES = {
   bendingTraining: ['guitar'], // string-bending technique only makes sense on a fretted string instrument
   soloOpener: ['guitar'], // improvised-solo opening-phrase drill — string/fret language, guitar-specific
   guitarChordRhythm: ['guitar'], // metronome-timed chord-changing practice, judged via mic chroma chord detection — guitar-only
+  teacher: ['guitar'], // the guitar teacher: lessons, homework, measured mastery (Coach inside)
   coach: ['guitar'], // goal-based practice coach — plans built from the guitar practice tools
   minuteChanges: ['guitar'], // one-minute chord changes test (mic chord detection)
   scalePractice: ['guitar'], // metronome-timed scale-run practice (box position / single-string linear run / position-to-position transition), judged via mic pitch detection — real-fretboard-position pedagogy, guitar-only

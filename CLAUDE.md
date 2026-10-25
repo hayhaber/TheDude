@@ -735,6 +735,39 @@ on the container; content inside stays top-aligned). Stacked on a phone
   banner shows the live result and Done/Coach. Launch scrolls `.practice-tabs`
   into view. Free-text goals use keywords, not an AI model (no API key).
 
+## Guitar Teacher (built 2026-10-25, phase 1A)
+
+- Plan doc (Docs artifact): https://claude.ai/artifact/CeJC6CVwAu6KmqVXyjPQ46 —
+  user approved: Coach merged into the Teacher, guitar levels 0–3 first, no
+  AI chat in phase 1, Claude writes lessons and the USER reviews level 1
+  before more are written; songs = the student's known songs (YouTube +
+  link-out to Tab4u / UG / Nagnu, private paste, auto-detect) — not built yet.
+- Home card `teacher` (2nd card, instrument guitar; art = black music stand
+  with an open lesson book, `scripts/home-art-teacher.py write`), shortcuts
+  Lesson / Path / Coach -> HomeMenu option `teacherScreen` -> App
+  `teacherStart` {screen, n}. The Guitar card no longer has Coach; nav
+  section `teacher` (🎓) replaced `coach` in sections.js (`coach` section is
+  still rendered if set; CoachBanner's Coach button opens teacher -> coach).
+- `teacher/curriculum/guitar.js`: DOMAINS, LEVELS (0 Pre-Debut .. 3 Grade 2,
+  RSL), SHAPES/FINGERS, SKILLS (each with a measurable `check`: chord (mic),
+  changes {pair,min} (one-minute changes in perfLog), quiz, self), LESSONS
+  (only `g1-first-chords` "D and A" has `steps`; others are titles = "Soon").
+  Step kinds explain(shape) / tune (inline GuitarTuner) / checklist / quiz /
+  chord (useMicChordDetector + judgeShape vs the other open chords and the
+  shape with one finger missing, 2 hits 0.5 s apart) / changes (MinuteChanges
+  embedded, its header hidden). Text inline {en, he}; Latin tokens in Hebrew
+  wrapped with `H()` (LRI/PDI).
+- State `dudestar-p-teacher` (`teacher/teacherState.js`, per profile + synced):
+  intake, lessons {started, step, at, done}, passes {skill: [days]}, current.
+  `teacher/mastery.js` DERIVES status: mastered = check met on 2 different
+  days (quiz/self once); homework progress from perfLog `minuteChanges`
+  items `A>D` / `D>A` (perMinute). Open homework = finished lessons whose
+  skills aren't all mastered.
+- UI `components/Teacher/` (TeacherView: Today | Path tabs, intake, coach
+  and practise sub-screens; LessonPlayer). Root has `dir` from the language.
+  The neck (App `teacherStage`) shows only inside a lesson, with the step's
+  chord; none on tune / changes steps. Text `i18n/tips/teacher.js`.
+
 ## Competitor-gap features (Gibson / Yousician / MusicMentor / Rocksmith+ review, 2026-10-10)
 
 - Per-profile storage: any key starting `dudestar-p-` (or `dudestar-coach`)

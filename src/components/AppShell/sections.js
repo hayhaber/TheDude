@@ -21,8 +21,9 @@ export const SECTIONS = [
   { key: 'chords', labelKey: 'nav.chords', icon: ChordsNavIcon },
   { key: 'improvise', labelKey: 'nav.improvise', icon: GuitarIcon },
   { key: 'practice', labelKey: 'nav.practice', icon: TrainingIcon },
-  // Guitar only: the goal-based practice coach (plan, daily session, progress).
-  { key: 'coach', labelKey: 'nav.coach', icon: '🎯' },
+  // Guitar only: the teacher (lessons, homework, mastery) — the goal-based
+  // practice Coach now lives inside it (Today -> Practice plan).
+  { key: 'teacher', labelKey: 'nav.teacher', icon: '🎓' },
   { key: 'studies', labelKey: 'nav.studies', icon: '📖' },
   { key: 'songs', labelKey: 'nav.songs', icon: '🔍' },
   // Guitar Pro files: play the song with its band, practice its solo.

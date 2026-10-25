@@ -1,0 +1,776 @@
+/* The guitar teacher: calm white cards, one primary action per card. */
+.teacher {
+  --tc-green: #1fa35a;
+  --tc-amber: #d98a06;
+  --tc-red: #e5484d;
+  --cl-root: #ff6b3d;
+  --cl-dot: var(--text-h);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.tc-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.tc-top h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.tc-tabs {
+  margin: 0;
+}
+
+.tc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--radius-card, 18px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.tc-card h2 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.25;
+  color: var(--text-h);
+}
+
+.tc-card h3 {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text-h);
+}
+
+.tc-eyebrow {
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+.tc-meta {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.tc-text {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.tc-hint {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.tc-question {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* ---- buttons ---- */
+.tc-btn {
+  height: var(--control-height, 40px);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+}
+
+.tc-btn.is-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.tc-btn.is-done {
+  border-color: var(--tc-green);
+  color: var(--tc-green);
+}
+
+.tc-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tc-wide {
+  align-self: stretch;
+  height: 46px;
+  font-size: 16px;
+}
+
+.tc-quiet {
+  align-self: center;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13.5px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---- sub screens ---- */
+.tc-subhead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tc-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tc-back span {
+  font-size: 22px;
+  line-height: 1;
+}
+
+[dir='rtl'] .tc-back span {
+  transform: scaleX(-1);
+}
+
+/* ---- intake ---- */
+.tc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.tc-field legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.tc-field small {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.tc-field select,
+.tc-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.tc-field select {
+  height: var(--control-height, 40px);
+  padding: 0 10px;
+}
+
+.tc-field textarea {
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.tc-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tc-row > .tc-field {
+  flex: 1 1 200px;
+}
+
+.tc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tc-chip {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tc-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---- today ---- */
+.tc-hero h2 {
+  font-size: 23px;
+}
+
+.tc-link {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tc-link-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tc-link-body strong {
+  font-size: 16px;
+  color: var(--text-h);
+}
+
+.tc-link-body span {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.tc-chev {
+  font-size: 24px;
+  color: var(--text-secondary);
+}
+
+[dir='rtl'] .tc-chev {
+  transform: scaleX(-1);
+}
+
+.tc-hw {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tc-hw-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.tc-hw-row:first-child {
+  border-top: none;
+}
+
+.tc-hw-mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tc-hw-mark.is-done {
+  border-color: var(--tc-green);
+  background: var(--tc-green);
+}
+
+.tc-hw-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tc-hw-text {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.tc-hw-meta {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+/* ---- path ---- */
+.tc-path {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tc-level header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tc-level header > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tc-level-n {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.tc-lessons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tc-lesson-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tc-lesson-row:disabled {
+  cursor: default;
+  color: var(--text-secondary);
+}
+
+.tc-lesson-row.is-now {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.tc-lesson-mark {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tc-lesson-row.is-done .tc-lesson-mark {
+  border-color: var(--tc-green);
+  background: var(--tc-green);
+}
+
+.tc-lesson-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.tc-tag {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.tc-lesson-row.is-now .tc-tag {
+  color: var(--accent);
+}
+
+.tc-skills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px 16px;
+  font-size: 13.5px;
+}
+
+.tc-skills li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tc-skills li > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.tc-skill-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-secondary);
+}
+
+.tc-skills li.is-learning .tc-skill-dot {
+  border-color: var(--tc-amber);
+  background: var(--tc-amber);
+}
+
+.tc-skills li.is-mastered .tc-skill-dot {
+  border-color: var(--tc-green);
+  background: var(--tc-green);
+}
+
+.tc-skill-state {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ---- the lesson ---- */
+.tc-lesson {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-margin-top: calc(var(--mobile-top-clear, 0px) + 8px);
+}
+
+.tc-lesson-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tc-close {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tc-lesson-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tc-progress {
+  display: flex;
+  gap: 4px;
+}
+
+.tc-progress span {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.tc-progress span.is-past {
+  background: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
+.tc-progress span.is-now {
+  background: var(--accent);
+}
+
+.tc-step {
+  animation: tc-in 0.25s ease-out;
+}
+
+@keyframes tc-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.tc-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tc-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-shape-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.tc-shape {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.tc-shape .cl-box {
+  width: 128px;
+  height: auto;
+}
+
+.tc-shape figcaption {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.tc-mic {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tc-mic-state {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.tc-mic-state.is-ok {
+  color: var(--tc-green);
+  font-weight: 600;
+}
+
+.tc-mic-state.is-notYet {
+  color: var(--tc-amber);
+}
+
+.tc-error {
+  display: block;
+  color: var(--tc-red);
+  font-size: 13px;
+}
+
+.tc-tuner {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.tc-tuner + .tc-btn {
+  align-self: center;
+}
+
+.tc-embed {
+  min-width: 0;
+}
+
+.tc-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tc-checklist label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 15px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.tc-checklist label.is-on {
+  border-color: color-mix(in srgb, var(--tc-green) 55%, var(--border));
+}
+
+.tc-checklist input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  accent-color: var(--tc-green);
+}
+
+.tc-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tc-option {
+  display: flex;
+  justify-content: flex-start;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tc-option.is-right {
+  border-color: var(--tc-green);
+  background: color-mix(in srgb, var(--tc-green) 12%, var(--surface));
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.tc-option.is-wrong {
+  border-color: var(--tc-red);
+  background: color-mix(in srgb, var(--tc-red) 10%, var(--surface));
+}
+
+.tc-option:disabled {
+  cursor: default;
+}
+
+.tc-verdict {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.tc-verdict.is-right strong {
+  color: var(--tc-green);
+}
+
+.tc-verdict.is-wrong strong {
+  color: var(--tc-red);
+}
+
+.tc-done {
+  align-items: center;
+  text-align: center;
+}
+
+.tc-done .tc-hw {
+  align-self: stretch;
+  text-align: start;
+}
+
+.tc-done-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--tc-green);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .tc-card {
+    padding: 14px;
+  }
+
+  .tc-top h1 {
+    font-size: 22px;
+  }
+}
+
+/* One-minute changes inside a lesson: the lesson card already has the title. */
+.tc-embed .minute-head {
+  display: none;
+}

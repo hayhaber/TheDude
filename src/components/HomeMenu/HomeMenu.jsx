@@ -59,6 +59,21 @@ const ICON_PATHS = {
       <path d="M7 17h10" />
     </>
   ),
+  // A mortarboard: the teacher's lesson.
+  teacher: (
+    <>
+      <path d="M2.5 9.5L12 5l9.5 4.5L12 14z" />
+      <path d="M6.5 11.6v4.2c1.6 1.5 3.4 2.2 5.5 2.2s3.9-.7 5.5-2.2v-4.2" />
+      <path d="M21.5 9.5v5" />
+    </>
+  ),
+  // Steps up: the lesson path.
+  path: (
+    <>
+      <path d="M3 20h5v-5h5v-5h5V5h3" />
+      <circle cx="5.5" cy="17.5" r="0.9" fill="currentColor" stroke="none" />
+    </>
+  ),
   // A target: the coach's goal.
   coach: (
     <>
@@ -184,8 +199,19 @@ const CARDS = [
       { section: 'improvise', icon: 'improvise' },
       { section: 'practice', icon: 'practice' },
       { section: 'studies', icon: 'studies' },
-      { section: 'coach', icon: 'coach' },
       { section: 'guitarpro', icon: 'guitarpro' },
+    ],
+  },
+  {
+    // The guitar teacher (the Coach is inside it).
+    key: 'teacher',
+    instrument: 'guitar',
+    titleKey: 'home.teacher.title',
+    descKey: 'home.teacher.desc',
+    options: [
+      { section: 'teacher', teacherScreen: 'lesson', icon: 'teacher', labelKey: 'teacher.opt.lesson' },
+      { section: 'teacher', teacherScreen: 'path', icon: 'path', labelKey: 'teacher.opt.path' },
+      { section: 'teacher', teacherScreen: 'coach', icon: 'coach', labelKey: 'teacher.opt.coach' },
     ],
   },
   {
@@ -502,6 +528,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
       section: option.section,
       practiceTab: option.practiceTab ?? null,
       vocalScreen: option.vocalScreen ?? null,
+      teacherScreen: option.teacherScreen ?? null,
       card: card.key,
     });
   };
@@ -573,7 +600,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
                 <div className="home-options" dir="ltr">
                   {opts.map((o) => (
                     <button
-                      key={o.tool ?? o.section + (o.practiceTab ?? '')}
+                      key={o.tool ?? o.section + (o.practiceTab ?? '') + (o.vocalScreen ?? '') + (o.teacherScreen ?? '')}
                       type="button"
                       className="home-option"
                       onClick={guard(() => (isActive ? open(card, o) : goToCard(i)))}

@@ -5,7 +5,7 @@
 import { localDay, perfFor } from '../coach/perfLog';
 import { LESSONS, SKILLS, skillById } from './curriculum/guitar';
 
-const DAYS_NEEDED = { chord: 2, changes: 2, quiz: 1, self: 1 };
+const DAYS_NEEDED = { chord: 2, changes: 2, play: 2, quiz: 1, self: 1 };
 
 /** One-minute-changes runs on a pair, either order. */
 function changesRuns(pair, since = 0) {
@@ -37,7 +37,13 @@ export function allSkillStatus(state) {
 }
 
 /** Homework of a finished lesson: today's progress per item. */
-export function homeworkStatus(item) {
+export function homeworkStatus(item, state) {
+  if (item.kind === 'play') {
+    const days = (state?.passes?.[item.skill] ?? []);
+    const week = new Set();
+    for (let k = 0; k < 7; k++) week.add(localDay(Date.now() - k * 86400000));
+    return { kind: 'play', doneToday: days.includes(localDay()), daysMet: days.filter((d) => week.has(d)).length };
+  }
   if (item.kind !== 'changes') return { kind: item.kind };
   const today = localDay();
   const week = Date.now() - 7 * 86400000;
@@ -53,7 +59,7 @@ export function homeworkStatus(item) {
 export function nextLesson(state) {
   const cur = state.current && LESSONS.find((l) => l.id === state.current);
   if (cur && !state.lessons[cur.id]?.done) return cur;
-  return LESSONS.find((l) => !state.lessons[l.id]?.done) ?? null;
+  return LESSONS.find((l) => l.steps && !state.lessons[l.id]?.done) ?? LESSONS.find((l) => !state.lessons[l.id]?.done) ?? null;
 }
 
 /** Homework still open: from finished lessons whose skills aren't all mastered. */

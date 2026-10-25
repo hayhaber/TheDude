@@ -767,6 +767,26 @@ on the container; content inside stays top-aligned). Stacked on a phone
   days (quiz/self once); homework progress from perfLog `minuteChanges`
   items `A>D` / `D>A` (perMinute). Open homework = finished lessons whose
   skills aren't all mastered.
+- Lesson `g3-arpeggios` (level 3, user's request 2026-10-25: arpeggios, how
+  to play them and connect them along the neck; method from the published
+  outlines of Rick Beato's Arpeggio Masterclass (paid course — only its
+  outline was readable) + JustinGuitar's triad arpeggios; text is our own):
+  hear strum vs arpeggio -> chord tones 1/3/5 (C = C E G) -> quiz -> open C
+  (mic) -> shape 1 root on 6 (G-E, two octaves, rolling) (mic) -> shape 2
+  root on 5 (C-A) -> picking checklist -> C triads on strings 3-2-1 at frets
+  3 / 8 / 12 (root pos / 1st / 2nd inv) (mic) -> quiz -> Am over C (♭3).
+  Shapes in pure `teacher/arpeggios.js` (`ARPS` [stringNumber, fret] in play
+  order, `arpNotes()` -> {string idx 0 = low E, fret, midi, noteName,
+  degreeLabel, isRoot}, `playOrder(ids, updown)`). Step kinds `arp` (neck =
+  Fretboard `scaleNotes` overlay, labelMode degree/note, App teacherStage
+  `scaleNotes`; `NoteStrip` pills in the card; Hear = picked, `compare` adds
+  Strum) and `play` (`PlayStep`, usePitchDetection: the next note is ringed on
+  the neck and advances on the exact midi ±45 ¢ heard twice in a row = the
+  Lick Trainer Wait idea; logs perfLog tool 'arpeggio'). A `play` skill passes
+  ONLY from the mic, never from Next. Homework kind `play` (Practise opens the
+  same PlayStep on its own sub-screen, with the neck). `nextLesson()` prefers
+  the first unfinished lesson that has steps. Synthetic test: Karplus-Strong
+  WAV of the G-E arpeggio as Chromium's fake mic -> all 13 notes followed.
 - UI `components/Teacher/` (TeacherView: Today | Path tabs, intake, coach
   and practise sub-screens; LessonPlayer). Root has `dir` from the language.
   The neck (App `teacherStage`) shows only inside a lesson, with the step's

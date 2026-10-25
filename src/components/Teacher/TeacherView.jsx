@@ -7,10 +7,10 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { CoachView } from '../Coach/CoachView';
 import { MinuteChanges } from '../MinuteChanges/MinuteChanges';
 import { LESSONS, LEVELS, SKILLS } from '../../teacher/curriculum/guitar';
-import { saveIntake, useTeacher } from '../../teacher/teacherState';
+import { recordPass, saveIntake, useTeacher } from '../../teacher/teacherState';
 import { allSkillStatus, nextLesson, openHomework } from '../../teacher/mastery';
 import { onPerf } from '../../coach/perfLog';
-import { HomeworkList, LessonPlayer } from './LessonPlayer';
+import { HomeworkList, LessonPlayer, PlayStep } from './LessonPlayer';
 import '../ModeToggle/ModeToggle.css';
 import './Teacher.css';
 
@@ -258,8 +258,8 @@ export function TeacherView({ initialScreen = 'today', onStage }) {
 
   // The neck is shown only inside a lesson.
   useEffect(() => {
-    if (screen !== 'lesson') onStage?.(null);
-  }, [screen, onStage]);
+    if (screen !== 'lesson' && !(screen === 'practise' && practise?.kind === 'play')) onStage?.(null);
+  }, [screen, onStage, practise]);
   useEffect(() => () => onStage?.(null), [onStage]);
 
   const open = (l) => {
@@ -290,6 +290,14 @@ export function TeacherView({ initialScreen = 'today', onStage }) {
   );
 
   if (screen === 'coach') return sub(null, <CoachView />);
+  if (screen === 'practise' && practise?.kind === 'play')
+    return sub(
+      null,
+      <div className="tc-card tc-step">
+        <h2>{tx(practise.text)}</h2>
+        <PlayStep step={{ ...practise, text: null }} tx={tx} onStage={onStage} onPass={() => recordPass(practise.skill)} />
+      </div>
+    );
   if (screen === 'practise' && practise) return sub(null, <MinuteChanges initialChords={practise.pair} />);
   if (screen === 'intake')
     return sub(

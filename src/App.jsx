@@ -1675,6 +1675,8 @@ function App() {
       : activeSection === 'teacher'
       ? teacherStage?.position
         ? { position: teacherStage.position, labelMode: teacherStage.labelMode ?? 'note', capoFret: 0 }
+        : teacherStage?.scaleNotes
+        ? { position: null, scaleNotes: teacherStage.scaleNotes, labelMode: teacherStage.labelMode ?? 'degree', capoFret: 0 }
         : { position: null }
       : activeSection === 'chords'
       ? chordLibStage

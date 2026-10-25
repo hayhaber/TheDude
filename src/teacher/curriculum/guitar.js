@@ -83,6 +83,10 @@ export const SKILLS = [
   { id: 'chord-Dm', domain: 'fretting', level: 2, after: ['chord-D'], title: L('Dm chord', `אקורד ${H('Dm')}`), check: { kind: 'chord', chord: 'Dm' } },
   { id: 'chord-G', domain: 'fretting', level: 2, title: L('G chord', `אקורד ${H('G')}`), check: { kind: 'chord', chord: 'G' } },
   { id: 'chord-C', domain: 'fretting', level: 2, title: L('C chord', `אקורד ${H('C')}`), check: { kind: 'chord', chord: 'C' } },
+  { id: 'arp-tones', domain: 'fretboard', level: 3, title: L('Chord tones: root, 3rd, 5th', 'צלילי האקורד: יסוד, טרצה, קווינטה'), check: { kind: 'quiz', id: 'arp-tones' } },
+  { id: 'arp-C-open', domain: 'picking', level: 3, title: L('Open C arpeggio', `ארפג׳יו ${H('C')} פתוח`), check: { kind: 'play', arp: 'C-open' } },
+  { id: 'arp-G-E', domain: 'lead', level: 3, title: L('Arpeggio, root on string 6', 'ארפג׳יו, יסוד על מיתר 6'), check: { kind: 'play', arp: 'G-E' } },
+  { id: 'arp-C-top', domain: 'fretboard', level: 3, title: L('C triads up the neck', `משולשי ${H('C')} לאורך הצוואר`), check: { kind: 'play', arp: ['C-top1', 'C-top2', 'C-top3'] } },
 ];
 
 export const skillById = (id) => SKILLS.find((s) => s.id === id);
@@ -98,7 +102,10 @@ export const skillById = (id) => SKILLS.find((s) => s.id === id);
 //   quiz      {id, title, question, options:[…], answer, why}
 //   chord     {chord, title, text}                  mic check of one chord shape
 //   changes   {pair:[a,b], title, text}             one-minute changes (opens the tool, waits for a run)
-// homework: [{id, kind:'changes', pair, min, perDay} | {id, kind:'chord', chord, perDay} | {id, kind:'self', text}]
+//   arp       {arp: id | [ids], labels, hear?, compare?, title, text}
+//                                                    arpeggio notes on the neck (teacher/arpeggios.js) + Hear
+//   play      {arp, updown?, skill, title, text}   the mic follows the notes one by one (wait mode)
+// homework: [{id, kind:'changes', pair, min, perDay} | {id, kind:'play', arp, updown, skill} | {id, kind:'self', text}]
 // ---------------------------------------------------------------------------
 
 const lessonFirstChords = {
@@ -228,6 +235,160 @@ const lessonFirstChords = {
   ],
 };
 
+// Arpeggios (2026-10-25, user's request). Method: hear the chord, name its
+// tones by role, play it in one place, then the same chord in several places
+// along the neck, then use it over a progression. Built on the published
+// outlines of Rick Beato's "Arpeggio Masterclass" (close- and open-position
+// triads first, three-string sets, then application; the goal is to hear the
+// chord tones, not to memorise patterns) and JustinGuitar's triad arpeggios
+// (root-6 and root-5 shapes, the top three strings first, roll a finger when
+// two notes share a fret). All text and shapes here are our own.
+const lessonArpeggios = {
+  id: 'g3-arpeggios',
+  level: 3,
+  title: L('Arpeggios: the chord one note at a time', 'ארפג׳יו: האקורד צליל אחרי צליל'),
+  objective: L(
+    'Know the root, 3rd and 5th of a chord, play two movable arpeggio shapes, and find one chord in three places up the neck.',
+    'לזהות יסוד, טרצה וקווינטה של אקורד, לנגן שתי צורות ארפג׳יו ניידות, ולמצוא אקורד אחד בשלושה מקומות לאורך הצוואר.'
+  ),
+  minutes: 30,
+  skills: ['arp-tones', 'arp-C-open', 'arp-G-E', 'arp-C-top'],
+  steps: [
+    {
+      kind: 'arp',
+      arp: 'C-open',
+      labels: 'note',
+      compare: true,
+      title: L('What is an arpeggio?', 'מה זה ארפג׳יו?'),
+      text: L(
+        'An arpeggio is a chord played one note at a time instead of all together. Listen: first C strummed, then the same C picked note by note. Same notes, a completely different feel — arpeggios are how chords become melody, in accompaniment and in solos.',
+        `ארפג׳יו הוא אקורד שמנוגן צליל אחרי צליל, במקום כל הצלילים יחד. הקשב: קודם ${H('C')} בפריטה, ואחר כך אותו ${H('C')} צליל אחרי צליל. אותם צלילים, תחושה אחרת לגמרי — כך אקורד הופך למנגינה, בליווי ובסולו.`
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'C-open',
+      labels: 'degree',
+      title: L('Only three notes', 'רק שלושה צלילים'),
+      text: L(
+        'A major chord has three notes, each with a job: the ROOT (1) names the chord, the 3rd (3) makes it major or minor, the 5th (5) makes it full. C major = C (root), E (3rd), G (5th). The open C chord you know is just these three in different octaves: C E G C E. On the neck below, each dot shows its role.',
+        `לאקורד מז׳ור יש שלושה צלילים, ולכל אחד תפקיד: היסוד (1) נותן לאקורד את שמו, הטרצה (3) קובעת אם הוא מז׳ור או מינור, והקווינטה (5) ממלאת אותו. ${H('C')} מז׳ור = ${H('C')} (יסוד), ${H('E')} (טרצה), ${H('G')} (קווינטה). אקורד ${H('C')} הפתוח שאתה מכיר הוא רק שלושת אלה באוקטבות שונות: ${H('C E G C E')}. על הצוואר למטה, כל נקודה מראה את התפקיד שלה.`
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'arp-tones',
+      skill: 'arp-tones',
+      title: L('Find the 3rd', 'מצא את הטרצה'),
+      question: L('G major = G B D. Which note is the 3rd?', `${H('G')} מז׳ור = ${H('G B D')}. איזה צליל הוא הטרצה?`),
+      options: [L('G', H('G')), L('B', H('B')), L('D', H('D'))],
+      answer: 1,
+      why: L(
+        'G is the root (1), B the 3rd (3), D the 5th (5). Count letters from the root: G-a-B = 3, G-a-b-c-D = 5.',
+        `${H('G')} הוא היסוד (1), ${H('B')} הטרצה (3), ${H('D')} הקווינטה (5). סופרים אותיות מהיסוד: ${H('G-A-B')} = 3, ${H('G-A-B-C-D')} = 5.`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'C-open',
+      updown: true,
+      skill: 'arp-C-open',
+      title: L('Your first arpeggio', 'הארפג׳יו הראשון שלך'),
+      text: L(
+        'Hold the open C chord and pick its strings one by one: from string 5 down to string 1, then back up to 5. Slowly — one note, let it ring, the next. The teacher listens and lights the next note on the neck when it hears the right one.',
+        `החזק את אקורד ${H('C')} הפתוח ופרוט את המיתרים שלו אחד אחד: ממיתר 5 עד מיתר 1, ובחזרה עד 5. לאט — צליל, לתת לו לצלצל, הבא. המורה מקשיב, ומדליק על הצוואר את הצליל הבא כשהוא שומע את הנכון.`
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'G-E',
+      labels: 'degree',
+      title: L('Shape 1: root on string 6', 'צורה 1: היסוד על מיתר 6'),
+      text: L(
+        'This shape lives inside the barre chord with its root on string 6 (the “E shape”). Here it is G at fret 3, two octaves: 1 3 5 1 3 5 1 = G B D G B D G. Keep one finger per fret: index on fret 2, middle on 3, ring on 4, pinky on 5. Strings 5 and 4 both use fret 5 — play the first with the pinky tip, then roll the same finger flat onto the next string; strings 2 and 1 at fret 3 work the same with the middle finger. It is movable: start at fret 5 and it is A, at fret 8 it is C.',
+        `הצורה הזו נמצאת בתוך אקורד הברה שהיסוד שלו על מיתר 6 ("צורת ${H('E')}"). כאן זה ${H('G')} בשריג 3, שתי אוקטבות: ${H('1 3 5 1 3 5 1')} = ${H('G B D G B D G')}. אצבע אחת לכל שריג: אצבע 1 על שריג 2, אצבע 2 על 3, אצבע 3 על 4, אצבע 4 על 5. מיתרים 5 ו־4 שניהם בשריג 5 — נגן את הראשון בקצה הזרת, ואז גלגל את אותה אצבע אל המיתר הבא; כך גם מיתרים 2 ו־1 בשריג 3, עם אצבע 2. הצורה ניידת: מתחילים בשריג 5 וזה ${H('A')}, בשריג 8 זה ${H('C')}.`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'G-E',
+      updown: true,
+      skill: 'arp-G-E',
+      title: L('Play shape 1', 'נגן את צורה 1'),
+      text: L(
+        'Up and back down, 13 notes. Lift each finger as soon as the next note sounds, so the notes stay separate. If the teacher waits on a note, check that it is the right string and fret and that it rings clean.',
+        'למעלה ובחזרה למטה, 13 צלילים. הרם כל אצבע ברגע שהצליל הבא נשמע, כדי שהצלילים יישארו נפרדים. אם המורה ממתין על צליל, בדוק שזה המיתר והשריג הנכונים ושהוא מצלצל נקי.'
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'C-A',
+      labels: 'degree',
+      title: L('Shape 2: root on string 5', 'צורה 2: היסוד על מיתר 5'),
+      text: L(
+        'The second shape comes from the barre chord with its root on string 5 (the “A shape”). C at fret 3: C E G C E G = 1 3 5 1 3 5. Three notes sit on fret 5 (strings 4, 3, 2) — use the ring finger for the first and roll it; many players use the pinky for string 2. With these two shapes you can play an arpeggio for any major chord: find its root on string 6 or 5.',
+        `הצורה השנייה באה מאקורד הברה שהיסוד שלו על מיתר 5 ("צורת ${H('A')}"). ${H('C')} בשריג 3: ${H('C E G C E G')} = ${H('1 3 5 1 3 5')}. שלושה צלילים יושבים על שריג 5 (מיתרים 4, 3, 2) — נגן את הראשון באצבע 3 וגלגל אותה; נגנים רבים מנגנים את מיתר 2 בזרת. עם שתי הצורות האלה אפשר לנגן ארפג׳יו לכל אקורד מז׳ור: מוצאים את היסוד שלו על מיתר 6 או 5.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      title: L('How to pick an arpeggio', 'איך פורטים ארפג׳יו'),
+      text: L('The habits that make an arpeggio sound clean:', 'ההרגלים שגורמים לארפג׳יו להישמע נקי:'),
+      items: [
+        L('Start with alternate picking — down, up, down, up — one note per click at 60 bpm (the metronome is in the bar).', 'התחל בפריטה מתחלפת — למטה, למעלה, למטה, למעלה — צליל אחד בכל קליק ב־60 BPM (המטרונום בסרגל).'),
+        L('Only notes that are clean go faster: when it is clean 3 times in a row, add 4–5 bpm.', 'מהירות רק אחרי ניקיון: כשזה נקי 3 פעמים ברצף, הוסף 4–5 BPM.'),
+        L('Mute what you are not playing: the side of the picking hand rests lightly on the low strings.', 'השתק את מה שלא מנגנים: צד כף יד ימין נח בעדינות על המיתרים הנמוכים.'),
+        L('Later: when two notes in a row go to the next string in the same direction, one stroke can play both (economy / sweep picking).', 'בהמשך: כשני צלילים ברצף עוברים למיתר הבא באותו כיוון, תנועה אחת יכולה לנגן את שניהם (פריטת אקונומי / סוויפ).'),
+      ],
+    },
+    {
+      kind: 'arp',
+      arp: ['C-top1', 'C-top2', 'C-top3'],
+      labels: 'degree',
+      title: L('One chord, three places', 'אקורד אחד, שלושה מקומות'),
+      text: L(
+        'Now the same chord along the neck, on the top three strings only. Shape A (fret 3–5) starts on the root: C E G. Shape B (fret 8–9) starts on the 3rd: E G C. Shape C (fret 12–13) starts on the 5th: G C E. Each shape begins on the next chord tone of the one before, so the neck is just C E G repeating up to fret 12, where it starts again. Small shapes like these are what players use to solo over chords anywhere on the neck.',
+        `עכשיו אותו אקורד לאורך הצוואר, רק על שלושת המיתרים העליונים. צורה א (שריג 3–5) מתחילה ביסוד: ${H('C E G')}. צורה ב (שריג 8–9) מתחילה בטרצה: ${H('E G C')}. צורה ג (שריג 12–13) מתחילה בקווינטה: ${H('G C E')}. כל צורה מתחילה בצליל האקורד הבא אחרי זו שלפניה, כך שהצוואר הוא בסך הכול ${H('C E G')} שחוזרים על עצמם עד שריג 12, ושם מתחילים שוב. צורות קטנות כאלה הן מה שנגנים משתמשים בו כדי לאלתר מעל אקורדים בכל מקום על הצוואר.`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: ['C-top1', 'C-top2', 'C-top3'],
+      skill: 'arp-C-top',
+      title: L('Climb the neck', 'לטפס על הצוואר'),
+      text: L(
+        'Play shape A, B, then C — three notes each, low to high, sliding your hand up between them. 9 notes. Say the role in your head as you play: 1 3 5, 3 5 1, 5 1 3.',
+        `נגן צורה א, ב ואז ג — שלושה צלילים בכל אחת, מהנמוך לגבוה, ולהחליק את היד למעלה ביניהן. 9 צלילים. אמור בראש את התפקיד בזמן הנגינה: ${H('1 3 5, 3 5 1, 5 1 3')}.`
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'arp-shape-b',
+      title: L('Which role?', 'איזה תפקיד?'),
+      question: L('Shape B starts on E. In C major, E is the…', `צורה ב מתחילה ב־${H('E')}. ב־${H('C')} מז׳ור, ${H('E')} הוא ה…`),
+      options: [L('Root', 'יסוד'), L('3rd', 'טרצה'), L('5th', 'קווינטה')],
+      answer: 1,
+      why: L('C (1), E (3), G (5). The lowest note of a shape tells you which shape it is.', `${H('C')} (1), ${H('E')} (3), ${H('G')} (5). הצליל הנמוך בצורה אומר לך איזו צורה זו.`),
+    },
+    {
+      kind: 'arp',
+      arp: 'Am-open',
+      labels: 'degree',
+      hear: ['C-open', 'Am-open'],
+      title: L('Use it in music', 'שימוש במוזיקה'),
+      text: L(
+        'Arpeggios turn a chord progression into a picked accompaniment. Hear C, then Am, each picked note by note. Am = A (1), C (♭3), E (5): the minor 3rd is one fret lower than a major 3rd — that is the whole difference between major and minor. Try it on a song you know: hold each chord and pick its notes instead of strumming.',
+        `ארפג׳יו הופך מהלך אקורדים לליווי בפריטה. הקשב ל־${H('C')} ואחר כך ל־${H('Am')}, כל אחד צליל אחרי צליל. ${H('Am = A (1), C (♭3), E (5)')}. הטרצה הקטנה נמוכה בשריג אחד מהטרצה הגדולה — זה כל ההבדל בין מז׳ור למינור. נסה את זה על שיר שאתה מכיר: החזק כל אקורד ופרוט את הצלילים שלו במקום פריטה מלאה.`
+      ),
+    },
+  ],
+  homework: [
+    { id: 'arp-g-e', kind: 'play', arp: 'G-E', updown: true, skill: 'arp-G-E', text: L('Shape 1 (G, root on string 6), up and down — once a day with the teacher listening.', `צורה 1 (${H('G')}, יסוד על מיתר 6), למעלה ולמטה — פעם ביום כשהמורה מקשיב.`) },
+    { id: 'arp-c-top', kind: 'play', arp: ['C-top1', 'C-top2', 'C-top3'], skill: 'arp-C-top', text: L('C triads up the neck (shapes A, B, C) — once a day.', `משולשי ${H('C')} לאורך הצוואר (צורות א, ב, ג) — פעם ביום.`) },
+    { id: 'arp-tempo', kind: 'self', text: L('5 minutes with the metronome: one note per click at 60 bpm, then two per click.', '5 דקות עם מטרונום: צליל בכל קליק ב־60 BPM, ואז שניים בכל קליק.') },
+  ],
+};
+
 export const LESSONS = [
   lessonFirstChords,
   { id: 'g1-chord-E', level: 1, title: L('E chord and three-chord changes', `האקורד ${H('E')} ומעבר בין שלושה`), skills: ['chord-E', 'changes-AE', 'changes-DE'] },
@@ -235,6 +396,7 @@ export const LESSONS = [
   { id: 'g1-first-song', level: 1, title: L('Your first song', 'השיר הראשון שלך'), skills: [] },
   { id: 'g2-minor-chords', level: 2, title: L('Am, Em and Dm', `${H('Am')}, ${H('Em')} ו־${H('Dm')}`), skills: ['chord-Am', 'chord-Em', 'chord-Dm'] },
   { id: 'g2-G-C', level: 2, title: L('G and C', `${H('G')} ו־${H('C')}`), skills: ['chord-G', 'chord-C'] },
+  lessonArpeggios,
 ];
 
 export const lessonById = (id) => LESSONS.find((l) => l.id === id);

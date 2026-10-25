@@ -368,6 +368,21 @@ export async function emailSignUp(email, password) {
   return { next: 'code', type: 'signup' };
 }
 
+/**
+ * One form for everyone: email + password, one button. Signs in; if that
+ * fails because there is no such account, opens one (a code is emailed).
+ */
+export async function emailContinue(email, password) {
+  const r = await emailSignIn(email, password);
+  if (r.error !== 'cloud.err.credentials') return r;
+  // wrong password OR no account yet: try to open one
+  if (password.length < 8) return { error: 'cloud.err.credentialsShort' }; // wrong password, or too short for a new account
+  const s = await emailSignUp(email, password);
+  if (s.error === 'cloud.err.exists') return { error: 'cloud.err.credentials' }; // the account exists: the password was wrong
+  if (s.next === 'code') return { ...s, created: true };
+  return s;
+}
+
 export async function emailVerify(email, code, type) {
   const { data, error } = await sb().auth.verifyOtp({ email, token: code.trim(), type });
   if (error) return { error: errKey(error) };

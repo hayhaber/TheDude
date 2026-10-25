@@ -1,5 +1,7 @@
-// Email + password sign-in for the account row (CloudField): sign in,
-// register (6-digit code by email), forgot password (code -> new password).
+// Email + password for the account row (CloudField): ONE form for everyone
+// (user's call 2026-10-25) — email + password + Continue signs in, or opens
+// a new account when the address has none (6-digit code by email); forgot
+// password = code -> new password.
 import { useState } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { loadCloud } from './cloudState';
@@ -8,7 +10,8 @@ const call = (fn, ...args) => loadCloud().then((m) => m[fn](...args));
 
 export function EmailAuth({ onDone }) {
   const { t } = useLanguage();
-  const [mode, setMode] = useState('signin'); // signin | signup | forgot | code | newPassword
+  const [mode, setMode] = useState('main'); // main | forgot | code | newPassword
+  const [created, setCreated] = useState(false);
   const [codeType, setCodeType] = useState('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,6 +35,7 @@ export function EmailAuth({ onDone }) {
       if (r?.error) setError(r.error);
       else if (r?.next === 'code') {
         setCodeType(r.type);
+        setCreated(!!r.created);
         setCode('');
         setMode('code');
       } else if (r?.next === 'newPassword') {
@@ -49,14 +53,11 @@ export function EmailAuth({ onDone }) {
     e.preventDefault();
     if (busy) return;
     const em = email.trim();
-    if ((mode === 'signin' || mode === 'signup' || mode === 'forgot') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return setError('cloud.err.email');
-    if (mode === 'signin' && !password) return setError('cloud.err.credentials');
+    if ((mode === 'main' || mode === 'forgot') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return setError('cloud.err.email');
+    if (mode === 'main' && !password) return setError('cloud.err.password');
     if (mode === 'code' && code.length < 6) return setError('cloud.err.code');
-    if (mode === 'signin') run('emailSignIn', em, password);
-    else if (mode === 'signup') {
-      if (password.length < 8) return setError('cloud.err.weak');
-      run('emailSignUp', em, password);
-    } else if (mode === 'forgot') run('emailForgot', em);
+    if (mode === 'main') run('emailContinue', em, password);
+    else if (mode === 'forgot') run('emailForgot', em);
     else if (mode === 'code') run('emailVerify', em, code, codeType);
     else if (mode === 'newPassword') {
       if (password.length < 8) return setError('cloud.err.weak');
@@ -93,7 +94,7 @@ export function EmailAuth({ onDone }) {
       autoComplete={auto}
       dir="ltr"
       required
-      minLength={mode === 'signin' ? undefined : 8}
+      minLength={mode === 'main' ? undefined : 8}
       placeholder={label}
       aria-label={label}
       value={password}
@@ -101,17 +102,17 @@ export function EmailAuth({ onDone }) {
     />
   );
 
-  const primary = { signin: 'cloud.signIn', signup: 'cloud.register', forgot: 'cloud.send', code: 'cloud.confirm', newPassword: 'cloud.save' }[mode];
+  const primary = { main: 'cloud.continue', forgot: 'cloud.send', code: 'cloud.confirm', newPassword: 'cloud.save' }[mode];
 
   return (
     <form className="cloud-form" onSubmit={submit} noValidate>
       {mode === 'forgot' && <p className="cloud-form-text">{t('cloud.forgotText')}</p>}
-      {mode === 'code' && <p className="cloud-form-text">{t('cloud.codeSent', { email: email.trim() })}</p>}
+      {mode === 'code' && <p className="cloud-form-text">{t(created ? 'cloud.codeSentNew' : 'cloud.codeSent', { email: email.trim() })}</p>}
       {mode === 'newPassword' && <p className="cloud-form-text">{t('cloud.newPasswordText')}</p>}
 
-      {(mode === 'signin' || mode === 'signup' || mode === 'forgot') && emailInput}
-      {mode === 'signin' && passwordInput(t('cloud.password'), 'current-password')}
-      {mode === 'signup' && passwordInput(t('cloud.newPassword'), 'new-password')}
+      {(mode === 'main' || mode === 'forgot') && emailInput}
+      {mode === 'main' && passwordInput(t('cloud.password'), 'current-password')}
+      {mode === 'main' && <p className="cloud-form-hint">{t('cloud.newHint')}</p>}
       {mode === 'newPassword' && passwordInput(t('cloud.newPassword'), 'new-password')}
       {mode === 'code' && (
         <input
@@ -141,27 +142,17 @@ export function EmailAuth({ onDone }) {
             {t('cloud.resend')}
           </button>
         )}
-        {mode !== 'signin' && mode !== 'newPassword' && (
-          <button type="button" className="settings-install-btn" onClick={() => go('signin')}>
+        {mode !== 'main' && mode !== 'newPassword' && (
+          <button type="button" className="settings-install-btn" onClick={() => go('main')}>
             {t('cloud.back')}
           </button>
         )}
       </div>
 
-      {mode === 'signin' && (
+      {mode === 'main' && (
         <div className="cloud-form-links">
-          <button type="button" className="cloud-link" onClick={() => go('signup')}>
-            {t('cloud.toSignUp')}
-          </button>
           <button type="button" className="cloud-link" onClick={() => go('forgot')}>
             {t('cloud.forgot')}
-          </button>
-        </div>
-      )}
-      {mode === 'signup' && (
-        <div className="cloud-form-links">
-          <button type="button" className="cloud-link" onClick={() => go('signin')}>
-            {t('cloud.toSignIn')}
           </button>
         </div>
       )}

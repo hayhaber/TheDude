@@ -989,15 +989,18 @@ on the container; content inside stays top-aligned). Stacked on a phone
   domain the-dude.vercel.app) before Publish app. Keep it true to what the
   app does (no analytics, mic audio never leaves the device, recordings
   not synced, Supabase in Ireland) — update it with any change to that.
-- Email + password (`cloud/EmailAuth.jsx`, cloudSync `email*`): register /
-  sign in / forgot; emails carry a 6-digit CODE ({{ .Token }}, verifyOtp
+- Email + password (`cloud/EmailAuth.jsx`, cloudSync `email*`). ONE form
+  (user's call 2026-10-25, "one place to type the email"): email + password +
+  Continue = `emailContinue()` — sign in; on invalid credentials try signUp:
+  existing account (empty identities) -> "wrong email or password", new ->
+  code screen ("opened a new account"); < 8 chars -> wrong-or-too-short hint.
+  Google is a quiet "or continue with [G Google]" row under the form. Forgot; emails carry a 6-digit CODE ({{ .Token }}, verifyOtp
   'signup' / 'recovery'), not a link (a link opened in another browser can't
   finish PKCE). Sender = Gmail SMTP (smtp.gmail.com:465, dudestar365@gmail.com,
   Google app password typed by the user only; SMTP saved 2026-10-24).
   Templates "Confirm sign up" + "Reset password" = HE+EN body with
   {{ .Token }} (no link). Email provider: confirm email ON, min password 8,
-  OTP length 6 (was 8), expiry 3600 s. `EMAIL_AUTH_ENABLED` = true in
-  CloudField.jsx. Gmail SMTP limit ~500 mails/day. Real delivery NOT yet
+  OTP length 6 (was 8), expiry 3600 s. Gmail SMTP limit ~500 mails/day. Real delivery NOT yet
   confirmed by a test sign-up (the user does it — no account creation by Claude).
 
 ## ⓘ explanations (info switch)

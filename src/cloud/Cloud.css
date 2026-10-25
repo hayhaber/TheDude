@@ -256,3 +256,20 @@
   color: var(--text-secondary);
   text-underline-offset: 2px;
 }
+
+.cloud-form-hint {
+  margin: -2px 0 0;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.cloud-alt {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}

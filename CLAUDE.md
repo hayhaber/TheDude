@@ -742,8 +742,12 @@ on the container; content inside stays top-aligned). Stacked on a phone
   AI chat in phase 1, Claude writes lessons and the USER reviews level 1
   before more are written; songs = the student's known songs (YouTube +
   link-out to Tab4u / UG / Nagnu, private paste, auto-detect) — not built yet.
-- Home card `teacher` (2nd card, instrument guitar; art = black music stand
-  with an open lesson book, `scripts/home-art-teacher.py write`), shortcuts
+- Home card `teacher` (2nd card, instrument guitar; art = the USER'S picture
+  (2026-10-25: two rock guitarists in front of a glowing lesson screen) as
+  `public/home/teacher.webp` (800 px, white background keyed transparent by
+  flood fill from the border + the white pockets left of the screen) — the
+  only card whose INSTRUMENT_ART is an <img>, CSS `.home-art-teacher img`, no
+  floor shadow; 3 shortcuts = one row of three on phones), shortcuts
   Lesson / Path / Coach -> HomeMenu option `teacherScreen` -> App
   `teacherStart` {screen, n}. The Guitar card no longer has Coach; nav
   section `teacher` (🎓) replaced `coach` in sections.js (`coach` section is

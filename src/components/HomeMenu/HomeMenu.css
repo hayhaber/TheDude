@@ -173,6 +173,26 @@
   height: 280px;
 }
 
+/* No drawn floor shadow: the picture is cut at the knees. */
+.home-art-teacher::after {
+  display: none;
+}
+
+/* The teacher card is a picture (two players in front of a lesson screen,
+   background keyed transparent), wider than the drawn instruments. */
+.home-art-teacher img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(440px, 118%);
+  height: auto;
+  max-height: 104%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
 .home-text {
   flex: 1;
   display: flex;
@@ -351,6 +371,13 @@
     height: calc(var(--home-art-h) * 0.82);
   }
 
+  .home-art-teacher img {
+    width: auto;
+    max-width: 100%;
+    height: var(--home-art-h);
+    max-height: none;
+  }
+
   .home-title {
     font-size: 32px;
   }
@@ -372,6 +399,12 @@
 
   .home-option {
     flex: 0 0 50%;
+  }
+
+  /* Three shortcuts: one row of three. */
+  .home-option:first-child:nth-last-child(3),
+  .home-option:first-child:nth-last-child(3) ~ .home-option {
+    flex-basis: 33.333%;
   }
 
   /* Five or six shortcuts: two rows of three (not three rows of two). */
@@ -477,6 +510,12 @@
 
   .home-art-tools svg {
     height: 150px;
+  }
+
+  .home-art-teacher img {
+    width: auto;
+    max-width: 100%;
+    height: 160px;
   }
 
   .home-title {

@@ -157,6 +157,32 @@ const ICON_PATHS = {
       <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
     </>
   ),
+  // Songwriter: a page with lyric lines and a note.
+  lyrics: (
+    <>
+      <path d="M5 3.5h10l4 4v13H5z" />
+      <path d="M15 3.5v4h4" />
+      <path d="M8 11h6M8 14.5h4" opacity=".55" />
+      <path d="M14.5 19v-5.5l3-1v4.2" />
+      <circle cx="13.3" cy="19" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="16.3" cy="16.7" r="1.3" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // A new song: a page with a plus.
+  newSong: (
+    <>
+      <path d="M5 3.5h10l4 4v13H5z" />
+      <path d="M15 3.5v4h4" />
+      <path d="M12 10.5v7M8.5 14h7" />
+    </>
+  ),
+  // A quick idea: a light bulb.
+  idea: (
+    <>
+      <path d="M9 17.5h6M9.8 20.5h4.4" />
+      <path d="M12 3.5a6 6 0 0 0-3.6 10.8c.6.5.9 1.2.9 1.9v1.3h5.4v-1.3c0-.7.3-1.4.9-1.9A6 6 0 0 0 12 3.5z" />
+    </>
+  ),
   ear: (
     <>
       <path d="M7 9a5 5 0 1 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0" />
@@ -254,6 +280,18 @@ const CARDS = [
         icon: 'ear',
         labelKey: 'practice.tab.earTraining',
       },
+    ],
+  },
+  {
+    // Songwriting (not an instrument): lyrics + chords + the sung melody.
+    key: 'songwriter',
+    instrument: null,
+    titleKey: 'home.songwriter.title',
+    descKey: 'home.songwriter.desc',
+    options: [
+      { songwriter: 'list', icon: 'lyrics', labelKey: 'sw.nav.songs' },
+      { songwriter: 'new', icon: 'newSong', labelKey: 'sw.nav.new' },
+      { songwriter: 'idea', icon: 'idea', labelKey: 'sw.nav.idea' },
     ],
   },
   {
@@ -519,6 +557,10 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
   }, [step]);
 
   const open = (card, option) => {
+    if (option.songwriter) {
+      onOpen({ songwriter: option.songwriter, card: card.key });
+      return;
+    }
     if (option.tool) {
       // The tool on its own screen.
       onOpen({ tool: option.tool, tunerMode: option.tunerMode, card: card.key });
@@ -572,7 +614,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
         >
           {CARDS.map((card, i) => {
             const opts = card.options.filter((o) => {
-              if (o.tool) return true;
+              if (o.tool || o.songwriter) return true;
               const inst = card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument);
               return supportsInstrument(o.section, inst);
             });
@@ -601,7 +643,7 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
                 <div className="home-options" dir="ltr">
                   {opts.map((o) => (
                     <button
-                      key={o.tool ?? o.section + (o.practiceTab ?? '') + (o.vocalScreen ?? '') + (o.teacherScreen ?? '')}
+                      key={o.tool ?? o.songwriter ?? o.section + (o.practiceTab ?? '') + (o.vocalScreen ?? '') + (o.teacherScreen ?? '')}
                       type="button"
                       className="home-option"
                       onClick={guard(() => (isActive ? open(card, o) : goToCard(i)))}

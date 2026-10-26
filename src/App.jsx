@@ -5,6 +5,7 @@ import { Stage } from './components/Stage/Stage';
 import { MetronomeBar } from './components/MetronomeBar/MetronomeBar';
 import { DrumsBar } from './components/MetronomeBar/DrumsBar';
 import { ToolScreen } from './components/ToolScreen/ToolScreen';
+import { SongwriterScreen } from './components/Songwriter/SongwriterScreen';
 import { ComposeView } from './components/ComposeView/ComposeView';
 import { ImproviseView } from './components/ImproviseView/ImproviseView';
 import { PracticeView } from './components/PracticeView/PracticeView';
@@ -146,6 +147,8 @@ function App() {
   const [leftHome, setLeftHome] = useState(false);
   // A tool opened from the home screen's Tools card, on its own screen.
   const [toolScreen, setToolScreen] = useState(null);
+  // The Songwriter card's screen: { view: 'list'|'new'|'idea', n } | null.
+  const [songwriter, setSongwriter] = useState(null);
   // Which Vocal screen the Singing card opened (home / ear); n remounts it.
   const [vocalStart, setVocalStart] = useState({ screen: 'home', n: 0 });
   // The tuner's guitar/bass setting there (bass only when opened from the
@@ -2103,6 +2106,19 @@ function App() {
     syncTrainer: lickTrainer,
   };
 
+  if (songwriter) {
+    return (
+      <SongwriterScreen
+        key={songwriter.n}
+        start={songwriter.view}
+        onBack={() => {
+          setSongwriter(null);
+          setHomeCard('songwriter');
+        }}
+      />
+    );
+  }
+
   if (toolScreen) {
     return (
       <ToolScreen
@@ -2120,7 +2136,12 @@ function App() {
   if (home) {
     return (
       <HomeMenu
-        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen, teacherScreen }) => {
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen, teacherScreen, songwriter: swView }) => {
+          if (swView) {
+            stopMetronome();
+            setSongwriter((v) => ({ view: swView, n: (v?.n ?? 0) + 1 }));
+            return;
+          }
           // Tools card (or the Bass card's tuner): the tool on its own
           // screen (home stays underneath).
           if (tool) {

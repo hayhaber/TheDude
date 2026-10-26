@@ -9,5 +9,6 @@ export const INSTRUMENT_ART = {
   "bass": "<img src=\"/home/bass-pb2.webp\" alt=\"\" width=\"606\" height=\"1100\" decoding=\"async\" draggable=\"false\">",
   "vocal": "<img src=\"/home/vocal-mic3.webp\" alt=\"\" width=\"900\" height=\"812\" decoding=\"async\" draggable=\"false\">",
   "teacher": "<img src=\"/home/teacher-3.webp\" alt=\"\" width=\"900\" height=\"663\" decoding=\"async\" draggable=\"false\">",
+  "songwriter": "<img src=\"/home/songwriter.svg\" alt=\"\" width=\"900\" height=\"760\" decoding=\"async\" draggable=\"false\">",
   "tools": "<img src=\"/home/tools-studio.webp\" alt=\"\" width=\"900\" height=\"750\" decoding=\"async\" draggable=\"false\">",
 };

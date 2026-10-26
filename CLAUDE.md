@@ -824,6 +824,58 @@ on the container; content inside stays top-aligned). Stacked on a phone
   The neck (App `teacherStage`) shows only inside a lesson, with the step's
   chord; none on tune / changes steps. Text `i18n/tips/teacher.js`.
 
+## Songwriter card (built 2026-10-26)
+
+- User's request after a market review (Hookpad, Spit Notes, Songcraft,
+  Songwriter's Pad, Hum, ScoreCloud, MasterWriter…): lyrics + chords + the
+  SUNG/PLAYED melody turned into notes under the syllables — the gap no app
+  fills. User's answers: own home card; full phase 1 incl. melody->notes;
+  prosody check (stressed syllable on a strong beat) = phase 2; song TEXT
+  syncs (personal key), AUDIO stays on the device.
+- Home card `songwriter` (6th, before Tools; HomeMenu option `songwriter:
+  'list'|'new'|'idea'` -> App `songwriter` state {view, n} ->
+  `components/Songwriter/SongwriterScreen.jsx`, rendered instead of home /
+  AppShell, Home button -> back on this card). Art = drawn placeholder
+  `public/home/songwriter.svg` (notebook + pen; same img CSS group as vocal)
+  — the user may send a picture.
+- Pure `music/songwriter/`: `lyrics.js` (ChordPro-style chords in the line
+  text `[Am]words`, parseLine/joinLine, setChordOnWord, replaceText keeps
+  chords over their words while typing, splitRaw/joinRaw for Enter /
+  Backspace, syllables EN (vowel groups, -le) + HE pointed (vowel points) +
+  HE unpointed (matres ו/י, final ה/א) — an estimate, overridable per line
+  with hyphens (`line.syl`); rhymeKey/rhymeScheme), `song.js` (model,
+  transposeSong — changing an already-set key transposes chords + melody,
+  diatonicChords, chordMidis, fitToSyllables (extra notes -> melisma `c`,
+  legato ones first), chordTimes (chord = start of its word's first note),
+  songTimeline), `transcribe.js` (Lick Trainer analysis + the take's own
+  tuning offset removed + vibrato blip merge + grid snap from the count-in),
+  `musicxml.js` (lead sheet: melody, lyrics with syllabic, harmony; `screen`
+  drops tempo/rehearsal marks that collide with chords in alphaTab).
+  Synthetic tests (voice with vibrato/scoop/sharp or flat + KS guitar): notes
+  and rhythm exact on 5 of 6 takes.
+- Audio: `audio/songwriter/songRecorder.js` (own live context in the tap,
+  Settings input, capture worklet, count-in click 1.8/2.4 kHz = above the
+  pitch range; latency from the clicks the mic heard (studio's
+  latencyFromCountIn) else saved / estimated; iOS closes the mic after each
+  take), `songAudioStore.js` (IndexedDB `dudestar-songwriter`, WAV per take),
+  `songPlayer.js` (melody + chords on the piano via schedulePianoNotes).
+- UI: list (Ideas = quick recordings -> `Song` makes a song with it on the
+  first line; My songs), editor: title, Key / Tempo / Time / Click selects,
+  Play; sections (kind select, play / duplicate / up / down / delete with
+  Undo), lines: chord row always reserved (selecting must not shift layout —
+  a click after pointerdown landed elsewhere), tap word = edit, Enter splits,
+  Backspace at start joins, paste with blank lines = sections; syllable
+  count + rhyme letter; compact melody lane; tools Record / Play / Melody /
+  Takes. Record -> count-in -> Stop -> notes found automatically (toast +
+  Undo). Melody editor sheet (MelodyLane editable: tap/drag/stretch/add,
+  ↑↓, Join, Snap select, syllables field + Auto). Score view = ScoreView
+  (alphaTab, MusicXML). Print = lead sheet (`.sw-print`, print CSS). Export
+  = .musicxml download. Store `useSongs` -> personal key
+  `dudestar-p-songwriter` {songs, ideas}. Text `i18n/tips/songwriter.js`.
+- NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
+  check, chords heard while recording (headphones), open in GuitarPro, Hebrew
+  rhyme dictionary.
+
 ## Tapping (built 2026-10-26)
 
 - User's choice: a Teacher lesson + practice, ONE-finger tapping, classic rock

@@ -1,5 +1,6 @@
 import { Soundfont, DrumMachine, SplendidGrandPiano } from 'smplr';
 import { getAudioContext } from './audioContext';
+import { SOUNDFONT_TUNING, SPLENDID_TUNING, tuningFor } from './sampleTuning';
 
 // Generic sampled-instrument playback core — no guitar (or piano, or drum)
 // specific knowledge lives here, only "hand back a ready-to-play smplr
@@ -13,6 +14,28 @@ import { getAudioContext } from './audioContext';
 // own source) to be an absolute `audioContext.currentTime`-relative
 // timestamp, exactly what those lookahead schedulers already compute.
 const soundfontCache = new Map();
+
+// Every note in tune: each sample set's own tuning error was MEASURED per
+// note (sampleTuning.js, scripts/tuning/) and is cancelled here with smplr's
+// per-note `detune` (cents) — whatever the caller (chords, licks, keys,
+// bass, vocal cues…) plays.
+const LETTER = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+function toMidiNumber(note) {
+  if (typeof note === 'number') return Math.round(note);
+  const m = /^([A-Ga-g])([#b♯♭]*)(-?\d+)$/.exec(String(note ?? ''));
+  if (!m) return null;
+  const acc = [...m[2]].reduce((a, c) => a + (c === '#' || c === '♯' ? 1 : -1), 0);
+  return LETTER[m[1].toUpperCase()] + acc + 12 * (Number(m[3]) + 1);
+}
+function withTuning(instrument, correctionOf) {
+  const start = instrument.start.bind(instrument);
+  instrument.start = (event) => {
+    const midi = toMidiNumber(event?.note);
+    const c = midi == null ? 0 : correctionOf(midi, event?.velocity ?? 100) || 0;
+    return c ? start({ ...event, detune: (event.detune ?? 0) + c }) : start(event);
+  };
+  return instrument;
+}
 const drumMachineCache = new Map();
 let splendidPiano = null;
 
@@ -49,7 +72,7 @@ export function getSoundfontInstrument(instrumentName, opts = null) {
     const options = { instrument: instrumentName };
     if (opts?.kit) options.kit = opts.kit;
     if (opts?.extraGain) options.extraGain = opts.extraGain;
-    entry = createEntry(Soundfont(getAudioContext(), options));
+    entry = createEntry(withTuning(Soundfont(getAudioContext(), options), (m) => SOUNDFONT_TUNING[`${opts?.kit ?? 'MusyngKite'}/${instrumentName}`]?.[m]));
     soundfontCache.set(key, entry);
   }
   return entry;
@@ -70,7 +93,7 @@ export function getDrumMachine(kitName) {
 // with zero changes to the getters above.
 export function getSplendidPiano() {
   if (!splendidPiano) {
-    splendidPiano = createEntry(SplendidGrandPiano(getAudioContext()));
+    splendidPiano = createEntry(withTuning(SplendidGrandPiano(getAudioContext()), (m, velocity) => tuningFor(SPLENDID_TUNING, m, velocity)));
   }
   return splendidPiano;
 }

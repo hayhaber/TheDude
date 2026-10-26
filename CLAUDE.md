@@ -801,13 +801,14 @@ on the container; content inside stays top-aligned). Stacked on a phone
   C Am F G as whole notes (RH C4-E4-G4 / C4-E4-A4 / C4-F4-A4 / B3-D4-G4,
   LH C3 A2 F2 G2), keyboards F..E with C-E-G and A-C-E lit. For the card:
   key it (`scripts/home-art-color-to-alpha.py`) to a new webp in public/home.
-- Future Bass Teacher card: `art-src/bass-teacher.png` (1248x848, from the
-  user's JPEG, 2026-10-26: smiling bassist in a DUDESTAR shirt + lesson
-  screen). The GROOVE panel was repainted by `scripts/bass-teacher-screen-fix.py
-  <src> [out]` (the AI kept drawing 6-string boxes): 3 bass diagrams, 4 strings
-  x 5 frets, root-5th-octave shapes G (E3 A5 D5), C (A3 D5 G5), F (E1 A3 D3),
-  drawn only on screen pixels so the player / neck stay in front. The user
-  decided on the character himself (keep it). Bridge still shows ~5 saddles.
+- Future Bass Teacher card: `art-src/bass-teacher.png` (1521x1034 PNG, the
+  user's picture, 2026-10-26: smiling bassist in a DUDESTAR shirt + lesson
+  screen; real 4-string bass). The GROOVE panel was repainted by
+  `scripts/bass-teacher-screen-fix.py <src> [out]` (the AI kept drawing guitar
+  boxes / a piano keyboard there): 3 named bass diagrams, 4 strings x 5 frets,
+  root-5th-octave shapes G (E3 A5 D5), C (A3 D5 G5), F (E1 A3 D3), drawn only
+  on screen pixels so the player / neck stay in front. The user decided on
+  the character himself (keep it).
 
 ## Competitor-gap features (Gibson / Yousician / MusicMentor / Rocksmith+ review, 2026-10-10)
 

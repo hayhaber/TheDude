@@ -183,7 +183,8 @@
 .home-art-guitar::after,
 .home-art-bass::after,
 .home-art-piano::after,
-.home-art-tools::after {
+.home-art-tools::after,
+.home-art-vocal::after {
   display: none;
 }
 
@@ -201,7 +202,8 @@
 
 /* The Piano card: the user's grand piano photo (2026-10-26). */
 .home-art-piano img,
-.home-art-tools img {
+.home-art-tools img,
+.home-art-vocal img {
   position: relative;
   z-index: 1;
   display: block;
@@ -417,7 +419,8 @@
   .home-art-guitar img,
   .home-art-bass img,
   .home-art-piano img,
-  .home-art-tools img {
+  .home-art-tools img,
+  .home-art-vocal img {
     height: var(--home-art-h);
   }
 
@@ -567,7 +570,8 @@
   }
 
   .home-art-piano img,
-  .home-art-tools img {
+  .home-art-tools img,
+  .home-art-vocal img {
     height: 160px;
   }
 
@@ -622,7 +626,8 @@
   }
 
   .home-art-piano img,
-  .home-art-tools img {
+  .home-art-tools img,
+  .home-art-vocal img {
     height: 370px;
   }
 

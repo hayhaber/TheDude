@@ -180,11 +180,13 @@
 
 /* The Guitar card is a photo too (user's picture 2026-10-26, own floor
    shadow keyed in) — upright as photographed, no CSS rotation. */
-.home-art-guitar::after {
+.home-art-guitar::after,
+.home-art-bass::after {
   display: none;
 }
 
-.home-art-guitar img {
+.home-art-guitar img,
+.home-art-bass img {
   position: relative;
   z-index: 1;
   display: block;
@@ -395,7 +397,8 @@
     max-height: none;
   }
 
-  .home-art-guitar img {
+  .home-art-guitar img,
+  .home-art-bass img {
     height: var(--home-art-h);
   }
 
@@ -539,7 +542,8 @@
     height: 160px;
   }
 
-  .home-art-guitar img {
+  .home-art-guitar img,
+  .home-art-bass img {
     height: 170px;
   }
 
@@ -588,7 +592,8 @@
     height: 400px;
   }
 
-  .home-art-guitar img {
+  .home-art-guitar img,
+  .home-art-bass img {
     height: 390px;
   }
 

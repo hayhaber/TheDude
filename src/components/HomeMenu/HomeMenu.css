@@ -178,6 +178,23 @@
   display: none;
 }
 
+/* The Guitar card is a photo too (user's picture 2026-10-26, own floor
+   shadow keyed in) — upright as photographed, no CSS rotation. */
+.home-art-guitar::after {
+  display: none;
+}
+
+.home-art-guitar img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 300px;
+  width: auto;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
 /* The teacher card is a picture (two players in front of a lesson screen,
    background keyed transparent), wider than the drawn instruments. */
 .home-art-teacher img {
@@ -378,6 +395,10 @@
     max-height: none;
   }
 
+  .home-art-guitar img {
+    height: var(--home-art-h);
+  }
+
   .home-title {
     font-size: 32px;
   }
@@ -518,6 +539,10 @@
     height: 160px;
   }
 
+  .home-art-guitar img {
+    height: 170px;
+  }
+
   .home-title {
     font-size: 26px;
   }
@@ -561,6 +586,10 @@
 @media (min-width: 641px) and (min-height: 1000px) {
   .home-card-main {
     height: 400px;
+  }
+
+  .home-art-guitar img {
+    height: 390px;
   }
 
   .home-art-guitar svg,

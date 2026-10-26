@@ -10,7 +10,7 @@ import * as alphaTab from '@coderline/alphatab';
 // Guitar Pro file is played, then cached by the browser.
 // Versioned name: the file is cached for 30 days (vercel.json), so a new
 // voicing needs a new name.
-export const GP_SOUNDFONT_URL = '/soundfont/generaluser-gs-v2.sf3';
+export const GP_SOUNDFONT_URL = '/soundfont/generaluser-gs-v2t.sf3';
 
 // alphaTab makes its own AudioContext (one per player). A browser may keep a
 // context created before any tap suspended — then playback runs silently.

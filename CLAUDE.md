@@ -479,10 +479,29 @@ on the container; content inside stays top-aligned). Stacked on a phone
   FluidR3_GM mean 1-2 c (max 5; pick D2/Eb2 -11). Synth Bass = GM
   synth_bass_1 (was a triangle oscillator, still the fallback). extraGain =
   each set's median RMS matched to the old fingered bass, peaks capped.
-  One sample per note (88), so no pitch-shifting. GeneralUser GS (alphaTab,
-  GuitarPro bass mode) NOT changed: its Fingered Bass E1-F#1 starts ~+22 c
-  for 0.8 s and Acoustic Bass G2-B2 ~-25 c for 0.8 s (rendered with
-  fluidsynth from the original SF2).
+  One sample per note (88), so no pitch-shifting.
+- **Every sound in tune (user's rule 2026-10-26: "the system plays only tuned
+  notes")**. Measured with scripts/tuning/ (h1 spectral peak AND YIN
+  periodicity over the sustained part; a note is "off" only when both agree
+  within 8 c — inharmonic piano bass strings / chorus pads where they
+  disagree are left alone; corrections only for >= 4 c):
+  (1) smplr sample sets — `src/audio/sampleTuning.js` SOUNDFONT_TUNING
+  ('<kit>/<instrument>' -> {midi: cents}) + SPLENDID_TUNING (per velocity
+  layer, per sample, mapped with smplr's own key spread) applied in
+  instrumentEngine.js `withTuning()` (wraps instrument.start, adds `detune`)
+  for EVERY caller. Biggest fixes: MK acoustic guitar low E-A strings
+  +11..16 c, harpsichord / vibraphone / EP1 ~10 c, Splendid Grand +5..+15 c
+  from the middle up. Verified in the browser: AudioBufferSourceNode.detune
+  = the table value (open A chord 16/14/-4/5; piano C chord -5/-7).
+  (2) alphaTab's GeneralUser GS: every bank-0 program 0-111 rendered with
+  fluidsynth from the original SF2 (notes across its range, steady 0.25-1.1 s),
+  each mistuned instrument ZONE gets a fineTune generator (median of its
+  notes, only if consistent: IQR <= 6 c) — 165 zones, `scripts/tuning/
+  gu-zone-fix.json`, `fixzones.py`. Notes >= 5 c off: 443 -> 105, >= 10 c:
+  111 -> 22 (left: multi-pitch patches — Orchestra Hit, Fifths lead, bottle —
+  and stretched top piano keys). New file `public/soundfont/generaluser-gs-v2t.sf3`
+  (GP_SOUNDFONT_URL; the old -v2.sf3 removed). Oscillator synths use exact
+  440·2^((m-69)/12).
 - **Audio**: one shared `AudioContext` (`audio/audioContext.js`), sampled
   instruments via `smplr` through the generic `audio/instrumentEngine.js`
   (`getSoundfontInstrument`/`preloadSoundfontInstrument` — verify any new

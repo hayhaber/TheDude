@@ -469,6 +469,20 @@ on the container; content inside stays top-aligned). Stacked on a phone
   `computeChordPositions.js`/`triads.js`/etc. are guitar-only and untouched
   by Bass — Bass's root-note-only position math lives in its own
   `music/bassPositions.js`.
+- **Bass sound (measured 2026-10-26)**: every bass profile plays smplr's
+  FluidR3_GM samples (`kit` + `extraGain` on BASS_SOUND_PROFILES ->
+  `getSoundfontInstrument(name, {kit, extraGain})`, cache key per kit/gain).
+  Measured all 40 notes E1..G4 (0-24 frets) per profile from the real sample
+  files: MusyngKite (smplr default) fingered bass 20-34 cents SHARP nearly
+  everywhere + F#4/G4 an octave low and ~14 dB quieter, pick 10-18 c sharp,
+  fretless low notes ~15 c sharp, slap ~20 dB quieter than the rest;
+  FluidR3_GM mean 1-2 c (max 5; pick D2/Eb2 -11). Synth Bass = GM
+  synth_bass_1 (was a triangle oscillator, still the fallback). extraGain =
+  each set's median RMS matched to the old fingered bass, peaks capped.
+  One sample per note (88), so no pitch-shifting. GeneralUser GS (alphaTab,
+  GuitarPro bass mode) NOT changed: its Fingered Bass E1-F#1 starts ~+22 c
+  for 0.8 s and Acoustic Bass G2-B2 ~-25 c for 0.8 s (rendered with
+  fluidsynth from the original SF2).
 - **Audio**: one shared `AudioContext` (`audio/audioContext.js`), sampled
   instruments via `smplr` through the generic `audio/instrumentEngine.js`
   (`getSoundfontInstrument`/`preloadSoundfontInstrument` — verify any new

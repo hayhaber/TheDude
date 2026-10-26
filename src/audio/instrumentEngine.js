@@ -38,12 +38,19 @@ function createEntry(instrument) {
   return entry;
 }
 
-export function getSoundfontInstrument(instrumentName) {
+// `opts` (optional): { kit, extraGain } — smplr's sample set ('MusyngKite',
+// the default, or 'FluidR3_GM') and output gain (smplr's default 5). The
+// cache key includes them, so the same instrument name can exist per kit.
+export function getSoundfontInstrument(instrumentName, opts = null) {
   if (!instrumentName) return null;
-  let entry = soundfontCache.get(instrumentName);
+  const key = opts?.kit || opts?.extraGain ? `${instrumentName}|${opts.kit ?? ''}|${opts.extraGain ?? ''}` : instrumentName;
+  let entry = soundfontCache.get(key);
   if (!entry) {
-    entry = createEntry(Soundfont(getAudioContext(), { instrument: instrumentName }));
-    soundfontCache.set(instrumentName, entry);
+    const options = { instrument: instrumentName };
+    if (opts?.kit) options.kit = opts.kit;
+    if (opts?.extraGain) options.extraGain = opts.extraGain;
+    entry = createEntry(Soundfont(getAudioContext(), options));
+    soundfontCache.set(key, entry);
   }
   return entry;
 }
@@ -71,8 +78,8 @@ export function getSplendidPiano() {
 // Kicks off loading in the background without waiting for it — called when
 // the user picks a sampled profile in Settings, so by the time they
 // actually play a note, entry.isReady is already true.
-export function preloadSoundfontInstrument(instrumentName) {
-  getSoundfontInstrument(instrumentName);
+export function preloadSoundfontInstrument(instrumentName, opts = null) {
+  getSoundfontInstrument(instrumentName, opts);
 }
 
 export function preloadDrumMachine(kitName) {

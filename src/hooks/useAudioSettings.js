@@ -9,6 +9,7 @@ import {
   BASS_SOUND_PROFILES,
   DEFAULT_BASS_PROFILE,
   resolveBassProfile,
+  bassSoundOptions,
 } from '../audio/instrumentProfiles';
 import { preloadSoundfontInstrument } from '../audio/instrumentEngine';
 import { setCurrentGuitarProfile, setCurrentPianoProfile, setCurrentBassProfile } from '../audio/audioSettingsStore';
@@ -77,7 +78,7 @@ export function useAudioSettings() {
     localStorage.setItem(BASS_STORAGE_KEY, bassProfile);
     setCurrentBassProfile(bassProfile);
     const profile = resolveBassProfile(bassProfile);
-    if (profile.soundfontName) preloadSoundfontInstrument(profile.soundfontName);
+    if (profile.soundfontName) preloadSoundfontInstrument(profile.soundfontName, bassSoundOptions(profile));
   }, [bassProfile]);
 
   useEffect(() => {

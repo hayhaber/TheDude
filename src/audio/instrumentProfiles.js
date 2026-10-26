@@ -70,14 +70,28 @@ export function resolvePianoProfile(key) {
 // Every soundfontName here is verified against the actually-installed smplr
 // package's own instrument list (node_modules/smplr/dist/index.mjs), same
 // standard the guitar/piano profiles above are held to.
+// Bass samples come from the FluidR3_GM set (smplr kit 'FluidR3_GM'), not
+// smplr's default MusyngKite: measured 2026-10-26 over every bass note
+// (E1..G4, open strings to fret 24), MusyngKite's fingered bass is 20-34
+// cents SHARP almost everywhere and its F#4/G4 samples sound an octave low,
+// the pick bass is 10-18 cents sharp and the fretless low notes ~15 cents
+// sharp; FluidR3_GM is within ~5 cents (pick D2/Eb2 -11). `extraGain`
+// evens the levels out (each set's median RMS brought to the old fingered
+// bass's, peaks capped at its peak) — smplr's own default is 5.
+const FLUID = 'FluidR3_GM';
 export const BASS_SOUND_PROFILES = [
-  { key: 'acoustic', labelKey: 'audioSettings.bass.acoustic', soundfontName: 'acoustic_bass' },
-  { key: 'electricFinger', labelKey: 'audioSettings.bass.electricFinger', soundfontName: 'electric_bass_finger' },
-  { key: 'electricPick', labelKey: 'audioSettings.bass.electricPick', soundfontName: 'electric_bass_pick' },
-  { key: 'fretless', labelKey: 'audioSettings.bass.fretless', soundfontName: 'fretless_bass' },
-  { key: 'slap', labelKey: 'audioSettings.bass.slap', soundfontName: 'slap_bass_1' },
-  { key: 'synth', labelKey: 'audioSettings.bass.synth', soundfontName: null },
+  { key: 'acoustic', labelKey: 'audioSettings.bass.acoustic', soundfontName: 'acoustic_bass', kit: FLUID, extraGain: 9.7 },
+  { key: 'electricFinger', labelKey: 'audioSettings.bass.electricFinger', soundfontName: 'electric_bass_finger', kit: FLUID, extraGain: 9.2 },
+  { key: 'electricPick', labelKey: 'audioSettings.bass.electricPick', soundfontName: 'electric_bass_pick', kit: FLUID, extraGain: 9.7 },
+  { key: 'fretless', labelKey: 'audioSettings.bass.fretless', soundfontName: 'fretless_bass', kit: FLUID, extraGain: 7.6 },
+  { key: 'slap', labelKey: 'audioSettings.bass.slap', soundfontName: 'slap_bass_1', kit: FLUID, extraGain: 8.8 },
+  // GM Synth Bass 1 (was a plain triangle-wave oscillator); the oscillator
+  // stays as the fallback while samples load / offline.
+  { key: 'synth', labelKey: 'audioSettings.bass.synth', soundfontName: 'synth_bass_1', kit: FLUID, extraGain: 11.2 },
 ];
+
+/** smplr options of a bass profile: { kit, extraGain }. */
+export const bassSoundOptions = (profile) => (profile ? { kit: profile.kit, extraGain: profile.extraGain } : null);
 
 export const DEFAULT_BASS_PROFILE = 'electricFinger';
 

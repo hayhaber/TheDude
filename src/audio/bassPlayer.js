@@ -1,6 +1,6 @@
 import { getAudioContext } from './audioContext';
 import { getSoundfontInstrument } from './instrumentEngine';
-import { resolveBassProfile } from './instrumentProfiles';
+import { resolveBassProfile, bassSoundOptions } from './instrumentProfiles';
 import { getCurrentBassProfile } from './audioSettingsStore';
 
 const NOTE_DURATION = 1.6; // seconds a plucked bass note rings out
@@ -30,13 +30,13 @@ function playOscillatorNote(ctx, midi, startTime) {
 // family (see audio/instrumentProfiles.js's BASS_SOUND_PROFILES).
 function getCurrentBassEntry() {
   const profile = resolveBassProfile(getCurrentBassProfile());
-  return profile.soundfontName ? getSoundfontInstrument(profile.soundfontName) : null;
+  return profile.soundfontName ? getSoundfontInstrument(profile.soundfontName, bassSoundOptions(profile)) : null;
 }
 
 // Mirrors pianoPlayer.js/chordPlayer.js exactly: a synchronous isReady check
 // (not an awaited Promise — see instrumentEngine.js's own comment for why),
 // falling back to a plain oscillator pluck if the sample hasn't finished
-// loading yet (or the selected profile is 'synth', which has no
+// loading yet (or a profile without
 // soundfontName at all) rather than staying silent.
 export function playBassNote(midi) {
   if (midi === null || midi === undefined) return;
@@ -57,5 +57,5 @@ export function playBassNote(midi) {
 // for guitar/piano.
 export function preloadBassSamples() {
   const profile = resolveBassProfile(getCurrentBassProfile());
-  if (profile.soundfontName) getSoundfontInstrument(profile.soundfontName);
+  if (profile.soundfontName) getSoundfontInstrument(profile.soundfontName, bassSoundOptions(profile));
 }

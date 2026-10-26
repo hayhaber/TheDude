@@ -451,8 +451,8 @@ on the container; content inside stays top-aligned). Stacked on a phone
   Practice ear training is unchanged. `dailyWorkout` now walks the pool with
   a stride coprime to its size (stride 5 over 5 or 10 exercises repeated the
   same pick — level 2 had been getting 2 exercises instead of 4).
-- **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G,
-  Compose-only for now). Registered in
+- **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G:
+  Compose, Practice (Bass Practice, below), GuitarPro). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each
   instrument supports is declared in `src/instruments/featureCapabilities.js`
   (`supportsInstrument()` — unlisted feature keys default to "supported
@@ -790,6 +790,51 @@ on the container; content inside stays top-aligned). Stacked on a phone
   and practise sub-screens; LessonPlayer). Root has `dir` from the language.
   The neck (App `teacherStage`) shows only inside a lesson, with the step's
   chord; none on tune / changes steps. Text `i18n/tips/teacher.js`.
+
+## Bass Practice (built 2026-10-26)
+
+- Bass card shortcut + nav section `bassPractice` (bass only; label `nav.practice`,
+  TrainingIcon; featureCapabilities `bassPractice: ['bass']`), separate from the
+  guitar/piano `practice` section so no guitar Practice state is touched.
+  User's request: the guitar practice logic/display adapted to bass, every
+  exercise checked against bass theory and standard bass teaching.
+- Content (pure) `music/bass/bassPractice.js`: 4 categories x levels 1-3, 27
+  exercises. Technique (fixed notes): i-m open-string alternation, chromatic
+  1-2-3-4 at the 5th fret (OFPF starts at the 5th position — wide frets),
+  Simandl 1-2-4 in 1st position, octave shape, string crossing / raking,
+  permutation 1-3-2-4, shifting climb. Scales (keyed, root on E or A string,
+  movable one-octave boxes, standard fingerings: major/majPent/mixolydian root
+  finger 2, minor/minPent/blues root finger 1). Arpeggios: R-5-8, major, minor,
+  dom7, maj7, m7. Grooves (chord per 4/4 bar, roots on E/A near the key's
+  position): roots I-V-vi-IV, rock eighths, root-5th two-feel (5th BELOW on the
+  next lower string; above when the root is on E), 1-5-8-5, octaves (disco),
+  12-bar boogie 1-3-5-6 / b7-6-5-3, walking ii-V-I-VI and walking 12-bar (1, 3, 5,
+  approach = one fret under the NEXT root on its string). Text {en, he} inline,
+  Hebrew Latin tokens LRI/PDI. Theory test: `scripts/bass-practice-test.mjs`
+  (every exercise x 12 keys x root strings: intervals = degree labels, chord
+  tones, approach = half step below, frets 0-17, box span <= 3, bar = 4 beats).
+- Engine `hooks/useBassPractice.js` (instance in App, so the Stage bass neck
+  shows `scaleNotes` = shape / the groove's current bar, `isCurrent`, hit/miss
+  via `quizFeedbackCell`, `noteSound: 'bass'`): modes play (4-beat count-in on
+  the SHARED metronome — drums work too; judged per note: right pitch (or its
+  octave) within -180 ms .. +150-350 ms of its time, 70 ms detector lag
+  subtracted; misses on timeout), wait (advances on the right note), listen
+  (playBassNote per step). `useBassOnsets` = usePitchDetection(BASS_PITCH_RANGE)
+  -> onsets: new stable pitch, or the level jumping back up (re-plucked same
+  note). Loop. Logs perfLog tool 'bass', item `<id>@<key>:<rootString>`;
+  `bestFor()`. Leaving the section stops it (App effect).
+- UI `components/BassPractice/` (BassPracticeView + css, reuses the Scale
+  Practice field chrome): category pills (practice-tabs, like the guitar),
+  opens empty (Choose…), Exercise (optgroups by level) / Key / Root on / Mode /
+  Show selects, BpmField, Loop + Start, description card (how / why), chord
+  bars, note strip, status, result card (accuracy, timing early/late/on,
+  steadiness, best). Prefs `dudestar-p-bass-practice`. Text `bp.*` in
+  `i18n/tips/basspractice.js`.
+- Fretboard drill/scale dots now play through `playStringNote` (bass sound when
+  `noteSound === 'bass'`; guitar unchanged).
+- Verified: fake mic (Karplus-Strong bass WAV): wait mode 15/15 G major notes;
+  play mode roots groove 16/16 incl. repeated notes, wrong notes rejected
+  (1/16). NOT verified on a real bass yet.
 
 ## Future Piano Teacher card (picture saved, card NOT built)
 

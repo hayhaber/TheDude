@@ -1161,10 +1161,8 @@ export function Fretboard({
               role="button"
               tabIndex={0}
               aria-label={t('fretboard.playNote', { note: n.noteName })}
-              onClick={() => playNote(tuning[n.string].baseMidi + n.fret)}
-              onKeyDown={(e) =>
-                (e.key === 'Enter' || e.key === ' ') && playNote(tuning[n.string].baseMidi + n.fret)
-              }
+              onClick={() => playStringNote(n.string, n.fret)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && playStringNote(n.string, n.fret)}
             >
               {n.tier === 'current' && (
                 <circle cx={cx} cy={cy} r={style.radius + 5} fill="none" className="drill-dot-current-ring" />
@@ -1200,10 +1198,8 @@ export function Fretboard({
               role="button"
               tabIndex={0}
               aria-label={t('fretboard.playNote', { note: n.noteName })}
-              onClick={() => playNote(tuning[n.string].baseMidi + n.fret)}
-              onKeyDown={(e) =>
-                (e.key === 'Enter' || e.key === ' ') && playNote(tuning[n.string].baseMidi + n.fret)
-              }
+              onClick={() => playStringNote(n.string, n.fret)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && playStringNote(n.string, n.fret)}
             >
               {n.isCurrent && (
                 <circle cx={cx} cy={cy} r={DOT_RADIUS + 5} fill="none" className="drill-dot-current-ring" />

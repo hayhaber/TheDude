@@ -18,6 +18,8 @@ import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingV
 import { CoachView } from './components/Coach/CoachView';
 import { CoachBanner } from './components/Coach/CoachBanner';
 import { TeacherView } from './components/Teacher/TeacherView';
+import { BassPracticeView } from './components/BassPractice/BassPracticeView';
+import { useBassPractice } from './hooks/useBassPractice';
 import { useCoach } from './coach/useCoach';
 import { NoteColorLegend } from './components/NoteColorLegend/NoteColorLegend';
 import { parseChordSymbol, capitalizeChordRoot, normalizeAmbiguousMinorM } from './music/chordSymbolParser';
@@ -395,6 +397,32 @@ function App() {
   };
   const earTraining = useEarTraining();
   const rhythmGame = useRhythmGame(metronome, { logAs: 'rhythm' });
+  // Bass card -> Practice (BassPracticeView): its engine lives here so the
+  // Stage's bass neck can show the shape / moving note / hit-miss flashes.
+  const bassPractice = useBassPractice(metronome);
+  const bassPracticeOpen = !home && activeSection === 'bassPractice';
+  useEffect(() => {
+    if (!bassPracticeOpen && bassPractice.running) bassPractice.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bassPracticeOpen]);
+  const bassPracticeNotes = useMemo(() => {
+    const b = bassPractice.built;
+    if (!b) return [];
+    const cur = bassPractice.stepIndex >= 0 ? b.steps[bassPractice.stepIndex] : null;
+    let base = b.shapeNotes;
+    if (b.bars) {
+      // grooves: the notes of the bar being played (bar 1 before the start)
+      const bar = cur?.bar ?? 0;
+      const seen = new Map();
+      b.steps.filter((x) => x.bar === bar).forEach((x) => seen.set(x.string + ':' + x.fret, x));
+      base = [...seen.values()];
+    }
+    return (base ?? []).map((n) => ({
+      ...n,
+      degreeLabel: n.degreeLabel || n.noteName,
+      isCurrent: !!cur && n.string === cur.string && n.fret === cur.fret,
+    }));
+  }, [bassPractice.built, bassPractice.stepIndex]);
   // Scale Practice reuses the EXACT same generic engine as Rhythm Practice
   // above (a second independent instance — same reasoning as this app's
   // other same-hook-twice cases: fully self-contained, no state to share)
@@ -1560,7 +1588,17 @@ function App() {
     : null;
 
   const stageFretboardProps =
-    activeSection === 'practice'
+    activeSection === 'bassPractice'
+      ? {
+          tuning: BASS_TUNING,
+          position: null,
+          scaleNotes: bassPracticeNotes,
+          labelMode: bassPractice.labels,
+          quizFeedbackCell: bassPractice.feedback,
+          noteSound: 'bass',
+          capoFret: 0,
+        }
+      : activeSection === 'practice'
       ? practiceTab === 'ear-training'
         ? {
             position: null,
@@ -2356,6 +2394,7 @@ function App() {
       )}
       {activeSection === 'vocal' && <VocalTrainingView key={vocalStart.n} initialScreen={vocalStart.screen} />}
       {activeSection === 'coach' && <CoachView />}
+      {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} metronome={metronome} />}
       {activeSection === 'teacher' && (
         <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} onStage={setTeacherStage} />
       )}

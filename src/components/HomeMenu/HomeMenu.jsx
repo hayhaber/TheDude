@@ -235,6 +235,7 @@ const CARDS = [
     descKey: 'home.bass.desc',
     options: [
       { section: 'compose', icon: 'compose' },
+      { section: 'bassPractice', icon: 'practice', labelKey: 'nav.practice' },
       { section: 'guitarpro', icon: 'guitarpro' },
     ],
   },

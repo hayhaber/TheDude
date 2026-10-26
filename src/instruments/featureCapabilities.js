@@ -43,7 +43,8 @@ export const FEATURE_CAPABILITIES = {
   pianoPractice: ['piano'], // leveled piano-only exercises (pentascales, inversion drills, ...)
   fallingNotes: ['piano'], // Synthesia-style falling-notes practice, keyboard-only by nature
   pianoCurriculum: ['piano'], // structured beginner-to-advanced piano course (keyboard geography, staff reading, technique) — piano-native, not a reworded guitar course
-  chordRhythm: ['piano'], // metronome-timed chord-changing practice, judged via the shared PianoKeyboard's quiz plumbing — piano-only for now
+  chordRhythm: ['piano'],
+  bassPractice: ['bass'], // Bass card -> Practice: bass technique / scales / arpeggios / grooves, mic-judged (music/bass/bassPractice.js) // metronome-timed chord-changing practice, judged via the shared PianoKeyboard's quiz plumbing — piano-only for now
 };
 
 // Unlisted feature keys default to supported everywhere — most of the app

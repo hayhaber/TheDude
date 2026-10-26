@@ -1,0 +1,279 @@
+/* Bass Card -> Practice. Controls reuse the Scale Practice field chrome
+   (ScalePracticePanel.css); this file adds the description card, the chord
+   bar strip, the note strip and the result card. */
+
+.bass-practice .bp-controls {
+  align-items: flex-end;
+}
+
+.bp-field-wide select {
+  min-width: 260px;
+  max-width: 100%;
+}
+
+.bass-practice .scale-practice-field select {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.bp-actions {
+  display: inline-flex;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.bp-latch {
+  height: var(--control-height);
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 590;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.bp-latch.is-on {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.bp-bpm.bpm-field {
+  height: var(--control-height);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  text-transform: none;
+  letter-spacing: normal;
+  direction: ltr;
+}
+
+.bp-bpm .bpm-field-step {
+  width: 34px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.bp-bpm .bpm-field-value,
+.bp-bpm .bpm-field-input {
+  width: 52px;
+  border: none;
+  border-inline: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  padding: 0;
+}
+
+.bp-empty {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.bp-card,
+.bp-result {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 20px;
+}
+
+.bp-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.bp-card h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.bp-card p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.bp-why {
+  color: var(--text-secondary);
+}
+
+.bp-level {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.bp-level.is-2 {
+  background: rgba(255, 159, 10, 0.14);
+  color: #c77700;
+}
+
+.bp-level.is-3 {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--danger);
+}
+
+/* Chords of a groove, one per bar; the bar being played is lit. */
+.bp-bars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bp-bar {
+  min-width: 56px;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.bp-bar.is-now {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* The notes of the exercise (or of the current bar), in play order. */
+.bp-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.bp-note {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.bp-note.is-root {
+  border-color: var(--scale-root-color);
+}
+
+.bp-note.is-now {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.bp-status {
+  margin: 0;
+  font-size: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: center;
+}
+
+.bp-countin {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.bp-heard {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.bp-error {
+  color: var(--danger);
+}
+
+.bp-result h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+
+/* Equal heights in a row (rule 8): grid rows stretch, content top-aligned. */
+.bp-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.bp-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.bp-stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 590;
+}
+
+.bp-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bp-stat-value.is-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bp-stat-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.bp-tip {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .bp-field-wide {
+    flex: 1 1 100%;
+  }
+  .bp-field-wide select {
+    min-width: 0;
+    width: 100%;
+  }
+}

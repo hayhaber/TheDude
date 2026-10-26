@@ -791,6 +791,17 @@ on the container; content inside stays top-aligned). Stacked on a phone
   The neck (App `teacherStage`) shows only inside a lesson, with the step's
   chord; none on tune / changes steps. Text `i18n/tips/teacher.js`.
 
+## Future Piano Teacher card (picture saved, card NOT built)
+
+- `art-src/piano-teacher.png` (1521x1034, white background, NOT in public/ so
+  it isn't shipped): the user's picture (2026-10-26, pianist teacher at a grand
+  + student at a keyboard + glowing lesson screen) with the screen's music
+  repainted by `scripts/piano-teacher-screen-fix2.py <src> [out]` (the AI
+  tool kept drawing wrong notes/keys): grand staff 4/4, no key signature,
+  C Am F G as whole notes (RH C4-E4-G4 / C4-E4-A4 / C4-F4-A4 / B3-D4-G4,
+  LH C3 A2 F2 G2), keyboards F..E with C-E-G and A-C-E lit. For the card:
+  key it (`scripts/home-art-color-to-alpha.py`) to a new webp in public/home.
+
 ## Competitor-gap features (Gibson / Yousician / MusicMentor / Rocksmith+ review, 2026-10-10)
 
 - Per-profile storage: any key starting `dudestar-p-` (or `dudestar-coach`)

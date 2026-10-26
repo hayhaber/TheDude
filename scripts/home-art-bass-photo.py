@@ -3,7 +3,7 @@ from collections import deque
 from PIL import Image, ImageFilter, ImageDraw
 import numpy as np
 import sys
-SRC = sys.argv[1]  # the user's bass photo on white -> bass.webp (copy to public/home/bass-pb.webp)
+SRC = sys.argv[1]  # the user's bass photo on white -> bass.webp (copy to public/home/bass-pb<n>.webp, a new name per picture)
 im=Image.open(SRC).convert('RGB'); a=np.asarray(im).astype(np.int16); h,w,_=a.shape
 mn=a.min(2); mx=a.max(2); lum=a.mean(2); ys=np.arange(h)[:,None]
 neutral=(mx-mn<16)

@@ -744,8 +744,7 @@ on the container; content inside stays top-aligned). Stacked on a phone
   link-out to Tab4u / UG / Nagnu, private paste, auto-detect) — not built yet.
 - Home card `teacher` (2nd card, instrument guitar; art = the USER'S picture
   (2026-10-25: two rock guitarists in front of a glowing lesson screen) as
-  `public/home/teacher-2.webp` (Les Paul version; a new picture = a new file name) (800 px, white background keyed transparent by
-  flood fill from the border + the white pockets left of the screen) — the
+  `public/home/teacher-3.webp` (900x663, legs fading out, no headstock logo; a new picture = a new file name), made transparent by colour-to-alpha from white (`scripts/home-art-color-to-alpha.py`, so the faded legs blend into the light card) — the
   only card whose INSTRUMENT_ART is an <img>, CSS `.home-art-teacher img`, no
   floor shadow; 3 shortcuts = one row of three on phones), shortcuts
   Lesson / Path / Coach -> HomeMenu option `teacherScreen` -> App

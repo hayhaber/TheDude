@@ -181,7 +181,8 @@
 /* The Guitar card is a photo too (user's picture 2026-10-26, own floor
    shadow keyed in) — upright as photographed, no CSS rotation. */
 .home-art-guitar::after,
-.home-art-bass::after {
+.home-art-bass::after,
+.home-art-piano::after {
   display: none;
 }
 
@@ -192,6 +193,20 @@
   display: block;
   height: 300px;
   width: auto;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* The Piano card: the user's grand piano photo (2026-10-26). */
+.home-art-piano img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 290px;
+  width: auto;
+  max-width: 112%;
+  object-fit: contain;
   -webkit-user-drag: none;
   user-select: none;
   pointer-events: none;
@@ -398,7 +413,8 @@
   }
 
   .home-art-guitar img,
-  .home-art-bass img {
+  .home-art-bass img,
+  .home-art-piano img {
     height: var(--home-art-h);
   }
 
@@ -547,6 +563,10 @@
     height: 170px;
   }
 
+  .home-art-piano img {
+    height: 160px;
+  }
+
   .home-title {
     font-size: 26px;
   }
@@ -595,6 +615,10 @@
   .home-art-guitar img,
   .home-art-bass img {
     height: 390px;
+  }
+
+  .home-art-piano img {
+    height: 370px;
   }
 
   .home-art-guitar svg,

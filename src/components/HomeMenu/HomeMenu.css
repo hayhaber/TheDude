@@ -182,7 +182,8 @@
    shadow keyed in) — upright as photographed, no CSS rotation. */
 .home-art-guitar::after,
 .home-art-bass::after,
-.home-art-piano::after {
+.home-art-piano::after,
+.home-art-tools::after {
   display: none;
 }
 
@@ -199,7 +200,8 @@
 }
 
 /* The Piano card: the user's grand piano photo (2026-10-26). */
-.home-art-piano img {
+.home-art-piano img,
+.home-art-tools img {
   position: relative;
   z-index: 1;
   display: block;
@@ -414,7 +416,8 @@
 
   .home-art-guitar img,
   .home-art-bass img,
-  .home-art-piano img {
+  .home-art-piano img,
+  .home-art-tools img {
     height: var(--home-art-h);
   }
 
@@ -563,7 +566,8 @@
     height: 170px;
   }
 
-  .home-art-piano img {
+  .home-art-piano img,
+  .home-art-tools img {
     height: 160px;
   }
 
@@ -617,7 +621,8 @@
     height: 390px;
   }
 
-  .home-art-piano img {
+  .home-art-piano img,
+  .home-art-tools img {
     height: 370px;
   }
 

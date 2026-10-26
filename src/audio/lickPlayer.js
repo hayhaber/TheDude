@@ -74,7 +74,7 @@ export function playLick(notes, { onNoteStart, onDone } = {}) {
   // (legato) instead of the normal picked NOTE_GAP, same as a guitarist
   // wouldn't leave a picked silence between the two (a release is just a
   // bend's pitch falling back down on the same already-ringing string).
-  const LEGATO_TECHNIQUES = new Set(['hammer', 'pull', 'release']);
+  const LEGATO_TECHNIQUES = new Set(['hammer', 'pull', 'release', 'tap']);
   let cursor = 0;
   const schedule = notes.map((note, i) => {
     const duration = NOTE_DURATION * (note.durationMultiplier ?? 1);

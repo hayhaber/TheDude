@@ -12,7 +12,7 @@ import { MinuteChanges } from '../MinuteChanges/MinuteChanges';
 import { playMidis } from '../../audio/chordPlayer';
 import { useMicChordDetector } from '../../hooks/useMicChordDetector';
 import { usePitchDetection } from '../../hooks/usePitchDetection';
-import { arpNotes, playOrder } from '../../teacher/arpeggios';
+import { ARPS, arpGap, arpNotes, playOrder } from '../../teacher/arpeggios';
 import { logPerf } from '../../coach/perfLog';
 import { judgeShape, STD_TUNING } from '../../music/chordBuilder';
 import { chordTones, toPosition } from '../../music/chordLibrary';
@@ -244,8 +244,10 @@ function playArp(ids, updown = false) {
   let at = 0;
   list.forEach((id) => {
     const midis = playOrder(id, updown).map((n) => n.midi);
-    setTimeout(() => playMidis(midis, ARP_GAP), at * 1000);
-    at += midis.length * ARP_GAP + 0.5;
+    const gap = arpGap(id) ?? ARP_GAP;
+    setTimeout(() => playMidis(midis, gap), at * 1000);
+    // shapes with a written order (tapping) flow into each other without a pause
+    at += midis.length * gap + (arpGap(id) ? 0 : 0.5);
   });
 }
 
@@ -260,17 +262,17 @@ export function arpStage(ids, labels = 'degree', current = null) {
       return true;
     })
     .map((n) => ({ ...n, isCurrent: !!current && current.string === n.string && current.fret === n.fret }));
-  return { position: null, scaleNotes: notes, labelMode: labels === 'degree' ? 'degree' : 'note' };
+  return { position: null, scaleNotes: notes, labelMode: labels === 'degree' || labels === 'finger' ? labels : 'note' };
 }
 
 /** The notes as a row of pills (name over role), for when the neck is out of view. */
-function NoteStrip({ notes, at = -1, done = false }) {
+function NoteStrip({ notes, at = -1, done = false, fingers = false }) {
   return (
     <ol className="tc-notes" dir="ltr">
       {notes.map((n, k) => (
-        <li key={k} className={(n.isRoot ? 'is-root' : '') + (done || k < at ? ' is-past' : k === at ? ' is-now' : '')}>
+        <li key={k} className={(n.isRoot ? 'is-root' : '') + (n.tapped ? ' is-tap' : '') + (done || k < at ? ' is-past' : k === at ? ' is-now' : '')}>
           <span>{n.noteName}</span>
-          <small>{n.degreeLabel}</small>
+          <small>{fingers && n.finger != null ? n.finger : n.degreeLabel}</small>
         </li>
       ))}
     </ol>
@@ -285,7 +287,7 @@ function ArpStep({ step, tx }) {
     <>
       <p className="tc-text">{tx(step.text)}</p>
       {ids.map((id) => (
-        <NoteStrip key={id} notes={arpNotes(id)} />
+        <NoteStrip key={id} notes={ARPS[id]?.seq ? playOrder(id) : arpNotes(id)} fingers={step.labels === 'finger'} />
       ))}
       <span className="tc-actions">
         <button type="button" className="tc-btn is-primary" onClick={() => playArp(step.hear ?? ids)}>
@@ -298,6 +300,7 @@ function ArpStep({ step, tx }) {
         )}
       </span>
       {step.labels === 'degree' && <p className="tc-hint">{t('teacher.arp.legend')}</p>}
+      {step.labels === 'finger' && <p className="tc-hint">{t('teacher.tap.legend')}</p>}
     </>
   );
 }
@@ -364,7 +367,7 @@ export function PlayStep({ step, tx, onStage, onPass }) {
   return (
     <>
       {step.text && <p className="tc-text">{tx(step.text)}</p>}
-      <NoteStrip notes={order} at={at} done={done} />
+      <NoteStrip notes={order} at={at} done={done} fingers={labels === 'finger'} />
       <span className="tc-actions">
         <button type="button" className={'tc-btn' + (pitch.isListening ? '' : ' is-primary')} onClick={listen}>
           {pitch.isListening ? t('teacher.step.stop') : done ? t('teacher.step.again') : t('teacher.step.listen')}

@@ -60,7 +60,7 @@ const LEGATO_TIMING_LEEWAY_MS = 30;
 const BEND_TOLERANCE = 0.25; // semitones (±25 cents)
 const VIBRATO_MIN_DEPTH = 0.15; // semitones, half peak-to-peak
 
-const LEGATO = new Set(['hammer', 'pull', 'slide', 'release']);
+const LEGATO = new Set(['hammer', 'pull', 'slide', 'release', 'tap']);
 
 export function hzToMidi(hz) {
   return 69 + 12 * Math.log2(hz / 440);

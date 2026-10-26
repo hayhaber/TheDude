@@ -824,6 +824,33 @@ on the container; content inside stays top-aligned). Stacked on a phone
   The neck (App `teacherStage`) shows only inside a lesson, with the step's
   chord; none on tune / changes steps. Text `i18n/tips/teacher.js`.
 
+## Tapping (built 2026-10-26)
+
+- User's choice: a Teacher lesson + practice, ONE-finger tapping, classic rock
+  + melodic styles. Method from Premier Guitar (Cram Session), fretjam,
+  GuitarLessons.com and the Rockschool Grade 4 syllabus; text is our own.
+- Lesson `g4-tapping` (new LEVEL 4 'Grade 3–4', "Lead techniques") in
+  `teacher/curriculum/guitar.js`: explain -> setup checklist (mute, which
+  finger) -> tap-pull (play) -> the triplet (play) -> the FORMULA (tap the
+  chord tone the left hand can't reach: e.g. Am = tap 12 E, pull to 5 A,
+  hammer 8 C) -> quiz -> Am-F-C-G tapped arpeggios (arp + play) -> melody
+  over a pedal (arp + play) -> pentatonic run -> practice checklist; skills
+  tap-basic / tap-triplet / tap-formula (quiz) / tap-chords / tap-melody /
+  tap-solo + 4 homework items.
+- ARPS (`teacher/arpeggios.js`) entries can carry `notes [string, fret,
+  finger|'T']`, `seq` (play order with repeats -> `playOrder`), `scale`
+  (interval label per note), `gap` (Hear speed, `arpGap`). arpNotes ->
+  `finger`, `tapped`. LessonPlayer: labelMode 'finger', NoteStrip `fingers`
+  + `.is-tap` (dashed), hint `teacher.tap.legend`.
+- Lick Trainer: technique `'tap'` (legato in analysis / lickPlayer /
+  lickTrainerAudio, accented attack, "T" above the note in TabTimeline;
+  fingering.js treats a tapped note like an open string; withDerived sets
+  finger 'T'); `n(..., {f})` = explicit finger. Genre `tapping`, 5 licks
+  (TAPPING_LICKS in library.js). lickTrainerAudio now also applies the
+  per-note sample tuning (`sampleFix`, SOUNDFONT_TUNING).
+- Verified: fake-mic tap-pull step followed all 8 notes; theory test of every
+  shape's pitches. NOT verified on a real guitar.
+
 ## Bass Practice (built 2026-10-26)
 
 - Bass card shortcut + nav section `bassPractice` (bass only; label `nav.practice`,

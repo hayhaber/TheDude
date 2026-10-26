@@ -834,3 +834,13 @@
   border-color: color-mix(in srgb, var(--tc-green) 50%, var(--border));
   background: color-mix(in srgb, var(--tc-green) 12%, var(--surface));
 }
+
+/* a note TAPPED by the picking hand (tapping lesson) */
+.tc-notes li.is-tap {
+  border-style: dashed;
+}
+
+.tc-notes li.is-tap small {
+  color: #af52de;
+  font-weight: 700;
+}

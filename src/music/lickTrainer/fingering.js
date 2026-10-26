@@ -43,6 +43,10 @@ function options(fret, p) {
  * @param notes  [{ fret, string, technique, vibrato, finger? }] in play order
  * @returns      [{ finger: 0..4 (0 = open), auto: boolean }] per note
  */
+// A note TAPPED by the picking hand (technique 'tap') takes no fretting
+// finger and doesn't move the hand — like an open string.
+const free = (note) => note.fret === 0 || note.technique === 'tap';
+
 export function assignFingers(notes) {
   const n = notes.length;
   if (n === 0) return [];
@@ -66,7 +70,7 @@ export function assignFingers(notes) {
     for (const p of positions) {
       // Which finger plays note i if the hand is at p?
       let best = null;
-      if (note.fret === 0) best = { finger: 0, cost: 0 };
+      if (free(note)) best = { finger: 0, cost: 0 };
       else {
         for (const o of options(note.fret, p)) {
           if (fixed[i] != null && o.finger !== fixed[i]) continue;
@@ -85,9 +89,9 @@ export function assignFingers(notes) {
       for (const [q, cq] of cost) {
         if (cq >= INF) continue;
         // Open strings don't need the hand anywhere: no shift charged to/from them.
-        const moved = note.fret === 0 ? 0 : Math.abs(p - q);
+        const moved = free(note) ? 0 : Math.abs(p - q);
         const shift = moved === 0 ? 0 : SHIFT_BASE + SHIFT_PER_FRET * moved;
-        const tech = note.fret === 0 ? 0 : fingerCost(best.finger, note, prev, prevFingerAt.get(q) ?? 0);
+        const tech = free(note) ? 0 : fingerCost(best.finger, note, prev, prevFingerAt.get(q) ?? 0);
         const total = cq + shift + tech + best.cost;
         if (total < arrive) {
           arrive = total;
@@ -117,7 +121,7 @@ export function assignFingers(notes) {
   }
   const out = new Array(n);
   for (let i = n - 1; i >= 0; i--) {
-    const finger = fingers[i].get(p) ?? (notes[i].fret === 0 ? 0 : 1);
+    const finger = fingers[i].get(p) ?? (free(notes[i]) ? 0 : 1);
     out[i] = { finger, auto: fixed[i] == null };
     p = backs[i].get(p) ?? p;
   }

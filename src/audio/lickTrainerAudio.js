@@ -17,6 +17,7 @@ import { resolveGuitarProfile } from './instrumentProfiles';
 import { getCurrentGuitarProfile } from './audioSettingsStore';
 import { getAudioInputSettings } from './audioInputSettingsStore';
 import { STANDARD_TUNING } from '../music/notes';
+import { SOUNDFONT_TUNING } from './sampleTuning';
 import { PitchDetector } from 'pitchy';
 
 const SCHEDULE_AHEAD = 0.12;
@@ -25,7 +26,7 @@ const BEND_RISE_MAX = 0.15; // seconds to reach a bend's target
 const GLIDE_TIME = 0.07; // slide / release glide
 const VIBRATO_HZ = 5.5;
 const VIBRATO_DEPTH = 0.45; // semitones, peak — the pitch only rises (a string is pushed, never pulled flat)
-const LEGATO = new Set(['hammer', 'pull', 'slide', 'release']);
+const LEGATO = new Set(['hammer', 'pull', 'slide', 'release', 'tap']);
 
 // ---- Reference voice ------------------------------------------------------
 //
@@ -38,6 +39,8 @@ const LEGATO = new Set(['hammer', 'pull', 'slide', 'release']);
 // slide or release keeps the SAME ringing sample and just changes its pitch,
 // like a real string that isn't picked again.
 const SAMPLE_KIT = 'MusyngKite';
+// The sample's own measured tuning error is cancelled too (sampleTuning.js).
+const sampleFix = (root) => SOUNDFONT_TUNING[`${SAMPLE_KIT}/${soundfontName()}`]?.[root] ?? 0;
 const sampleCache = new Map(); // soundfont name -> Promise<Map<midi, AudioBuffer>>
 const readyBuffers = new Map(); // soundfont name -> Map<midi, AudioBuffer> once decoded
 
@@ -180,7 +183,11 @@ function playChain(ctx, buffers, chain, voices, level = 1) {
   // A fretting-hand legato note has a little attack of its own, softer
   // than a pick.
   chain.slice(1).forEach((e) => {
-    if (e.note.technique === 'hammer' || e.note.technique === 'pull') {
+    if (e.note.technique === 'tap') {
+      // a tap is struck: a firmer attack than a fretting-hand hammer-on
+      g.setValueAtTime(0.7, e.time);
+      g.linearRampToValueAtTime(0.95, e.time + 0.006);
+    } else if (e.note.technique === 'hammer' || e.note.technique === 'pull') {
       g.setValueAtTime(0.75, e.time);
       g.linearRampToValueAtTime(0.85, e.time + 0.01);
     }
@@ -192,11 +199,12 @@ function playChain(ctx, buffers, chain, voices, level = 1) {
   if (pick) {
     const src = ctx.createBufferSource();
     src.buffer = pick.buffer;
-    src.detune.setValueAtTime((pitchAt[0][1] - pick.root) * 100, t0);
-    for (const [t, m] of pitchAt.slice(1)) src.detune.linearRampToValueAtTime((m - pick.root) * 100, t);
+    const fix = sampleFix(pick.root);
+    src.detune.setValueAtTime((pitchAt[0][1] - pick.root) * 100 + fix, t0);
+    for (const [t, m] of pitchAt.slice(1)) src.detune.linearRampToValueAtTime((m - pick.root) * 100 + fix, t);
     // hammer-ons/pull-offs are instant pitch changes, not glides
     chain.slice(1).forEach((e) => {
-      if (e.note.technique === 'hammer' || e.note.technique === 'pull') src.detune.setValueAtTime((e.note.midi - pick.root) * 100, e.time);
+      if (e.note.technique === 'hammer' || e.note.technique === 'pull' || e.note.technique === 'tap') src.detune.setValueAtTime((e.note.midi - pick.root) * 100 + fix, e.time);
     });
     const vel = ctx.createGain();
     vel.gain.value = 0.55;

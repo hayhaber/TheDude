@@ -39,6 +39,7 @@ export const LEVELS = [
   { n: 1, grade: 'Debut', title: L('First chords and songs', 'אקורדים ושירים ראשונים') },
   { n: 2, grade: 'Grade 1', title: L('All open chords, first scale', 'כל האקורדים הפתוחים, סולם ראשון') },
   { n: 3, grade: 'Grade 2', title: L('Barre chords and the blues', 'אקורדי ברה ובלוז') },
+  { n: 4, grade: 'Grade 3–4', title: L('Lead techniques', 'טכניקות סולו') },
 ];
 
 // Standard-tuning open shapes (low E first; null = not played).
@@ -87,6 +88,12 @@ export const SKILLS = [
   { id: 'arp-C-open', domain: 'picking', level: 3, title: L('Open C arpeggio', `ארפג׳יו ${H('C')} פתוח`), check: { kind: 'play', arp: 'C-open' } },
   { id: 'arp-G-E', domain: 'lead', level: 3, title: L('Arpeggio, root on string 6', 'ארפג׳יו, יסוד על מיתר 6'), check: { kind: 'play', arp: 'G-E' } },
   { id: 'arp-C-top', domain: 'fretboard', level: 3, title: L('C triads up the neck', `משולשי ${H('C')} לאורך הצוואר`), check: { kind: 'play', arp: ['C-top1', 'C-top2', 'C-top3'] } },
+  { id: 'tap-basic', domain: 'lead', level: 4, after: ['arp-C-top'], title: L('Tap and pull off', 'הקשה ו־pull-off'), check: { kind: 'play', arp: 'tap-pull' } },
+  { id: 'tap-triplet', domain: 'lead', level: 4, after: ['tap-basic'], title: L('Tapping triplets (tap, pull, hammer)', 'טריולות טאפינג (הקשה, pull, hammer)'), check: { kind: 'play', arp: 'tap-Am' } },
+  { id: 'tap-formula', domain: 'fretboard', level: 4, title: L('Build a tapped chord on one string', 'לבנות אקורד בטאפינג על מיתר אחד'), check: { kind: 'quiz', id: 'tap-formula' } },
+  { id: 'tap-chords', domain: 'lead', level: 4, after: ['tap-triplet'], title: L('Tapped arpeggios over Am–F–C–G', `ארפג׳יו בטאפינג על ${H('Am–F–C–G')}`), check: { kind: 'play', arp: ['tap-Am2', 'tap-F', 'tap-C', 'tap-G'] } },
+  { id: 'tap-melody', domain: 'lead', level: 4, after: ['tap-basic'], title: L('A tapped melody over a pedal note', 'מנגינה בטאפינג מעל צליל עוגב'), check: { kind: 'play', arp: 'tap-melody' } },
+  { id: 'tap-solo', domain: 'lead', level: 4, after: ['tap-triplet'], title: L('Tapping in a pentatonic solo', 'טאפינג בסולו פנטטוני'), check: { kind: 'play', arp: 'tap-penta' } },
 ];
 
 export const skillById = (id) => SKILLS.find((s) => s.id === id);
@@ -389,6 +396,175 @@ const lessonArpeggios = {
   ],
 };
 
+
+// ---------------------------------------------------------------------------
+// Level 4 — two-hand TAPPING (user's request 2026-10-26; one-finger tapping
+// first, multi-finger / two-handed later). Method from published teaching:
+// Premier Guitar "Cram Session: Two-Hand Tapping" (tapping = picking-hand
+// hammer-ons extending a line; three-note-per-string arpeggios on one string
+// with voice leading; pentatonic shapes + "hammer-ons from nowhere"),
+// fretjam's beginner method (middle finger taps so the pick stays held; tap
+// just behind the fret; pull off with a light downward pluck — too hard sounds
+// like a bend; first a pedal exercise; steady rhythm with a metronome),
+// GuitarLessons.com (mute the strings above with the picking hand, below with
+// the fretting hand) and Rockschool (tapping in the Grade 4 syllabus). The
+// Eruption-style triplet (tap - pull-off - hammer-on) is the standard first
+// pattern. The chord-tone formula and all examples here are our own.
+const lessonTapping = {
+  id: 'g4-tapping',
+  level: 4,
+  title: L('Tapping: the picking hand on the fretboard', 'טאפינג: יד ימין על הצוואר'),
+  objective: L(
+    'Tap cleanly with the picking hand, play tapped triplets in time, build a tapped arpeggio for any chord on one string, and use a tapped note to extend a pentatonic solo.',
+    'להקיש נקי ביד ימין, לנגן טריולות טאפינג בזמן, לבנות ארפג׳יו בטאפינג לכל אקורד על מיתר אחד, ולהשתמש בצליל מוקש כדי להרחיב סולו פנטטוני.'
+  ),
+  minutes: 35,
+  skills: ['tap-basic', 'tap-triplet', 'tap-formula', 'tap-chords', 'tap-melody', 'tap-solo'],
+  steps: [
+    {
+      kind: 'arp',
+      arp: 'tap-Am',
+      labels: 'finger',
+      title: L('What is tapping?', 'מה זה טאפינג?'),
+      text: L(
+        'Tapping means the PICKING hand plays notes on the fretboard: it hammers a note on (the tap) and pulls off to a note the fretting hand holds. No pick stroke at all — the line flows like a keyboard part and can reach notes the fretting hand never could. Eddie Van Halen made it famous in 1978. Listen to the classic pattern: tap, pull off, hammer on, over and over.',
+        'טאפינג הוא נגינה של יד ימין — היד הפורטת — על הצוואר: היא מקישה צליל (ה־tap) ואז עושה pull-off אל צליל שיד שמאל מחזיקה. בלי פריטה בכלל — הקו זורם כמו בקלידים ומגיע לצלילים שיד שמאל לא מגיעה אליהם. ⁦Eddie Van Halen⁩ הפך את זה למפורסם ב־⁦1978⁩. הקשב לתבנית הקלאסית: הקשה, ⁦pull-off⁩, ⁦hammer-on⁩, שוב ושוב.'
+      ),
+    },
+    {
+      kind: 'checklist',
+      title: L('Set up the tap', 'הכנה להקשה'),
+      text: L('How teachers set it up — tick each one as you try it:', 'כך מורים בונים את ההקשה — סמן כל אחד כשאתה מנסה:'),
+      items: [
+        L('Tap with the MIDDLE finger of the picking hand — keep holding the pick between thumb and index, so you can switch back to picking at once.', 'הקש באצבע האמה של יד ימין — המפרט נשאר בין האגודל לאצבע המורה, כדי שתוכל לחזור לפריטה מיד.'),
+        L('Rest the thumb (or the side of the hand) on the top edge of the neck as an anchor.', 'הנח את האגודל (או את צד כף היד) על השפה העליונה של הצוואר, כעוגן.'),
+        L('Tap just behind the fret, like a fretting finger — firm and fast, so the note sounds on its own.', 'הקש ממש מאחורי השריג, כמו אצבע של יד שמאל — חזק ומהיר, כך שהצליל יישמע בעצמו.'),
+        L('Pull off with a small DOWNWARD flick (toward the floor), like plucking the string — too hard and it sounds like a bend.', 'עשה ⁦pull-off⁩ בתנועה קטנה כלפי מטה (לכיוון הרצפה), כמו פריטה של המיתר — חזק מדי וזה יישמע כמו כיפוף.'),
+        L('Mute: the picking hand’s palm on the strings BELOW (lower strings), the fretting hand’s fingers lightly on the strings ABOVE.', 'השתקה: כף יד ימין על המיתרים הנמוכים, ואצבעות יד שמאל נוגעות בעדינות במיתרים הגבוהים.'),
+      ],
+    },
+    {
+      kind: 'play',
+      arp: 'tap-pull',
+      labels: 'finger',
+      skill: 'tap-basic',
+      title: L('First taps: tap and pull off', 'הקשות ראשונות: הקשה ו־pull-off'),
+      text: L(
+        'Index finger holds fret 5 on the B string (E). Tap fret 12 (B) and pull off to the 5: B – E – B – E… 8 notes. Both notes should sound equally loud — the pull-off is what makes the fretted note speak.',
+        'אצבע 1 מחזיקה את שריג 5 על מיתר ⁦B⁩ (⁦E⁩). הקש על שריג 12 (⁦B⁩) ועשה ⁦pull-off⁩ אל ה־5: ⁦B – E – B – E⁩… 8 צלילים. שני הצלילים צריכים להישמע באותה עוצמה — ה־⁦pull-off⁩ הוא מה שגורם לצליל של יד שמאל להישמע.'
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'tap-Am',
+      labels: 'finger',
+      skill: 'tap-triplet',
+      title: L('The tapping triplet', 'טריולת הטאפינג'),
+      text: L(
+        'High E string: index on fret 5, pinky on 8. Tap 12 → pull off to 5 → hammer on 8, and again: three even notes per beat (a triplet). Count “1-trip-let, 2-trip-let”: the tap always falls on the number. 12 notes. Start slowly; speed comes only when every note is even.',
+        'מיתר ⁦E⁩ הגבוה: אצבע 1 על שריג 5, זרת על 8. הקשה על 12 ← ⁦pull-off⁩ ל־5 ← ⁦hammer-on⁩ ל־8, ושוב: שלושה צלילים שווים בכל פעמה (טריולה). ספור "⁦1⁩־טרי־אולה, ⁦2⁩־טרי־אולה": ההקשה תמיד נופלת על המספר. 12 צלילים. התחל לאט; מהירות רק כשכל הצלילים שווים.'
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'tap-Am',
+      labels: 'degree',
+      title: L('The formula: three chord tones on one string', 'הנוסחה: שלושה צלילי אקורד על מיתר אחד'),
+      text: L(
+        'Why does that sound like A minor? Its three notes ARE the A minor chord: fret 5 = A (root, 1), fret 8 = C (minor 3rd, ♭3), fret 12 = E (5th, 5). The formula for any chord: 1) list its chord tones (A minor = A C E); 2) find three of them in a row up ONE string; 3) the fretting hand takes the two lower ones (index + ring or pinky), the tap takes the highest. Play tap – pull – hammer and you are playing that chord.',
+        'למה זה נשמע ⁦A⁩ מינור? שלושת הצלילים הם אקורד ⁦A⁩ מינור: שריג 5 = ⁦A⁩ (יסוד, 1), שריג 8 = ⁦C⁩ (טרצה קטנה, ⁦♭3⁩), שריג 12 = ⁦E⁩ (קווינטה, 5). הנוסחה לכל אקורד: 1) רשום את צלילי האקורד (⁦A⁩ מינור = ⁦A C E⁩); 2) מצא שלושה מהם ברצף לאורך מיתר אחד; 3) יד שמאל לוקחת את שני הנמוכים (אצבע 1 + 3 או זרת), וההקשה את הגבוה. נגן הקשה – ⁦pull⁩ – ⁦hammer⁩ ואתה מנגן את האקורד.'
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'tap-formula',
+      skill: 'tap-formula',
+      title: L('Use the formula', 'השתמש בנוסחה'),
+      question: L(
+        'C major = C E G. On the high E string the fretting hand holds C (fret 8) and E (fret 12). Which fret do you tap?',
+        '⁦C⁩ מז׳ור = ⁦C E G⁩. על מיתר ⁦E⁩ הגבוה יד שמאל מחזיקה ⁦C⁩ (שריג 8) ו־⁦E⁩ (שריג 12). על איזה שריג מקישים?'
+      ),
+      options: [L('13 (F)', '⁦13 (F)⁩'), L('15 (G)', '⁦15 (G)⁩'), L('17 (A)', '⁦17 (A)⁩')],
+      answer: 1,
+      why: L(
+        'The next chord tone above E is G — the 5th of C — at fret 15. F and A are not in the C chord.',
+        'צליל האקורד הבא מעל ⁦E⁩ הוא ⁦G⁩ — הקווינטה של ⁦C⁩ — בשריג 15. ⁦F⁩ ו־⁦A⁩ אינם באקורד ⁦C⁩.'
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: ['tap-Am2', 'tap-F', 'tap-C', 'tap-G'],
+      labels: 'degree',
+      title: L('Through a chord progression', 'לאורך מהלך אקורדים'),
+      text: L(
+        'Am – F – C – G, two triplets each, all on the high E string. Move as LITTLE as possible (voice leading): Am → F keeps A and C under the fretting hand, only the tap moves from 12 (E) to 13 (F). C = C E G (frets 8, 12, tap 15). G = B D G (frets 7, 10, tap 15) — the tap stays, the fretting hand moves down one fret. This is how tapped chord passages are built.',
+        '⁦Am – F – C – G⁩, שתי טריולות לכל אקורד, הכול על מיתר ⁦E⁩ הגבוה. זזים כמה שפחות (הובלת קולות): ⁦Am → F⁩ — יד שמאל נשארת על ⁦A⁩ ו־⁦C⁩, ורק ההקשה זזה מ־12 (⁦E⁩) ל־13 (⁦F⁩). ⁦C = C E G⁩ (שריגים 8, 12, הקשה 15). ⁦G = B D G⁩ (שריגים 7, 10, הקשה 15) — ההקשה נשארת, ויד שמאל יורדת שריג אחד. כך בונים קטעי אקורדים בטאפינג.'
+      ),
+    },
+    {
+      kind: 'play',
+      arp: ['tap-Am2', 'tap-F', 'tap-C', 'tap-G'],
+      labels: 'finger',
+      skill: 'tap-chords',
+      title: L('Play the progression', 'נגן את המהלך'),
+      text: L('24 notes: Am, F, C, G — tap, pull, hammer, twice per chord. Change shape without breaking the rhythm.', '24 צלילים: ⁦Am, F, C, G⁩ — הקשה, ⁦pull⁩, ⁦hammer⁩, פעמיים לכל אקורד. החלף צורה בלי לשבור את הקצב.'),
+    },
+    {
+      kind: 'arp',
+      arp: 'tap-melody',
+      labels: 'degree',
+      title: L('The melodic style: a melody over a pedal', 'הסגנון המלודי: מנגינה מעל צליל עוגב'),
+      text: L(
+        'Tapping is not only speed. Here the index holds one note — E on the B string (fret 5), the “pedal” — and the TAP plays a melody above it: B C D E D C B (frets 12 13 15 17 15 13 12), each tap pulled off back to the E. The melody is the E natural minor scale (5, ♭6, ♭7, 1); the pedal keeps the key in your ear. Players like Joe Satriani use this singing, legato sound.',
+        'טאפינג הוא לא רק מהירות. כאן אצבע 1 מחזיקה צליל אחד — ⁦E⁩ על מיתר ⁦B⁩ (שריג 5), "צליל העוגב" — וההקשה מנגנת מעליו מנגינה: ⁦B C D E D C B⁩ (שריגים ⁦12 13 15 17 15 13 12⁩), וכל הקשה חוזרת ב־⁦pull-off⁩ אל ה־⁦E⁩. המנגינה היא סולם ⁦E⁩ מינור טבעי (⁦5, ♭6, ♭7, 1⁩); צליל העוגב שומר את הטונליות באוזן. נגנים כמו ⁦Joe Satriani⁩ משתמשים בצליל השר והרציף הזה.'
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'tap-melody',
+      labels: 'finger',
+      skill: 'tap-melody',
+      title: L('Play the melody', 'נגן את המנגינה'),
+      text: L('14 notes. Let each tapped note sing a little before the pull-off; aim for the same volume on the melody and the pedal.', '14 צלילים. תן לכל צליל מוקש "לשיר" רגע לפני ה־⁦pull-off⁩; כוון לאותה עוצמה במנגינה ובצליל העוגב.'),
+    },
+    {
+      kind: 'arp',
+      arp: 'tap-penta',
+      labels: 'degree',
+      title: L('Tapping in a solo', 'טאפינג בסולו'),
+      text: L(
+        'In a solo, tapping extends the box you already know. A minor pentatonic, box 1 (frets 5–8). The rule: on the string you are on, tap a note of the SAME scale above the box — ideally a chord tone, so it lands strongly. High E: the box has A (5) and C (8); tap E (12), the 5th. B string: E (5) and G (8); tap A (10), the root. Play tap – pull – pull (12-8-5) as falling triplets, then the same on the B string (10-8-5), and land on A. Any scale, any box: tap the scale continuing up the string.',
+        'בסולו, הטאפינג מרחיב את הקופסה שאתה כבר מכיר. ⁦A⁩ מינור פנטטוני, קופסה 1 (שריגים ⁦5–8⁩). הכלל: על המיתר שאתה נמצא בו, הקש צליל מאותו סולם מעל הקופסה — רצוי צליל אקורד, כדי שינחת חזק. מיתר ⁦E⁩ הגבוה: בקופסה יש ⁦A⁩ (5) ו־⁦C⁩ (8); מקישים ⁦E⁩ (12), הקווינטה. מיתר ⁦B⁩: ⁦E⁩ (5) ו־⁦G⁩ (8); מקישים ⁦A⁩ (10), היסוד. נגן הקשה – ⁦pull⁩ – ⁦pull⁩ (⁦12-8-5⁩) בטריולות יורדות, ואז אותו דבר על מיתר ⁦B⁩ (⁦10-8-5⁩), ונחת על ⁦A⁩. כל סולם, כל קופסה: מקישים את המשך הסולם במעלה המיתר.'
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'tap-penta',
+      labels: 'finger',
+      skill: 'tap-solo',
+      title: L('Play the solo lick', 'נגן את הליק'),
+      text: L('13 notes, ending on A. Then try it in your own solos: one tapped phrase at the top of a pentatonic run.', '13 צלילים, עם סיום על ⁦A⁩. אחר כך נסה בסולואים שלך: משפט אחד בטאפינג בראש ריצה פנטטונית.'),
+    },
+    {
+      kind: 'checklist',
+      title: L('How to practise tapping', 'איך מתרגלים טאפינג'),
+      text: L('The habits that make tapping clean:', 'ההרגלים שהופכים טאפינג לנקי:'),
+      items: [
+        L('Metronome at 60: one triplet per click. Up 4–5 bpm only after 3 clean, even repetitions.', 'מטרונום ב־⁦60⁩: טריולה בכל קליק. מעלים ⁦4–5 BPM⁩ רק אחרי 3 חזרות נקיות ושוות.'),
+        L('Listen for the weak note — usually the hammer-on: all three notes of the triplet as loud as each other.', 'הקשב לצליל החלש — בדרך כלל ה־⁦hammer-on⁩: שלושת הצלילים בטריולה באותה עוצמה.'),
+        L('Silence between strings: if other strings ring, fix the muting before going faster.', 'שקט בין המיתרים: אם מיתרים אחרים מצלצלים, תקן את ההשתקה לפני שמאיצים.'),
+        L('More licks: Practice → Lick Trainer → Tapping (classic rock and melodic) — the trainer judges timing too.', 'עוד ליקים: תרגול ← מאמן ליקים ← טאפינג (רוק קלאסי ומלודי) — המאמן בודק גם את התזמון.'),
+      ],
+    },
+  ],
+  homework: [
+    { id: 'tap-triplet-hw', kind: 'play', arp: 'tap-Am', labels: 'finger', skill: 'tap-triplet', text: L('The A minor tapping triplet (12-5-8) — once a day with the teacher listening.', 'טריולת הטאפינג של ⁦A⁩ מינור (⁦12-5-8⁩) — פעם ביום כשהמורה מקשיב.') },
+    { id: 'tap-prog-hw', kind: 'play', arp: ['tap-Am2', 'tap-F', 'tap-C', 'tap-G'], labels: 'finger', skill: 'tap-chords', text: L('Am – F – C – G tapped — once a day.', '⁦Am – F – C – G⁩ בטאפינג — פעם ביום.') },
+    { id: 'tap-solo-hw', kind: 'play', arp: 'tap-penta', labels: 'finger', skill: 'tap-solo', text: L('The pentatonic tapping lick — once a day.', 'ליק הטאפינג הפנטטוני — פעם ביום.') },
+    { id: 'tap-metro', kind: 'self', text: L('5 minutes: triplets with the metronome at 60, then 64, 68 — only when even.', '5 דקות: טריולות עם מטרונום ב־⁦60⁩, ואז ⁦64, 68⁩ — רק כשהן שוות.') },
+  ],
+};
+
 export const LESSONS = [
   lessonFirstChords,
   { id: 'g1-chord-E', level: 1, title: L('E chord and three-chord changes', `האקורד ${H('E')} ומעבר בין שלושה`), skills: ['chord-E', 'changes-AE', 'changes-DE'] },
@@ -397,6 +573,7 @@ export const LESSONS = [
   { id: 'g2-minor-chords', level: 2, title: L('Am, Em and Dm', `${H('Am')}, ${H('Em')} ו־${H('Dm')}`), skills: ['chord-Am', 'chord-Em', 'chord-Dm'] },
   { id: 'g2-G-C', level: 2, title: L('G and C', `${H('G')} ו־${H('C')}`), skills: ['chord-G', 'chord-C'] },
   lessonArpeggios,
+  lessonTapping,
 ];
 
 export const lessonById = (id) => LESSONS.find((l) => l.id === id);

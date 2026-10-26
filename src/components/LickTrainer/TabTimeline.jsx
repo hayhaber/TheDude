@@ -184,6 +184,11 @@ export function TabTimeline({ lick, playheadBeat, result, resultOffset = 0, high
                   </text>
                 </g>
               )}
+              {n.technique === 'tap' && (
+                <text x={x} y={yy - 14} textAnchor="middle" className="tt-tech">
+                  T
+                </text>
+              )}
               {n.technique === 'release' && (
                 <text x={x} y={yy - 14} textAnchor="middle" className="tt-tech">
                   r

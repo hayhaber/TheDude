@@ -6,7 +6,8 @@
 //   - beat:   start, in quarter-note beats from the start of the lick
 //   - beats:  length in beats (0.5 = eighth, 0.25 = sixteenth, 1/3 = triplet eighth)
 //   - string: 1 = high e ... 6 = low E (tab numbering)
-//   - opts:   { t: 'bend'|'release'|'slide'|'hammer'|'pull', bend: semitones, vib: true }
+//   - opts:   { t: 'bend'|'release'|'slide'|'hammer'|'pull'|'tap', bend: semitones, vib: true }
+//             ('tap' = hammered by the picking hand's finger, shown T)
 // Stored internally with the app's string index (0 = low E ... 5 = high e).
 //
 // `source` says where a lick comes from: 'user' = supplied by the player as
@@ -28,6 +29,7 @@ function n(beat, beats, string, fret, opts = {}) {
     technique: opts.t ?? null,
     bend: opts.t === 'bend' || opts.t === 'release' ? opts.bend ?? 2 : undefined,
     vibrato: !!opts.vib,
+    ...(opts.f != null ? { finger: opts.f } : {}),
   };
 }
 
@@ -37,12 +39,91 @@ export const LICK_GENRES = [
   { key: 'blues', label: { en: 'Blues', he: 'בלוז' } },
   { key: 'rock', label: { en: 'Rock', he: 'רוק' } },
   { key: 'metal', label: { en: 'Metal', he: 'מטאל' } },
+  { key: 'tapping', label: { en: 'Tapping', he: 'טאפינג' } },
 ];
 
 export const LICK_LEVELS = [
   { key: 'beginner', label: { en: 'Beginner', he: 'מתחיל' } },
   { key: 'intermediate', label: { en: 'Intermediate', he: 'בינוני' } },
   { key: 'advanced', label: { en: 'Advanced', he: 'מתקדם' } },
+];
+
+
+// ---- Tapping (genre 'tapping'; the Teacher's lesson g4-tapping) -------------
+// 'tap' = a note hammered by the picking hand's middle finger (shown T).
+// Classic-rock style (the Van Halen tap - pull - hammer triplet) and the
+// melodic style (a tapped melody over a held pedal note). Written for this
+// app from the standard tapping vocabulary.
+// fretting fingers written out (opts.f): index on the lower note, pinky on the higher
+const tapTriplet = (beat, s, tap, low, high) => [
+  n(beat, T, s, tap, { t: 'tap' }),
+  n(beat + T, T, s, low, { t: 'pull', f: 1 }),
+  n(beat + 2 * T, T, s, high, { t: 'hammer', f: 4 }),
+];
+const tapPullPull = (beat, s, tap, mid, low) => [
+  n(beat, T, s, tap, { t: 'tap' }),
+  n(beat + T, T, s, mid, { t: 'pull', f: 4 }),
+  n(beat + 2 * T, T, s, low, { t: 'pull', f: 1 }),
+];
+const pedalMelody = (s, pedal, taps, beats = 0.5) =>
+  taps.flatMap((f, i) => [n(i * 2 * beats, beats, s, f, { t: 'tap' }), n((i * 2 + 1) * beats, beats, s, pedal, { t: 'pull', f: 1 })]);
+const TAPPING_LICKS = [
+  {
+    id: 'tap-am-triplets',
+    title: { en: 'Tapping Triplets in A Minor', he: 'טריולות טאפינג ב־A מינור' },
+    genre: 'tapping', level: 'beginner', key: 'Am', scale: 'A minor (chord tones)', bpm: 66, source: 'dudestar',
+    about: {
+      en: 'The classic rock tapping pattern on the high E string: tap 12 (E), pull off to 5 (A), hammer on 8 (C) — the three notes of A minor — then land on A.',
+      he: 'תבנית הטאפינג הקלאסית ברוק על מיתר E הגבוה: הקשה על 12 (E), pull-off ל־5 (A), hammer-on ל־8 (C) — שלושת הצלילים של A מינור — וסיום על A.',
+    },
+    notes: [...tapTriplet(0, 1, 12, 5, 8), ...tapTriplet(1, 1, 12, 5, 8), ...tapTriplet(2, 1, 12, 5, 8), ...tapTriplet(3, 1, 12, 5, 8), n(4, 1, 1, 12, { t: 'tap' }), n(5, 1, 1, 5, { t: 'pull', vib: true, f: 1 })],
+  },
+  {
+    id: 'tap-am-f-c-g',
+    title: { en: 'Tapped Arpeggios: Am – F – C – G', he: 'ארפג׳יו בטאפינג: Am – F – C – G' },
+    genre: 'tapping', level: 'intermediate', key: 'Am / C', scale: 'chord tones', bpm: 66, source: 'dudestar',
+    about: {
+      en: 'Two tap - pull - hammer triplets per chord on the high E string, moving as little as possible: Am (12-5-8), F (13-5-8), C (15-8-12), G (15-7-10).',
+      he: 'שתי טריולות הקשה - pull - hammer לכל אקורד על מיתר E הגבוה, בתזוזה מינימלית: Am ‏(12-5-8), F ‏(13-5-8), C ‏(15-8-12), G ‏(15-7-10).',
+    },
+    notes: [
+      ...tapTriplet(0, 1, 12, 5, 8), ...tapTriplet(1, 1, 12, 5, 8),
+      ...tapTriplet(2, 1, 13, 5, 8), ...tapTriplet(3, 1, 13, 5, 8),
+      ...tapTriplet(4, 1, 15, 8, 12), ...tapTriplet(5, 1, 15, 8, 12),
+      ...tapTriplet(6, 1, 15, 7, 10), ...tapTriplet(7, 1, 15, 7, 10),
+      n(8, 1, 1, 12, { t: 'tap' }), n(9, 1, 1, 5, { t: 'pull', vib: true, f: 1 }),
+    ],
+  },
+  {
+    id: 'tap-penta-descent',
+    title: { en: 'Pentatonic Tapping Run', he: 'ריצה פנטטונית בטאפינג' },
+    genre: 'tapping', level: 'intermediate', key: 'Am', scale: 'A minor pentatonic', bpm: 66, source: 'dudestar',
+    about: {
+      en: 'A minor pentatonic box 1 extended by one tapped note per string: tap - pull - pull falling triplets, 12-8-5 on the high E, 10-8-5 on the B, ending on the root A.',
+      he: 'קופסה 1 של A מינור פנטטוני, מורחבת בצליל מוקש אחד לכל מיתר: טריולות יורדות הקשה - pull - pull, ‏12-8-5 על E הגבוה ו־10-8-5 על B, וסיום על היסוד A.',
+    },
+    notes: [...tapPullPull(0, 1, 12, 8, 5), ...tapPullPull(1, 1, 12, 8, 5), ...tapPullPull(2, 2, 10, 8, 5), ...tapPullPull(3, 2, 10, 8, 5), n(4, 1, 1, 5, { vib: true, f: 1 })],
+  },
+  {
+    id: 'tap-pedal-em',
+    title: { en: 'Tapped Melody over a Pedal (E minor)', he: 'מנגינה בטאפינג מעל צליל עוגב (E מינור)' },
+    genre: 'tapping', level: 'intermediate', key: 'Em', scale: 'E natural minor', bpm: 80, source: 'dudestar',
+    about: {
+      en: 'Melodic tapping: the index holds E (B string, fret 5) while the tap sings B C D E D C B above it, each tap pulled off back to the pedal.',
+      he: 'טאפינג מלודי: אצבע 1 מחזיקה E (מיתר B, שריג 5) וההקשה שרה מעליה B C D E D C B, וכל הקשה חוזרת ב־pull-off אל צליל העוגב.',
+    },
+    notes: pedalMelody(2, 5, [12, 13, 15, 17, 15, 13, 12]),
+  },
+  {
+    id: 'tap-pedal-g',
+    title: { en: 'Tapped Melody over a Pedal (G major)', he: 'מנגינה בטאפינג מעל צליל עוגב (G מז׳ור)' },
+    genre: 'tapping', level: 'advanced', key: 'G', scale: 'G major', bpm: 84, source: 'dudestar',
+    about: {
+      en: 'The same melodic idea in a major key: index on D (B string, fret 3), the tap plays A B C D C B A (frets 10 12 13 15) — the top of the G major scale over its 5th.',
+      he: 'אותו רעיון מלודי בטונליות מז׳ור: אצבע 1 על D (מיתר B, שריג 3), וההקשה מנגנת A B C D C B A (שריגים 10 12 13 15) — החלק העליון של סולם G מז׳ור מעל הקווינטה שלו.',
+    },
+    notes: pedalMelody(2, 3, [10, 12, 13, 15, 13, 12, 10]),
+  },
 ];
 
 const RAW_LICKS = [
@@ -710,7 +791,8 @@ export function withDerived(lick) {
   // (fingering.js). A section of a solo keeps the whole solo's fingering.
   const fingers = lick.notes.some((n) => n.fingerAuto === undefined) ? assignFingers(lick.notes) : null;
   const notes = lick.notes.map((note, i) => {
-    const finger = fingers ? fingers[i].finger : note.finger;
+    // a tapped note: 'T' (the picking hand), never a fretting finger
+    const finger = note.technique === 'tap' ? 'T' : fingers ? fingers[i].finger : note.finger;
     return {
       ...note,
       order: i + 1,
@@ -736,7 +818,7 @@ export function withDerived(lick) {
   return { ...lick, notes, lengthBeats: notes.length ? Math.ceil(lastEnd) : lick.lengthBeats ?? 0 };
 }
 
-export const LICKS = RAW_LICKS.map(withDerived);
+export const LICKS = [...RAW_LICKS, ...TAPPING_LICKS].map(withDerived);
 
 // Full solos generated from the user's Guitar Pro files
 // (scripts/gp-to-licks.mjs with solo: true). Each has practice `sections`.

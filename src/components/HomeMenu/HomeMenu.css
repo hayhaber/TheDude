@@ -218,6 +218,11 @@
   pointer-events: none;
 }
 
+/* The singing picture (2026-10-29) reaches the card's top edge at 290px. */
+.home-art-vocal img {
+  height: 266px;
+}
+
 /* The teacher card is a picture (two players in front of a lesson screen,
    background keyed transparent), wider than the drawn instruments. */
 .home-art-teacher img {

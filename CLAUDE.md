@@ -186,8 +186,13 @@ bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
   `env(safe-area-inset-top)` to home `.home-top`, the desktop `.app-topbar`
   and GuitarPro's 98px calcs (user saw the iPad clock / battery / Wi-Fi
   covered) — REVERTED in v1.0.85 at the user's request ("the whole display
-  got smaller on the iPad, put it back"). Tool screen, songwriter,
-  onboarding, install / privacy pages kept their older safe-area padding.
+  got smaller on the iPad, put it back"); v1.0.87 put it back for the INNER
+  pages only (user's request 2026-11-01 with iPad screenshots): the desktop
+  `.app-topbar` (padding + min-height) and GuitarPro's 98px calcs add the
+  inset; the HOME screen stays without it (its header sits fine under the
+  clock). Home card sizes were never changed by code (HomeMenu.css identical
+  since 2026-10-29). Tool screen, songwriter, onboarding, install / privacy
+  pages kept their older safe-area padding.
 - **Round Home button** (`components/HomeButton/HomeButton.jsx`, user's
   request 2026-10-16): replaces the logo at the top of every inner page —
   AppShell desktop top bar (`.app-topbar-home`), phone/tablet top-left

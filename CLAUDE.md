@@ -966,7 +966,9 @@ Vercel), so the phone can confirm the latest deploy arrived.
   Undo). Melody editor sheet (MelodyLane editable: tap/drag/stretch/add,
   ↑↓, Join, Snap select, syllables field + Auto). Score view = ScoreView
   (alphaTab, MusicXML). Print = lead sheet (`.sw-print`, print CSS). Export
-  = .musicxml download. Store `useSongs` -> personal key
+  = .musicxml download. The song list shows the tempo only once it means
+  something (`bpmSet` = changed by the user, or a line has a melody) — the
+  default 90 isn't shown (user asked why every song said 90 BPM). Store `useSongs` -> personal key
   `dudestar-p-songwriter` {songs, ideas}. Text `i18n/tips/songwriter.js`.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew

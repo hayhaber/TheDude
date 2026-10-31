@@ -325,7 +325,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           <span>{t('sw.tempo')}</span>
           <BpmField
             value={song.bpm}
-            onChange={(v) => set((s) => ({ ...s, bpm: Math.max(40, Math.min(220, Math.round(v))) }))}
+            onChange={(v) => set((s) => ({ ...s, bpm: Math.max(40, Math.min(220, Math.round(v))), bpmSet: true }))}
             min={40}
             max={220}
             className="sw-bpm"

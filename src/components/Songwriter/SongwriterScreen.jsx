@@ -140,6 +140,10 @@ function IdeaWords({ idea, onSave }) {
   );
 }
 
+// The tempo means something once it was chosen or a melody was sung to it;
+// before that it's only the default (90) and isn't shown in the list.
+const tempoShown = (s) => s.bpmSet || s.sections.some((sec) => sec.lines.some((l) => l.melody?.notes?.length));
+
 function SongList({ store, audio, focusIdeas, onOpen, toast }) {
   const { t, lang } = useLanguage();
   const ideasRef = useRef(null);
@@ -371,7 +375,7 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
                       {s.title || first || t('sw.untitled')}
                     </span>
                     <span className="sw-song-sub">
-                      {[s.key ? keyName(s.key) : null, `${s.bpm} BPM`, t('sw.lines', { n: lines }), dateFmt(s.updatedAt)].filter(Boolean).map((x, k) => (
+                      {[s.key ? keyName(s.key) : null, tempoShown(s) ? `${s.bpm} BPM` : null, t('sw.lines', { n: lines }), dateFmt(s.updatedAt)].filter(Boolean).map((x, k) => (
                         <bdi key={k}>{x}</bdi>
                       ))}
                     </span>

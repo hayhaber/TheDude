@@ -2,9 +2,29 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { alphaTab } from '@coderline/alphatab-vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+
+// The version shown at the bottom of Settings: package.json's version (bumped
+// on every push), the build time and the commit — so a phone can confirm it
+// runs the latest deploy.
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+let commit = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7)
+if (!commit) {
+  try {
+    commit = execSync('git rev-parse --short HEAD').toString().trim()
+  } catch {
+    commit = ''
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __COMMIT__: JSON.stringify(commit),
+  },
   // alphaTab (Songs -> Guitar Pro import) offloads rendering/audio work to
   // Web Workers/AudioWorklets and ships its own font+soundfont assets — this
   // plugin wires up the bundling for those and copies the assets to

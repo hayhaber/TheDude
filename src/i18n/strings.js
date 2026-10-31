@@ -65,6 +65,7 @@ export const STRINGS = {
     'nav.closeMenu': 'Close navigation menu',
 
     'settings.title': 'Settings',
+    'settings.version': 'Version',
     'settings.appearance': 'Appearance',
     'settings.light': 'Light',
     'settings.dark': 'Dark',
@@ -1521,6 +1522,7 @@ export const STRINGS = {
     'nav.closeMenu': 'סגירת תפריט ניווט',
 
     'settings.title': 'הגדרות',
+    'settings.version': 'גרסה',
     'settings.appearance': 'מראה',
     'settings.light': 'בהיר',
     'settings.dark': 'כהה',

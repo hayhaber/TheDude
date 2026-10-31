@@ -55,6 +55,13 @@ on the container; content inside stays top-aligned). Stacked on a phone
 (one per row), each keeps its natural height. Applies everywhere, always
 (user's standing rule, 2026-10-09).
 
+**9. Version number.** Every push bumps the patch number of `version` in
+`package.json` (1.0.74 -> 1.0.75 …; user's request 2026-10-31). Settings
+(Tools card) shows it at the very bottom with the build time (Israel) and
+the commit (`AppVersion` in SettingsPanel.jsx; vite.config.js `define`
+__APP_VERSION__ / __BUILD_TIME__ / __COMMIT__ — VERCEL_GIT_COMMIT_SHA on
+Vercel), so the phone can confirm the latest deploy arrived.
+
 ## Architecture essentials
 
 - **Home screen** (`components/HomeMenu/`): opens first (App `home` state;

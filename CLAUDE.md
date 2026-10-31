@@ -482,7 +482,12 @@ bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
   Auto-advance like useEarTraining (2026-10-31): after an answer the next
   question comes by itself (1100 ms right / 2600 ms wrong); Hear after
   answering cancels it, Next skips the wait, a mode/level change cancels.
-  Still missing vs guitar/piano: best streak saved per mode, timed mode.
+  Pace select Standard | Timed (prefs `pace`): Timed = 60 s
+  (TIMED_CHALLENGE_DURATION_S, wall-clock deadline) from Start, then a
+  summary (correct / attempts / accuracy / session best streak) + Again; the
+  4th score tile shows seconds left instead of all-time accuracy. Best streak
+  ever per mode = `earTrainingBestStreak:vocal-<mode>` (personal), shown as a
+  tile (2026-10-31, parity with guitar/piano).
 - **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G:
   Compose, Practice (Bass Practice, below), GuitarPro). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each

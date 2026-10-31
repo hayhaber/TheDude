@@ -955,7 +955,7 @@
 
 .vocal-ear-score {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
@@ -978,6 +978,34 @@
   font-size: 20px;
   color: var(--text-h);
   letter-spacing: 0;
+}
+
+.vocal-ear-clock.is-low b {
+  color: #e5484d;
+}
+
+.vocal-ear-summary {
+  text-align: center;
+}
+
+.vocal-ear-summary h3 {
+  margin: 4px 0 6px;
+  font-size: 18px;
+}
+
+.vocal-ear-summary p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.vocal-ear-summary b {
+  color: var(--text-h);
 }
 
 .vocal-ear-prompt {

@@ -4,7 +4,7 @@ import { getAudioContext, prepareAudioOutput } from '../../audio/audioContext';
 import { preparePiano, schedulePianoNotes } from '../../audio/pianoPlayer';
 import { LOUDNESS, loadLoudnessKey } from '../../hooks/useVocalExercise';
 import { VOCAL_EAR_LEVELS, VOCAL_EAR_MODES, pcName, vocalEarQuestion } from '../../music/vocal/vocalEar';
-import { loadLifetimeStats, saveLifetimeStats } from '../../music/earTraining';
+import { TIMED_CHALLENGE_DURATION_S, loadBestStreak, loadLifetimeStats, saveBestStreak, saveLifetimeStats } from '../../music/earTraining';
 import { midiName } from '../../music/vocal/voiceRange';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 
@@ -22,6 +22,9 @@ const LEVEL_LABEL = { beginner: 'Beginner', intermediate: 'Intermediate', advanc
 // it (the Next button takes over); Next during the wait skips the wait.
 const AUTO_ADVANCE_CORRECT_MS = 1100;
 const AUTO_ADVANCE_WRONG_MS = 2600;
+// Pace, as in the guitar / piano ear training: Standard, or Timed = as many
+// right answers as you can in 60 s (wall-clock deadline), then a summary.
+const PACES = ['standard', 'timed'];
 
 function loadPrefs() {
   try {
@@ -29,9 +32,10 @@ function loadPrefs() {
     return {
       mode: MODES.includes(p?.mode) ? p.mode : 'direction',
       level: VOCAL_EAR_LEVELS.includes(p?.level) ? p.level : 'beginner',
+      pace: PACES.includes(p?.pace) ? p.pace : 'standard',
     };
   } catch {
-    return { mode: 'direction', level: 'beginner' };
+    return { mode: 'direction', level: 'beginner', pace: 'standard' };
   }
 }
 
@@ -71,14 +75,42 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
   const [prefs, setPrefs] = useState(loadPrefs);
   const [question, setQuestion] = useState(null);
   const [answer, setAnswer] = useState(null);
-  const [session, setSession] = useState({ correct: 0, total: 0, streak: 0 });
+  const [session, setSession] = useState({ correct: 0, total: 0, streak: 0, best: 0 });
   const [lifetime, setLifetime] = useState(() => loadLifetimeStats(`vocal-${prefs.mode}`));
+  // Best streak ever, per mode (and per profile — earTrainingBestStreak: is personal).
+  const [bestStreak, setBestStreak] = useState(() => loadBestStreak(`vocal-${prefs.mode}`));
+  const [timeLeft, setTimeLeft] = useState(TIMED_CHALLENGE_DURATION_S);
+  const [timeUp, setTimeUp] = useState(false);
   const stopRef = useRef(null);
   const advanceRef = useRef(null); // pending auto-advance timer
+  const clockRef = useRef(null); // { deadline, id } while a timed run is on
 
   const cancelAdvance = () => {
     if (advanceRef.current) clearTimeout(advanceRef.current);
     advanceRef.current = null;
+  };
+
+  const stopClock = () => {
+    if (clockRef.current) clearInterval(clockRef.current.id);
+    clockRef.current = null;
+  };
+
+  const startClock = () => {
+    stopClock();
+    const deadline = Date.now() + TIMED_CHALLENGE_DURATION_S * 1000;
+    setTimeLeft(TIMED_CHALLENGE_DURATION_S);
+    setTimeUp(false);
+    const id = setInterval(() => {
+      const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setTimeLeft(left);
+      if (left === 0) {
+        stopClock();
+        cancelAdvance();
+        stopRef.current?.();
+        setTimeUp(true);
+      }
+    }, 250);
+    clockRef.current = { deadline, id };
   };
 
   useEffect(() => {
@@ -86,6 +118,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
     return () => {
       stopRef.current?.();
       cancelAdvance();
+      stopClock();
     };
   }, []);
 
@@ -98,10 +131,14 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
     }
     stopRef.current?.();
     cancelAdvance();
+    stopClock();
+    setTimeLeft(TIMED_CHALLENGE_DURATION_S);
+    setTimeUp(false);
     setQuestion(null);
     setAnswer(null);
-    setSession({ correct: 0, total: 0, streak: 0 });
+    setSession({ correct: 0, total: 0, streak: 0, best: 0 });
     setLifetime(loadLifetimeStats(`vocal-${next.mode}`));
+    setBestStreak(loadBestStreak(`vocal-${next.mode}`));
   };
 
   const play = (q) => {
@@ -116,6 +153,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
 
   const next = () => {
     cancelAdvance();
+    if (clockRef.current && clockRef.current.deadline <= Date.now()) return; // time's up
     const q = vocalEarQuestion(prefs.mode, prefs.level, range);
     setQuestion(q);
     setAnswer(null);
@@ -126,7 +164,12 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
     if (!question || answer) return;
     const ok = key === question.correct;
     setAnswer(key);
-    setSession((s) => ({ correct: s.correct + (ok ? 1 : 0), total: s.total + 1, streak: ok ? s.streak + 1 : 0 }));
+    const streak = ok ? session.streak + 1 : 0;
+    setSession((s) => ({ correct: s.correct + (ok ? 1 : 0), total: s.total + 1, streak, best: Math.max(s.best, streak) }));
+    if (streak > bestStreak) {
+      saveBestStreak(`vocal-${prefs.mode}`, streak);
+      setBestStreak(streak);
+    }
     const life = loadLifetimeStats(`vocal-${prefs.mode}`);
     const updated = { correct: life.correct + (ok ? 1 : 0), total: life.total + 1 };
     saveLifetimeStats(`vocal-${prefs.mode}`, updated);
@@ -139,6 +182,13 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
     }, ok ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS);
   };
 
+  // Start (and Again after time's up): a fresh session; Timed starts its clock.
+  const begin = () => {
+    setSession({ correct: 0, total: 0, streak: 0, best: 0 });
+    if (timed) startClock();
+    next();
+  };
+
   const hear = () => {
     play(question);
     // Asking to hear it again after answering = "don't rush me".
@@ -148,6 +198,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
   };
 
   const echo = prefs.mode === 'echo';
+  const timed = !echo && prefs.pace === 'timed';
   const pct = (c, n) => (n ? `${Math.round((c / n) * 100)}%` : '–');
   const correctChoice = question?.choices.find((c) => c.key === question.correct);
 
@@ -186,6 +237,18 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
             </select>
           </label>
         )}
+        {!echo && (
+          <label className="vocal-field">
+            <span>{t('earTraining.practiceModeLabel')}</span>
+            <select value={prefs.pace} onChange={(e) => savePrefs({ ...prefs, pace: e.target.value })}>
+              {PACES.map((p) => (
+                <option key={p} value={p}>
+                  {t(`earTraining.practiceMode.${p}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <p className="vocal-ear-about">{t(`vocal.ear.about.${prefs.mode}`)}</p>
         {range.isDefault && <p className="vocal-hint">{t('vocal.defaultRange')}</p>}
       </div>
@@ -212,14 +275,48 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
               {t('earTraining.streak')}
             </span>
             <span>
-              <b>{pct(lifetime.correct, lifetime.total)}</b>
-              {t('earTraining.lifetimeAccuracy')}
+              <b>{bestStreak}</b>
+              {t('earTraining.bestStreak')}
             </span>
+            {timed ? (
+              <span className={'vocal-ear-clock' + (timeLeft <= 10 && clockRef.current ? ' is-low' : '')}>
+                <b>{timeLeft}</b>
+                {t('vocal.ear.seconds')}
+              </span>
+            ) : (
+              <span>
+                <b>{pct(lifetime.correct, lifetime.total)}</b>
+                {t('earTraining.lifetimeAccuracy')}
+              </span>
+            )}
           </div>
 
-          {!question ? (
+          {timeUp ? (
+            <div className="vocal-ear-summary">
+              <h3>{t('earTraining.timedSummary.title')}</h3>
+              <p>
+                <span>
+                  {t('earTraining.timedSummary.correct')} <b>{session.correct}</b>
+                </span>
+                <span>
+                  {t('earTraining.timedSummary.attempts')} <b>{session.total}</b>
+                </span>
+                <span>
+                  {t('earTraining.timedSummary.accuracy')} <b>{pct(session.correct, session.total)}</b>
+                </span>
+                <span>
+                  {t('earTraining.summary.bestStreak')} <b>{session.best}</b>
+                </span>
+              </p>
+              <div className="vocal-actions">
+                <button type="button" className="primary" onClick={begin}>
+                  {t('vocal.again')}
+                </button>
+              </div>
+            </div>
+          ) : !question ? (
             <div className="vocal-actions">
-              <button type="button" className="primary" onClick={next}>
+              <button type="button" className="primary" onClick={begin}>
                 {t('vocal.start')}
               </button>
             </div>

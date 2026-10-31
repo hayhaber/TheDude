@@ -300,7 +300,7 @@ function ArpStep({ step, tx }) {
         )}
       </span>
       {step.labels === 'degree' && <p className="tc-hint">{t('teacher.arp.legend')}</p>}
-      {step.labels === 'finger' && <p className="tc-hint">{t('teacher.tap.legend')}</p>}
+      {step.labels === 'finger' && <p className="tc-hint">{t(ids.some((id) => ARPS[id]?.notes.some((x) => x[2] === 'T')) ? 'teacher.tap.legend' : 'teacher.finger.legend')}</p>}
     </>
   );
 }

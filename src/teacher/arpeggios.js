@@ -19,6 +19,25 @@ export const ARPS = {
   'C-top2': { root: 0, type: 'major', notes: [[3, 9], [2, 8], [1, 8]] }, // E G C  — 1st inversion
   'C-top3': { root: 0, type: 'major', notes: [[3, 12], [2, 13], [1, 12]] }, // G C E — 2nd inversion
 
+  // ---- First steps (level 0 lessons) -------------------------------------
+  // `strings: true` = the strip's small label is the STRING number (a
+  // beginner's map), not an interval. Finger 0 = open string.
+  // The six open strings, thickest (6) to thinnest (1).
+  'open-strings': { root: 4, type: 'minor', strings: true, gap: 0.6, notes: [[6, 0, 0], [5, 0, 0], [4, 0, 0], [3, 0, 0], [2, 0, 0], [1, 0, 0]] },
+  // First fretted notes, high E string: E (open), F (fret 1, index), G (fret 3, ring).
+  'notes-E': { root: 0, type: 'major', strings: true, gap: 0.5, notes: [[1, 0, 0], [1, 1, 1], [1, 3, 3]], seq: [0, 1, 2, 1, 0] },
+  // B string: B (open), C (fret 1, index), D (fret 3, ring).
+  'notes-B': { root: 0, type: 'major', strings: true, gap: 0.5, notes: [[2, 0, 0], [2, 1, 1], [2, 3, 3]], seq: [0, 1, 2, 1, 0] },
+  // Beethoven's "Ode to Joy" (public domain), first phrase, on those six notes:
+  // E E F G | G F E D | C C D E | E D D
+  ode: {
+    root: 0, type: 'major', strings: true, gap: 0.42,
+    notes: [[1, 0, 0], [1, 1, 1], [1, 3, 3], [2, 3, 3], [2, 1, 1]],
+    seq: [0, 0, 1, 2, 2, 1, 0, 3, 4, 4, 3, 0, 0, 3, 3],
+  },
+  // Finger independence: 1-2-3-4 on the high E string, frets 1-4, and back.
+  'spider-1': { root: 0, type: 'major', strings: true, gap: 0.45, notes: [[1, 1, 1], [1, 2, 2], [1, 3, 3], [1, 4, 4]], seq: [0, 1, 2, 3, 2, 1, 0] },
+
   // ---- Tapping (lesson g4-tapping, Lick Trainer genre 'tapping') ----------
   // notes: [stringNumber, fret, finger] — finger 'T' = TAPPED by the picking
   // hand's middle finger, 1-4 = fretting hand. `seq` = play order (indices
@@ -69,14 +88,14 @@ export function arpNotes(ids) {
       const midi = OPEN_MIDI[sn] + fret;
       const tone = tones.find((x) => x.pc === midi % 12);
       const iv = (((midi - a.root) % 12) + 12) % 12;
-      const deg = a.scale ? INTERVAL[iv] : tone?.role === 'root' ? '1' : (tone?.interval ?? '').replace(/^R$/, '1');
+      const deg = a.strings ? String(sn) : a.scale ? INTERVAL[iv] : tone?.role === 'root' ? '1' : (tone?.interval ?? '').replace(/^R$/, '1');
       out.push({
         string: 6 - sn,
         fret,
         midi,
         noteName: tone?.name ?? NAMES[midi % 12],
         degreeLabel: deg,
-        isRoot: a.scale ? iv === 0 : tone?.role === 'root',
+        isRoot: a.strings ? false : a.scale ? iv === 0 : tone?.role === 'root',
         shape: id,
         ...(finger != null ? { finger, tapped: finger === 'T' } : {}),
       });

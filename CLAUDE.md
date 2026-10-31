@@ -815,6 +815,22 @@ Vercel), so the phone can confirm the latest deploy arrived.
 
 ## Guitar Teacher (built 2026-10-25, phase 1A)
 
+- LEVEL 0 lessons (2026-10-31, plan phase 2 — the USER reviews all three
+  together): `g0-first-note` (posture + pick checklist, tune, the six strings
+  `arp open-strings` + quiz, `play` 6->1->6), `g0-clean-notes` (fret = one step,
+  one finger per fret, clean-note checklist, E F G on string 1 / B C D on
+  string 2, "Ode to Joy" first phrase (Beethoven, public domain) as `play
+  ode`, spider 1-2-3-4 `play spider-1`), `g0-first-chord` (Em shape, mic
+  chord check, quiz, down strums + metronome 60 checklist, lift-and-land).
+  New skills open-strings / clean-notes / finger-1234 (play checks);
+  chord-Em + strum-down moved to level 0; FINGERS.Em. ARPS `strings: true` =
+  the strip's small label is the string number; finger 0 = open string;
+  `teacher.finger.legend` for non-tap finger labels. `nextLesson` offers
+  level 0 only when experience is 'none' (or no intake). Verified: Playwright
+  walked all three lessons; a Karplus-Strong WAV of the open strings as the
+  fake mic -> the play step heard all 11 notes. The old D-A lesson still has
+  its own tune / posture / strings steps (repeat for level-0 students).
+
 - Plan doc (Docs artifact): https://claude.ai/artifact/CeJC6CVwAu6KmqVXyjPQ46 —
   user approved: Coach merged into the Teacher, guitar levels 0–3 first, no
   AI chat in phase 1, Claude writes lessons and the USER reviews level 1

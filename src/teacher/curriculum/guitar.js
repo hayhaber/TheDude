@@ -58,6 +58,7 @@ export const FINGERS = {
   D: [0, 0, 0, 1, 3, 2],
   A: [0, 0, 1, 2, 3, 0],
   E: [0, 2, 3, 1, 0, 0],
+  Em: [0, 2, 3, 0, 0, 0],
 };
 
 // ---------------------------------------------------------------------------
@@ -72,15 +73,18 @@ export const SKILLS = [
   { id: 'tuning', domain: 'fretting', level: 0, title: L('Tune the guitar with a tuner', 'לכוון את הגיטרה בטיונר'), check: { kind: 'self' } },
   { id: 'posture', domain: 'fretting', level: 0, title: L('Sitting position and hand shape', 'ישיבה ותנוחת יד'), check: { kind: 'self' } },
   { id: 'strings', domain: 'fretboard', level: 0, title: L('String names and numbers', 'שמות ומספרי המיתרים'), check: { kind: 'quiz', id: 'strings' } },
+  { id: 'open-strings', domain: 'picking', level: 0, title: L('Pick the six open strings', 'לפרוט את ששת המיתרים הפתוחים'), check: { kind: 'play', arp: 'open-strings' } },
+  { id: 'clean-notes', domain: 'fretting', level: 0, after: ['open-strings'], title: L('Clean fretted notes: a first melody', 'צלילים נקיים: מנגינה ראשונה'), check: { kind: 'play', arp: 'ode' } },
+  { id: 'finger-1234', domain: 'fretting', level: 0, title: L('Fingers 1-2-3-4 on one string', `אצבעות ${H('1-2-3-4')} על מיתר אחד`), check: { kind: 'play', arp: 'spider-1' } },
   { id: 'chord-D', domain: 'fretting', level: 1, after: ['posture'], title: L('D chord', `אקורד ${H('D')}`), check: { kind: 'chord', chord: 'D' } },
   { id: 'chord-A', domain: 'fretting', level: 1, after: ['posture'], title: L('A chord', `אקורד ${H('A')}`), check: { kind: 'chord', chord: 'A' } },
   { id: 'chord-E', domain: 'fretting', level: 1, after: ['posture'], title: L('E chord', `אקורד ${H('E')}`), check: { kind: 'chord', chord: 'E' } },
   { id: 'changes-AD', domain: 'fretting', level: 1, after: ['chord-D', 'chord-A'], title: L('A–D changes, 30 a minute', `החלפות ${H('A–D')}, 30 בדקה`), check: { kind: 'changes', pair: ['A', 'D'], min: 30 } },
   { id: 'changes-AE', domain: 'fretting', level: 1, after: ['chord-A', 'chord-E'], title: L('A–E changes, 30 a minute', `החלפות ${H('A–E')}, 30 בדקה`), check: { kind: 'changes', pair: ['A', 'E'], min: 30 } },
   { id: 'changes-DE', domain: 'fretting', level: 1, after: ['chord-D', 'chord-E'], title: L('D–E changes, 30 a minute', `החלפות ${H('D–E')}, 30 בדקה`), check: { kind: 'changes', pair: ['D', 'E'], min: 30 } },
-  { id: 'strum-down', domain: 'rhythm', level: 1, title: L('Down strums in time', 'פריטה למטה בזמן'), check: { kind: 'self' } },
+  { id: 'strum-down', domain: 'rhythm', level: 0, title: L('Down strums in time', 'פריטה למטה בזמן'), check: { kind: 'self' } },
   { id: 'chord-Am', domain: 'fretting', level: 2, after: ['chord-A'], title: L('Am chord', `אקורד ${H('Am')}`), check: { kind: 'chord', chord: 'Am' } },
-  { id: 'chord-Em', domain: 'fretting', level: 2, after: ['chord-E'], title: L('Em chord', `אקורד ${H('Em')}`), check: { kind: 'chord', chord: 'Em' } },
+  { id: 'chord-Em', domain: 'fretting', level: 0, title: L('Em chord', `אקורד ${H('Em')}`), check: { kind: 'chord', chord: 'Em' } },
   { id: 'chord-Dm', domain: 'fretting', level: 2, after: ['chord-D'], title: L('Dm chord', `אקורד ${H('Dm')}`), check: { kind: 'chord', chord: 'Dm' } },
   { id: 'chord-G', domain: 'fretting', level: 2, title: L('G chord', `אקורד ${H('G')}`), check: { kind: 'chord', chord: 'G' } },
   { id: 'chord-C', domain: 'fretting', level: 2, title: L('C chord', `אקורד ${H('C')}`), check: { kind: 'chord', chord: 'C' } },
@@ -565,7 +569,287 @@ const lessonTapping = {
   ],
 };
 
+
+// ---------------------------------------------------------------------------
+// Level 0 — first steps (2026-10-31, onboarding plan phase 2). For someone
+// who has never held a guitar: a clean sound before any chord. Order follows
+// common method books (Hal Leonard Guitar Method Book 1 starts on E F G on
+// the high E string; JustinGuitar's beginner course on posture, tuning and a
+// two-finger first chord); text and exercises are our own. "Ode to Joy" is
+// Beethoven (public domain).
+// ---------------------------------------------------------------------------
+
+const lessonFirstNote = {
+  id: 'g0-first-note',
+  level: 0,
+  title: L('The guitar and your first sound', 'הגיטרה והצליל הראשון'),
+  objective: L(
+    'Hold the guitar and the pick, tune, and play the six open strings by name.',
+    'להחזיק את הגיטרה והמפרט, לכוון, ולנגן את ששת המיתרים הפתוחים בשמם.'
+  ),
+  minutes: 10,
+  skills: ['posture', 'tuning', 'strings', 'open-strings'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Today’s lesson', 'השיעור של היום'),
+      text: L(
+        'Ten minutes, no chords yet. You will learn to hold the guitar, tune it, and play its six strings one by one while the teacher listens. A guitar has a body, a neck with metal strips called frets, and a head with a tuning peg for each string. Turning a peg tightens or loosens its string: tighter = higher.',
+        'עשר דקות, עוד בלי אקורדים. תלמד להחזיק את הגיטרה, לכוון אותה, ולנגן את ששת המיתרים שלה אחד אחד כשהמורה מקשיב. לגיטרה יש גוף, צוואר עם פסי מתכת שנקראים סריגים, וראש עם מפתח כיוון לכל מיתר. סיבוב מפתח מותח או משחרר את המיתר שלו: מתוח יותר = גבוה יותר.'
+      ),
+    },
+    {
+      kind: 'checklist',
+      skill: 'posture',
+      title: L('Sit and hold the guitar', 'ישיבה ואחיזה'),
+      text: L('Check each point with the guitar in your hands.', 'בדוק כל נקודה כשהגיטרה בידיים שלך.'),
+      items: [
+        L('Sit upright, the guitar’s waist on your right leg, the neck slightly raised.', 'שב זקוף, המותן של הגיטרה על הרגל הימנית, הצוואר מורם מעט.'),
+        L('Your right forearm rests on the edge of the body; the hand hangs over the strings near the sound hole.', 'האמה הימנית נחה על קצה הגוף; כף היד תלויה מעל המיתרים ליד חור התהודה.'),
+        L('Pick between the thumb and the side of the index finger, only its tip showing.', 'המפרט בין האגודל לצד של האצבע המורה, רק הקצה שלו בחוץ.'),
+        L('Left-hand thumb behind the neck, shoulders loose.', 'אגודל יד שמאל מאחורי הצוואר, כתפיים רפויות.'),
+      ],
+    },
+    {
+      kind: 'tune',
+      skill: 'tuning',
+      title: L('Tune the guitar', 'כיוון הגיטרה'),
+      text: L(
+        'Press Start and pick one open string at a time, from the thickest. Turn its peg slowly until the meter is green. The tuner shows which string it hears — if a string is far off, it may name a different note; keep turning toward the one it should be.',
+        'לחץ התחל ופרוט מיתר פתוח אחד בכל פעם, מהעבה ביותר. סובב את המפתח שלו לאט עד שהמד ירוק. הטיונר מראה איזה מיתר הוא שומע — אם מיתר רחוק מאוד, ייתכן שיופיע שם של צליל אחר; המשך לסובב לכיוון הצליל שהוא אמור להיות.'
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'open-strings',
+      labels: 'note',
+      title: L('The six strings', 'ששת המיתרים'),
+      text: L(
+        'From the thickest to the thinnest: E A D G B E. The thickest is string 6, the thinnest string 1 — chord diagrams and lessons use these numbers. Listen, then look at them on the neck below.',
+        `מהעבה לדק: ${H('E A D G B E')}. העבה ביותר הוא מיתר 6, הדק ביותר מיתר 1 — דיאגרמות אקורדים ושיעורים משתמשים במספרים האלה. הקשב, ואז מצא אותם על הצוואר למטה.`
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'strings',
+      skill: 'strings',
+      title: L('String numbers', 'מספרי המיתרים'),
+      question: L('Which string is string 1?', 'איזה מיתר הוא מיתר 1?'),
+      options: [
+        L('The thinnest string, nearest the floor (high E)', `המיתר הדק ביותר, הקרוב לרצפה (${H('E')} גבוה)`),
+        L('The thickest string, nearest your face (low E)', `המיתר העבה ביותר, הקרוב לפנים (${H('E')} נמוך)`),
+        L('The middle string (G)', `המיתר האמצעי (${H('G')})`),
+      ],
+      answer: 0,
+      why: L(
+        'Strings are numbered from the thinnest: 1 is high E, 6 is low E.',
+        `המיתרים ממוספרים מהדק: 1 הוא ${H('E')} גבוה, 6 הוא ${H('E')} נמוך.`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'open-strings',
+      updown: true,
+      skill: 'open-strings',
+      title: L('Play them', 'נגן אותם'),
+      text: L(
+        'Press Listen and pick each string once with a small down stroke of the pick: 6 to 1, then back to 6. Let each one ring. The teacher moves on when it hears the right string — say its name as you play it.',
+        'לחץ הקשב ופרוט כל מיתר פעם אחת בתנועה קטנה של המפרט כלפי מטה: מ־6 עד 1, ובחזרה עד 6. תן לכל אחד לצלצל. המורה מתקדם כשהוא שומע את המיתר הנכון — אמור את השם שלו כשאתה מנגן.'
+      ),
+    },
+  ],
+  homework: [
+    { id: 'open-strings-hw', kind: 'play', arp: 'open-strings', updown: true, skill: 'open-strings', text: L('Every day: tune, then the six strings down and up with the teacher listening.', 'כל יום: כיוון, ואז ששת המיתרים למטה ולמעלה כשהמורה מקשיב.') },
+  ],
+};
+
+const lessonCleanNotes = {
+  id: 'g0-clean-notes',
+  level: 0,
+  title: L('One finger, a clean note', 'אצבע אחת, צליל נקי'),
+  objective: L(
+    'Press a string so the note rings clean, play six notes and a first melody.',
+    'ללחוץ על מיתר כך שהצליל מצלצל נקי, לנגן שישה צלילים ומנגינה ראשונה.'
+  ),
+  minutes: 12,
+  skills: ['clean-notes', 'finger-1234'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('How a fret works', 'איך עובד סריג'),
+      text: L(
+        'Pressing a string behind a fret makes it shorter, so the note goes up — one fret = one step up. In the first frets each finger has its own fret: index (1) on fret 1, middle (2) on fret 2, ring (3) on fret 3, pinky (4) on fret 4.',
+        'לחיצה על מיתר מאחורי סריג מקצרת אותו, ולכן הצליל עולה — סריג אחד = צעד אחד למעלה. בשריגים הראשונים לכל אצבע יש שריג משלה: מורה (1) על שריג 1, אמה (2) על שריג 2, קמיצה (3) על שריג 3, זרת (4) על שריג 4.'
+      ),
+    },
+    {
+      kind: 'checklist',
+      title: L('A clean note', 'צליל נקי'),
+      text: L('Press fret 1 on string 1 with your index finger and pick it. Check:', 'לחץ על שריג 1 במיתר 1 עם האצבע המורה ופרוט. בדוק:'),
+      items: [
+        L('The very tip of the finger presses, the finger curved.', 'קצה האצבע לוחץ, והאצבע מעוגלת.'),
+        L('Just behind the fret wire — not on it, not in the middle of the gap.', 'ממש מאחורי הסריג — לא עליו ולא באמצע המרווח.'),
+        L('If it buzzes, move closer to the fret before pressing harder.', 'אם יש זמזום, התקרב לסריג לפני שאתה לוחץ חזק יותר.'),
+        L('The thumb stays behind the neck, not squeezing.', 'האגודל נשאר מאחורי הצוואר, בלי ללחוץ.'),
+      ],
+    },
+    {
+      kind: 'arp',
+      arp: 'notes-E',
+      labels: 'finger',
+      title: L('Three notes on string 1', 'שלושה צלילים על מיתר 1'),
+      text: L(
+        'E is the open string, F is fret 1 with finger 1, G is fret 3 with finger 3. The small number under each note is the finger.',
+        `${H('E')} הוא המיתר הפתוח, ${H('F')} הוא שריג 1 באצבע 1, ${H('G')} הוא שריג 3 באצבע 3. המספר הקטן מתחת לכל צליל הוא האצבע.`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'notes-E',
+      labels: 'finger',
+      title: L('Play E F G F E', `נגן ${H('E F G F E')}`),
+      text: L(
+        'Slowly, one note at a time. Keep finger 1 down on F while you add finger 3 for G — then lift 3 to go back to F.',
+        `לאט, צליל אחרי צליל. השאר את אצבע 1 על ${H('F')} כשאתה מוסיף את אצבע 3 ל־${H('G')} — ואז הרם את 3 כדי לחזור ל־${H('F')}.`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'notes-B',
+      labels: 'finger',
+      title: L('Same on string 2: B C D C B', `אותו דבר על מיתר 2: ${H('B C D C B')}`),
+      text: L(
+        'The same fingers one string up: B open, C at fret 1 (finger 1), D at fret 3 (finger 3).',
+        `אותן אצבעות מיתר אחד למעלה: ${H('B')} פתוח, ${H('C')} בשריג 1 (אצבע 1), ${H('D')} בשריג 3 (אצבע 3).`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'ode',
+      labels: 'finger',
+      skill: 'clean-notes',
+      title: L('Your first melody', 'המנגינה הראשונה שלך'),
+      text: L(
+        'Those six notes are enough for the start of Beethoven’s “Ode to Joy”. Press Hear first, then play along with the teacher listening. The repeated notes are just picked again.',
+        `ששת הצלילים האלה מספיקים לפתיחה של "המנון לשמחה" של בטהובן. לחץ שמע קודם, ואז נגן כשהמורה מקשיב. צליל שחוזר פשוט נפרט שוב.`
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'spider-1',
+      labels: 'finger',
+      title: L('Wake up all four fingers', 'להעיר את כל ארבע האצבעות'),
+      text: L(
+        'A warm-up guitarists play for years: on string 1, fret 1 with finger 1, fret 2 with finger 2, fret 3 with 3, fret 4 with 4, and back. One finger per fret, the others hovering close to the string.',
+        'חימום שגיטריסטים מנגנים שנים: על מיתר 1, שריג 1 באצבע 1, שריג 2 באצבע 2, שריג 3 ב־3, שריג 4 ב־4, ובחזרה. אצבע אחת לכל שריג, והאחרות מרחפות קרוב למיתר.'
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'spider-1',
+      labels: 'finger',
+      skill: 'finger-1234',
+      title: L('Play 1-2-3-4-3-2-1', `נגן ${H('1-2-3-4-3-2-1')}`),
+      text: L('Slow and even. The pinky is the weak one — that is exactly why it is here.', 'לאט ובאופן אחיד. הזרת היא החלשה — ובדיוק בשביל זה היא כאן.'),
+    },
+  ],
+  homework: [
+    { id: 'ode-hw', kind: 'play', arp: 'ode', skill: 'clean-notes', text: L('“Ode to Joy” once a day with the teacher listening.', '"המנון לשמחה" פעם ביום כשהמורה מקשיב.') },
+    { id: 'spider-hw', kind: 'play', arp: 'spider-1', skill: 'finger-1234', text: L('Fingers 1-2-3-4 and back, once a day.', `אצבעות ${H('1-2-3-4')} ובחזרה, פעם ביום.`) },
+  ],
+};
+
+const lessonFirstChord = {
+  id: 'g0-first-chord',
+  level: 0,
+  title: L('Your first chord: Em', `האקורד הראשון שלך: ${H('Em')}`),
+  objective: L(
+    'Play E minor with all six strings ringing and strum it in time.',
+    `לנגן ${H('E')} מינור כשכל ששת המיתרים מצלצלים, ולפרוט אותו בזמן.`
+  ),
+  minutes: 12,
+  skills: ['chord-Em', 'strum-down'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('A chord = notes together', 'אקורד = צלילים יחד'),
+      shape: 'Em',
+      text: L(
+        'A chord is several notes sounding together. E minor needs only two fingers, both on fret 2: middle finger (2) on string 5, ring finger (3) on string 4. All six strings are played — the other four stay open.',
+        `אקורד הוא כמה צלילים שנשמעים יחד. ${H('E')} מינור צריך רק שתי אצבעות, שתיהן על שריג 2: אמה (2) על מיתר 5, קמיצה (3) על מיתר 4. מנגנים את כל ששת המיתרים — ארבעת האחרים נשארים פתוחים.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'Em',
+      title: L('Play Em', `נגן ${H('Em')}`),
+      text: L(
+        'First pick string by string, 6 to 1: every string should ring. A dead string usually means a finger is lying on it — stand the finger up on its tip. Then strum all six with one slow down stroke and press Listen.',
+        'קודם פרוט מיתר אחרי מיתר, מ־6 עד 1: כל מיתר צריך לצלצל. מיתר מת אומר בדרך כלל שאצבע שוכבת עליו — העמד את האצבע על הקצה. אז פרוט את כל השישה בתנועה איטית אחת למטה ולחץ הקשב.'
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'em-strings',
+      title: L('Which strings?', 'אילו מיתרים?'),
+      question: L('Which strings do you strum for Em?', `אילו מיתרים פורטים ב־${H('Em')}?`),
+      options: [L('All six', 'כל השישה'), L('Strings 5 to 1', 'מיתרים 5 עד 1'), L('Strings 4 to 1', 'מיתרים 4 עד 1')],
+      answer: 0,
+      why: L('Em starts on the open low E (string 6), its root — so all six ring.', `${H('Em')} מתחיל ב־${H('E')} הנמוך הפתוח (מיתר 6), היסוד שלו — לכן כל השישה מצלצלים.`),
+    },
+    {
+      kind: 'explain',
+      title: L('Strumming down', 'פריטה למטה'),
+      text: L(
+        'Strum from string 6 to string 1 in one even motion, mostly from the wrist, the pick loose enough to glide over the strings. Count out loud “1 2 3 4” and strum on every number.',
+        'פורטים ממיתר 6 עד מיתר 1 בתנועה אחידה אחת, בעיקר מפרק היד, והמפרט רפוי מספיק כדי להחליק על המיתרים. ספור בקול "1 2 3 4" ופרוט על כל מספר.'
+      ),
+    },
+    {
+      kind: 'checklist',
+      skill: 'strum-down',
+      title: L('With the metronome', 'עם המטרונום'),
+      text: L(
+        'Open the metronome (the pill at the bottom of the screen, or in the top bar on a computer), set 60 and start it. Strum Em on every click.',
+        'פתח את המטרונום (הכפתור בתחתית המסך, או בסרגל העליון במחשב), קבע 60 והפעל. פרוט ' + H('Em') + ' על כל נקישה.'
+      ),
+      items: [
+        L('Four strums in a row land on the clicks.', 'ארבע פריטות ברצף נופלות על הנקישות.'),
+        L('All strums sound equally loud.', 'כל הפריטות נשמעות באותה עוצמה.'),
+        L('The shape stays pressed — no string dies along the way.', 'הצורה נשארת לחוצה — אף מיתר לא מת בדרך.'),
+      ],
+    },
+    {
+      kind: 'checklist',
+      title: L('Lift and land', 'הרם והנח'),
+      text: L(
+        'Changing chords starts here: take both fingers off, then put them back as one shape and strum. Ten times, slowly.',
+        'מעבר בין אקורדים מתחיל כאן: הרם את שתי האצבעות, החזר אותן כצורה אחת ופרוט. עשר פעמים, לאט.'
+      ),
+      items: [
+        L('Both fingers land at the same moment.', 'שתי האצבעות נוחתות באותו רגע.'),
+        L('Every string rings on the strum after landing.', 'כל המיתרים מצלצלים בפריטה אחרי הנחיתה.'),
+      ],
+    },
+    {
+      kind: 'explain',
+      title: L('Next: D and A', `הבא: ${H('D')} ו־${H('A')}`),
+      text: L(
+        'You can hold a guitar, play clean notes and a full chord in time. The next lesson adds two chords, D and A, and switching between them — after that, the first songs.',
+        `אתה כבר יודע להחזיק גיטרה, לנגן צלילים נקיים ואקורד מלא בזמן. השיעור הבא מוסיף שני אקורדים, ${H('D')} ו־${H('A')}, ומעבר ביניהם — ואחריו, השירים הראשונים.`
+      ),
+    },
+  ],
+  homework: [
+    { id: 'em-hw', kind: 'self', text: L('Every day: build Em string by string until all six ring, then lift and land 10 times.', `כל יום: בנה ${H('Em')} מיתר אחרי מיתר עד שכל השישה מצלצלים, ואז הרם והנח 10 פעמים.`) },
+    { id: 'strum-hw', kind: 'self', text: L('2 minutes: Em down strums on the click at 60.', `2 דקות: פריטות ${H('Em')} למטה על הנקישה ב־60.`) },
+  ],
+};
+
 export const LESSONS = [
+  lessonFirstNote,
+  lessonCleanNotes,
+  lessonFirstChord,
   lessonFirstChords,
   { id: 'g1-chord-E', level: 1, title: L('E chord and three-chord changes', `האקורד ${H('E')} ומעבר בין שלושה`), skills: ['chord-E', 'changes-AE', 'changes-DE'] },
   { id: 'g1-strumming', level: 1, title: L('Strumming in time', 'פריטה בזמן'), skills: ['strum-down'] },

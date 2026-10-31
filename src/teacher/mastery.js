@@ -71,7 +71,10 @@ export function nextLesson(state) {
   const cur = state.current && LESSONS.find((l) => l.id === state.current);
   if (cur && !state.lessons[cur.id]?.done) return cur;
   const cap = LEVEL_CAP[state.intake?.experience] ?? 99;
-  const open = LESSONS.filter((l) => !state.lessons[l.id]?.done && l.level <= cap && !covered(l, state));
+  // Level 0 (first steps) only for someone who has never played.
+  const exp = state.intake?.experience;
+  const firstSteps = !exp || exp === 'none';
+  const open = LESSONS.filter((l) => !state.lessons[l.id]?.done && l.level <= cap && (l.level > 0 || firstSteps) && !covered(l, state));
   return open.find((l) => l.steps) ?? open[0] ?? null;
 }
 

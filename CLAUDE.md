@@ -182,12 +182,12 @@ bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
   Phone/tablet: logo top-left, info top-right,
   metronome/tuner bar + feature tabs at the bottom.
 - **Status bar (iPad / iPhone)**: the page runs under the status bar
-  (viewport-fit=cover + black-translucent), so every top edge adds
-  `env(safe-area-inset-top)`: home `.home-top` (all sizes; phones
-  max(52px, inset + 8)), the desktop `.app-topbar` (iPad landscape >= 900px:
-  padding + min-height; GuitarPro's 98px box calcs subtract it too), tool
-  screen, songwriter, onboarding, install / privacy pages (user saw the iPad
-  clock / battery / Wi-Fi covered on the home screen, 2026-10-31).
+  (viewport-fit=cover + black-translucent). v1.0.83 added
+  `env(safe-area-inset-top)` to home `.home-top`, the desktop `.app-topbar`
+  and GuitarPro's 98px calcs (user saw the iPad clock / battery / Wi-Fi
+  covered) — REVERTED in v1.0.85 at the user's request ("the whole display
+  got smaller on the iPad, put it back"). Tool screen, songwriter,
+  onboarding, install / privacy pages kept their older safe-area padding.
 - **Round Home button** (`components/HomeButton/HomeButton.jsx`, user's
   request 2026-10-16): replaces the logo at the top of every inner page —
   AppShell desktop top bar (`.app-topbar-home`), phone/tablet top-left

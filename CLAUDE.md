@@ -244,7 +244,10 @@ Vercel), so the phone can confirm the latest deploy arrived.
   pages: desktop in the top bar (`.app-topbar-tools`); tablet/phone in the bar above the
   bottom tabs. Each is mounted twice (one hidden by CSS), so anything that
   opens a drawer programmatically must pick the visible one. Home also
-  scrolls the carousel with the mouse wheel (one card per flick). GuitarPro's
+  scrolls the carousel with the mouse wheel / trackpad: ONE card per gesture
+  (a gesture ends after 220 ms without wheel events; after its step the rest
+  of the stream — a Mac trackpad's inertia tail — is swallowed; the old
+  450 ms time lock let one swipe move 3-4 cards, user 2026-10-31). GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
 - **Chord Library** (nav `chords`, guitar only, Guitar card shortcut FIRST,

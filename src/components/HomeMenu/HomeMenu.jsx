@@ -528,29 +528,37 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [step]);
 
-  // Mouse wheel (desktop): down = next card, up = previous — one card per
-  // flick. A trackpad sends a burst of small deltas, so they're summed and
-  // a step is followed by a short pause. A sideways trackpad swipe moves
-  // one card too.
+  // Mouse wheel / trackpad (desktop): ONE card per gesture, like a swipe on
+  // the iPad. A trackpad swipe is a stream of small deltas followed by a
+  // long inertia tail (well over a second on a Mac) — a time lock let the
+  // tail move 3-4 cards. Now a gesture lasts until the events stop for
+  // GESTURE_GAP ms; it may step once, and everything after that step in the
+  // same stream (the inertia) is swallowed. Sideways or up/down both work.
   useEffect(() => {
     const box = rootRef.current; // anywhere on the home screen
     if (!box) return undefined;
+    const GESTURE_GAP = 220;
     let sum = 0;
-    let lockedUntil = 0;
+    let lastAt = -Infinity;
+    let stepped = false;
     const onWheel = (e) => {
       // The profile list scrolls by itself.
       if (e.target instanceof Element && e.target.closest('.profile-pop')) return;
       const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
       e.preventDefault();
       const now = performance.now();
-      if (now < lockedUntil) return;
+      if (now - lastAt > GESTURE_GAP) {
+        // a new gesture
+        sum = 0;
+        stepped = false;
+      }
+      lastAt = now;
+      if (stepped) return;
       // Sideways: content follows the fingers (RTL: right = next).
       sum += horizontal ? -e.deltaX : e.deltaY;
       if (Math.abs(sum) < 40) return;
-      const dir = sum > 0 ? 1 : -1;
-      sum = 0;
-      lockedUntil = now + 450;
-      step(dir);
+      stepped = true;
+      step(sum > 0 ? 1 : -1);
     };
     box.addEventListener('wheel', onWheel, { passive: false });
     return () => box.removeEventListener('wheel', onWheel);

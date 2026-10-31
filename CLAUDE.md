@@ -176,6 +176,13 @@ Vercel), so the phone can confirm the latest deploy arrived.
   Settings are only on the home screen's Tools card (user's request).
   Phone/tablet: logo top-left, info top-right,
   metronome/tuner bar + feature tabs at the bottom.
+- **Status bar (iPad / iPhone)**: the page runs under the status bar
+  (viewport-fit=cover + black-translucent), so every top edge adds
+  `env(safe-area-inset-top)`: home `.home-top` (all sizes; phones
+  max(52px, inset + 8)), the desktop `.app-topbar` (iPad landscape >= 900px:
+  padding + min-height; GuitarPro's 98px box calcs subtract it too), tool
+  screen, songwriter, onboarding, install / privacy pages (user saw the iPad
+  clock / battery / Wi-Fi covered on the home screen, 2026-10-31).
 - **Round Home button** (`components/HomeButton/HomeButton.jsx`, user's
   request 2026-10-16): replaces the logo at the top of every inner page —
   AppShell desktop top bar (`.app-topbar-home`), phone/tablet top-left

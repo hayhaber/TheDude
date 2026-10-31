@@ -278,6 +278,95 @@
   cursor: pointer;
 }
 
+.sw-ideas-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sw-words-big {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface, var(--bg));
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.sw-take.is-idea {
+  grid-template-columns: auto minmax(0, 1fr) minmax(40px, 140px) auto auto auto;
+}
+
+.sw-take-blank {
+  min-width: 0;
+}
+
+.sw-icon-btn.is-rec {
+  color: var(--danger);
+}
+
+.sw-idea-text {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  margin: 0 0 4px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: start;
+  white-space: pre-wrap;
+  justify-content: flex-start;
+  cursor: text;
+  max-height: 9.5em;
+  overflow: hidden;
+}
+
+.sw-idea-text:hover {
+  background: var(--accent-bg);
+}
+
+.sw-idea-edit {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 2px 4px 6px;
+}
+
+.sw-idea-edit textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 110px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg, var(--bg));
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.sw-idea-edit textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .sw-rec-big-dot {
   width: 16px;
   height: 16px;
@@ -1216,6 +1305,12 @@
     grid-template-columns: auto minmax(0, 1fr) auto auto;
   }
   .sw-take .sw-peaks {
+    display: none;
+  }
+  .sw-take.is-idea {
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  }
+  .sw-take.is-idea .sw-take-blank {
     display: none;
   }
   .sw-transport {

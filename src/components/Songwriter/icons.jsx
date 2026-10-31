@@ -47,6 +47,8 @@ const P = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  words: <path d="M5 7h14M5 12h14M5 17h9" />,
+  pen: <path d="M15.5 5.5l3 3L9 18H6v-3zM13.5 7.5l3 3" />,
 };
 
 export function Icon({ name, size = 18 }) {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { HomeButton } from '../HomeButton/HomeButton';
 import { deleteAudio } from '../../audio/songwriter/songAudioStore';
-import { keyName, newSong } from '../../music/songwriter/song';
+import { keyName, newSong, sectionsFromText } from '../../music/songwriter/song';
 import { parseLine } from '../../music/songwriter/lyrics';
 import { useSongs } from './useSongs';
 import { useSongAudio } from './useSongAudio';
@@ -126,6 +126,37 @@ export function SongwriterScreen({ start = 'list', onBack }) {
   );
 }
 
+function IdeaWords({ idea, onSave }) {
+  const { t } = useLanguage();
+  const [text, setText] = useState(idea.text ?? '');
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
+  }, []);
+  return (
+    <div className="sw-idea-edit">
+      <textarea
+        ref={ref}
+        dir="auto"
+        rows={4}
+        value={text}
+        placeholder={t('sw.idea.wordsHint')}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => onSave(text)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onSave(text);
+        }}
+      />
+      <button type="button" className="sw-btn is-primary is-small" onClick={() => onSave(text)}>
+        {t('sw.done')}
+      </button>
+    </div>
+  );
+}
+
 function SongList({ store, audio, focusIdeas, onOpen, toast }) {
   const { t, lang } = useLanguage();
   const ideasRef = useRef(null);
@@ -143,20 +174,54 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
     }
   };
 
+  // An idea = a recording, words, or both. Audio is stored under the idea's
+  // own id (recorded first) or `audioId` (recorded onto a words idea).
+  const audioKey = (idea) => idea.audioId ?? (idea.dur != null ? idea.id : null);
+  const [editingIdea, setEditingIdea] = useState(null);
+
   const stopIdea = async () => {
     if (audio.rec?.phase !== 'rec') {
       audio.cancelRec();
       return;
     }
+    const target = audio.rec.target;
     const out = await audio.stopRec({ bpm: 90, time: '4/4' });
     if (!out) return;
+    const { id: audioId, at, ...take } = out.take;
+    if (target.ideaId) {
+      store.setIdeas((list) => list.map((x) => (x.id === target.ideaId ? { ...x, ...take, downbeat: null, audioId } : x)));
+      return;
+    }
     store.setIdeas((list) => [{ ...out.take, downbeat: null }, ...list]);
+  };
+
+  const newWords = () => {
+    const idea = { id: `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, at: Date.now(), text: '' };
+    store.setIdeas((list) => [idea, ...list]);
+    setEditingIdea(idea.id);
+  };
+
+  const saveWords = (idea, text) => {
+    setEditingIdea(null);
+    const clean = text.replace(/\s+$/, '');
+    // An empty words idea with no recording is dropped, not kept blank.
+    if (!clean.trim() && !audioKey(idea)) {
+      store.setIdeas((list) => list.filter((x) => x.id !== idea.id));
+      return;
+    }
+    store.setIdeas((list) => list.map((x) => (x.id === idea.id ? { ...x, text: clean } : x)));
   };
 
   const songFromIdea = (idea) => {
     const s = newSong();
-    const first = s.sections[0].lines[0];
-    s.sections[0].lines[0] = { ...first, takes: [{ ...idea }] };
+    const fromText = sectionsFromText(idea.text);
+    if (fromText.length) s.sections = fromText.length === 1 ? [...fromText, s.sections[1]] : fromText;
+    const key = audioKey(idea);
+    if (key) {
+      const first = s.sections[0].lines[0];
+      const { text, audioId, ...take } = idea;
+      s.sections[0].lines[0] = { ...first, takes: [{ ...take, id: key }] };
+    }
     store.add(s);
     store.setIdeas((list) => list.filter((x) => x.id !== idea.id));
     onOpen(s.id);
@@ -210,30 +275,62 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
               )}
             </div>
           ) : (
-            <button type="button" className="sw-rec-big" onClick={() => audio.startRec({ idea: true }, { bpm: 90, beatsPerBar: 4, click: 'off' })}>
-              <span className="sw-rec-big-dot" />
-              {t('sw.record')}
-            </button>
+            <div className="sw-ideas-actions">
+              <button type="button" className="sw-words-big" onClick={newWords}>
+                <Icon name="words" />
+                {t('sw.idea.words')}
+              </button>
+              <button type="button" className="sw-rec-big" onClick={() => audio.startRec({ idea: true }, { bpm: 90, beatsPerBar: 4, click: 'off' })}>
+                <span className="sw-rec-big-dot" />
+                {t('sw.record')}
+              </button>
+            </div>
           )}
         </div>
         {recIdea?.phase === 'error' && <p className="sw-error">{t(recIdea.error === 'denied' ? 'sw.rec.denied' : 'sw.rec.failed')}</p>}
         {store.ideas.length > 0 && (
           <ul className="sw-takes">
             {store.ideas.map((idea) => {
-              const playingThis = audio.playingTake === idea.id;
+              const key = audioKey(idea);
+              const playingThis = key && audio.playingTake === key;
+              const editing = editingIdea === idea.id;
+              const firstLine = (idea.text ?? '').split('\n').find((x) => x.trim());
               return (
-                <li key={idea.id} className="sw-take">
-                  <button type="button" className={'sw-icon-btn' + (playingThis ? ' is-on' : '')} onClick={() => audio.playTake(idea.id)} aria-label={t('sw.play')}>
-                    <Icon name={playingThis ? 'stop' : 'play'} />
-                  </button>
+                <li key={idea.id} className={'sw-take is-idea' + (editing ? ' is-editing' : '')}>
+                  {key ? (
+                    <button type="button" className={'sw-icon-btn' + (playingThis ? ' is-on' : '')} onClick={() => audio.playTake(key)} aria-label={t('sw.play')}>
+                      <Icon name={playingThis ? 'stop' : 'play'} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="sw-icon-btn is-rec"
+                      disabled={!!recIdea}
+                      onClick={() => audio.startRec({ idea: true, ideaId: idea.id }, { bpm: 90, beatsPerBar: 4, click: 'off' })}
+                      aria-label={t('sw.record')}
+                      title={t('sw.idea.recWords')}
+                    >
+                      <Icon name="mic" />
+                    </button>
+                  )}
                   <span className="sw-take-name">
-                    {dateFmt(idea.at)}
+                    {firstLine ? <bdi>{firstLine}</bdi> : dateFmt(idea.at)}
                     <span className="sw-muted" dir="ltr">
                       {' '}
-                      · {fmt(idea.dur ?? 0)}
+                      {firstLine ? `· ${dateFmt(idea.at)}` : ''}
+                      {key ? ` · ${fmt(idea.dur ?? 0)}` : ''}
                     </span>
                   </span>
-                  <Peaks peaks={idea.peaks} />
+                  {key ? <Peaks peaks={idea.peaks} /> : <span className="sw-take-blank" />}
+                  <button
+                    type="button"
+                    className={'sw-icon-btn' + (editing ? ' is-on' : '')}
+                    onClick={() => (editing ? null : setEditingIdea(idea.id))}
+                    aria-label={t('sw.idea.words')}
+                    title={t('sw.idea.words')}
+                  >
+                    <Icon name="pen" />
+                  </button>
                   <button type="button" className="sw-btn is-small" onClick={() => songFromIdea(idea)}>
                     {t('sw.idea.toSong')}
                   </button>
@@ -241,6 +338,7 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
                     type="button"
                     className="sw-icon-btn is-danger"
                     onClick={() => {
+                      if (editing) setEditingIdea(null);
                       store.setIdeas((list) => list.filter((x) => x.id !== idea.id));
                       let undone = false;
                       toast({
@@ -250,7 +348,7 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
                           undone = true;
                           store.setIdeas((list) => [idea, ...list].sort((a, b) => b.at - a.at));
                         },
-                        onExpire: () => !undone && deleteAudio(idea.id),
+                        onExpire: () => !undone && key && deleteAudio(key),
                       });
                     }}
                     aria-label={t('sw.delete')}
@@ -258,6 +356,15 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
                   >
                     <Icon name="trash" />
                   </button>
+                  {editing ? (
+                    <IdeaWords idea={idea} onSave={(text) => saveWords(idea, text)} />
+                  ) : (
+                    idea.text?.trim() && (
+                      <button type="button" className="sw-idea-text" dir="auto" onClick={() => setEditingIdea(idea.id)}>
+                        {idea.text}
+                      </button>
+                    )
+                  )}
                 </li>
               );
             })}

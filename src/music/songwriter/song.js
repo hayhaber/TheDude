@@ -54,6 +54,16 @@ export function newSection(kind = 'verse') {
   return { id: uid('s'), kind, lines: [newLine()] };
 }
 
+/** Free text -> sections (a blank line starts a new one), one line per row. */
+export function sectionsFromText(text) {
+  const blocks = String(text ?? '')
+    .replace(/\r/g, '')
+    .split(/\n\s*\n/)
+    .map((b) => b.split('\n').map((x) => x.trim()).filter(Boolean))
+    .filter((b) => b.length);
+  return blocks.map((b, k) => ({ id: uid('s'), kind: k % 2 === 0 ? 'verse' : 'chorus', lines: b.map((x) => newLine(x)) }));
+}
+
 export function newSong(title = '') {
   const now = Date.now();
   return {

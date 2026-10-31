@@ -866,8 +866,12 @@ Vercel), so the phone can confirm the latest deploy arrived.
   latencyFromCountIn) else saved / estimated; iOS closes the mic after each
   take), `songAudioStore.js` (IndexedDB `dudestar-songwriter`, WAV per take),
   `songPlayer.js` (melody + chords on the piano via schedulePianoNotes).
-- UI: list (Ideas = quick recordings -> `Song` makes a song with it on the
-  first line; My songs), editor: title, Key / Tempo / Time / Click selects,
+- UI: list (Ideas = a recording, WORDS, or both (user's request 2026-10-31):
+  `Words` = a text idea (textarea, the keyboard mic can dictate; empty one
+  is dropped), pen = edit words on any idea, mic on a words-only idea
+  records onto it (`audioId`; recorded-first ideas keep audio under their
+  own id); `Song` makes a song: text -> sections (`sectionsFromText`, blank
+  line = new section), audio = a take on the first line; My songs), editor: title, Key / Tempo / Time / Click selects,
   Play; sections (kind select, play / duplicate / up / down / delete with
   Undo), lines: chord row always reserved (selecting must not shift layout —
   a click after pointerdown landed elsewhere), tap word = edit, Enter splits,

@@ -9,6 +9,7 @@ import { useSongAudio } from './useSongAudio';
 import { SongEditor } from './SongEditor';
 import { Icon } from './icons';
 import { Peaks } from './Takes';
+import { DictationBox } from './DictationBox';
 import { fmt } from './LyricLine';
 import './Songwriter.css';
 
@@ -129,28 +130,10 @@ export function SongwriterScreen({ start = 'list', onBack }) {
 function IdeaWords({ idea, onSave }) {
   const { t } = useLanguage();
   const [text, setText] = useState(idea.text ?? '');
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.focus();
-    el.setSelectionRange(el.value.length, el.value.length);
-  }, []);
   return (
     <div className="sw-idea-edit">
-      <textarea
-        ref={ref}
-        dir="auto"
-        rows={4}
-        value={text}
-        placeholder={t('sw.idea.wordsHint')}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={() => onSave(text)}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') onSave(text);
-        }}
-      />
-      <button type="button" className="sw-btn is-primary is-small" onClick={() => onSave(text)}>
+      <DictationBox text={text} onText={setText} autoFocus onBlur={() => onSave(text)} />
+      <button type="button" className="sw-btn is-primary is-small sw-idea-done" onClick={() => onSave(text)}>
         {t('sw.done')}
       </button>
     </div>

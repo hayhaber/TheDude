@@ -12,6 +12,7 @@ import {
   keyName,
   newLine,
   newSection,
+  appendTextToSong,
   songChords,
   transposeSong,
   uid,
@@ -26,6 +27,8 @@ import { MelodyEditor } from './MelodyEditor';
 import { ScoreView } from './ScoreView';
 import { Takes } from './Takes';
 import { Icon } from './icons';
+import { DictationBox } from './DictationBox';
+import { DICTATION_SUPPORTED } from './useDictation';
 import { gridFor, laneFor, scalePcs, validChord } from './swHelpers';
 import '../ModeToggle/ModeToggle.css';
 
@@ -42,6 +45,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const [takesFor, setTakesFor] = useState(null); // line id
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [finding, setFinding] = useState(null); // line id while notes are being found
+  const [dictating, setDictating] = useState(false);
 
   const set = useCallback((fn) => update(song.id, fn), [update, song.id]);
   const bpb = beatsPerBar(song.time);
@@ -558,6 +562,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
             );
           })}
 
+          <div className="sw-add-row">
           <label className="sw-add-section">
             <Icon name="plus" size={16} />
             <select
@@ -579,6 +584,13 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
               ))}
             </select>
           </label>
+          {DICTATION_SUPPORTED && (
+            <button type="button" className="sw-add-section is-button" onClick={() => setDictating(true)}>
+              <Icon name="mic" size={16} />
+              {t('sw.dict.go')}
+            </button>
+          )}
+          </div>
         </div>
       )}
 
@@ -625,6 +637,16 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
         />
       )}
 
+      {dictating && (
+        <DictateSheet
+          onAdd={(text) => {
+            setDictating(false);
+            if (text.trim()) set((s) => appendTextToSong(s, text));
+          }}
+          onClose={() => setDictating(false)}
+        />
+      )}
+
       {melodyTarget && (
         <MelodyEditor
           song={song}
@@ -640,6 +662,33 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           onClose={() => setMelodyFor(null)}
         />
       )}
+    </div>
+  );
+}
+
+/** Speak the lyrics: each phrase a line; Add puts them at the end of the song. */
+function DictateSheet({ onAdd, onClose }) {
+  const { t, lang } = useLanguage();
+  const [text, setText] = useState('');
+  return (
+    <div className="sw-sheet-back" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="sw-sheet sw-dict-sheet" role="dialog" aria-label={t('sw.dict.title')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+        <header className="sw-sheet-head">
+          <div>
+            <h2>{t('sw.dict.title')}</h2>
+            <p className="sw-sheet-line">{t('sw.dict.sub')}</p>
+          </div>
+          <span className="sw-dict-actions">
+            <button type="button" className="sw-btn" onClick={onClose}>
+              {t('sw.cancel')}
+            </button>
+            <button type="button" className="sw-btn is-primary" disabled={!text.trim()} onClick={() => onAdd(text)}>
+              {t('sw.dict.add')}
+            </button>
+          </span>
+        </header>
+        <DictationBox text={text} onText={setText} autoStart rows={7} />
+      </div>
     </div>
   );
 }

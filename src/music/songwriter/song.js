@@ -64,6 +64,33 @@ export function sectionsFromText(text) {
   return blocks.map((b, k) => ({ id: uid('s'), kind: k % 2 === 0 ? 'verse' : 'chorus', lines: b.map((x) => newLine(x)) }));
 }
 
+/**
+ * Adds free text to the end of a song: into an all-empty song it becomes the
+ * song; otherwise its first block continues the last section (filling its
+ * empty trailing lines) and every further block is a new section.
+ */
+export function appendTextToSong(song, text) {
+  const made = sectionsFromText(text);
+  if (!made.length) return song;
+  const blank = (l) => !String(l.raw ?? '').replace(/\[[^\]]*\]/g, '').trim() && !l.takes?.length && !l.melody?.notes?.length;
+  if (song.sections.every((sec) => sec.lines.every(blank))) {
+    const sections = made.length === 1 ? [made[0], ...song.sections.slice(1).map((x) => ({ ...x }))] : made;
+    return { ...song, sections };
+  }
+  const sections = song.sections.slice();
+  const last = sections[sections.length - 1];
+  let keep = last.lines.length;
+  while (keep > 0 && blank(last.lines[keep - 1])) keep -= 1;
+  sections[sections.length - 1] = { ...last, lines: [...last.lines.slice(0, keep), ...made[0].lines] };
+  const nextKind = (k) => (k === 'verse' ? 'chorus' : 'verse');
+  let kind = last.kind;
+  for (const sec of made.slice(1)) {
+    kind = nextKind(kind);
+    sections.push({ ...sec, kind });
+  }
+  return { ...song, sections };
+}
+
 export function newSong(title = '') {
   const now = Date.now();
   return {

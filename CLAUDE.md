@@ -871,7 +871,20 @@ Vercel), so the phone can confirm the latest deploy arrived.
   is dropped), pen = edit words on any idea, mic on a words-only idea
   records onto it (`audioId`; recorded-first ideas keep audio under their
   own id); `Song` makes a song: text -> sections (`sectionsFromText`, blank
-  line = new section), audio = a take on the first line; My songs), editor: title, Key / Tempo / Time / Click selects,
+  line = new section), audio = a take on the first line; My songs)
+- DICTATION (user's OK 2026-10-31): `useDictation.js` = the browser's own
+  SpeechRecognition (Chrome/Android -> Google, Safari -> Apple; no key, no
+  server), continuous + interim; each final phrase = a lyric line
+  (`cleanPhrase` drops a trailing . , ; and turns "new section" / "קטע חדש"
+  into a blank line), Safari's never-final words are committed on end;
+  Chrome's silence-end restarts while wanted. `DictationBox.jsx` = textarea +
+  Dictate key + עב|EN language toggle (device key `dudestar-dictation-lang`,
+  default = app language). Used in a words idea and in the editor's
+  `Dictate` sheet (next to Add section; autoStart; Add ->
+  `appendTextToSong`: an all-empty song becomes the text, else the first
+  block continues the last section and further blocks are new sections).
+  Hidden where unsupported (Firefox). Tested with a mocked recognizer only
+  — NOT on a real iPhone / Android., editor: title, Key / Tempo / Time / Click selects,
   Play; sections (kind select, play / duplicate / up / down / delete with
   Undo), lines: chord row always reserved (selecting must not shift layout —
   a click after pointerdown landed elsewhere), tap word = edit, Enter splits,

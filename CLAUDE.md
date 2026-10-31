@@ -62,6 +62,11 @@ the commit (`AppVersion` in SettingsPanel.jsx; vite.config.js `define`
 __APP_VERSION__ / __BUILD_TIME__ / __COMMIT__ — VERCEL_GIT_COMMIT_SHA on
 Vercel), so the phone can confirm the latest deploy arrived.
 
+**10. Cross-instrument parity.** A fix or improvement made to an exercise on
+one instrument is applied to the same exercise on every other instrument
+that has it (e.g. ear-training auto-advance guitar/piano -> singing;
+bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
+
 ## Architecture essentials
 
 - **Home screen** (`components/HomeMenu/`): opens first (App `home` state;
@@ -474,6 +479,10 @@ Vercel), so the phone can confirm the latest deploy arrived.
   Practice ear training is unchanged. `dailyWorkout` now walks the pool with
   a stride coprime to its size (stride 5 over 5 or 10 exercises repeated the
   same pick — level 2 had been getting 2 exercises instead of 4).
+  Auto-advance like useEarTraining (2026-10-31): after an answer the next
+  question comes by itself (1100 ms right / 2600 ms wrong); Hear after
+  answering cancels it, Next skips the wait, a mode/level change cancels.
+  Still missing vs guitar/piano: best streak saved per mode, timed mode.
 - **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G:
   Compose, Practice (Bass Practice, below), GuitarPro). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each
@@ -854,7 +863,10 @@ Vercel), so the phone can confirm the latest deploy arrived.
   New skills open-strings / clean-notes / finger-1234 (play checks);
   chord-Em + strum-down moved to level 0; FINGERS.Em. ARPS `strings: true` =
   the strip's small label is the string number; finger 0 = open string;
-  `teacher.finger.legend` for non-tap finger labels. `nextLesson` offers
+  `teacher.finger.legend` for non-tap finger labels. PlayStep: a REPEATED
+  note (ode E-E, G-G…) needs a new pick (useBassOnsets' rule: sound stops, or
+  the level rises > 1.6x its minimum and by > 0.03) — a held note no longer
+  counts twice; fake-mic ode test heard all 15. `nextLesson` offers
   level 0 only when experience is 'none' (or no intake). Verified: Playwright
   walked all three lessons; a Karplus-Strong WAV of the open strings as the
   fake mic -> the play step heard all 11 notes. The old D-A lesson still has

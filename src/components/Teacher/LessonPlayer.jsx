@@ -322,14 +322,27 @@ export function PlayStep({ step, tx, onStage, onPass }) {
     onStage?.(arpStage(step.arp, labels, done ? null : order[at]));
   }, [at, done, order, onStage, step.arp, labels]);
 
+  // A repeated note (E E in "Ode to Joy") must be PICKED again: the ringing
+  // one doesn't count. Same re-attack test as the bass practice
+  // (useBassOnsets): the sound stops, or its level jumps back up.
+  const reattack = useRef({ need: false, minLevel: 1 });
+  const lastNote = useRef(null);
   useEffect(() => {
     if (!pitch.isListening || done) return;
     const n = pitch.currentNote;
     const target = order[at];
+    const level = pitch.inputLevel ?? 0;
+    const ra = reattack.current;
+    ra.minLevel = Math.min(ra.minLevel, level);
+    if (ra.need && (!n || (level > ra.minLevel * 1.6 && level - ra.minLevel > 0.03))) ra.need = false;
     if (!n || !target) {
       hits.current = 0;
       return;
     }
+    if (ra.need) return;
+    // count each detector frame once (this also runs on level changes)
+    if (lastNote.current === n) return;
+    lastNote.current = n;
     if (n.midi === target.midi && Math.abs(n.centsOff ?? 0) < 45) {
       hits.current += 1;
       if (hits.current >= 2) {
@@ -344,11 +357,15 @@ export function PlayStep({ step, tx, onStage, onPass }) {
             /* logging never breaks the lesson */
           }
           onPass?.();
-        } else setAt(at + 1);
+        } else {
+          // the next note is the same pitch -> wait for a new pluck
+          if (order[at + 1]?.midi === target.midi) reattack.current = { need: true, minLevel: level };
+          setAt(at + 1);
+        }
       }
     } else hits.current = 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pitch.currentNote]);
+  }, [pitch.currentNote, pitch.inputLevel]);
   useEffect(() => () => pitch.stopListening(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const listen = () => {

@@ -16,6 +16,12 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 const PREFS_KEY = 'dudestar-p-vocal-ear'; // per profile
 const MODES = [...VOCAL_EAR_MODES, 'echo'];
 const LEVEL_LABEL = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
+// Same flow as the guitar / piano ear training (useEarTraining): after an
+// answer the next question comes by itself — a right answer after a beat,
+// a wrong one later so the reveal can be read. Hear after answering pauses
+// it (the Next button takes over); Next during the wait skips the wait.
+const AUTO_ADVANCE_CORRECT_MS = 1100;
+const AUTO_ADVANCE_WRONG_MS = 2600;
 
 function loadPrefs() {
   try {
@@ -68,10 +74,19 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
   const [session, setSession] = useState({ correct: 0, total: 0, streak: 0 });
   const [lifetime, setLifetime] = useState(() => loadLifetimeStats(`vocal-${prefs.mode}`));
   const stopRef = useRef(null);
+  const advanceRef = useRef(null); // pending auto-advance timer
+
+  const cancelAdvance = () => {
+    if (advanceRef.current) clearTimeout(advanceRef.current);
+    advanceRef.current = null;
+  };
 
   useEffect(() => {
     preparePiano();
-    return () => stopRef.current?.();
+    return () => {
+      stopRef.current?.();
+      cancelAdvance();
+    };
   }, []);
 
   const savePrefs = (next) => {
@@ -82,6 +97,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
       /* private mode */
     }
     stopRef.current?.();
+    cancelAdvance();
     setQuestion(null);
     setAnswer(null);
     setSession({ correct: 0, total: 0, streak: 0 });
@@ -99,6 +115,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
   };
 
   const next = () => {
+    cancelAdvance();
     const q = vocalEarQuestion(prefs.mode, prefs.level, range);
     setQuestion(q);
     setAnswer(null);
@@ -114,6 +131,20 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
     const updated = { correct: life.correct + (ok ? 1 : 0), total: life.total + 1 };
     saveLifetimeStats(`vocal-${prefs.mode}`, updated);
     setLifetime(updated);
+    cancelAdvance();
+    // `next` reads the prefs of this render; a change of mode/level cancels the timer.
+    advanceRef.current = setTimeout(() => {
+      advanceRef.current = null;
+      next();
+    }, ok ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS);
+  };
+
+  const hear = () => {
+    play(question);
+    // Asking to hear it again after answering = "don't rush me".
+    if (answer && advanceRef.current) {
+      cancelAdvance();
+    }
   };
 
   const echo = prefs.mode === 'echo';
@@ -223,7 +254,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
                 )}
               </p>
               <div className="vocal-actions">
-                <button type="button" onClick={() => play(question)}>
+                <button type="button" onClick={hear}>
                   {t('vocal.hear')}
                 </button>
                 <button type="button" className={answer ? 'primary' : ''} onClick={next}>

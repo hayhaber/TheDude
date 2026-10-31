@@ -797,6 +797,14 @@ Vercel), so the phone can confirm the latest deploy arrived.
   selects) -> CHECK (guitar, level != new: pick an open chord from
   CHECK_CHORDS, the Teacher's exported `ChordStep` listens; heard = passes)
   -> done (first lesson or plan; Start / Home).
+  Level-tailored (user's rule 2026-10-31): never played = no check; a few
+  chords = the mic chord CHECK; plays songs = NO chord check — a "What do you
+  already play?" step (`know`: open / strum / barre / penta / solo / tab, said
+  not measured -> Teacher intake.can) and PLAYER goals (`GOALS_PLAYER`: barre,
+  solo, blues, rhythm, speed, bends, ear, write -> coach goal barre /
+  pentatonic / blues / timing / speed / bending / ear); a player's Start goes
+  to the Coach plan (measured placement), never to a lesson. A re-run
+  switches the coach goal when it differs and clears Teacher `current`.
 - `onboarding/onboardingState.js finishOnboarding()`: guitar -> Teacher
   intake (experience none/little/some, can = heard, goals, style, minutes),
   recordPass(`chord-X`) per heard chord, Coach `setIntake` (level new/
@@ -805,7 +813,10 @@ Vercel), so the phone can confirm the latest deploy arrived.
   songs level -> barre, else changes ADE / pop when G C D were heard).
 - Teacher `nextLesson()` now caps by experience (none 1, little 2, some 3,
   lot 4) and skips a not-started lesson whose chord skills were all heard
-  (not for 'none'). Home header pill "Next lesson" (`home.nextLesson`, App
+  (not for 'none'; also skipped when intake.can says it — 'open' covers every
+  open-chord skill, 'strum' strum-down); a lesson left in progress stays next
+  only while `eligible()` (an arpeggio lesson left open no longer jumps ahead
+  of a beginner — user saw that). Home header pill "Next lesson" (`home.nextLesson`, App
   `onNextLesson`) when the Teacher knows the student and before any visit
   (the "back where I was" pill takes its place after). Settings: "Getting
   started" -> Again = `restartOnboarding()` + reload. Text `i18n/tips/onboarding.js`.
@@ -817,10 +828,14 @@ Vercel), so the phone can confirm the latest deploy arrived.
 
 - LEVEL 0 lessons (2026-10-31, plan phase 2 — the USER reviews all three
   together): `g0-first-note` (posture + pick checklist, tune, the six strings
-  `arp open-strings` + quiz, `play` 6->1->6), `g0-clean-notes` (fret = one step,
-  one finger per fret, clean-note checklist, E F G on string 1 / B C D on
+  `arp open-strings` + quiz, `play` 6->1->6), `g0-clean-notes` "Notes on the neck: tone
+  and semitone" (user's ask: the musical alphabet A–G + ♯/♭, E–F and B–C have
+  nothing between; fret = SEMITONE, two frets = TONE, `arp string1-chrom`
+  E F F♯ G G♯ A with fret numbers (ARPS `frets` + `sharps`), quizzes F->G =
+  fret 3 (skill tone-semitone) and B->C = semitone; one finger per fret,
+  clean-note checklist, E F G on string 1 / B C D on
   string 2, "Ode to Joy" first phrase (Beethoven, public domain) as `play
-  ode`, spider 1-2-3-4 `play spider-1`), `g0-first-chord` (Em shape, mic
+  ode`, spider 1-2-3-4 `play spider-1`), `g0-first-chord` (Em = E root, G minor 3rd, B 5th; shape, mic
   chord check, quiz, down strums + metronome 60 checklist, lift-and-land).
   New skills open-strings / clean-notes / finger-1234 (play checks);
   chord-Em + strum-down moved to level 0; FINGERS.Em. ARPS `strings: true` =

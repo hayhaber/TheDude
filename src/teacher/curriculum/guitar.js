@@ -74,6 +74,7 @@ export const SKILLS = [
   { id: 'posture', domain: 'fretting', level: 0, title: L('Sitting position and hand shape', 'ישיבה ותנוחת יד'), check: { kind: 'self' } },
   { id: 'strings', domain: 'fretboard', level: 0, title: L('String names and numbers', 'שמות ומספרי המיתרים'), check: { kind: 'quiz', id: 'strings' } },
   { id: 'open-strings', domain: 'picking', level: 0, title: L('Pick the six open strings', 'לפרוט את ששת המיתרים הפתוחים'), check: { kind: 'play', arp: 'open-strings' } },
+  { id: 'tone-semitone', domain: 'fretboard', level: 0, title: L('Tone and semitone on the neck', 'טון וחצי טון על הצוואר'), check: { kind: 'quiz', id: 'tone-semitone' } },
   { id: 'clean-notes', domain: 'fretting', level: 0, after: ['open-strings'], title: L('Clean fretted notes: a first melody', 'צלילים נקיים: מנגינה ראשונה'), check: { kind: 'play', arp: 'ode' } },
   { id: 'finger-1234', domain: 'fretting', level: 0, title: L('Fingers 1-2-3-4 on one string', `אצבעות ${H('1-2-3-4')} על מיתר אחד`), check: { kind: 'play', arp: 'spider-1' } },
   { id: 'chord-D', domain: 'fretting', level: 1, after: ['posture'], title: L('D chord', `אקורד ${H('D')}`), check: { kind: 'chord', chord: 'D' } },
@@ -666,20 +667,55 @@ const lessonFirstNote = {
 const lessonCleanNotes = {
   id: 'g0-clean-notes',
   level: 0,
-  title: L('One finger, a clean note', 'אצבע אחת, צליל נקי'),
+  title: L('Notes on the neck: tone and semitone', 'הצלילים על הצוואר: טון וחצי טון'),
   objective: L(
-    'Press a string so the note rings clean, play six notes and a first melody.',
-    'ללחוץ על מיתר כך שהצליל מצלצל נקי, לנגן שישה צלילים ומנגינה ראשונה.'
+    'Know the musical alphabet, how far a semitone and a tone are on the neck, and play clean notes and a first melody.',
+    'להכיר את האלפבית המוזיקלי, לדעת כמה רחוק חצי טון וטון על הצוואר, ולנגן צלילים נקיים ומנגינה ראשונה.'
   ),
-  minutes: 12,
-  skills: ['clean-notes', 'finger-1234'],
+  minutes: 15,
+  skills: ['tone-semitone', 'clean-notes', 'finger-1234'],
   steps: [
     {
       kind: 'explain',
-      title: L('How a fret works', 'איך עובד סריג'),
+      title: L('The musical alphabet', 'האלפבית המוזיקלי'),
       text: L(
-        'Pressing a string behind a fret makes it shorter, so the note goes up — one fret = one step up. In the first frets each finger has its own fret: index (1) on fret 1, middle (2) on fret 2, ring (3) on fret 3, pinky (4) on fret 4.',
-        'לחיצה על מיתר מאחורי סריג מקצרת אותו, ולכן הצליל עולה — סריג אחד = צעד אחד למעלה. בשריגים הראשונים לכל אצבע יש שריג משלה: מורה (1) על שריג 1, אמה (2) על שריג 2, קמיצה (3) על שריג 3, זרת (4) על שריג 4.'
+        'Music uses seven letters: A B C D E F G, then A again, higher. Between most neighbours there is one more note, named with a sharp (♯, higher) or a flat (♭, lower): between F and G sits F♯. Two pairs have nothing between them: E–F and B–C. Twelve notes in all, then the circle starts again an octave higher.',
+        `במוזיקה יש שבע אותיות: ${H('A B C D E F G')}, ואז שוב ${H('A')}, גבוה יותר. בין רוב השכנים יש עוד צליל אחד, שנקרא בדיאז (${H('♯')}, גבוה יותר) או במול (${H('♭')}, נמוך יותר): בין ${H('F')} ל־${H('G')} נמצא ${H('F♯')}. לשני זוגות אין שום דבר ביניהם: ${H('E–F')} ו־${H('B–C')}. סך הכול שנים־עשר צלילים, ואז המעגל מתחיל שוב אוקטבה גבוה יותר.`
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'string1-chrom',
+      labels: 'note',
+      title: L('Semitone and tone', 'חצי טון וטון'),
+      text: L(
+        'On the guitar every fret is a SEMITONE — the smallest step. Two frets are a TONE. Look at string 1: E (open) to F is one fret, a semitone; F to G is two frets, a tone. The small number under each note is its fret. Press Hear: six notes, each a semitone above the last.',
+        `בגיטרה כל שריג הוא חצי טון — הצעד הקטן ביותר. שני שריגים הם טון. הסתכל על מיתר 1: מ־${H('E')} (פתוח) ל־${H('F')} זה שריג אחד, חצי טון; מ־${H('F')} ל־${H('G')} שני שריגים, טון. המספר הקטן מתחת לכל צליל הוא השריג שלו. לחץ שמע: שישה צלילים, כל אחד חצי טון מעל הקודם.`
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'tone-semitone',
+      skill: 'tone-semitone',
+      title: L('Find G', `מצא את ${H('G')}`),
+      question: L('F is at fret 1 on string 1. G is a tone above F — at which fret?', `${H('F')} נמצא בשריג 1 על מיתר 1. ${H('G')} נמצא טון מעל ${H('F')} — באיזה שריג?`),
+      options: [L('Fret 2', 'שריג 2'), L('Fret 3', 'שריג 3'), L('Fret 4', 'שריג 4')],
+      answer: 1,
+      why: L(
+        'A tone = two frets: 1 + 2 = fret 3. Fret 2 is F♯, a semitone above F.',
+        `טון = שני שריגים: 1 + 2 = שריג 3. בשריג 2 נמצא ${H('F♯')}, חצי טון מעל ${H('F')}.`
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'b-c',
+      title: L('B to C', `מ־${H('B')} ל־${H('C')}`),
+      question: L('String 2 is B. How far is C?', `מיתר 2 הוא ${H('B')}. כמה רחוק ${H('C')}?`),
+      options: [L('A semitone — fret 1', 'חצי טון — שריג 1'), L('A tone — fret 2', 'טון — שריג 2')],
+      answer: 0,
+      why: L(
+        'B–C is one of the two pairs with no note between them (with E–F), so C is only one fret up.',
+        `${H('B–C')} הוא אחד משני הזוגות שאין ביניהם צליל (יחד עם ${H('E–F')}), ולכן ${H('C')} נמצא שריג אחד למעלה.`
       ),
     },
     {
@@ -690,18 +726,8 @@ const lessonCleanNotes = {
         L('The very tip of the finger presses, the finger curved.', 'קצה האצבע לוחץ, והאצבע מעוגלת.'),
         L('Just behind the fret wire — not on it, not in the middle of the gap.', 'ממש מאחורי הסריג — לא עליו ולא באמצע המרווח.'),
         L('If it buzzes, move closer to the fret before pressing harder.', 'אם יש זמזום, התקרב לסריג לפני שאתה לוחץ חזק יותר.'),
-        L('The thumb stays behind the neck, not squeezing.', 'האגודל נשאר מאחורי הצוואר, בלי ללחוץ.'),
+        L('One finger per fret: index on fret 1, middle on 2, ring on 3, pinky on 4.', 'אצבע לכל שריג: מורה על שריג 1, אמה על 2, קמיצה על 3, זרת על 4.'),
       ],
-    },
-    {
-      kind: 'arp',
-      arp: 'notes-E',
-      labels: 'finger',
-      title: L('Three notes on string 1', 'שלושה צלילים על מיתר 1'),
-      text: L(
-        'E is the open string, F is fret 1 with finger 1, G is fret 3 with finger 3. The small number under each note is the finger.',
-        `${H('E')} הוא המיתר הפתוח, ${H('F')} הוא שריג 1 באצבע 1, ${H('G')} הוא שריג 3 באצבע 3. המספר הקטן מתחת לכל צליל הוא האצבע.`
-      ),
     },
     {
       kind: 'play',
@@ -709,8 +735,8 @@ const lessonCleanNotes = {
       labels: 'finger',
       title: L('Play E F G F E', `נגן ${H('E F G F E')}`),
       text: L(
-        'Slowly, one note at a time. Keep finger 1 down on F while you add finger 3 for G — then lift 3 to go back to F.',
-        `לאט, צליל אחרי צליל. השאר את אצבע 1 על ${H('F')} כשאתה מוסיף את אצבע 3 ל־${H('G')} — ואז הרם את 3 כדי לחזור ל־${H('F')}.`
+        'E open, F at fret 1 (a semitone up, finger 1), G at fret 3 (a tone above F, finger 3). Keep finger 1 down on F while you add finger 3 — then lift 3 to go back to F.',
+        `${H('E')} פתוח, ${H('F')} בשריג 1 (חצי טון למעלה, אצבע 1), ${H('G')} בשריג 3 (טון מעל ${H('F')}, אצבע 3). השאר את אצבע 1 על ${H('F')} כשאתה מוסיף את אצבע 3 — ואז הרם את 3 כדי לחזור ל־${H('F')}.`
       ),
     },
     {
@@ -719,8 +745,8 @@ const lessonCleanNotes = {
       labels: 'finger',
       title: L('Same on string 2: B C D C B', `אותו דבר על מיתר 2: ${H('B C D C B')}`),
       text: L(
-        'The same fingers one string up: B open, C at fret 1 (finger 1), D at fret 3 (finger 3).',
-        `אותן אצבעות מיתר אחד למעלה: ${H('B')} פתוח, ${H('C')} בשריג 1 (אצבע 1), ${H('D')} בשריג 3 (אצבע 3).`
+        'B open, C at fret 1 (B–C is a semitone), D at fret 3 (a tone above C).',
+        `${H('B')} פתוח, ${H('C')} בשריג 1 (${H('B–C')} הוא חצי טון), ${H('D')} בשריג 3 (טון מעל ${H('C')}).`
       ),
     },
     {
@@ -730,18 +756,18 @@ const lessonCleanNotes = {
       skill: 'clean-notes',
       title: L('Your first melody', 'המנגינה הראשונה שלך'),
       text: L(
-        'Those six notes are enough for the start of Beethoven’s “Ode to Joy”. Press Hear first, then play along with the teacher listening. The repeated notes are just picked again.',
-        `ששת הצלילים האלה מספיקים לפתיחה של "המנון לשמחה" של בטהובן. לחץ שמע קודם, ואז נגן כשהמורה מקשיב. צליל שחוזר פשוט נפרט שוב.`
+        'Those six notes are enough for the start of Beethoven’s “Ode to Joy”. Press Hear first, then play along with the teacher listening. A repeated note is just picked again.',
+        'ששת הצלילים האלה מספיקים לפתיחה של "המנון לשמחה" של בטהובן. לחץ שמע קודם, ואז נגן כשהמורה מקשיב. צליל שחוזר פשוט נפרט שוב.'
       ),
     },
     {
       kind: 'arp',
       arp: 'spider-1',
       labels: 'finger',
-      title: L('Wake up all four fingers', 'להעיר את כל ארבע האצבעות'),
+      title: L('Four semitones, four fingers', 'ארבעה חצאי טון, ארבע אצבעות'),
       text: L(
-        'A warm-up guitarists play for years: on string 1, fret 1 with finger 1, fret 2 with finger 2, fret 3 with 3, fret 4 with 4, and back. One finger per fret, the others hovering close to the string.',
-        'חימום שגיטריסטים מנגנים שנים: על מיתר 1, שריג 1 באצבע 1, שריג 2 באצבע 2, שריג 3 ב־3, שריג 4 ב־4, ובחזרה. אצבע אחת לכל שריג, והאחרות מרחפות קרוב למיתר.'
+        'A warm-up guitarists play for years: frets 1-2-3-4 on string 1 with fingers 1-2-3-4, and back — four notes, each a semitone apart. The other fingers hover close to the string.',
+        `חימום שגיטריסטים מנגנים שנים: שריגים ${H('1-2-3-4')} על מיתר 1 באצבעות ${H('1-2-3-4')}, ובחזרה — ארבעה צלילים, כל אחד חצי טון מהקודם. האצבעות האחרות מרחפות קרוב למיתר.`
       ),
     },
     {
@@ -775,8 +801,8 @@ const lessonFirstChord = {
       title: L('A chord = notes together', 'אקורד = צלילים יחד'),
       shape: 'Em',
       text: L(
-        'A chord is several notes sounding together. E minor needs only two fingers, both on fret 2: middle finger (2) on string 5, ring finger (3) on string 4. All six strings are played — the other four stay open.',
-        `אקורד הוא כמה צלילים שנשמעים יחד. ${H('E')} מינור צריך רק שתי אצבעות, שתיהן על שריג 2: אמה (2) על מיתר 5, קמיצה (3) על מיתר 4. מנגנים את כל ששת המיתרים — ארבעת האחרים נשארים פתוחים.`
+        'A chord is three or more notes sounding together. E minor has three: E (the root, which names the chord), G (the minor 3rd — three semitones above E, which makes it sad-sounding “minor”) and B (the 5th, seven semitones above E). On the guitar it needs only two fingers, both on fret 2: middle finger (2) on string 5, ring finger (3) on string 4. All six strings are played — together they sound E B E G B E.',
+        `אקורד הוא שלושה צלילים או יותר שנשמעים יחד. ל־${H('E')} מינור יש שלושה: ${H('E')} (היסוד, שנותן לאקורד את שמו), ${H('G')} (הטרצה הקטנה — שלושה חצאי טון מעל ${H('E')}, היא שעושה אותו "מינור", עצוב יותר) ו־${H('B')} (הקווינטה, שבעה חצאי טון מעל ${H('E')}). בגיטרה הוא צריך רק שתי אצבעות, שתיהן על שריג 2: אמה (2) על מיתר 5, קמיצה (3) על מיתר 4. מנגנים את כל ששת המיתרים — יחד הם נשמעים ${H('E B E G B E')}.`
       ),
     },
     {

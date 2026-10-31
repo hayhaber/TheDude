@@ -5,7 +5,8 @@ import { useMemo, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { AppLogo } from '../AppLogo/AppLogo';
 import { activeProfile, renameProfile } from '../../profile/profileStorage';
-import { CHECK_CHORDS, GOALS, INSTRUMENTS, LEVELS, MINUTES, STYLES, finishOnboarding, skipOnboarding } from '../../onboarding/onboardingState';
+import { CHECK_CHORDS, INSTRUMENTS, KNOW, LEVELS, MINUTES, STYLES, finishOnboarding, goalsFor, skipOnboarding } from '../../onboarding/onboardingState';
+import { goalByKey } from '../../coach/goals';
 import { getTeacher } from '../../teacher/teacherState';
 import { nextLesson } from '../../teacher/mastery';
 import { ChordStep } from '../Teacher/LessonPlayer';
@@ -26,15 +27,21 @@ export function Onboarding({ onDone }) {
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const [leftHanded] = useLeftHanded();
   const [name, setName] = useState(() => activeProfile()?.name ?? '');
-  const [a, setA] = useState({ instrument: null, level: null, goals: [], style: 'pop', minutes: 20, heard: [] });
+  const [a, setA] = useState({ instrument: null, level: null, goals: [], style: 'pop', minutes: 20, heard: [], know: [] });
   const [step, setStep] = useState('welcome');
   const [checking, setChecking] = useState(null); // chord being checked
   const [result, setResult] = useState(null); // after finish: {lesson}
   const set = (patch) => setA((x) => ({ ...x, ...patch }));
   const tx = (x) => (x ? x[lang] ?? x.en : '');
 
-  const withCheck = a.instrument === 'guitar' && a.level && a.level !== 'new';
-  const steps = useMemo(() => ['welcome', 'instrument', 'level', 'goals', ...(withCheck ? ['check'] : [])], [withCheck]);
+  // Guitar: a few chords -> show them to the mic; already plays songs -> say
+  // what you play (no basic chord check); never played -> nothing to check.
+  const withCheck = a.instrument === 'guitar' && a.level === 'few';
+  const withKnow = a.instrument === 'guitar' && a.level === 'songs';
+  const steps = useMemo(
+    () => ['welcome', 'instrument', 'level', ...(withKnow ? ['know'] : []), 'goals', ...(withCheck ? ['check'] : [])],
+    [withCheck, withKnow]
+  );
   const at = steps.indexOf(step);
 
   const lv = (key, part) => {
@@ -51,7 +58,9 @@ export function Onboarding({ onDone }) {
     const v = finishOnboarding(a);
     if (v.instrument === 'guitar') {
       const lesson = nextLesson(getTeacher());
-      setResult({ lesson: lesson?.steps ? lesson : null });
+      // A player goes to the plan (it starts with measured placement tests);
+      // a beginner to the first lesson.
+      setResult({ lesson: v.level !== 'songs' && lesson?.steps ? lesson : null, plan: v.coachGoal ? goalByKey(v.coachGoal) : null });
     } else setResult({});
     setStep('done');
   };
@@ -62,6 +71,7 @@ export function Onboarding({ onDone }) {
   };
   const back = () => at > 0 && setStep(steps.at(at - 1));
   const canNext = step === 'instrument' ? !!a.instrument : step === 'level' ? !!a.level : step === 'goals' ? a.goals.length > 0 : true;
+  const lastStep = steps.at(-1) === step;
 
   const skip = () => {
     skipOnboarding();
@@ -124,7 +134,7 @@ export function Onboarding({ onDone }) {
         <p className="onb-lead">{t('onb.level.text')}</p>
         <div className="onb-rows">
           {LEVELS.map((k) => (
-            <button key={k} type="button" className={'onb-row' + (a.level === k ? ' is-on' : '')} aria-pressed={a.level === k} onClick={() => set({ level: k })}>
+            <button key={k} type="button" className={'onb-row' + (a.level === k ? ' is-on' : '')} aria-pressed={a.level === k} onClick={() => set({ level: k, goals: a.level === k ? a.goals : [] })}>
               <strong>{lv(k, 'title')}</strong>
               <span>{lv(k, 'sub')}</span>
             </button>
@@ -132,8 +142,23 @@ export function Onboarding({ onDone }) {
         </div>
       </>
     );
+  } else if (step === 'know') {
+    const toggleKnow = (k) => set({ know: a.know.includes(k) ? a.know.filter((x) => x !== k) : [...a.know, k] });
+    body = (
+      <>
+        <h1>{t('onb.know.title')}</h1>
+        <p className="onb-lead">{t('onb.know.text')}</p>
+        <div className="onb-chips">
+          {KNOW.map((k) => (
+            <button key={k} type="button" className={'onb-chip' + (a.know.includes(k) ? ' is-on' : '')} aria-pressed={a.know.includes(k)} onClick={() => toggleKnow(k)}>
+              {t(`onb.know.${k}`)}
+            </button>
+          ))}
+        </div>
+      </>
+    );
   } else if (step === 'goals') {
-    const list = GOALS[a.instrument] ?? GOALS.guitar;
+    const list = goalsFor(a.instrument, a.level);
     const toggle = (g) => set({ goals: a.goals.includes(g) ? a.goals.filter((x) => x !== g) : [...a.goals, g] });
     body = (
       <>
@@ -222,7 +247,15 @@ export function Onboarding({ onDone }) {
             {lesson.minutes ? <span className="onb-muted">{t('teacher.next.min', { n: lesson.minutes })}</span> : null}
           </div>
         ) : isGuitar ? (
-          <p className="onb-lead">{t('onb.done.plan')}</p>
+          <>
+            {result?.plan && (
+              <div className="onb-next">
+                <span className="onb-eyebrow">{t('onb.done.yourPlan')}</span>
+                <strong>{tx(result.plan.title)}</strong>
+              </div>
+            )}
+            <p className="onb-lead">{t('onb.done.plan')}</p>
+          </>
         ) : (
           <p className="onb-lead">{t(`onb.done.${a.instrument}`)}</p>
         )}
@@ -272,7 +305,7 @@ export function Onboarding({ onDone }) {
                 <span />
               )}
               <button type="button" className="onb-btn is-primary" disabled={!canNext} onClick={next}>
-                {step === 'check' ? t('onb.finish') : t('onb.next')}
+                {lastStep ? t('onb.finish') : t('onb.next')}
               </button>
             </>
           )}

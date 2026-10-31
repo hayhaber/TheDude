@@ -60,21 +60,38 @@ export function homeworkStatus(item, state) {
 // knows a few chords isn't sent to level-4 tapping as their "next lesson").
 const LEVEL_CAP = { none: 1, little: 2, some: 3, lot: 4 };
 
-/** A not-started lesson whose chord shapes the student already showed (onboarding check). */
+// What the student said they can already do (onboarding: heard chords, or
+// for players "open chords" / "strumming") — never used to mark mastery,
+// only to skip lessons they don't need.
+function knownSkill(skill, state) {
+  if ((state.passes[skill.id] ?? []).length > 0) return true;
+  const can = state.intake?.can ?? [];
+  if (skill.check.kind === 'chord') return can.includes(skill.check.chord) || can.includes('open');
+  if (skill.id === 'strum-down') return can.includes('strum');
+  return false;
+}
+
+/** A not-started lesson the student showed (or said) they already know. */
 function covered(lesson, state) {
-  if (state.lessons[lesson.id]) return false;
-  const chords = lesson.skills.map(skillById).filter((s) => s?.check.kind === 'chord');
-  return chords.length > 0 && chords.every((s) => (state.passes[s.id] ?? []).length > 0) && state.intake?.experience !== 'none';
+  if (state.lessons[lesson.id] || state.intake?.experience === 'none') return false;
+  const skills = lesson.skills.map(skillById).filter((s) => s && (s.check.kind === 'chord' || s.id === 'strum-down'));
+  return skills.length > 0 && skills.every((s) => knownSkill(s, state));
+}
+
+/** Whether a lesson fits the student now (level cap, first steps only for beginners). */
+function eligible(lesson, state) {
+  const exp = state.intake?.experience;
+  const cap = LEVEL_CAP[exp] ?? 99;
+  const firstSteps = !exp || exp === 'none';
+  return lesson.level <= cap && (lesson.level > 0 || firstSteps);
 }
 
 export function nextLesson(state) {
   const cur = state.current && LESSONS.find((l) => l.id === state.current);
-  if (cur && !state.lessons[cur.id]?.done) return cur;
-  const cap = LEVEL_CAP[state.intake?.experience] ?? 99;
-  // Level 0 (first steps) only for someone who has never played.
-  const exp = state.intake?.experience;
-  const firstSteps = !exp || exp === 'none';
-  const open = LESSONS.filter((l) => !state.lessons[l.id]?.done && l.level <= cap && (l.level > 0 || firstSteps) && !covered(l, state));
+  // A lesson in progress stays next — unless the answers changed and it no
+  // longer fits (an arpeggio lesson left open, then "never played").
+  if (cur && !state.lessons[cur.id]?.done && eligible(cur, state)) return cur;
+  const open = LESSONS.filter((l) => !state.lessons[l.id]?.done && eligible(l, state) && !covered(l, state));
   return open.find((l) => l.steps) ?? open[0] ?? null;
 }
 

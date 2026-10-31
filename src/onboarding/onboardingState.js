@@ -6,7 +6,7 @@
 // { done, at, skipped?, instrument, level: 'new'|'few'|'songs', goals: [],
 //   style, minutes, heard: [chord…] }
 
-import { saveIntake, recordPass } from '../teacher/teacherState';
+import { saveIntake, recordPass, updateTeacher } from '../teacher/teacherState';
 import { activeGoal, loadCoach } from '../coach/engine';
 import { chooseGoal, setIntake } from '../coach/useCoach';
 
@@ -20,6 +20,11 @@ export const GOALS = {
   bass: ['songs', 'band', 'theory', 'write'],
   vocal: ['songs', 'range', 'ear', 'write'],
 };
+/** A guitarist who already plays songs gets goals about getting better, not basics. */
+export const GOALS_PLAYER = ['barre', 'solo', 'blues', 'rhythm', 'speed', 'bends', 'ear', 'write'];
+/** "What do you already play?" (guitar, plays songs) — said, not measured. */
+export const KNOW = ['open', 'strum', 'barre', 'penta', 'solo', 'tab'];
+export const goalsFor = (instrument, level) => (instrument === 'guitar' && level === 'songs' ? GOALS_PLAYER : GOALS[instrument] ?? GOALS.guitar);
 export const STYLES = ['pop', 'rock', 'blues', 'israeli', 'folk', 'jazz', 'metal'];
 export const MINUTES = [10, 15, 20, 30, 45, 60];
 /** Open chords a guitarist can show in the check (teacher skills chord-<X>). */
@@ -68,13 +73,19 @@ const COACH_LEVEL = { new: 'new', few: 'beginner', songs: 'intermediate' };
 const COACH_STYLE = { pop: 'pop', rock: 'rock', blues: 'blues', metal: 'metal', israeli: 'acoustic', folk: 'acoustic', jazz: 'blues' };
 const TEACHER_GOALS = ['songs', 'accompany', 'solo', 'theory', 'band'];
 
+const PLAYER_GOAL = { barre: 'barre', solo: 'pentatonic', blues: 'blues', rhythm: 'timing', speed: 'speed', bends: 'bending', ear: 'ear' };
+
 /** The coach goal that fits the answers (null for a complete beginner). */
-export function coachGoalFor({ level, goals = [], heard = [] }) {
+export function coachGoalFor({ level, goals = [], heard = [], know = [] }) {
   if (level === 'new') return null;
+  if (level === 'songs') {
+    const pick = GOALS_PLAYER.find((g) => goals.includes(g) && PLAYER_GOAL[g]);
+    if (pick) return { key: PLAYER_GOAL[pick] };
+    return { key: know.includes('barre') ? 'pentatonic' : 'barre' };
+  }
   if (goals.includes('solo')) return { key: 'pentatonic' };
   if (goals.includes('band')) return { key: 'timing' };
   if (goals.includes('theory') && !goals.includes('songs') && !goals.includes('accompany')) return { key: 'ear' };
-  if (level === 'songs') return { key: 'barre' };
   const gcd = ['G', 'C', 'D'].every((c) => heard.includes(c));
   return { key: 'changes', params: { chordSet: gcd ? 'pop' : 'ADE' } };
 }
@@ -86,15 +97,19 @@ export function finishOnboarding(answers) {
   if (v.instrument !== 'guitar') return v;
   saveIntake({
     experience: EXPERIENCE[v.level] ?? 'none',
-    can: [...(v.heard ?? [])],
+    can: [...(v.heard ?? []), ...(v.level === 'songs' ? v.know ?? [] : [])],
     goals: (v.goals ?? []).filter((g) => TEACHER_GOALS.includes(g)),
     style: v.style,
     minutes: v.minutes,
     songs: '',
   });
   for (const c of v.heard ?? []) recordPass(`chord-${c}`);
+  // A lesson left open from before must not jump ahead of the new answers.
+  updateTeacher((st) => ({ ...st, current: null }));
   setIntake({ minutesPerDay: v.minutes, daysPerWeek: 5, level: COACH_LEVEL[v.level] ?? 'beginner', style: COACH_STYLE[v.style] ?? 'rock' });
   const goal = coachGoalFor(v);
-  if (goal && !activeGoal(loadCoach())) chooseGoal(goal.key, goal.params ?? {});
-  return v;
+  // The plan follows the latest answers (a re-run with another goal switches it).
+  const cur = activeGoal(loadCoach());
+  if (goal && (!cur || cur.goalKey !== goal.key)) chooseGoal(goal.key, goal.params ?? {});
+  return { ...v, coachGoal: goal?.key ?? null };
 }

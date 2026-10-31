@@ -24,6 +24,9 @@ export const ARPS = {
   // beginner's map), not an interval. Finger 0 = open string.
   // The six open strings, thickest (6) to thinnest (1).
   'open-strings': { root: 4, type: 'minor', strings: true, gap: 0.6, notes: [[6, 0, 0], [5, 0, 0], [4, 0, 0], [3, 0, 0], [2, 0, 0], [1, 0, 0]] },
+  // String 1, frets 0-5, every fret = a semitone (`frets` = the small label
+  // is the fret number, `sharps` = sharp spelling): E F F♯ G G♯ A.
+  'string1-chrom': { root: 4, type: 'major', frets: true, sharps: true, gap: 0.45, notes: [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5]] },
   // First fretted notes, high E string: E (open), F (fret 1, index), G (fret 3, ring).
   'notes-E': { root: 0, type: 'major', strings: true, gap: 0.5, notes: [[1, 0, 0], [1, 1, 1], [1, 3, 3]], seq: [0, 1, 2, 1, 0] },
   // B string: B (open), C (fret 1, index), D (fret 3, ring).
@@ -74,6 +77,7 @@ export const ARPS = {
 
 const INTERVAL = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
 const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+const SHARPS = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
 /** Seconds between notes when an arpeggio is played to the student. */
 export const arpGap = (id) => ARPS[id]?.gap ?? null;
 
@@ -88,14 +92,14 @@ export function arpNotes(ids) {
       const midi = OPEN_MIDI[sn] + fret;
       const tone = tones.find((x) => x.pc === midi % 12);
       const iv = (((midi - a.root) % 12) + 12) % 12;
-      const deg = a.strings ? String(sn) : a.scale ? INTERVAL[iv] : tone?.role === 'root' ? '1' : (tone?.interval ?? '').replace(/^R$/, '1');
+      const deg = a.frets ? String(fret) : a.strings ? String(sn) : a.scale ? INTERVAL[iv] : tone?.role === 'root' ? '1' : (tone?.interval ?? '').replace(/^R$/, '1');
       out.push({
         string: 6 - sn,
         fret,
         midi,
-        noteName: tone?.name ?? NAMES[midi % 12],
+        noteName: a.sharps ? SHARPS[midi % 12] : tone?.name ?? NAMES[midi % 12],
         degreeLabel: deg,
-        isRoot: a.strings ? false : a.scale ? iv === 0 : tone?.role === 'root',
+        isRoot: a.strings || a.frets ? false : a.scale ? iv === 0 : tone?.role === 'root',
         shape: id,
         ...(finger != null ? { finger, tapped: finger === 'T' } : {}),
       });

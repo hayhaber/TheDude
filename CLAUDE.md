@@ -79,7 +79,11 @@ bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
   endless ring drawn by JS (`draw()`: each card is translateX'd by its
   ring distance `ringDist(i, pos)` from one float position `pos`, plus the
   "drum" rotateY ±33° (TURN_DEG; TURN_DEG_PHONE for <=640px, currently equal) / scale / fade; `animateTo()` eases `pos` to an
-  integer target). Pointer drag follows the finger but is held to ±1 card
+  integer target). On screens wider than a phone the step is
+  max(card + gap, half the screen + half the shrunk card + 24) so the
+  neighbours wait just OFF screen at rest and slide in with a swipe (user,
+  2026-11-01: card edges peeked in at the iPad's sides); phones keep card +
+  gap. Pointer drag follows the finger but is held to ±1 card
   and settles one card per swipe (share/velocity threshold); a drag
   suppresses the click. The home screen is pinned (`.home-menu` position:
   fixed, `html.home-locked` = no document scroll/bounce while it's up) so a

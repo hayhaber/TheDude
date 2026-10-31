@@ -393,7 +393,14 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
     const turnDeg = window.matchMedia?.(PHONE_MQ).matches ? TURN_DEG_PHONE : TURN_DEG;
     const first = cardRefs.current[0];
     const gap = parseFloat(getComputedStyle(track).getPropertyValue('--home-gap')) || 28;
-    const step = (first?.offsetWidth || 1) + gap;
+    const cardW = first?.offsetWidth || 1;
+    // Wider screens (iPad, desktop): the neighbours wait just OFF the screen
+    // and slide in with the swipe — at rest only the chosen card shows (user,
+    // 2026-11-01: the next cards' edges peeked in at the sides). Phones keep
+    // the plain card + gap step.
+    const phone = window.matchMedia?.(PHONE_MQ).matches;
+    const viewW = rootRef.current?.clientWidth || window.innerWidth;
+    const step = phone ? cardW + gap : Math.max(cardW + gap, viewW / 2 + (cardW * (1 - SHRINK)) / 2 + 24);
     cardRefs.current.forEach((el, i) => {
       if (!el) return;
       const d = ringDist(i, pos);

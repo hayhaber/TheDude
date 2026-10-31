@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
 import { LICKS, SOLOS, withDerived, soloSection } from '../music/lickTrainer/library';
+import { buildArpeggioLick, parseProgression } from '../music/lickTrainer/arpeggioBuilder';
 import { scoreToLicks, scoreToSolo, describeScore, isGuitarTrack, isBassTrack, chordNotesByTick, withChordNotes, pianoTrackIndex, pianoPartOf, fileOnlySolo, bassTrackIndex, suggestedBassLine, bassPosition, inFlatKey } from '../music/lickTrainer/gpImport';
 import { loadUserLicks, saveUserLicks, deleteUserLicks } from '../music/lickTrainer/userLickStore';
 import { analyzeTake, estimateLatency } from '../music/lickTrainer/analysis';
@@ -39,6 +40,8 @@ const COUNT_IN_BEATS = 4;
 const TAIL_S = 0.8; // keep recording a little past the last note
 const LATENCY_KEY = 'lick-trainer-latency';
 const HISTORY_KEY = 'lick-trainer-history';
+// The Arpeggio Builder's last lick (per profile): { params, lick }.
+const ARP_KEY = 'dudestar-p-arp-builder';
 const MIX_KEY = 'lick-trainer-gp-mix';
 const VOLUME_KEY = 'lick-trainer-gp-volume'; // { [file]: { [track]: 0..1 } } per-track level
 const NECK_LABEL_KEY = 'lick-trainer-neck-label';
@@ -321,7 +324,16 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     setLibraryKey('');
     setLibrary({ status: 'off' });
   }, []);
-  const allLicks = useMemo(() => [...LICKS, ...userLicks.filter((l) => l.kind !== 'solo')], [userLicks]);
+  // The Arpeggio Builder's lick: arpeggios over the player's own progression.
+  const [arpBuilt, setArpBuilt] = useState(() => {
+    const v = readJson(ARP_KEY, null);
+    return v?.lick?.notes?.length ? v : null;
+  });
+  const arpLick = useMemo(() => (arpBuilt ? withDerived(arpBuilt.lick) : null), [arpBuilt]);
+  const allLicks = useMemo(
+    () => [...LICKS, ...(arpLick ? [arpLick] : []), ...userLicks.filter((l) => l.kind !== 'solo')],
+    [userLicks, arpLick]
+  );
   const allSolos = useMemo(() => [...SOLOS, ...userLicks.filter((l) => l.kind === 'solo')], [userLicks]);
 
   const baseLick = allLicks.find((l) => l.id === lickId) ?? LICKS[0];
@@ -594,6 +606,30 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       setLickId(id);
       setResult(null);
       setPhase('idle');
+    },
+    [stop]
+  );
+
+  // Builds (or rebuilds) the player's arpeggio lick and selects it. Returns
+  // { ok, bad: unreadable symbols, missing: chords with no playable place }.
+  const buildArpeggio = useCallback(
+    (params) => {
+      const key = [params.shape, params.rhythm, params.repeat, params.startFret, params.chords.trim().replace(/\s+/g, ' ')].join('|');
+      const names = parseProgression(params.chords).chords.map((c) => c.symbol).join(' – ');
+      const { lick, bad, missing } = buildArpeggioLick({
+        ...params,
+        id: 'arp-mine:' + key,
+        title: { en: `My arpeggios: ${names}`, he: `הארפג׳יו שלי: \u2066${names}\u2069` },
+      });
+      if (!lick || !lick.notes.length) return { ok: false, bad, missing };
+      stop();
+      const saved = { params, lick };
+      setArpBuilt(saved);
+      writeJson(ARP_KEY, saved);
+      setLickId(lick.id);
+      setResult(null);
+      setPhase('idle');
+      return { ok: true, bad, missing };
     },
     [stop]
   );
@@ -1411,6 +1447,8 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     visibleLicks,
     lick,
     selectLick,
+    arpParams: arpBuilt?.params ?? null,
+    buildArpeggio,
     launchLick,
     tempoPct,
     setTempoPct,

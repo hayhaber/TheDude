@@ -19,6 +19,7 @@ import { assignFingers } from './fingering';
 import { STANDARD_TUNING, BASS_TUNING } from '../notes';
 import { comfortablyNumb } from './imports/comfortablyNumb';
 import { novemberRain } from './imports/novemberRain';
+import { buildArpeggioLick } from './arpeggioBuilder';
 
 function n(beat, beats, string, fret, opts = {}) {
   return {
@@ -40,6 +41,7 @@ export const LICK_GENRES = [
   { key: 'rock', label: { en: 'Rock', he: 'רוק' } },
   { key: 'metal', label: { en: 'Metal', he: 'מטאל' } },
   { key: 'tapping', label: { en: 'Tapping', he: 'טאפינג' } },
+  { key: 'arpeggio', label: { en: 'Arpeggios', he: 'ארפג׳יו' } },
 ];
 
 export const LICK_LEVELS = [
@@ -124,6 +126,44 @@ const TAPPING_LICKS = [
     },
     notes: pedalMelody(2, 3, [10, 12, 13, 15, 13, 12, 10]),
   },
+];
+
+
+// ---- Arpeggios over a progression (genre 'arpeggio') -----------------------
+// One small triad shape per chord, moved along the neck as the chords change
+// (the neoclassical / melodic-rock exercise the user sent, 2026-10-31: Dm C
+// Bb A as 5-3-1-5-1-3 rolls on the top three strings at frets 17/15/13/12).
+// Built by arpeggioBuilder.js — the same builder the trainer's Builder uses.
+const arp = (id, opts, title) => buildArpeggioLick({ id, source: 'dudestar', title, ...opts }).lick;
+const ARPEGGIO_LICKS = [
+  arp('arp-andalusian-d', { chords: 'Dm C Bb A', shape: 'roll3', rhythm: 'triplet', startFret: 17, bpm: 72 }, {
+    en: 'Triad Rolls Down the Neck: Dm – C – Bb – A',
+    he: 'משולשים במורד הצוואר: ⁦Dm – C – Bb – A⁩',
+  }),
+  arp('arp-andalusian-d-fast', { chords: 'Dm C Bb A', shape: 'roll3', rhythm: 'sextuplet', repeat: 2, startFret: 17, bpm: 66 }, {
+    en: 'Triad Rolls at Speed: Dm – C – Bb – A (sextuplets)',
+    he: 'משולשים במהירות: ⁦Dm – C – Bb – A⁩ (שישיות)',
+  }),
+  arp('arp-andalusian-a', { chords: 'Am G F E', shape: 'roll3', rhythm: 'triplet', startFret: 12, bpm: 72 }, {
+    en: 'Andalusian Rolls in A Minor: Am – G – F – E',
+    he: 'מהלך אנדלוסי בלה מינור: ⁦Am – G – F – E⁩',
+  }),
+  arp('arp-pop-1564', { chords: 'C G Am F', shape: 'roll3', rhythm: 'triplet', startFret: 15, bpm: 60, level: 'beginner' }, {
+    en: 'Triad Rolls over C – G – Am – F',
+    he: 'משולשים על ⁦C – G – Am – F⁩',
+  }),
+  arp('arp-minor-145-up', { chords: 'Am Dm E Am', shape: 'roll3up', rhythm: 'triplet', startFret: 12, bpm: 72 }, {
+    en: 'Rising Triads: Am – Dm – E – Am',
+    he: 'משולשים עולים: ⁦Am – Dm – E – Am⁩',
+  }),
+  arp('arp-neo-harmonic', { chords: 'Am Dm G C F Bdim E Am', shape: 'roll3', rhythm: 'sextuplet', startFret: 12, bpm: 66 }, {
+    en: 'Neoclassical Sequence in A Harmonic Minor',
+    he: 'רצף ניאו־קלאסי בלה מינור הרמוני',
+  }),
+  arp('arp-sweep-am', { chords: 'Am G F E', shape: 'sweep5', startFret: 12, bpm: 56 }, {
+    en: 'Five-String Sweeps: Am – G – F – E',
+    he: 'סוויפ על חמישה מיתרים: ⁦Am – G – F – E⁩',
+  }),
 ];
 
 const RAW_LICKS = [
@@ -818,7 +858,7 @@ export function withDerived(lick) {
   return { ...lick, notes, lengthBeats: notes.length ? Math.ceil(lastEnd) : lick.lengthBeats ?? 0 };
 }
 
-export const LICKS = [...RAW_LICKS, ...TAPPING_LICKS].map(withDerived);
+export const LICKS = [...RAW_LICKS, ...TAPPING_LICKS, ...ARPEGGIO_LICKS].map(withDerived);
 
 // Full solos generated from the user's Guitar Pro files
 // (scripts/gp-to-licks.mjs with solo: true). Each has practice `sections`.

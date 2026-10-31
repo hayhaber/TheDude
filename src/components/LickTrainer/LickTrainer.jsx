@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { LICK_GENRES, LICK_LEVELS } from '../../music/lickTrainer/library';
 import { defaultTrackIndex } from '../../music/lickTrainer/gpImport';
+import { ARP_PRESETS, ARP_SHAPES, ARP_RHYTHMS, ARP_POSITIONS } from '../../music/lickTrainer/arpeggioBuilder';
 import { TEMPO_OPTIONS } from '../../hooks/useLickTrainer';
 import { midiToNoteName } from '../../music/pitchUtils';
 import { BUILD_PASS, waitTarget } from '../../music/lickTrainer/practiceModes';
@@ -386,6 +387,130 @@ export function NeckLabelToggle({ trainer, t }) {
   );
 }
 
+// Arpeggio Builder (genre 'arpeggio'): one small triad shape per chord of the
+// player's own progression, placed along the neck — the same builder as the
+// built-in arpeggio licks (music/lickTrainer/arpeggioBuilder.js).
+function readRecentProgressions() {
+  try {
+    const v = JSON.parse(localStorage.getItem('recent-progressions'));
+    return Array.isArray(v) ? v.map((x) => x?.text).filter(Boolean).slice(0, 6) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function ArpBuilder({ trainer, t, lang, busy }) {
+  const saved = trainer.arpParams;
+  const [chords, setChords] = useState(saved?.chords ?? ARP_PRESETS[0].chords);
+  const [shape, setShape] = useState(saved?.shape ?? 'roll3');
+  const [rhythm, setRhythm] = useState(saved?.rhythm ?? 'triplet');
+  const [repeat, setRepeat] = useState(saved?.repeat ?? 1);
+  const [position, setPosition] = useState(
+    () => Object.entries(ARP_POSITIONS).find(([, f]) => f === saved?.startFret)?.[0] ?? 'high'
+  );
+  const [msg, setMsg] = useState(null);
+  const [recent] = useState(readRecentProgressions);
+  const presetValue = ARP_PRESETS.find((p) => p.chords === chords)?.id ?? (recent.includes(chords) ? 'recent:' + chords : '');
+  const build = () => {
+    const res = trainer.buildArpeggio({ chords, shape, rhythm, repeat, startFret: ARP_POSITIONS[position] });
+    if (!res.ok) setMsg({ kind: 'error', text: t('arp.none') });
+    else if (res.bad.length || res.missing.length)
+      setMsg({ kind: 'warn', text: t('arp.skipped', { chords: [...res.bad, ...res.missing].join(' ') }) });
+    else setMsg({ kind: 'ok', text: t('arp.built') });
+  };
+  return (
+    <section className="lt-import lt-arp" aria-label={t('arp.title')}>
+      <h3>{t('arp.title')}</h3>
+      <p className="lt-muted">{t('arp.intro')}</p>
+      <div className="lt-filters">
+        <label className="lt-field">
+          <span>{t('arp.preset')}</span>
+          <select
+            value={presetValue}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v.startsWith('recent:')) setChords(v.slice(7));
+              else {
+                const p = ARP_PRESETS.find((x) => x.id === v);
+                if (p) setChords(p.chords);
+              }
+            }}
+          >
+            <option value="">{t('arp.custom')}</option>
+            {ARP_PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {localize(p.name, lang)}
+              </option>
+            ))}
+            {recent.length > 0 && (
+              <optgroup label={t('arp.recent')}>
+                {recent.map((r) => (
+                  <option key={r} value={'recent:' + r}>
+                    {r}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+        </label>
+        <label className="lt-field lt-grow">
+          <span>{t('arp.chords')}</span>
+          <input type="text" value={chords} onChange={(e) => setChords(e.target.value)} dir="ltr" spellCheck="false" autoCapitalize="off" />
+        </label>
+      </div>
+      <div className="lt-filters">
+        <label className="lt-field">
+          <span>{t('arp.shape')}</span>
+          <select value={shape} onChange={(e) => setShape(e.target.value)}>
+            {ARP_SHAPES.map((x) => (
+              <option key={x} value={x}>
+                {t('arp.shape.' + x)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {shape !== 'sweep5' && (
+          <label className="lt-field">
+            <span>{t('arp.rhythm')}</span>
+            <select value={rhythm} onChange={(e) => setRhythm(e.target.value)}>
+              {ARP_RHYTHMS.map((x) => (
+                <option key={x} value={x}>
+                  {t('arp.rhythm.' + x)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label className="lt-field">
+          <span>{t('arp.repeat')}</span>
+          <select value={repeat} onChange={(e) => setRepeat(Number(e.target.value))}>
+            <option value={1}>{t('arp.repeat.1')}</option>
+            <option value={2}>{t('arp.repeat.2')}</option>
+          </select>
+        </label>
+        <label className="lt-field">
+          <span>{t('arp.position')}</span>
+          <select value={position} onChange={(e) => setPosition(e.target.value)}>
+            {Object.keys(ARP_POSITIONS).map((x) => (
+              <option key={x} value={x}>
+                {t('arp.position.' + x)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" className="lt-import-btn" onClick={build} disabled={busy || !chords.trim()}>
+          {t('arp.build')}
+        </button>
+      </div>
+      {msg && (
+        <p className={'lt-arp-msg is-' + msg.kind} dir="auto" role="status">
+          {msg.text}
+        </p>
+      )}
+    </section>
+  );
+}
+
 export function ImportPanel({ trainer, t, lang, forceSaveAs = null }) {
   const { info, fileName } = trainer.pendingImport;
   const firstPlayable = defaultTrackIndex(info);
@@ -594,6 +719,10 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
       {variant === 'licks' && !chosen && !trainer.pendingImport && <p className="lt-muted lt-pick-hint">{t('lickTrainer.pickHint')}</p>}
 
       {variant === 'licks' && chosen && <NeckLabelToggle trainer={trainer} t={t} />}
+
+      {variant === 'licks' && chosen && trainer.mode === 'licks' && trainer.genre === 'arpeggio' && !trainer.pendingImport && (
+        <ArpBuilder trainer={trainer} t={t} lang={lang} busy={busy} />
+      )}
 
       {variant === 'licks' && trainer.pendingImport && (
         <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="lick" />

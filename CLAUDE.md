@@ -876,6 +876,36 @@ on the container; content inside stays top-aligned). Stacked on a phone
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.
 
+## Arpeggio licks + Arpeggio Builder (built 2026-10-31)
+
+- From the user's reel (tab screenshots): Dm C Bb A as one 6-note triad
+  "roll" per chord on the top 3 strings — high E 5th, pull-off to the 3rd,
+  B root, G 5th, B root, E 3rd (5-3-1-5-1-3) — at frets 17/15/13/12 (the
+  Andalusian cadence i–♭VII–♭VI–V). Minor = 4-fret pull, major = 3.
+- Pure `music/lickTrainer/arpeggioBuilder.js`: `triadOf()` (7ths -> triad,
+  sus = sus note as "3rd", dim/m7b5 = b3+b5, aug), `parseProgression()`,
+  shapes `roll3` (the reel's), `roll3up` (G 5, B R, E 3, hammer 5, pull 3, B
+  R), `sweep5` (A-root 5-string sweep A R, D 3, G 5, B R, E 3-h5-p3, back
+  down; sixteenths, 3 beats/chord); `placeShapes()` puts each chord's shape
+  in the octave closest to the previous one (first near startFret: high 17 /
+  mid 12 / low 7), frets 1..21, span <= 5, fingers = one per fret from the
+  lowest (pinky capped); rhythm triplet (2 beats/chord) / sextuplet (1);
+  repeat 1-2; ends on the last chord's root (B string, vib). Verified: the
+  reel's exact frets; every preset x shape x position = chord tones only.
+- Library genre `arpeggio` ("Arpeggios"), 7 built-in licks (ARPEGGIO_LICKS in
+  library.js, built by the same builder): the reel's lick (triplets), the
+  same in sextuplets x2, Am G F E, C G Am F (beginner), rising Am Dm E Am,
+  neoclassical A harmonic minor sequence, 5-string sweeps Am G F E.
+- Arpeggio Builder (LickTrainer.jsx `ArpBuilder`, shown when Genre =
+  Arpeggios): Progression select (presets + "Recent in Compose" from
+  localStorage `recent-progressions`) + chords text, Shape / Rhythm / Each
+  chord / Start selects, Build -> `trainer.buildArpeggio(params)` (hook):
+  one saved lick per profile `dudestar-p-arp-builder` {params, lick}, id
+  `arp-mine:<params>` (history per variant), selected at once. Text `arp.*`
+  in `i18n/tips/arp.js`.
+- Fake-mic Wait-mode run followed the first 10 notes of the reel's lick
+  (incl. the pull-offs); NOT verified on a real guitar.
+
 ## Tapping (built 2026-10-26)
 
 - User's choice: a Teacher lesson + practice, ONE-finger tapping, classic rock

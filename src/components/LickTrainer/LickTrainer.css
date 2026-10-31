@@ -915,3 +915,45 @@
   font-size: 14px;
   font-weight: 590;
 }
+
+/* Arpeggio Builder (genre 'arpeggio') */
+.lt-arp .lt-filters + .lt-filters {
+  margin-top: 2px;
+}
+
+.lt-arp-msg {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 560;
+}
+
+.lt-arp-msg.is-ok {
+  color: var(--success, #2e9d4f);
+}
+
+.lt-arp-msg.is-warn {
+  color: #c77700;
+}
+
+.lt-arp-msg.is-error {
+  color: var(--danger);
+}
+
+.lt-arp .lt-field {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.lt-arp .lt-field select {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .lt-arp .lt-field input[type='text'] {
+    min-width: 0;
+    width: 100%;
+  }
+  .lt-arp .lt-filters > .lt-field:first-child {
+    flex: 1 1 100%;
+  }
+}

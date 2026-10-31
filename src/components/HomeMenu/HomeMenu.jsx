@@ -530,10 +530,12 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
 
   // Mouse wheel / trackpad (desktop): ONE card per gesture, like a swipe on
   // the iPad. A trackpad swipe is a stream of small deltas followed by a
-  // long inertia tail (well over a second on a Mac) — a time lock let the
-  // tail move 3-4 cards. Now a gesture lasts until the events stop for
-  // GESTURE_GAP ms; it may step once, and everything after that step in the
-  // same stream (the inertia) is swallowed. Sideways or up/down both work.
+  // long inertia tail (well over a second on a Mac): after the gesture's one
+  // step the tail is swallowed. A NEW gesture = a pause in the events
+  // (GESTURE_GAP), or — when the next swipe starts while the tail is still
+  // running, so there is no pause — the deltas RISING again (a tail only
+  // decays). The first version only knew the pause, so a second swipe soon
+  // after the first did nothing (user, 2026-10-31).
   useEffect(() => {
     const box = rootRef.current; // anywhere on the home screen
     if (!box) return undefined;
@@ -541,23 +543,44 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
     let sum = 0;
     let lastAt = -Infinity;
     let stepped = false;
+    let recent = []; // |delta| of the last events
+    let peak = 0; // largest |delta| since the step
+    let decayed = false; // the stream has fallen well below that peak
+    const avg = (xs) => xs.reduce((a, b) => a + b, 0) / (xs.length || 1);
     const onWheel = (e) => {
       // The profile list scrolls by itself.
       if (e.target instanceof Element && e.target.closest('.profile-pop')) return;
       const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
       e.preventDefault();
+      const d = horizontal ? -e.deltaX : e.deltaY;
       const now = performance.now();
-      if (now - lastAt > GESTURE_GAP) {
-        // a new gesture
+      let fresh = now - lastAt > GESTURE_GAP;
+      lastAt = now;
+      recent.push(Math.abs(d));
+      if (recent.length > 8) recent = recent.slice(-8);
+      if (stepped) {
+        peak = Math.max(peak, Math.abs(d));
+        if (Math.abs(d) < peak * 0.5) decayed = true;
+      }
+      if (!fresh && stepped && decayed && recent.length >= 6) {
+        // still streaming: a clear rise over the decaying tail = a new swipe
+        const older = avg(recent.slice(-6, -3));
+        const newer = avg(recent.slice(-3));
+        if (newer > 4 && newer > older * 1.6) fresh = true;
+      }
+      if (fresh) {
         sum = 0;
         stepped = false;
+        recent = recent.slice(-3);
       }
-      lastAt = now;
       if (stepped) return;
       // Sideways: content follows the fingers (RTL: right = next).
-      sum += horizontal ? -e.deltaX : e.deltaY;
+      sum += d;
       if (Math.abs(sum) < 40) return;
       stepped = true;
+      peak = 0;
+      decayed = false;
+      recent = [];
       step(sum > 0 ? 1 : -1);
     };
     box.addEventListener('wheel', onWheel, { passive: false });

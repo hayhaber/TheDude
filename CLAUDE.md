@@ -247,7 +247,11 @@ Vercel), so the phone can confirm the latest deploy arrived.
   scrolls the carousel with the mouse wheel / trackpad: ONE card per gesture
   (a gesture ends after 220 ms without wheel events; after its step the rest
   of the stream — a Mac trackpad's inertia tail — is swallowed; the old
-  450 ms time lock let one swipe move 3-4 cards, user 2026-10-31). GuitarPro's
+  450 ms time lock let one swipe move 3-4 cards, user 2026-10-31). A swipe
+  that starts while the tail still runs (no pause) is found by the deltas
+  RISING again after they had decayed below half their peak (avg of the last
+  3 > 1.6x the 3 before, > 4) — without it a 2nd swipe did nothing until the
+  cursor moved (user). Tested: 1 long swipe = 1, back-to-back swipes = 1 each. GuitarPro's
   score height subtracts the 64px top bar on desktop.
 
 - **Chord Library** (nav `chords`, guitar only, Guitar card shortcut FIRST,

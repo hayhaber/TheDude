@@ -86,8 +86,10 @@ Vercel), so the phone can confirm the latest deploy arrived.
   is a 2D `scaleY rotate` — a perspective/rotateX there was thrown into the
   card's corner on iPhone) and no `background-clip: text` + filter titles
   (flicker) — dark titles use text-shadow. No WebKit in this container to
-  test with; the user checks on his iPhone. The app ALWAYS opens on the Guitar card (App `homeCard`
-  starts as 'guitar', user's rule); back from inside an instrument (logo) =
+  test with; the user checks on his iPhone. The app opens on the card the profile's first-run answers point to
+  (`homeCardFor()`: guitar new/few -> Teacher card, guitar songs -> Guitar,
+  else that instrument's card; skipped/unanswered -> Guitar — user approved
+  2026-10-31, replacing "always Guitar"); back from inside an instrument (logo) =
   that instrument's card — more exactly the CARD the page was opened from (App `enteredCardRef`, set from HomeMenu's `card` on open; the Singing card opens Vocal with the guitar still selected, so the instrument alone sent Home to Guitar; user's request 2026-10-17). Upright phones (<=640px): the art height is `--home-art-h` = clamp(96px, 100dvh − 560px (−528 on short screens), 244px) and 5–6 shortcuts sit in 2 rows of 3 (7–8 in 2 rows of 4 — the Guitar card has 7 since Studies was added 2026-10-20), so card + dots + profile chip always fit (iPhone 15 Pro in Safari, ~790px tall, hid the dots — 2026-10-19). Phone sideways (`orientation: landscape` + max-height 520px): a low card (art beside the text, one row of shortcuts) sized to fit under the logo, notch-safe padding. `onOpen({instrument, section,
   practiceTab})` sets them in App. The home button (desktop top bar) / logo (phone/tablet,
   AppShell `onHome`) returns to it; "Back to where I was" appears after the
@@ -774,6 +776,42 @@ Vercel), so the phone can confirm the latest deploy arrived.
   A started block sets `setActiveCoachBlock(id)` then `launch(spec)`; the
   banner shows the live result and Done/Coach. Launch scrolls `.practice-tabs`
   into view. Free-text goals use keywords, not an AI model (no API key).
+
+## First run / onboarding (built 2026-10-31, phase 1 of the plan doc)
+
+- Plan doc (Docs artifact, user accepted all recommendations 2026-10-31):
+  https://claude.ai/artifact/PgzkqRBd3MfGere7xVoMh9 — phase 1 = this; phase 2 =
+  level-0 lessons (0.1 first note, 0.2 clean note, 0.3 Em) + finish level 1
+  (E, strumming, first song) — Claude writes, USER reviews each; phase 3 =
+  Practice tabs grouped in a select, dashboard collapsed to one row until
+  the first run, first-visit explanation per screen, "try it in…" links;
+  phase 4 = Coach + Studies inside the Teacher, Today for piano/bass, bottom
+  nav 8 -> 5 only if still crowded after phase 3. Beginner songs = public
+  domain + our own progressions (list for the user to approve).
+- `components/Onboarding/Onboarding.jsx` replaces everything in App while
+  `needsOnboarding()` (personal key `dudestar-p-onboarding`, synced; every
+  profile sees it once, Skip marks it done). Steps: welcome (name -> 
+  renameProfile, language) -> instrument (4 picture tiles — the approved
+  plan's tiles, not a select) -> level (new/few/songs, per-instrument text
+  `onb.level.<inst>.<lvl>.title/sub`) -> goals (chips + style + minutes
+  selects) -> CHECK (guitar, level != new: pick an open chord from
+  CHECK_CHORDS, the Teacher's exported `ChordStep` listens; heard = passes)
+  -> done (first lesson or plan; Start / Home).
+- `onboarding/onboardingState.js finishOnboarding()`: guitar -> Teacher
+  intake (experience none/little/some, can = heard, goals, style, minutes),
+  recordPass(`chord-X`) per heard chord, Coach `setIntake` (level new/
+  beginner/intermediate, style mapped) + `chooseGoal(coachGoalFor())` when
+  no active goal (solo -> pentatonic, band -> timing, theory only -> ear,
+  songs level -> barre, else changes ADE / pop when G C D were heard).
+- Teacher `nextLesson()` now caps by experience (none 1, little 2, some 3,
+  lot 4) and skips a not-started lesson whose chord skills were all heard
+  (not for 'none'). Home header pill "Next lesson" (`home.nextLesson`, App
+  `onNextLesson`) when the Teacher knows the student and before any visit
+  (the "back where I was" pill takes its place after). Settings: "Getting
+  started" -> Again = `restartOnboarding()` + reload. Text `i18n/tips/onboarding.js`.
+- Verified (Playwright, fresh profiles): new / few+check / vocal paths, the
+  stores written, reload opens the chosen card with the pill. Mic check
+  itself = the Teacher's ChordStep (not re-tested with a real guitar).
 
 ## Guitar Teacher (built 2026-10-25, phase 1A)
 

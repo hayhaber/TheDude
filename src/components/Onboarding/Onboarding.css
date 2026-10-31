@@ -1,0 +1,371 @@
+/* First run — one centred card, one question per screen. */
+.onb {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+  color: var(--text);
+}
+
+.onb-card {
+  width: min(560px, 100%);
+  /* Pinned near the top: steps of different heights don't jump around. */
+  margin: min(7vh, 56px) 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 26px 28px;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.onb-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.onb-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.onb-dots span {
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--divider, rgba(120, 120, 128, 0.2));
+  transition: background 0.25s ease;
+}
+
+.onb-dots span.is-on {
+  background: var(--accent);
+}
+
+.onb-skip {
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+
+.onb-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: onb-in 0.28s ease;
+}
+
+@keyframes onb-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.onb-body h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.onb-lead {
+  margin: -6px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.onb-logo {
+  display: flex;
+}
+
+.onb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.onb-field .mode-toggle {
+  margin: 0;
+}
+
+.onb-field input,
+.onb-field select {
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--divider, var(--border));
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.onb-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.onb-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Instrument tiles */
+.onb-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.onb-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 10px 12px;
+  border: 1.5px solid var(--divider, var(--border));
+  border-radius: 18px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.onb-tile:active {
+  transform: scale(0.98);
+}
+
+.onb-tile.is-on {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--accent-bg);
+}
+
+.onb-tile-art {
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.onb-tile-art img {
+  max-height: 120px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.onb-tile-art.is-piano img,
+.onb-tile-art.is-vocal img {
+  max-height: 104px;
+}
+
+.onb-tile-name {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+/* Level rows */
+.onb-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.onb-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--divider, var(--border));
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.onb-row strong {
+  font-size: 17px;
+}
+
+.onb-row span {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.onb-row.is-on {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--accent-bg);
+}
+
+/* Goal / chord chips */
+.onb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.onb-chip {
+  padding: 10px 16px;
+  border: 1.5px solid var(--divider, var(--border));
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 560;
+  cursor: pointer;
+}
+
+.onb-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.onb-chip.is-chord {
+  min-width: 56px;
+}
+
+.onb-chip.is-heard {
+  border-color: var(--success, #34c759);
+  color: var(--success, #248a3d);
+}
+
+.onb-check {
+  margin: 0;
+}
+
+.onb-hint,
+.onb-heard {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.onb-heard {
+  color: var(--success, #248a3d);
+  font-weight: 600;
+}
+
+/* Done */
+.onb-done-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.onb-next {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--bg);
+}
+
+.onb-next strong {
+  font-size: 20px;
+}
+
+.onb-eyebrow {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.onb-muted {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Actions */
+.onb-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.onb-btn {
+  height: 48px;
+  min-width: 120px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: none;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.onb-btn.is-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.onb-btn.is-primary:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.onb-btn.is-quiet {
+  background: none;
+  color: var(--text-secondary);
+  min-width: 0;
+  padding: 0 12px;
+}
+
+@media (max-width: 520px) {
+  .onb-card {
+    padding: 20px 18px;
+    border-radius: 20px;
+    gap: 18px;
+  }
+  .onb-body h1 {
+    font-size: 23px;
+  }
+  .onb-tile-art,
+  .onb-tile-art img {
+    height: 96px;
+    max-height: 96px;
+  }
+  .onb-tile-art.is-piano img,
+  .onb-tile-art.is-vocal img {
+    max-height: 84px;
+  }
+  .onb-pair {
+    grid-template-columns: 1fr;
+  }
+}

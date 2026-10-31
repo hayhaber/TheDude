@@ -109,6 +109,10 @@ import { DRILLS } from './music/drills';
 import { fivePositionWindows } from './music/scaleShapes';
 import { logPerf } from './coach/perfLog';
 import { registerLauncher, setPendingMinuteChanges } from './coach/launchBus';
+import { Onboarding } from './components/Onboarding/Onboarding';
+import { homeCardFor, loadOnboarding, needsOnboarding } from './onboarding/onboardingState';
+import { getTeacher } from './teacher/teacherState';
+import { nextLesson as teacherNextLesson } from './teacher/mastery';
 import './App.css';
 
 
@@ -158,9 +162,13 @@ function App() {
   // The home card an app page was opened from: Home returns to it (the
   // Singing card opens Vocal with the guitar still selected).
   const enteredCardRef = useRef(null);
-  // The app always opens on the Guitar card (user's rule); coming back from
-  // inside an instrument shows that instrument's card (null).
-  const [homeCard, setHomeCard] = useState('guitar');
+  // The app opens on the card the profile's first-run answers point to
+  // (guitar when skipped / not answered — user's call 2026-10-31, replaced
+  // "always Guitar"); coming back from inside an instrument shows that
+  // instrument's card (null).
+  const [homeCard, setHomeCard] = useState(() => homeCardFor(loadOnboarding()));
+  // First run (once per profile): Onboarding replaces everything until done.
+  const [onboarding, setOnboarding] = useState(() => needsOnboarding());
   // The 3 top-level destinations (Compose/Improvise/Practice) — see
   // components/AppShell for the nav shell that drives this.
   const [activeSection, setActiveSection] = useState('compose');
@@ -2106,6 +2114,43 @@ function App() {
     syncTrainer: lickTrainer,
   };
 
+  // The home screen's "Next lesson" pill (guitar students the Teacher knows).
+  const homeNextLesson = (() => {
+    const st = getTeacher();
+    if (!st.intake) return null;
+    const l = teacherNextLesson(st);
+    return l?.steps ? l : null;
+  })();
+  const openNextLesson = () => {
+    if (instrument !== 'guitar') setInstrument('guitar');
+    enteredCardRef.current = 'teacher';
+    setTeacherStart((v) => ({ screen: 'today', n: v.n + 1 }));
+    setActiveSection('teacher');
+    setHome(false);
+    setLeftHome(true);
+  };
+
+  if (onboarding) {
+    return (
+      <Onboarding
+        onDone={({ action, card }) => {
+          setOnboarding(false);
+          if (action === 'lesson' || action === 'coach') {
+            if (instrument !== 'guitar') setInstrument('guitar');
+            enteredCardRef.current = 'teacher';
+            setTeacherStart((v) => ({ screen: action === 'coach' ? 'coach' : 'today', n: v.n + 1 }));
+            setActiveSection('teacher');
+            setHome(false);
+            setLeftHome(true);
+            return;
+          }
+          setHomeCard(card ?? 'guitar');
+          setHome(true);
+        }}
+      />
+    );
+  }
+
   if (songwriter) {
     return (
       <SongwriterScreen
@@ -2161,6 +2206,7 @@ function App() {
           setLeftHome(true);
         }}
         onContinue={leftHome ? () => setHome(false) : null}
+        onNextLesson={!leftHome && homeNextLesson ? openNextLesson : null}
         initialCard={homeCard}
       />
     );

@@ -156,7 +156,7 @@ function rivalsFor(name) {
   return out;
 }
 
-function ChordStep({ step, tx, leftHanded, passed, onPass }) {
+export function ChordStep({ step, tx, leftHanded, passed, onPass }) {
   const { t } = useLanguage();
   const mic = useMicChordDetector();
   const [result, setResult] = useState(passed ? 'ok' : null); // null | listening | ok | notYet

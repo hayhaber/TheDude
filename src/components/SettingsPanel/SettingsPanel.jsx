@@ -14,6 +14,7 @@ import { useLeftHanded } from '../Fretboard/handedness';
 import { canPrompt, isStandalone, promptInstall, subscribeInstall } from '../../install/pwaInstall';
 import '../ModeToggle/ModeToggle.css';
 import './SettingsPanel.css';
+import { restartOnboarding } from '../../onboarding/onboardingState';
 
 // Right-side drawer, same interaction/anchor as MetronomeBar/TunerBar/
 // DisplayOptionsMenu (top-anchored, capped max-height so it never covers the
@@ -144,6 +145,20 @@ export function SettingsBody({
       <div className="settings-field">
         <span className="settings-field-label">{t('languageToggle.label')}</span>
         <LanguageToggle />
+      </div>
+
+      <div className="settings-field">
+        <span className="settings-field-label">{t('onb.again.label')}</span>
+        <button
+          type="button"
+          className="settings-install-btn"
+          onClick={() => {
+            restartOnboarding();
+            window.location.reload();
+          }}
+        >
+          {t('onb.again.btn')}
+        </button>
       </div>
 
       <div className="settings-field">

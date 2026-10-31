@@ -366,7 +366,7 @@ const easeOut = (x) => 1 - Math.pow(1 - x, 3);
  * and shortcuts into the app. Tapping the card itself opens its first
  * shortcut.
  */
-export function HomeMenu({ onOpen, onContinue, initialCard }) {
+export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
   const { t } = useLanguage();
   const { instrument } = useInstrument();
   const trackRef = useRef(null);
@@ -598,6 +598,11 @@ export function HomeMenu({ onOpen, onContinue, initialCard }) {
           {onContinue && (
             <button type="button" className="home-continue" onClick={onContinue}>
               {t('home.continue')}
+            </button>
+          )}
+          {!onContinue && onNextLesson && (
+            <button type="button" className="home-continue is-lesson" onClick={onNextLesson}>
+              {t('home.nextLesson')}
             </button>
           )}
         </div>

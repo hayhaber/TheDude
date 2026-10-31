@@ -56,10 +56,23 @@ export function homeworkStatus(item, state) {
 }
 
 /** The lesson to work on now: the one in progress, else the first not done. */
+// Highest lesson level offered from the intake's experience (a student who
+// knows a few chords isn't sent to level-4 tapping as their "next lesson").
+const LEVEL_CAP = { none: 1, little: 2, some: 3, lot: 4 };
+
+/** A not-started lesson whose chord shapes the student already showed (onboarding check). */
+function covered(lesson, state) {
+  if (state.lessons[lesson.id]) return false;
+  const chords = lesson.skills.map(skillById).filter((s) => s?.check.kind === 'chord');
+  return chords.length > 0 && chords.every((s) => (state.passes[s.id] ?? []).length > 0) && state.intake?.experience !== 'none';
+}
+
 export function nextLesson(state) {
   const cur = state.current && LESSONS.find((l) => l.id === state.current);
   if (cur && !state.lessons[cur.id]?.done) return cur;
-  return LESSONS.find((l) => l.steps && !state.lessons[l.id]?.done) ?? LESSONS.find((l) => !state.lessons[l.id]?.done) ?? null;
+  const cap = LEVEL_CAP[state.intake?.experience] ?? 99;
+  const open = LESSONS.filter((l) => !state.lessons[l.id]?.done && l.level <= cap && !covered(l, state));
+  return open.find((l) => l.steps) ?? open[0] ?? null;
 }
 
 /** Homework still open: from finished lessons whose skills aren't all mastered. */

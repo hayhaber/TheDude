@@ -78,18 +78,32 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   // Phone/tablet: metronome / drums / tuner sit behind ONE Tools button in
   // the top strip (stage 3): a floating glass row above the tab bar.
   const [toolsOpen, setToolsOpen] = useState(false);
-  const toolsRowRef = useRef(null);
-  const toolsBtnRef = useRef(null);
   useEffect(() => {
     if (!toolsOpen) return undefined;
     const onDown = (e) => {
-      if (toolsRowRef.current?.contains(e.target) || toolsBtnRef.current?.contains(e.target)) return;
+      // Taps inside the popover, on a Tools button, or inside a drawer a
+      // pill opened keep it open.
+      if (e.target.closest?.('.app-tools-popover, .app-tools-button, .metronome-drawer, .tuner-drawer, [role="dialog"]')) return;
       setToolsOpen(false);
     };
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
   }, [toolsOpen]);
   useEffect(() => setToolsOpen(false), [activeSection]);
+
+  const hasTools = !bare && !noTools && metronomeSlot != null;
+  const toolsButton = (
+    <button
+      type="button"
+      className={'icon-circle-button app-tools-button' + (toolsOpen ? ' active' : '') + (toolsActive ? ' is-live' : '')}
+      aria-label={t('nav.tools')}
+      title={t('nav.tools')}
+      aria-expanded={toolsOpen}
+      onClick={() => setToolsOpen((v) => !v)}
+    >
+      <LineIcon name="metronome" size={19} strokeWidth={1.7} />
+    </button>
+  );
 
   const [stageCollapsedMap, setStageCollapsedMap] = useState(loadStageCollapsed);
   const stageCollapsed = !!stageCollapsedMap[activeSection];
@@ -120,19 +134,9 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
 
       <div className="app-mobile-settings">
         <div className="app-mobile-settings-icons">
-          {!bare && !noTools && (
-            <button
-              ref={toolsBtnRef}
-              type="button"
-              className={'icon-circle-button app-tools-button' + (toolsOpen ? ' active' : '') + (toolsActive ? ' is-live' : '')}
-              aria-label={t('nav.tools')}
-              aria-expanded={toolsOpen}
-              onClick={() => setToolsOpen((v) => !v)}
-            >
-              <LineIcon name="metronome" size={19} strokeWidth={1.7} />
-            </button>
-          )}
           <InfoTooltipsToggle />
+          {/* Outer corner, like the top bar's — the popover drops from it. */}
+          {hasTools && toolsButton}
         </div>
       </div>
 
@@ -164,8 +168,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             ))}
           </nav>
           <div className="app-topbar-tools" dir={dir}>
-            {!noTools && metronomeSlot}
-            {!bare && !noTools && <TunerBar />}
+            {hasTools && toolsButton}
             <InfoTooltipsToggle />
           </div>
         </header>
@@ -199,7 +202,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
               aria-label={t(stageCollapsed ? 'nav.stageShow' : 'nav.stageHide')}
               title={t(stageCollapsed ? 'nav.stageShow' : 'nav.stageHide')}
             >
-              <svg viewBox="0 0 24 12" width="22" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg viewBox="0 0 24 12" width="18" height="9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d={stageCollapsed ? 'M5 9l7-6 7 6' : 'M5 3l7 6 7-6'} />
               </svg>
             </button>
@@ -208,8 +211,18 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
         )}
       </main>
 
-      {!bare && !noTools && (
-        <div className={'app-mobile-metronome' + (toolsOpen ? ' is-open' : '')} ref={toolsRowRef}>
+      {/* ONE place for the tools at every size (stage 3): a Liquid Glass
+          popover under the Tools button, top corner — it never covers the
+          neck or the tab bar. Mounted once, hidden while closed. */}
+      {hasTools && (
+        <div
+          className={'app-tools-popover' + (toolsOpen ? ' is-open' : '')}
+          role="group"
+          aria-label={t('nav.tools')}
+          dir={dir}
+          // A pill opens its full drawer; the popover steps aside.
+          onClick={() => setTimeout(() => setToolsOpen(false), 0)}
+        >
           {metronomeSlot}
           <TunerBar />
         </div>

@@ -135,18 +135,26 @@ no tools).
   is gone (Songs is inside Play). New LineIcons `play`, `create`; strings
   `nav.group.*`; piano `nav.freeplay` = "Free play" / "נגינה חופשית" (it sat
   next to "ניגון"). Sections, their state and App logic are unchanged.
-- STAGE 3 (v1.0.93): phone/tablet (<900px) — the metronome / drums / tuner
-  row is no longer a fixed bar: a round glass Tools button (metronome
-  icon, `.app-tools-button`, left of ⓘ in the top strip; accent dot
-  `.is-live` while the metronome runs — App `toolsActive`) opens it as a
-  floating Liquid Glass card above the tab bar (`.app-mobile-metronome
-  .is-open`); a tap outside or a section change closes it; the pills open
-  their usual drawers. `--mobile-metronome-height` is 0 under 900px (60px
-  more room on every screen). Desktop keeps the tools in the top bar.
-  The neck / keys (Stage) fold away per screen: a glass handle on the
-  anchor's top edge (`.app-stage-toggle`, chevron), state per section in
-  device key `dudestar-stage-collapsed` (Songs starts folded); folded =
+- STAGE 3 (v1.0.93, reworked v1.0.94 after the user's iPad check):
+  metronome / drums / tuner live behind ONE round glass Tools button
+  (metronome icon, `.app-tools-button`) at EVERY size — desktop / iPad
+  landscape top bar (outer right corner, after ⓘ) and the phone / iPad
+  portrait top strip (same corner). It opens `.app-tools-popover`: a Liquid
+  Glass card dropping from that corner (fixed, 236px, the three pills
+  stacked 44px high; mounted once, hidden while closed) — it never covers
+  the neck or the tab bar (v1.0.93's floating row above the tab bar
+  covered other buttons on the iPad, and landscape had no button at all).
+  Tapping a pill opens its drawer and closes the popover; a tap outside
+  closes it; a section change closes it. Accent dot `.is-live` while the
+  metronome runs (App `toolsActive`). `--mobile-metronome-height` = 0
+  under 900px. The top bar's tabs stay centred (rule 12). Chords / Vocal:
+  no Tools button (no tools there, as before).
+  The neck / keys (Stage) fold away per screen: a small glass handle
+  (40x16) on the anchor's top edge (`.app-stage-toggle`), state per section
+  in device key `dudestar-stage-collapsed` (Songs starts folded); folded =
   `.app-stage-body` height 0 (Stage stays mounted), --stage-height follows.
+  Checked with st3b.cjs at 390, 768, 820 (portrait), 1024, 1180, 1366
+  (landscape), 1440: button present, popover opens, no overlaps, tabs fixed.
 
 ## Architecture essentials
 

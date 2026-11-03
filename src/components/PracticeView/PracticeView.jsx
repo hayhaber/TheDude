@@ -1,7 +1,6 @@
 import { ExerciseDrawer } from '../ExerciseDrawer/ExerciseDrawer';
 import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { EarTrainingModal } from '../EarTrainingModal/EarTrainingModal';
-import { PracticeStatsBar } from '../PracticeStatsBar/PracticeStatsBar';
 import { LickTrainer } from '../LickTrainer/LickTrainer';
 import { RhythmGamePanel } from '../RhythmGamePanel/RhythmGamePanel';
 import { BendingPracticePanel } from '../BendingPracticePanel/BendingPracticePanel';
@@ -15,6 +14,9 @@ import { MinuteChanges } from '../MinuteChanges/MinuteChanges';
 import { useInstrument } from '../../instruments/useInstrument';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { PracticeHome, BackButton } from './PracticeHome';
+import { itemFor, rememberPracticeTab } from './practiceLibrary';
+import { useEffect } from 'react';
 import './PracticeView.css';
 
 // `feature` is the featureCapabilities.js key gating this tab (null = works
@@ -61,35 +63,35 @@ export function PracticeView({
   metronome,
   activeTab,
   onTabChange,
-  practiceHistory,
-  practiceCatalog,
-  onSelectRecommendation,
   lickTrainer,
+  onSetLevel,
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
   const visibleTabs = TABS.filter((tab) => !tab.feature || supportsInstrument(tab.feature, instrument));
 
-  return (
-    <div className="practice-view">
-      <div>
-        <h1>{t('practice.title')}</h1>
-        <p className="subtitle">{t('practice.subtitle')}</p>
+  const dir = lang === 'he' ? 'rtl' : 'ltr';
+  // 'home' = the library (the root of Practice, stage 4 of the redesign).
+  const atHome = activeTab === 'home' || !visibleTabs.some((tab) => tab.key === activeTab);
+  useEffect(() => {
+    if (!atHome) rememberPracticeTab(activeTab);
+  }, [activeTab, atHome]);
+
+  if (atHome) {
+    return (
+      <div className="practice-view">
+        <PracticeHome onOpen={onTabChange} onSetLevel={onSetLevel} />
       </div>
+    );
+  }
 
-      <PracticeStatsBar
-        practiceHistory={practiceHistory}
-        drill={drill}
-        catalog={practiceCatalog}
-        onSelectRecommendation={onSelectRecommendation}
-      />
-
-      <div className="mode-toggle wrap practice-tabs" role="group" aria-label={t('practice.tabsLabel')}>
-        {visibleTabs.map((tab) => (
-          <button key={tab.key} type="button" className={activeTab === tab.key ? 'active' : ''} onClick={() => onTabChange(tab.key)}>
-            {t(tab.labelKey)}
-          </button>
-        ))}
+  const item = itemFor(activeTab);
+  return (
+    <div className="practice-view is-detail">
+      {/* iOS: a back button to the library; tapping the Practice tab again does the same. */}
+      <div className="practice-detail-head" dir={dir}>
+        <BackButton label={t('ph.back')} onClick={() => onTabChange('home')} />
+        {item?.title && <h1 className="ph-detail-title">{t(`ph.ex.${item.tab}.title`)}</h1>}
       </div>
 
       {activeTab === 'drills' && (

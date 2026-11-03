@@ -187,7 +187,8 @@ function App() {
   // Lifted out of PracticeView (rather than owned as local state there) so
   // the shared Stage's fretboard-content resolver below knows whether
   // Practice is currently showing Drills or Ear Training.
-  const [practiceTab, setPracticeTab] = useState('drills');
+  // 'home' = the Practice library (stage 4 of the redesign); a tool's key opens it.
+  const [practiceTab, setPracticeTab] = useState('home');
   // One-shot handoff from Studies -> Scales into Practice -> Scale Practice's
   // 'transition' mode (see ScalesView's "practice connecting positions" link)
   // — consumed and cleared by ScalePracticePanel itself so a plain manual
@@ -2220,6 +2221,10 @@ function App() {
       }}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
+      // Tapping the tab you're on again = back to its root (iOS).
+      onReselect={(key) => {
+        if (key === 'practice') setPracticeTab('home');
+      }}
       toolsActive={metronome.isRunning}
       metronomeSlot={
         activeSection === 'vocal' ? null : (
@@ -2236,7 +2241,8 @@ function App() {
         activeSection === 'freeplay' ||
         activeSection === 'coach' ||
         (activeSection === 'teacher' && !teacherStage) ||
-        (activeSection === 'practice' && practiceTab === 'minuteChanges') ? null : (
+        (activeSection === 'practice' && (practiceTab === 'minuteChanges' || practiceTab === 'home')) ||
+        (activeSection === 'bassPractice' && !bassPractice.built) ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
             pianoProps={stagePianoProps}
@@ -2372,10 +2378,8 @@ function App() {
           metronome={metronome}
           activeTab={practiceTab}
           onTabChange={setPracticeTab}
-          practiceHistory={practiceHistory}
-          practiceCatalog={practiceCatalog}
-          onSelectRecommendation={handleSelectRecommendation}
           lickTrainer={lickTrainer}
+          onSetLevel={supportsInstrument('coach', instrument) ? () => setActiveSection('coach') : null}
         />
       )}
 

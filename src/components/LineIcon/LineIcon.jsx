@@ -192,6 +192,46 @@ export const ICON_PATHS = {
       <path d="M12.2 6.8l3 3" />
     </>
   ),
+  // Practice library icons (stage 4).
+  stopwatch: (
+    <>
+      <circle cx="12" cy="13.5" r="7.5" />
+      <path d="M12 13.5V9.5M10 3h4M12 3v3M18.2 6.8l1.3-1.3" />
+    </>
+  ),
+  changes: (
+    <>
+      <path d="M4 8h13l-3.5-3.5" />
+      <path d="M20 16H7l3.5 3.5" />
+    </>
+  ),
+  note: (
+    <>
+      <path d="M9.5 17.5V5.5l9-2v11.5" />
+      <circle cx="7" cy="17.5" r="2.5" />
+      <circle cx="16" cy="15" r="2.5" />
+    </>
+  ),
+  bend: (
+    <>
+      <path d="M4 18h6c3 0 4.5-2 5.5-5.5S17.5 6 20 6" />
+      <path d="M17 3.5L20 6l-2.5 3" />
+    </>
+  ),
+  hand: (
+    <>
+      <path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11" />
+      <path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5" />
+      <path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0V14c0 4-2.7 7-6.5 7-2.4 0-3.9-1-5.2-3L3.6 15a1.5 1.5 0 0 1 2.4-1.8L8 15" />
+    </>
+  ),
+  falling: (
+    <>
+      <path d="M6 3v5M12 3v9M18 3v3" />
+      <rect x="3" y="15" width="18" height="6" rx="1.5" />
+      <path d="M9 15v6M15 15v6" opacity=".55" />
+    </>
+  ),
   ear: (
     <>
       <path d="M7 9a5 5 0 1 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0" />

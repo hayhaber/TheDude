@@ -39,7 +39,7 @@ function loadStageCollapsed() {
   }
 }
 
-export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage, onHome, toolsActive = false, children }) {
+export function AppShell({ activeSection, onSectionChange, onReselect, metronomeSlot, stage, onHome, toolsActive = false, children }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const { instrument } = useInstrument();
@@ -67,7 +67,10 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   const groupLabel = (g) => (g.sections.length === 1 ? label(g.sections[0]) : t(g.labelKey));
   const groupIcon = (g) => (g.sections.length === 1 ? g.sections[0] : g);
   const openGroup = (g) => {
-    if (g === activeGroup && inGroupSwitch) return;
+    if (g === activeGroup && inGroupSwitch) {
+      onReselect?.(activeSection);
+      return;
+    }
     const last = lastSectionIn(g.key);
     onSectionChange(g.sections.some((s) => s.key === last) ? last : g.sections[0].key);
   };

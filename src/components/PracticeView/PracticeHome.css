@@ -1,0 +1,238 @@
+/* Practice library — iOS inset-grouped list (stage 4 of the redesign). */
+.ph {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ph-head .subtitle {
+  margin: 2px 0 0;
+}
+
+.ph-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ph-section-title {
+  margin: 0;
+  padding-inline: 4px;
+  font-size: var(--type-title3);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--text-h);
+}
+
+.ph-group {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.ph-row,
+.ph-continue {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease;
+}
+
+.ph-row:hover,
+.ph-continue:hover {
+  background: var(--fill-tertiary);
+}
+
+.ph-row:active,
+.ph-continue:active {
+  background: var(--fill-secondary);
+}
+
+/* Hairline between rows, inset to the text (after the icon tile). */
+.ph-row + .ph-row::before,
+.ph-row + .ph-more::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline-start: 58px;
+  inset-inline-end: 0;
+  border-top: 0.5px solid var(--separator);
+}
+
+.ph-tile {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  color: #fff;
+}
+
+.ph-tile.is-play {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.ph-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ph-title {
+  font-size: var(--type-callout);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--text-h);
+}
+
+.ph-desc {
+  font-size: var(--type-footnote);
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.ph-continue {
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  min-height: 64px;
+}
+
+.ph-continue .ph-title {
+  font-size: var(--type-headline);
+  font-weight: 600;
+}
+
+.ph-tag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 149, 0, 0.14);
+  color: #b25f00;
+  font-size: var(--type-caption);
+  font-weight: 600;
+}
+
+:root[data-theme='dark'] .ph-tag {
+  background: rgba(255, 159, 10, 0.2);
+  color: #ffb340;
+}
+
+.ph-chev {
+  flex: none;
+  display: inline-flex;
+  color: var(--text-secondary);
+  opacity: 0.45;
+}
+
+[dir='rtl'] .ph-chev {
+  transform: scaleX(-1);
+}
+
+.ph-more {
+  position: relative;
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: start;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 16px 0 58px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--type-subhead);
+  cursor: pointer;
+}
+
+[dir='rtl'] .ph-more {
+  padding: 0 58px 0 16px;
+}
+
+.ph-more:hover {
+  background: var(--fill-tertiary);
+}
+
+.ph-invite {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--accent-bg);
+  color: var(--text-h);
+  font-size: var(--type-subhead);
+}
+
+.ph-invite span {
+  flex: 1;
+}
+
+.ph-invite-btn {
+  flex: none;
+  height: 32px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: var(--type-subhead);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Detail view: the iOS back button above the tool. */
+.ph-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0 8px 0 2px;
+  margin-inline-start: -6px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--type-body);
+  cursor: pointer;
+}
+
+[dir='rtl'] .ph-back svg {
+  transform: scaleX(-1);
+}
+
+.ph-detail-title {
+  margin: 4px 0 0;
+}
+
+@media (max-width: 480px) {
+  .ph-desc {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

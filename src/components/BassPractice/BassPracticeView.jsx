@@ -4,7 +4,28 @@ import { BpmField } from '../Metronome/BpmField';
 import { CATEGORIES, EXERCISES, KEY_NAMES, LEVELS, buildExercise, exerciseById } from '../../music/bass/bassPractice';
 import '../ScalePracticePanel/ScalePracticePanel.css';
 import '../PracticeView/PracticeView.css';
+import { LibraryRow, BackButton } from '../PracticeView/PracticeHome';
+import '../PracticeView/PracticeHome.css';
+import { loadOnboarding } from '../../onboarding/onboardingState';
 import './BassPractice.css';
+
+// The bass library (stage 4 of the redesign, the same list as the guitar's
+// Practice — rule 10): a group per category, a row per exercise; the
+// student's level (the first-run answer for bass) folds the exercises made
+// for lower levels into one "N more basic" row and tags the harder ones.
+const CAT_LOOK = {
+  technique: { color: '#30B0C7', icon: 'hand' },
+  scales: { color: '#007AFF', icon: 'path' },
+  arpeggios: { color: '#AF52DE', icon: 'note' },
+  grooves: { color: '#FF9500', icon: 'metronome' },
+};
+const RANGE = { 1: [0, 1], 2: [1, 2], 3: [2, 3] }; // exercise level -> student levels it is made for
+function bassLevel() {
+  const ob = loadOnboarding();
+  if (ob?.instrument !== 'bass') return null;
+  return { new: 0, few: 1, songs: 2 }[ob.level] ?? null;
+}
+const firstSentence = (txt) => (txt ? txt.split(/(?<=[.!?])\s/)[0] : '');
 
 const PREFS = 'dudestar-p-bass-practice';
 const MODES = ['play', 'wait', 'listen'];
@@ -28,6 +49,7 @@ export function BassPracticeView({ bp, metronome }) {
   // Opens empty, like the guitar's Practice: nothing until an exercise is chosen
   // (the last choice per tab is only remembered for this visit).
   const [chosen, setChosen] = useState({});
+  const [expanded, setExpanded] = useState({});
   const cat = prefs.cat;
   const ex = exerciseById(chosen[cat]);
 
@@ -58,8 +80,6 @@ export function BassPracticeView({ bp, metronome }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [built]);
 
-  const list = EXERCISES.filter((e) => e.cat === cat);
-  const levels = [...new Set(list.map((e) => e.level))];
   const running = bp.running;
   const steps = built?.steps ?? [];
   const cur = bp.stepIndex >= 0 ? steps[bp.stepIndex] : null;
@@ -68,51 +88,67 @@ export function BassPracticeView({ bp, metronome }) {
   const strip = built?.bars ? steps.map((s, i) => ({ s, i })).filter(({ s }) => s.bar === curBar) : steps.map((s, i) => ({ s, i }));
   const labelOf = (s) => (bp.labels === 'finger' ? (s.finger === 0 ? '0' : s.finger ?? s.noteName) : bp.labels === 'degree' && s.degreeLabel ? s.degreeLabel : s.noteName);
 
-  return (
-    <div className="practice-view bass-practice" dir={dir}>
-      <div>
-        <h1>{t('bp.title')}</h1>
-        <p className="subtitle">{t('bp.subtitle')}</p>
+  if (!ex) {
+    const level = bassLevel();
+    return (
+      <div className="practice-view bass-practice" dir={dir}>
+        <div className="ph" dir={dir}>
+          <header className="ph-head">
+            <h1>{t('bp.title')}</h1>
+            <p className="subtitle">{t('bp.subtitle')}</p>
+          </header>
+          {CATEGORIES.map((c) => {
+            const all = EXERCISES.filter((e) => e.cat === c.key).sort((a, b) => a.level - b.level);
+            const basic = level == null ? [] : all.filter((e) => RANGE[e.level][1] < level);
+            const main = all.filter((e) => !basic.includes(e));
+            const open = expanded[c.key];
+            const row = (e) => (
+              <LibraryRow
+                key={e.id}
+                color={CAT_LOOK[c.key].color}
+                icon={CAT_LOOK[c.key].icon}
+                title={tx(e.title)}
+                desc={firstSentence(tx(e.why))}
+                tag={level != null && RANGE[e.level][0] > level ? t('ph.challenge') : null}
+                onClick={() => {
+                  save({ cat: c.key });
+                  setChosen((ch) => ({ ...ch, [c.key]: e.id }));
+                }}
+              />
+            );
+            return (
+              <section key={c.key} className="ph-section">
+                <h2 className="ph-section-title">{tx(c.label)}</h2>
+                <div className="ph-group">
+                  {main.map(row)}
+                  {open && basic.map(row)}
+                  {basic.length > 0 && (
+                    <button type="button" className="ph-more" onClick={() => setExpanded((x) => ({ ...x, [c.key]: !open }))}>
+                      {open ? t('ph.fewer') : basic.length === 1 ? t('ph.moreOne') : t('ph.more', { count: basic.length })}
+                    </button>
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
       </div>
+    );
+  }
 
-      <div className="mode-toggle wrap practice-tabs" role="group" aria-label={t('bp.title')}>
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            className={cat === c.key ? 'active' : ''}
-            onClick={() => {
-              if (running) bp.stop();
-              save({ cat: c.key });
-            }}
-          >
-            {tx(c.label)}
-          </button>
-        ))}
+  return (
+    <div className="practice-view bass-practice is-detail" dir={dir}>
+      <div className="practice-detail-head" dir={dir}>
+        <BackButton
+          label={t('bp.title')}
+          onClick={() => {
+            if (running) bp.stop();
+            setChosen((ch) => ({ ...ch, [cat]: undefined }));
+          }}
+        />
       </div>
 
       <div className="scale-practice-controls bp-controls">
-        <label className="scale-practice-field bp-field-wide">
-          <span className="scale-practice-field-label">{t('bp.exercise')}</span>
-          <select
-            value={chosen[cat] ?? ''}
-            disabled={running}
-            onChange={(e) => setChosen((c) => ({ ...c, [cat]: e.target.value || undefined }))}
-          >
-            <option value="">{t('bp.choose')}</option>
-            {levels.map((lv) => (
-              <optgroup key={lv} label={tx(LEVELS[lv])}>
-                {list
-                  .filter((e) => e.level === lv)
-                  .map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {tx(e.title)}
-                    </option>
-                  ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
 
         {ex?.keyed && (
           <label className="scale-practice-field">
@@ -193,8 +229,6 @@ export function BassPracticeView({ bp, metronome }) {
           </div>
         )}
       </div>
-
-      {!ex && <p className="bp-empty">{t('bp.empty')}</p>}
 
       {ex && (
         <section className="bp-card" dir={dir}>

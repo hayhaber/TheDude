@@ -155,6 +155,30 @@ no tools).
   `.app-stage-body` height 0 (Stage stays mounted), --stage-height follows.
   Checked with st3b.cjs at 390, 768, 820 (portrait), 1024, 1180, 1366
   (landscape), 1440: button present, popover opens, no overlaps, tabs fixed.
+- STAGE 4 (v1.0.95): Practice = an iOS inset-grouped LIBRARY instead of 9
+  tabs + 8 zero stats. App `practiceTab` 'home' (new default) = the list
+  (`PracticeView/PracticeHome.jsx` + pure `practiceLibrary.js`); a tool's
+  key = that tool under an iOS back button ("‹ Practice", `BackButton`;
+  re-tapping the Practice tab also pops to the list — AppShell
+  `onReselect`). Rows (`LibraryRow`: colour tile + LineIcon, title, one-line
+  description, chevron) in groups chords / rhythm / solo (Lead) / technique
+  / ear (`PRACTICE_GROUPS`, Apple system colours); `PRACTICE_ITEMS` gives
+  each tool its group, icon, feature gate and the levels it's made for
+  (min..max, 0 new .. 3 advanced). Personal: "Continue" (last tool,
+  `dudestar-p-practice-last`), "For you" (coach's active goal -> tools, else
+  by level, max 3), level = coach intake level > onboarding level (new 0 /
+  few 1 / songs 2, raised by `estimateLevel` from the perf log) > perf log;
+  unknown -> full list + "tell us your level" (opens the Coach; guitar).
+  Tools made for levels BELOW the student fold into one "N more basic
+  exercises" row per group (expandable, never gone); above the level =
+  orange "Challenging" tag. Summary line under the title = today's minutes
+  + day streak from the perf log, only once there's practice. No neck on
+  the list. Bass (rule 10): BassPracticeView with no exercise = the same
+  library (its 4 categories, 27 exercises, level from the bass first-run
+  answer, description = first sentence of `why`), detail = the old view
+  minus the category pills / exercise select, with the back button; no neck
+  on the bass list. New LineIcons stopwatch / changes / note / bend / hand /
+  falling; text `ph.*` in `i18n/tips/practicehome.js`.
 
 ## Architecture essentials
 

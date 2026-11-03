@@ -65,6 +65,9 @@ export const STRINGS = {
     'nav.guitarpro': 'GuitarPro',
     'nav.pianopro': 'PianoPro',
     'nav.mainLabel': 'Main navigation',
+    'nav.tools': 'Tools',
+    'nav.stageHide': 'Hide the neck',
+    'nav.stageShow': 'Show the neck',
     'nav.openMenu': 'Open navigation menu',
     'nav.closeMenu': 'Close navigation menu',
 
@@ -1527,6 +1530,9 @@ export const STRINGS = {
     'nav.guitarpro': 'GuitarPro',
     'nav.pianopro': 'PianoPro',
     'nav.mainLabel': 'ניווט ראשי',
+    'nav.tools': 'כלים',
+    'nav.stageHide': 'הסתר את הצוואר',
+    'nav.stageShow': 'הצג את הצוואר',
     'nav.openMenu': 'פתיחת תפריט ניווט',
     'nav.closeMenu': 'סגירת תפריט ניווט',
 

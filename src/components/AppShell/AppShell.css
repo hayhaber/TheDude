@@ -255,6 +255,17 @@
      + max-height/overflow-y let it grow upward in place — like a bottom
      sheet — when MetronomeBar.jsx's expanded panel renders inline below
      the compact bar, capped so it can't ever cover the whole screen. */
+  /* Stage 3: the tools row is no longer a fixed bar — it floats above the
+     tab bar only while the top-strip Tools button has it open, and takes
+     no room from the screen. */
+  .app-shell {
+    --mobile-metronome-height: 0px;
+  }
+
+  .app-mobile-metronome:not(.is-open) {
+    display: none !important;
+  }
+
   .app-mobile-metronome {
     display: flex;
     flex-direction: row;
@@ -390,7 +401,7 @@
      flex-basis:0 children). Here just trim the reserved space to the
      compact pills' own height. */
   .app-content {
-    padding-bottom: calc(var(--bottom-tabs-height) + 60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--bottom-tabs-height) + var(--mobile-metronome-height) + env(safe-area-inset-bottom, 0px));
   }
 
   .app-mobile-metronome .metronome-bar,
@@ -478,4 +489,84 @@
   height: 32px;
   font-size: 13px;
   border-radius: 7px;
+}
+
+/* Phone/tablet: the floating tools row (open from the top strip's Tools
+   button) — a Liquid Glass card just above the tab bar. */
+@media (max-width: 899px) {
+  .app-mobile-metronome.is-open {
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--bottom-tabs-height) + env(safe-area-inset-bottom, 0px) + 8px);
+    padding: 10px;
+    border: none;
+    border-radius: 22px;
+    box-shadow: var(--glass-shadow), 0 12px 32px rgba(0, 0, 0, 0.14);
+    z-index: 7;
+    animation: app-tools-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes app-tools-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+    }
+  }
+}
+
+.app-tools-button {
+  position: relative;
+}
+
+/* Metronome / drums running: a small accent dot on the Tools button. */
+.app-tools-button.is-live::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--glass-control);
+}
+
+/* The neck / keys fold away per screen (stage 3). The handle sits on the
+   anchor's top edge. */
+.app-stage-anchor {
+  position: relative;
+}
+
+.app-stage-toggle {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  width: 46px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--glass-control);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.app-stage-toggle:hover {
+  color: var(--text);
+}
+
+.app-stage-anchor.is-collapsed {
+  padding-top: 0;
+  padding-bottom: 0;
+  min-height: 14px;
+}
+
+.app-stage-anchor.is-collapsed .app-stage-body {
+  height: 0;
+  overflow: hidden;
 }

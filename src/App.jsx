@@ -2220,6 +2220,7 @@ function App() {
       }}
       activeSection={activeSection}
       onSectionChange={setActiveSection}
+      toolsActive={metronome.isRunning}
       metronomeSlot={
         activeSection === 'vocal' ? null : (
           <>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LineIcon } from '../LineIcon/LineIcon';
 import { SECTIONS, NAV_GROUPS, lastSectionIn, rememberSection } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
@@ -26,7 +26,20 @@ function SectionIcon({ section, instrument, size }) {
 // instrument, its features and the tools. <900px: the logo + settings at the
 // top, metronome/tuner and the feature tabs at the bottom.
 // Settings live only on the home screen's Tools card (no gear in here).
-export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage, onHome, children }) {
+// The neck/keys can be folded away per screen (stage 3 of the redesign):
+// remembered per section on this device; Songs starts folded (its search
+// screens never use the neck).
+const STAGE_KEY = 'dudestar-stage-collapsed';
+const STAGE_DEFAULT_COLLAPSED = { songs: true };
+function loadStageCollapsed() {
+  try {
+    return { ...STAGE_DEFAULT_COLLAPSED, ...JSON.parse(localStorage.getItem(STAGE_KEY) || '{}') };
+  } catch {
+    return { ...STAGE_DEFAULT_COLLAPSED };
+  }
+}
+
+export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage, onHome, toolsActive = false, children }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const { instrument } = useInstrument();
@@ -61,6 +74,34 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   useEffect(() => {
     rememberSection(activeSection);
   }, [activeSection]);
+
+  // Phone/tablet: metronome / drums / tuner sit behind ONE Tools button in
+  // the top strip (stage 3): a floating glass row above the tab bar.
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const toolsRowRef = useRef(null);
+  const toolsBtnRef = useRef(null);
+  useEffect(() => {
+    if (!toolsOpen) return undefined;
+    const onDown = (e) => {
+      if (toolsRowRef.current?.contains(e.target) || toolsBtnRef.current?.contains(e.target)) return;
+      setToolsOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [toolsOpen]);
+  useEffect(() => setToolsOpen(false), [activeSection]);
+
+  const [stageCollapsedMap, setStageCollapsedMap] = useState(loadStageCollapsed);
+  const stageCollapsed = !!stageCollapsedMap[activeSection];
+  const toggleStage = () => {
+    const next = { ...stageCollapsedMap, [activeSection]: !stageCollapsed };
+    setStageCollapsedMap(next);
+    try {
+      localStorage.setItem(STAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* private mode */
+    }
+  };
   // The pinned instrument's height, as --stage-height on the root, so a
   // section can size a panel to exactly the room left above it.
   const stageRef = useRef(null);
@@ -79,6 +120,18 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
 
       <div className="app-mobile-settings">
         <div className="app-mobile-settings-icons">
+          {!bare && !noTools && (
+            <button
+              ref={toolsBtnRef}
+              type="button"
+              className={'icon-circle-button app-tools-button' + (toolsOpen ? ' active' : '') + (toolsActive ? ' is-live' : '')}
+              aria-label={t('nav.tools')}
+              aria-expanded={toolsOpen}
+              onClick={() => setToolsOpen((v) => !v)}
+            >
+              <LineIcon name="metronome" size={19} strokeWidth={1.7} />
+            </button>
+          )}
           <InfoTooltipsToggle />
         </div>
       </div>
@@ -136,11 +189,27 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
           )}
           {children}
         </div>
-        {stage && <div className="app-stage-anchor" ref={stageRef}>{stage}</div>}
+        {stage && (
+          <div className={'app-stage-anchor' + (stageCollapsed ? ' is-collapsed' : '')} ref={stageRef}>
+            <button
+              type="button"
+              className="app-stage-toggle"
+              onClick={toggleStage}
+              aria-expanded={!stageCollapsed}
+              aria-label={t(stageCollapsed ? 'nav.stageShow' : 'nav.stageHide')}
+              title={t(stageCollapsed ? 'nav.stageShow' : 'nav.stageHide')}
+            >
+              <svg viewBox="0 0 24 12" width="22" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d={stageCollapsed ? 'M5 9l7-6 7 6' : 'M5 3l7 6 7-6'} />
+              </svg>
+            </button>
+            <div className="app-stage-body">{stage}</div>
+          </div>
+        )}
       </main>
 
       {!bare && !noTools && (
-        <div className="app-mobile-metronome">
+        <div className={'app-mobile-metronome' + (toolsOpen ? ' is-open' : '')} ref={toolsRowRef}>
           {metronomeSlot}
           <TunerBar />
         </div>

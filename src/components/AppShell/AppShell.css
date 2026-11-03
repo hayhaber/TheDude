@@ -9,14 +9,21 @@
    home screen, and everything for it is one tap away here. */
 .app-topbar {
   flex: 0 0 auto;
-  display: flex;
+  /* Three columns, the middle one centred on the BAR (not on the room left
+     between the sides): the tabs never move when the tools at the side
+     change — the Chord Library has no tools and the tabs jumped right
+     (user, 2026-11-03). */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 14px;
   min-height: calc(64px + env(safe-area-inset-top, 0px));
   /* iPad (landscape, >= 900px): the bar sits under the status bar */
   padding: calc(10px + env(safe-area-inset-top, 0px)) 24px 10px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border-bottom: 0.5px solid var(--separator);
   /* LTR order: tools on the right, in both languages. */
   direction: ltr;
 }
@@ -24,9 +31,10 @@
 /* The features: .mode-toggle.wrap pills (shared tab styling), centred in
    the room between the brand and the tools (dir = the page's language). */
 .app-topbar-nav.mode-toggle.wrap {
-  flex: 1 1 auto;
   min-width: 0;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  justify-self: center;
   /* Centred while it fits; when it doesn't, it scrolls from the start
      instead of cutting the first pill off (plain `center` did). */
   justify-content: safe center;
@@ -64,6 +72,7 @@
 }
 
 .app-topbar-brand {
+  justify-self: start;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -77,6 +86,7 @@
 }
 
 .app-topbar-tools {
+  justify-self: end;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -207,10 +217,10 @@
     right: 0;
     z-index: 5;
     height: var(--mobile-top-strip);
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    -webkit-backdrop-filter: blur(14px) saturate(1.4);
-    backdrop-filter: blur(14px) saturate(1.4);
-    box-shadow: 0 1px 0 var(--border);
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+    box-shadow: 0 0.5px 0 var(--separator);
     pointer-events: none;
   }
 
@@ -259,8 +269,11 @@
     min-height: 0;
     max-height: 70vh;
     overflow-y: auto;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
+    /* Liquid Glass, one material with the tab bar under it. */
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+    border-top: 0.5px solid var(--separator);
     z-index: 5;
   }
 
@@ -289,12 +302,12 @@
     right: 0;
     bottom: 0;
     height: calc(var(--bottom-tabs-height) + env(safe-area-inset-bottom, 0px));
-    /* iOS tab bar: translucent material + hairline, no drop shadow. */
-    background: color-mix(in srgb, var(--surface) 82%, transparent);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    backdrop-filter: saturate(180%) blur(20px);
-    border-top: 0.5px solid var(--divider);
-    box-shadow: none;
+    /* Liquid Glass tab bar: translucent material, a light rim on top. */
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+    border-top: none;
+    box-shadow: inset 0 1px 0 var(--glass-edge), 0 -0.5px 0 var(--separator);
     z-index: 5;
   }
 

@@ -9,9 +9,12 @@
   min-width: 0;
   padding: 5px 8px 5px 9px;
   border-radius: 980px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  /* Liquid Glass control (floats over the content). */
+  background: var(--glass-control);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid transparent;
+  box-shadow: var(--glass-shadow);
   color: var(--text);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;

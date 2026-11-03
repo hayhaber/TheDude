@@ -67,6 +67,20 @@ one instrument is applied to the same exercise on every other instrument
 that has it (e.g. ear-training auto-advance guitar/piano -> singing;
 bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
 
+**11. Apple's Liquid Glass where it fits** (user's general design rule,
+2026-11-03). The navigation / control layer that floats ABOVE the content
+— tab bar, top bars, the tools row, round buttons, sheets and popovers,
+floating transport keys — uses the glass material (index.css tokens
+`--glass-bg` / `--glass-control` / `--glass-filter` / `--glass-shadow`,
+utility `.glass`; dark values under data-theme dark). Content itself
+(cards, lists, text, the necks and drawn devices) stays solid.
+
+**12. Nothing jumps.** Shared chrome keeps its physical position across
+screens: the desktop top bar is a 3-column grid (`minmax(0,1fr) auto
+minmax(0,1fr)`) so the tabs stay centred on the bar whatever the side
+areas hold (user saw the pills jump right on the Chord Library, which has
+no tools).
+
 ## Apple-style UI/UX redesign (started 2026-11-03)
 
 - User's request: bring the whole app to Apple's standards (less clutter,

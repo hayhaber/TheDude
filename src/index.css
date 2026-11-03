@@ -62,6 +62,15 @@
   --fill-secondary: rgba(120, 120, 128, 0.16);
   --separator: rgba(60, 60, 67, 0.18);
   --tap-min: 44px;
+  /* Liquid Glass (Apple, 2025) — ONLY for the layer that floats above the
+     content: tab bar, top bars, tools row, round buttons, sheets. Never for
+     the content itself (cards, lists, text). */
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-control: rgba(255, 255, 255, 0.72);
+  --glass-edge: rgba(255, 255, 255, 0.75);
+  --glass-rim: rgba(0, 0, 0, 0.07);
+  --glass-filter: blur(22px) saturate(185%);
+  --glass-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 0.5px var(--glass-rim), 0 6px 20px rgba(0, 0, 0, 0.08);
 
   /* Shared height for small inline controls (dropdowns, segmented toggle
      buttons, pill buttons) that commonly sit side by side in the same
@@ -157,6 +166,11 @@
   --fill-tertiary: rgba(118, 118, 128, 0.24);
   --fill-secondary: rgba(118, 118, 128, 0.32);
   --separator: rgba(84, 84, 88, 0.6);
+  --glass-bg: rgba(28, 28, 30, 0.58);
+  --glass-control: rgba(44, 44, 46, 0.66);
+  --glass-edge: rgba(255, 255, 255, 0.12);
+  --glass-rim: rgba(255, 255, 255, 0.08);
+  --glass-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 0.5px var(--glass-rim), 0 6px 20px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
 
@@ -292,6 +306,13 @@ button {
    components' CSS happening to agree. Add this class alongside a
    component's own class (for its own specific selectors, e.g. `.active`)
    rather than replacing it. */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow);
+}
+
 .icon-circle-button {
   /* 15% smaller than the original 44px/19px (per explicit design
      feedback) — still comfortably tappable, just less dominant next to
@@ -299,12 +320,15 @@ button {
   width: 37px;
   height: 37px;
   border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  /* Liquid Glass round button. */
+  border: none;
+  background: var(--glass-control);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
   color: var(--text);
   font-size: 16px;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glass-shadow);
   transition: background 0.15s ease, transform 0.12s ease, color 0.15s ease, border-color 0.15s ease;
 }
 

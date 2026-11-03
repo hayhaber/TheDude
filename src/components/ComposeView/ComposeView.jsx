@@ -77,7 +77,7 @@ export function ComposeView({
   training,
   savedProgressions,
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
   const isGuitar = instrument === 'guitar';
   // Explicit, not `!isGuitar` — with Bass as a 3rd instrument value,
@@ -98,8 +98,13 @@ export function ComposeView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trainingGroupCount]);
 
+  // Stage 5 (Apple-style cleanup): with nothing typed the screen is just the
+  // field, the suggestions and Saved; Play comes right under the chords (the
+  // primary action), the secondary tools after it.
+  const empty = progression.length === 0;
+
   return (
-    <div className="compose-view">
+    <div className={'compose-view' + (empty ? ' is-empty' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <div>
         <h1>{t('compose.title')}</h1>
         {/* isPiano, not isGuitar — Bass is a 3rd instrument value and, like
@@ -133,126 +138,6 @@ export function ComposeView({
         />
       )}
 
-      <div className="compose-toggle-row">
-        <DisplayOptionsMenu
-          mode={mode}
-          setMode={setMode}
-          labelMode={labelMode}
-          setLabelMode={setLabelMode}
-          colorMode={colorMode}
-          setColorMode={setColorMode}
-          twoHandView={twoHandView}
-          setTwoHandView={setTwoHandView}
-          showHeatMap={showHeatMap}
-          setShowHeatMap={setShowHeatMap}
-        />
-        {/* Save the current progression, copy a share link, or export it —
-            bundled behind one trigger the same way Display Options bundles
-            several toggles. Works identically for both instruments (a
-            progression is just chord text + capo/mode), only the PNG
-            export button itself is guitar-only (see SavedProgressionsPanel's
-            own comment on why). */}
-        <SavedProgressionsPanel
-          progression={progression}
-          progressionText={progressionText}
-          setProgressionText={setProgressionText}
-          capoFret={capoFret}
-          setCapoFret={setCapoFret}
-          mode={mode}
-          setMode={setMode}
-          soundingKey={(isGuitar ? soundingKey : null) ?? scaleAnalysis?.key ?? null}
-          isGuitar={isGuitar}
-          savedProgressions={savedProgressions}
-        />
-        {/* Transpose — rewrites the actual typed progression a half step at
-            a time (fitting a song to a singer's range), unlike Capo which
-            never changes what's typed. Works for both instruments, unlike
-            Smooth/Capo below, since shifting chord letters has an obvious
-            piano equivalent too. Always rendered (disabled, not hidden, with
-            nothing to transpose) — same convention ChordChips' own Prev/Next
-            already uses for "nothing to act on yet" — so the control is
-            discoverable even before you've typed a progression. */}
-        <div className="compose-transpose">
-          <button
-            type="button"
-            className="compose-transpose-button"
-            aria-label={t('compose.transposeDown')}
-            disabled={progression.length === 0}
-            onClick={() => onTranspose(-1)}
-          >
-            −
-          </button>
-          <span className="compose-transpose-key">
-            {t('compose.keyLabel', { key: scaleAnalysis?.key ?? '—' })}
-            <InfoTooltip text={t('tip.compose.keyTranspose')} />
-          </span>
-          <button
-            type="button"
-            className="compose-transpose-button"
-            aria-label={t('compose.transposeUp')}
-            disabled={progression.length === 0}
-            onClick={() => onTranspose(1)}
-          >
-            +
-          </button>
-          {/* Capo — guitar-only, same reason Smooth is guitar-only: a
-              capo's "shape you finger vs. what it actually sounds like"
-              concept has no piano equivalent. Sits right next to the Key
-              readout above (both are "what key/shape you're actually
-              playing in" info), rather than up in the input row. */}
-          {isGuitar && <CapoInput capoFret={capoFret} setCapoFret={setCapoFret} onCancelCapo={onCancelCapo} />}
-        </div>
-        {/* Triad voice-leading overlay — guitar-only (a fretboard shape's
-            "which finger moves" concept has no piano equivalent, unlike
-            Inversion above which is piano-only for the same reason). */}
-        {isGuitar && (
-          <span className="compose-smooth-toggle-row">
-            <button
-              type="button"
-              className={'compose-smooth-toggle' + (smoothMode ? ' active' : '')}
-              aria-pressed={smoothMode}
-              onClick={() => setSmoothMode((v) => !v)}
-            >
-              <SparklesIcon />
-              {t('compose.smooth')}
-            </button>
-            <InfoTooltip text={t('compose.smoothTooltip')} label={t('compose.smoothTooltipLabel')} />
-          </span>
-        )}
-        {/* Sends this progression (with every chord's own chosen fretboard
-            voicing) to Practice -> Chord Changes to practice switching
-            between exactly these shapes. Sits right next to Smart — both
-            are "what to do with this progression" actions. Guitar-only —
-            a "position"/voicing concept has no piano equivalent, same
-            reasoning as Smooth/Capo above. */}
-        {isGuitar && <TrainingHandoff training={training} hasProgression={progression.length > 0} />}
-        {/* Piano's equivalent of guitar's Smooth above — same idea (an
-            overlay that picks each chord's voicing to minimize movement
-            from the previous one), different engine (inversion choice
-            instead of fretboard shape). Doesn't erase any chord's manually
-            set inversion underneath — see App.jsx's activePianoInversion. */}
-        {isPiano && (
-          <span className="compose-smooth-toggle-row">
-            <button
-              type="button"
-              className={'compose-smooth-toggle' + (pianoSmoothMode ? ' active' : '')}
-              aria-pressed={pianoSmoothMode}
-              onClick={() => setPianoSmoothMode((v) => !v)}
-            >
-              <SparklesIcon />
-              {t('compose.smooth')}
-            </button>
-            <InfoTooltip text={t('compose.pianoSmoothTooltip')} label={t('compose.smoothTooltipLabel')} />
-          </span>
-        )}
-      </div>
-
-      {smoothMode && isGuitar && (
-        <p className="compose-smooth-hint" dir="auto">
-          {t('compose.smoothHint')}
-        </p>
-      )}
-
       {showHeatMap && <HeatMapLegend />}
 
       {/* Piano-only: the literal "C - E - G" style readout the inversion
@@ -261,7 +146,7 @@ export function ComposeView({
           keyboard voicing does). */}
       {isPiano && pianoChordToneSummary && <p className="compose-piano-inversion-summary">{pianoChordToneSummary}</p>}
 
-      <PlaybackControls autoPlay={autoPlay} onToggleAutoPlay={setAutoPlay} onPlay={handlePlay} disabled={!currentPosition} />
+      {!empty && <PlaybackControls autoPlay={autoPlay} onToggleAutoPlay={setAutoPlay} onPlay={handlePlay} disabled={!currentPosition} />}
 
       {isGuitar && isValid && hasPositions && (
         <PositionControls
@@ -303,6 +188,131 @@ export function ComposeView({
         </p>
       )}
 
+      <div className="compose-toggle-row">
+        {!empty && (
+        <DisplayOptionsMenu
+          mode={mode}
+          setMode={setMode}
+          labelMode={labelMode}
+          setLabelMode={setLabelMode}
+          colorMode={colorMode}
+          setColorMode={setColorMode}
+          twoHandView={twoHandView}
+          setTwoHandView={setTwoHandView}
+          showHeatMap={showHeatMap}
+          setShowHeatMap={setShowHeatMap}
+        />
+        )}
+        {/* Save the current progression, copy a share link, or export it —
+            bundled behind one trigger the same way Display Options bundles
+            several toggles. Works identically for both instruments (a
+            progression is just chord text + capo/mode), only the PNG
+            export button itself is guitar-only (see SavedProgressionsPanel's
+            own comment on why). */}
+        <SavedProgressionsPanel
+          progression={progression}
+          progressionText={progressionText}
+          setProgressionText={setProgressionText}
+          capoFret={capoFret}
+          setCapoFret={setCapoFret}
+          mode={mode}
+          setMode={setMode}
+          soundingKey={(isGuitar ? soundingKey : null) ?? scaleAnalysis?.key ?? null}
+          isGuitar={isGuitar}
+          savedProgressions={savedProgressions}
+        />
+        {/* Transpose — rewrites the actual typed progression a half step at
+            a time (fitting a song to a singer's range), unlike Capo which
+            never changes what's typed. Works for both instruments, unlike
+            Smooth/Capo below, since shifting chord letters has an obvious
+            piano equivalent too. Always rendered (disabled, not hidden, with
+            nothing to transpose) — same convention ChordChips' own Prev/Next
+            already uses for "nothing to act on yet" — so the control is
+            discoverable even before you've typed a progression. */}
+        {!empty && (
+        <div className="compose-transpose">
+          <button
+            type="button"
+            className="compose-transpose-button"
+            aria-label={t('compose.transposeDown')}
+            disabled={progression.length === 0}
+            onClick={() => onTranspose(-1)}
+          >
+            −
+          </button>
+          <span className="compose-transpose-key">
+            {t('compose.keyLabel', { key: scaleAnalysis?.key ?? '—' })}
+            <InfoTooltip text={t('tip.compose.keyTranspose')} />
+          </span>
+          <button
+            type="button"
+            className="compose-transpose-button"
+            aria-label={t('compose.transposeUp')}
+            disabled={progression.length === 0}
+            onClick={() => onTranspose(1)}
+          >
+            +
+          </button>
+          {/* Capo — guitar-only, same reason Smooth is guitar-only: a
+              capo's "shape you finger vs. what it actually sounds like"
+              concept has no piano equivalent. Sits right next to the Key
+              readout above (both are "what key/shape you're actually
+              playing in" info), rather than up in the input row. */}
+          {isGuitar && <CapoInput capoFret={capoFret} setCapoFret={setCapoFret} onCancelCapo={onCancelCapo} />}
+        </div>
+        )}
+        {/* Triad voice-leading overlay — guitar-only (a fretboard shape's
+            "which finger moves" concept has no piano equivalent, unlike
+            Inversion above which is piano-only for the same reason). */}
+        {isGuitar && !empty && (
+          <span className="compose-smooth-toggle-row">
+            <button
+              type="button"
+              className={'compose-smooth-toggle' + (smoothMode ? ' active' : '')}
+              aria-pressed={smoothMode}
+              onClick={() => setSmoothMode((v) => !v)}
+            >
+              <SparklesIcon />
+              {t('compose.smooth')}
+            </button>
+            <InfoTooltip text={t('compose.smoothTooltip')} label={t('compose.smoothTooltipLabel')} />
+          </span>
+        )}
+        {/* Sends this progression (with every chord's own chosen fretboard
+            voicing) to Practice -> Chord Changes to practice switching
+            between exactly these shapes. Sits right next to Smart — both
+            are "what to do with this progression" actions. Guitar-only —
+            a "position"/voicing concept has no piano equivalent, same
+            reasoning as Smooth/Capo above. */}
+        {isGuitar && !empty && <TrainingHandoff training={training} hasProgression={progression.length > 0} />}
+        {/* Piano's equivalent of guitar's Smooth above — same idea (an
+            overlay that picks each chord's voicing to minimize movement
+            from the previous one), different engine (inversion choice
+            instead of fretboard shape). Doesn't erase any chord's manually
+            set inversion underneath — see App.jsx's activePianoInversion. */}
+        {isPiano && !empty && (
+          <span className="compose-smooth-toggle-row">
+            <button
+              type="button"
+              className={'compose-smooth-toggle' + (pianoSmoothMode ? ' active' : '')}
+              aria-pressed={pianoSmoothMode}
+              onClick={() => setPianoSmoothMode((v) => !v)}
+            >
+              <SparklesIcon />
+              {t('compose.smooth')}
+            </button>
+            <InfoTooltip text={t('compose.pianoSmoothTooltip')} label={t('compose.smoothTooltipLabel')} />
+          </span>
+        )}
+      </div>
+
+      {smoothMode && isGuitar && (
+        <p className="compose-smooth-hint" dir="auto">
+          {t('compose.smoothHint')}
+        </p>
+      )}
+
+      {!empty && (
       <InsightsPanel
         scaleAnalysis={scaleAnalysis}
         emphasizeMood={emphasizeMood}
@@ -315,6 +325,7 @@ export function ComposeView({
         voiceLeadingMessage={voiceLeadingMessage}
         activeChordText={isValid ? activeChordText : ''}
       />
+      )}
     </div>
   );
 }

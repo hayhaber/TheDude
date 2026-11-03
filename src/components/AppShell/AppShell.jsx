@@ -108,6 +108,24 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
     </button>
   );
 
+  const groupSwitch = (where) =>
+    inGroupSwitch && activeGroup.sections.length > 1 ? (
+      <div className={'app-group-switch mode-toggle ' + where} role="tablist" aria-label={t('nav.group.switch')} dir={dir}>
+        {activeGroup.sections.map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            role="tab"
+            aria-selected={activeSection === s.key}
+            className={activeSection === s.key ? 'active' : ''}
+            onClick={() => onSectionChange(s.key)}
+          >
+            {label(s)}
+          </button>
+        ))}
+      </div>
+    ) : null;
+
   const [stageCollapsedMap, setStageCollapsedMap] = useState(loadStageCollapsed);
   const stageCollapsed = !!stageCollapsedMap[activeSection];
   const toggleStage = () => {
@@ -134,6 +152,10 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
     <div className={'app-shell' + (bare ? ' is-bare' : '') + (noTools ? ' no-tools' : '')}>
       {/* Phone/tablet: the round Home button (back to the main menu), top-left. */}
       <HomeButton className="app-mobile-brand" onClick={() => onHome?.()} />
+
+      {/* Phone/tablet: the group's segmented control sits in the top strip,
+          between Home and the round buttons — iOS's navigation-bar segment. */}
+      {groupSwitch('is-strip')}
 
       <div className="app-mobile-settings">
         <div className="app-mobile-settings-icons">
@@ -175,24 +197,10 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
             <InfoTooltipsToggle />
           </div>
         </header>
-        <div className="app-section-content">
-          {/* Inside a group of two: an iOS segmented control between them. */}
-          {inGroupSwitch && activeGroup.sections.length > 1 && (
-            <div className="app-group-switch mode-toggle" role="tablist" aria-label={t('nav.group.switch')} dir={dir}>
-              {activeGroup.sections.map((s) => (
-                <button
-                  key={s.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeSection === s.key}
-                  className={activeSection === s.key ? 'active' : ''}
-                  onClick={() => onSectionChange(s.key)}
-                >
-                  {label(s)}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="app-section-content" dir={dir}>
+          {/* Inside a group of two: an iOS segmented control between them
+              (desktop: above the title; phone/tablet: in the top strip). */}
+          {groupSwitch('is-inline')}
           {children}
         </div>
         {stage && (

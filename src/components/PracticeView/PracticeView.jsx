@@ -87,7 +87,7 @@ export function PracticeView({
 
   const item = itemFor(activeTab);
   return (
-    <div className="practice-view is-detail">
+    <div className="practice-view is-detail" dir={dir}>
       {/* iOS: a back button to the library; tapping the Practice tab again does the same. */}
       <div className="practice-detail-head" dir={dir}>
         <BackButton label={t('ph.back')} onClick={() => onTabChange('home')} />

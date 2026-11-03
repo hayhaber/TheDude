@@ -66,7 +66,7 @@ export function StudiesSection({
   pianoCurriculumProgress,
   onChordBuilderStage,
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
   const courseSupported = (key) => !COURSE_FEATURE[key] || supportsInstrument(COURSE_FEATURE[key], instrument);
 
@@ -84,7 +84,7 @@ export function StudiesSection({
       : CHORDS_BY_EAR_LESSONS;
 
   return (
-    <div className="studies-section">
+    <div className="studies-section" dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <div>
         <h1>{t('studies.title')}</h1>
       </div>

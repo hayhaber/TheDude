@@ -52,10 +52,10 @@ export function ImproviseView({
   handleAnalyzeSolo,
 }) {
   const [tab, setTab] = useState('lick');
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   return (
-    <div className="improvise-view">
+    <div className="improvise-view" dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <div>
         <h1>{t('improvise.title')}</h1>
         <p className="subtitle">{t('improvise.subtitle')}</p>

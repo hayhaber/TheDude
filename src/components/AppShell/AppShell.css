@@ -589,3 +589,39 @@
   height: 0;
   overflow: hidden;
 }
+
+/* Where the group switch shows: above the title on desktop, in the fixed
+   top strip on phone/tablet (stage 5 — it used to take a row of its own
+   above the title there, and stacked on the Teacher's own Today | Path). */
+.app-group-switch.is-strip {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .app-group-switch.is-inline {
+    display: none;
+  }
+
+  .app-group-switch.mode-toggle.is-strip {
+    display: grid;
+    position: fixed;
+    z-index: 6;
+    top: calc(var(--mobile-top-pad, 6px) + env(safe-area-inset-top, 0px) + 2.5px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(340px, calc(100vw - 216px)); /* clears Home + the two round buttons */
+    margin: 0;
+    background: var(--glass-control);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .app-group-switch.is-strip button {
+    height: 28px;
+    padding: 0 6px;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

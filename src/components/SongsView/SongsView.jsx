@@ -78,7 +78,7 @@ export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSong
     return () => onTabModeChange?.(false);
   }, [mode, onTabModeChange]);
   const [query, setQuery] = useState('');
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
 
   const trimmed = query.trim();
@@ -86,7 +86,7 @@ export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSong
   const modeText = SEARCH_MODE_TEXT[mode];
 
   return (
-    <div className="songs-view">
+    <div className="songs-view" dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <div>
         <h1>{t('songs.title')}</h1>
         <p className="subtitle">{t('songs.subtitle')}</p>

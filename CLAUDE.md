@@ -179,6 +179,18 @@ no tools).
   minus the category pills / exercise select, with the back button; no neck
   on the bass list. New LineIcons stopwatch / changes / note / bend / hand /
   falling; text `ph.*` in `i18n/tips/practicehome.js`.
+- STAGE 5, part 1 (v1.0.96): phone/tablet — the group segmented control
+  moved INTO the fixed top strip (`.app-group-switch.is-strip`, glass,
+  centred between Home and the round buttons, width min(340px, 100vw −
+  216px)); desktop keeps it above the title (`.is-inline`). Reading
+  direction: `.app-section-content` now carries dir (RTL in Hebrew), and so
+  do the Compose / Improvise / Songs / Studies roots and the Practice detail
+  view — titles, subtitles and the views' columns align right in Hebrew on
+  every screen (Compose / Improvise / Studies / Songs used to sit left).
+  Compose: empty = only the field, suggestions and Save (no Display /
+  transpose / Smart / training / Play / Insights); with chords, Play comes
+  right under the chips, then positions, then the secondary tools row,
+  then Insights.
 
 ## Architecture essentials
 

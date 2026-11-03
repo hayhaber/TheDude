@@ -497,6 +497,12 @@ bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
   4th score tile shows seconds left instead of all-time accuracy. Best streak
   ever per mode = `earTrainingBestStreak:vocal-<mode>` (personal), shown as a
   tile (2026-10-31, parity with guitar/piano).
+  TIMED pace, every ear training (guitar/piano/bass useEarTraining + singing,
+  user's request 2026-11-03): the result shows only `TIMED_HOLD_CORRECT_MS`
+  500 / `TIMED_HOLD_WRONG_MS` 1200 (exported from useEarTraining; was 2000
+  for both on guitar/piano, 1100/2600 on singing), and the piano's one-key-
+  at-a-time melodic reveal does NOT extend the hold in Timed. Measured:
+  ~0.5 s / ~1.2 s; a 60 s singing run went from ~32 to ~58 questions.
 - **Three instruments** (chosen on the home screen): Guitar (6-string), Piano, Bass (4-string, E-A-D-G:
   Compose, Practice (Bass Practice, below), GuitarPro). Registered in
   `src/instruments/instrumentRegistry.js`; which app sections/features each

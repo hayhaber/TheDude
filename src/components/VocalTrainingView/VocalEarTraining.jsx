@@ -4,6 +4,7 @@ import { getAudioContext, prepareAudioOutput } from '../../audio/audioContext';
 import { preparePiano, schedulePianoNotes } from '../../audio/pianoPlayer';
 import { LOUDNESS, loadLoudnessKey } from '../../hooks/useVocalExercise';
 import { VOCAL_EAR_LEVELS, VOCAL_EAR_MODES, pcName, vocalEarQuestion } from '../../music/vocal/vocalEar';
+import { TIMED_HOLD_CORRECT_MS, TIMED_HOLD_WRONG_MS } from '../../hooks/useEarTraining';
 import { TIMED_CHALLENGE_DURATION_S, loadBestStreak, loadLifetimeStats, saveBestStreak, saveLifetimeStats } from '../../music/earTraining';
 import { midiName } from '../../music/vocal/voiceRange';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -179,7 +180,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
     advanceRef.current = setTimeout(() => {
       advanceRef.current = null;
       next();
-    }, ok ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS);
+    }, timed ? (ok ? TIMED_HOLD_CORRECT_MS : TIMED_HOLD_WRONG_MS) : ok ? AUTO_ADVANCE_CORRECT_MS : AUTO_ADVANCE_WRONG_MS);
   };
 
   // Start (and Again after time's up): a fresh session; Timed starts its clock.

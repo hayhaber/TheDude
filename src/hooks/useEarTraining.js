@@ -43,6 +43,11 @@ const AUTO_ADVANCE_QUESTION_KINDS = new Set([
 ]);
 const AUTO_ADVANCE_CORRECT_MS = 1100;
 const AUTO_ADVANCE_WRONG_MS = 2600;
+// Timed mode is a race against the clock: the result is shown only briefly
+// (a wrong answer a little longer, so the right one can be seen) — user's
+// request 2026-11-03, same values in the singers' ear training.
+export const TIMED_HOLD_CORRECT_MS = 500;
+export const TIMED_HOLD_WRONG_MS = 1200;
 // Performance log (coach/perfLog.js): answers are gathered per
 // mode/difficulty/pace and logged when the session finishes (Finish, the
 // Timed clock running out), when the mode/difficulty/pace changes mid-
@@ -329,7 +334,12 @@ export function useEarTraining() {
     // can be studied), and auto-advances only under the Timed clock.
     const autoFlows = AUTO_ADVANCE_QUESTION_KINDS.has(question?.kind);
     if (!autoFlows && practiceMode !== 'timed') return;
-    const holdMs = autoFlows
+    const timed = practiceMode === 'timed';
+    const holdMs = timed
+      ? wasCorrect
+        ? TIMED_HOLD_CORRECT_MS
+        : TIMED_HOLD_WRONG_MS
+      : autoFlows
       ? wasCorrect
         ? AUTO_ADVANCE_CORRECT_MS
         : AUTO_ADVANCE_WRONG_MS
@@ -337,6 +347,7 @@ export function useEarTraining() {
     // Piano: a melodic answer is shown one key at a time (EarTrainingModal's
     // useSequentialReveal, 650 ms per note) — stay long enough to see it.
     const melodic =
+      !timed &&
       instrument === 'piano' &&
       !question?.harmonic &&
       ['direction', 'interval', 'scaleid'].includes(question?.kind) &&

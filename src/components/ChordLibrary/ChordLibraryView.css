@@ -20,8 +20,6 @@
   align-items: center;
   gap: 6px;
   margin: 0;
-  font-size: 22px;
-  font-weight: 650;
   letter-spacing: -0.01em;
   color: var(--text-h);
 }
@@ -167,8 +165,8 @@
   height: var(--control-height);
   padding: 0 18px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text-h);
   font-size: 14px;
   font-weight: 600;
@@ -372,9 +370,9 @@
   flex: 0 0 auto;
   height: 34px;
   padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--fill-tertiary);
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -382,7 +380,6 @@
 }
 
 .cl-adv-btn.is-on {
-  border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-bg);
 }
@@ -407,9 +404,9 @@
   min-width: 44px;
   height: 40px;
   padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--fill-tertiary);
   color: var(--text-h);
   font-size: 16px;
   font-weight: 600;
@@ -423,7 +420,6 @@
 }
 
 .cl-chip.is-on {
-  border-color: var(--accent);
   background: var(--accent);
   color: #fff;
 }

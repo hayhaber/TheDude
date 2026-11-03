@@ -6,7 +6,7 @@
   margin-top: 0;
   margin-bottom: var(--space-6);
   color: var(--text-secondary);
-  font-size: 17px;
+  font-size: var(--type-subhead);
 }
 
 .compose-view > * + * {
@@ -39,8 +39,8 @@
   font-weight: 600;
   line-height: 1;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;

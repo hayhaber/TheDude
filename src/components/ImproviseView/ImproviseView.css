@@ -6,7 +6,7 @@
   margin-top: 0;
   margin-bottom: var(--space-6);
   color: var(--text-secondary);
-  font-size: 17px;
+  font-size: var(--type-subhead);
 }
 
 .improvise-view > * + * {

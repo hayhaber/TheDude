@@ -105,8 +105,8 @@
 .cloud-modal-btn {
   height: 44px;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text-h);
   font: inherit;
   font-weight: 600;

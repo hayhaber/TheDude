@@ -2,7 +2,7 @@
   margin-top: 0;
   margin-bottom: var(--space-5);
   color: var(--text-secondary);
-  font-size: 17px;
+  font-size: var(--type-subhead);
 }
 
 /* Deliberately its OWN styling, not the shared .mode-toggle segmented-
@@ -28,9 +28,9 @@
 .studies-course-tabs button {
   height: var(--control-height);
   padding: 0 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--fill-tertiary);
   color: var(--text);
   font-size: 14px;
   font-weight: 590;
@@ -41,11 +41,11 @@
 }
 
 .studies-course-tabs button:hover {
-  background: rgba(120, 120, 128, 0.12);
+  background: var(--fill-secondary);
 }
 
+/* Same chips as .mode-toggle.wrap (stage 1 redesign). */
 .studies-course-tabs button.active {
-  background: var(--accent-bg);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  color: #fff;
 }

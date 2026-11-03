@@ -111,18 +111,22 @@
 .mode-toggle.wrap button {
   min-width: 0;
   flex: 0 0 auto;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
+  /* iOS chips: a soft gray fill, no outline; the chosen one is filled with
+     the accent (stage 1 of the Apple-style redesign, 2026-11-03 — was a
+     white pill with a hairline border, accent outline when chosen). */
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--fill-tertiary, rgba(120, 120, 128, 0.12));
+  color: var(--text);
 }
 
 .mode-toggle.wrap button:hover {
-  background: rgba(120, 120, 128, 0.12);
+  background: var(--fill-secondary, rgba(120, 120, 128, 0.16));
 }
 
 .mode-toggle.wrap button.active {
-  background: var(--accent-bg);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
   box-shadow: none;
 }

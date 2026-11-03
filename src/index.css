@@ -37,6 +37,32 @@
   --space-8: 32px;
   --radius-card: 20px;
 
+  /* Design system (Apple HIG text styles + one corner scale) — stage 1 of
+     the UI redesign, 2026-11-03. New and touched UI uses these instead of
+     ad-hoc pixel values. */
+  --type-large-title: 34px;
+  --type-title1: 28px;
+  --type-title2: 22px;
+  --type-title3: 20px;
+  --type-headline: 17px;
+  --type-body: 17px;
+  --type-callout: 16px;
+  --type-subhead: 15px;
+  --type-footnote: 13px;
+  --type-caption: 12px;
+  --type-caption2: 11px;
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+  /* iOS system fills / separators */
+  --fill-tertiary: rgba(120, 120, 128, 0.12);
+  --fill-secondary: rgba(120, 120, 128, 0.16);
+  --separator: rgba(60, 60, 67, 0.18);
+  --tap-min: 44px;
+
   /* Shared height for small inline controls (dropdowns, segmented toggle
      buttons, pill buttons) that commonly sit side by side in the same
      row — without a shared explicit height, each one's padding+line-height
@@ -128,6 +154,9 @@
      there's no bright surface to catch a real highlight off of. */
   --inset-shadow-dark: rgba(0, 0, 0, 0.6);
   --inset-shadow-light: rgba(255, 255, 255, 0.07);
+  --fill-tertiary: rgba(118, 118, 128, 0.24);
+  --fill-secondary: rgba(118, 118, 128, 0.32);
+  --separator: rgba(84, 84, 88, 0.6);
   color-scheme: dark;
 }
 
@@ -164,13 +193,24 @@ h2 {
   color: var(--text-h);
 }
 
+/* Every screen's title = the iOS Large Title. */
 h1 {
-  font-size: 40px;
-  letter-spacing: -0.015em;
+  font-size: var(--type-large-title);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.021em;
   margin: 0 0 4px;
   @media (max-width: 1024px) {
     font-size: 30px;
   }
+}
+
+/* The one-line description under a screen's title. */
+.subtitle {
+  color: var(--text-secondary);
+  font-size: var(--type-subhead);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 }
 h2 {
   font-size: 19px;

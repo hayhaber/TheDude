@@ -24,8 +24,6 @@
 
 .tc-top h1 {
   margin: 0;
-  font-size: 26px;
-  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -95,8 +93,8 @@
   height: var(--control-height, 40px);
   padding: 0 20px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text-h);
   font: inherit;
   font-size: 15px;
@@ -765,9 +763,6 @@
     padding: 14px;
   }
 
-  .tc-top h1 {
-    font-size: 22px;
-  }
 }
 
 /* One-minute changes inside a lesson: the lesson card already has the title. */

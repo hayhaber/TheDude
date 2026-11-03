@@ -36,8 +36,8 @@
   min-height: var(--control-height);
   padding: 0 16px;
   border-radius: 980px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;

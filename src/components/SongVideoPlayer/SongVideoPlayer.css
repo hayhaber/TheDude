@@ -186,8 +186,8 @@
   font-weight: 590;
   padding: 7px 14px;
   border-radius: 980px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text);
   cursor: pointer;
 }
@@ -354,8 +354,8 @@
   font-weight: 590;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text);
   cursor: pointer;
   flex-shrink: 0;

@@ -14,7 +14,7 @@
 .gp-view .subtitle {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 17px;
+  font-size: var(--type-subhead);
 }
 
 .gp-view > .mode-toggle {
@@ -109,6 +109,8 @@
 }
 
 .gp-mixer .mode-toggle.wrap button.active {
+  /* On/off track toggles: tinted, not the filled "chosen" chip. */
+  background: var(--accent-bg);
   color: var(--accent);
 }
 
@@ -166,8 +168,8 @@
   height: var(--control-height);
   padding: 0 18px;
   border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text);
   cursor: pointer;
 }
@@ -711,8 +713,8 @@
   min-width: 52px;
   padding: 4px 8px;
   border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 650;

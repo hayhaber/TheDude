@@ -67,6 +67,42 @@ one instrument is applied to the same exercise on every other instrument
 that has it (e.g. ear-training auto-advance guitar/piano -> singing;
 bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
 
+## Apple-style UI/UX redesign (started 2026-11-03)
+
+- User's request: bring the whole app to Apple's standards (less clutter,
+  fewer menus, clear features), in STAGES proposed one at a time; every
+  stage must be reversible. Baseline before any change = branch
+  `ui-baseline-v1.0.89` on GitHub (tag pushes are refused by the proxy, so
+  each stage's end state is saved as a branch `ui-stage<N>-v<version>`).
+  Roll back a stage = `git revert` its commits on main (never force-push).
+- Stages: 1 design foundations (text styles, one button/chip system, one
+  icon set, standard screen title) · 2 navigation 8 -> 5 tabs (guitar:
+  Learn = Teacher|Studies, Practice, Chords, Play = Songs|GuitarPro,
+  Create = Compose|Improvise; a segmented control inside a merged tab; the
+  user saw and approved a mockup) · 3 screen chrome (neck only where used,
+  metronome/drums/tuner behind one Tools button) · 4 Practice regrouped
+  (one select, one-line description + level per exercise, stats after the
+  first run) · 5 per-screen cleanup (one primary action, the rest in a
+  "More" sheet, empty states) · 6 guidance (first-visit note, "try it in"
+  links, settings from the profile) · 7 polish (motion, dark mode, 44 pt
+  targets, contrast, parity across instruments).
+- STAGE 1 (v1.0.90): tokens in index.css — `--type-*` (HIG text styles:
+  large-title 34 … caption2 11), `--radius-xs..xl/pill`, `--fill-tertiary`
+  / `--fill-secondary` / `--separator` (dark values under data-theme dark),
+  `--tap-min` 44. h1 = Large Title (34 / 30 under 1024px, 700); global
+  `.subtitle` = subhead 15 secondary. ONE icon set: `components/LineIcon`
+  (`ICON_PATHS` + `LineIcon {name, size, strokeWidth}`, moved out of
+  HomeMenu) used by the home shortcuts AND the nav (sections.js `icon` is a
+  LineIcon name, `pianoIcon` for the piano; the emoji / red GP pick /
+  TrainingIcon / GuitarIcon nav icons are gone). Bottom tab bar = iOS:
+  translucent blur material, hairline, 24px icons, 10px labels. Chips
+  (`.mode-toggle.wrap`, Studies course tabs, Chord Library key/type strips)
+  = gray fill, no outline, chosen = accent fill + white (GP mixer track
+  toggles stay tinted = on/off). Secondary buttons (white pill + hairline,
+  20 classes, scratchpad btnfix.py) = gray fill `--fill-tertiary`, border
+  1px transparent (sizes unchanged); device faces (amp, recorder, studio,
+  metronome, drums, tuner, necks, keys) untouched.
+
 ## Architecture essentials
 
 - **Home screen** (`components/HomeMenu/`): opens first (App `home` state;

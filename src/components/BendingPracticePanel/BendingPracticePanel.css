@@ -192,8 +192,8 @@
   font-weight: 590;
   padding: 6px 14px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text);
   cursor: pointer;
 }

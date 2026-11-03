@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { LineIcon } from '../LineIcon/LineIcon';
 import { SECTIONS } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
@@ -10,10 +11,14 @@ import { supportsInstrument } from '../../instruments/featureCapabilities';
 import '../ModeToggle/ModeToggle.css';
 import './AppShell.css';
 
-// A section's `icon` is either an emoji string (rendered as-is) or a
-// component reference (a custom SVG like TrainingIcon) — see sections.js.
-function SectionIcon({ icon: Icon }) {
-  return typeof Icon === 'string' ? Icon : <Icon />;
+// Every section icon comes from the shared LineIcon set (see sections.js) —
+// one drawing style across the top bar, the bottom tabs and the home cards.
+const ICON_SIZE = 17;
+const TAB_ICON_SIZE = 24;
+
+function SectionIcon({ section, instrument, size }) {
+  const name = (instrument === 'piano' && section.pianoIcon) || section.icon;
+  return <LineIcon name={name} size={size} strokeWidth={1.6} />;
 }
 
 // Persistent navigation chrome — the inside of an instrument (the home
@@ -82,7 +87,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
                 title={label(s)}
               >
                 <span className="app-topbar-nav-icon" aria-hidden="true">
-                  <SectionIcon icon={s.icon} />
+                  <SectionIcon section={s} instrument={instrument} size={ICON_SIZE} />
                 </span>
                 <span className="app-topbar-nav-label">{label(s)}</span>
               </button>
@@ -117,7 +122,7 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             onClick={() => onSectionChange(s.key)}
           >
             <span className="app-bottom-tab-icon" aria-hidden="true">
-              <SectionIcon icon={s.icon} />
+              <SectionIcon section={s} instrument={instrument} size={TAB_ICON_SIZE} />
             </span>
             {label(s)}
           </button>

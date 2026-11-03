@@ -1,0 +1,71 @@
+/* First-visit note (stage 6): a tinted inset card above the screen title. */
+.first-visit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 680px;
+  margin: 0 0 16px;
+  padding: 12px 12px 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-bg);
+  color: var(--text-h);
+  animation: first-visit-in 0.28s ease-out both;
+}
+
+[dir='rtl'] .first-visit {
+  padding: 12px 14px 12px 12px;
+}
+
+.first-visit-icon {
+  flex: none;
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.first-visit-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--type-subhead);
+  line-height: 1.4;
+  text-align: start;
+}
+
+.first-visit-ok {
+  flex: none;
+  min-height: 34px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: var(--type-subhead);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@keyframes first-visit-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .first-visit {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .first-visit {
+    flex-wrap: wrap;
+  }
+  .first-visit-text {
+    flex-basis: calc(100% - 32px);
+  }
+  .first-visit-ok {
+    margin-inline-start: auto;
+  }
+}

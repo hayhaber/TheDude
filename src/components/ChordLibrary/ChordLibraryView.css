@@ -742,3 +742,9 @@
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
 }
+
+/* Stage 6: "Learn it in a lesson" under the simple card. */
+.chord-library .cl-try {
+  max-width: 520px;
+  margin-top: 12px;
+}

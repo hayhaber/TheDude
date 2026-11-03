@@ -441,7 +441,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
         </div>
         <div className="home-top-end">
           {/* Who's practising (local profiles), at the far right. */}
-          <ProfileChip />
+          <ProfileChip onSettings={() => onOpen({ tool: 'settings', card: CARDS[((Math.round(targetRef.current) % N) + N) % N].key })} />
           {onContinue && (
             <button type="button" className="home-continue" onClick={onContinue}>
               {t('home.continue')}

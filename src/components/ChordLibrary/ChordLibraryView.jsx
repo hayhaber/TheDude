@@ -29,6 +29,9 @@ import './ChordLibraryView.css';
 // tuning, neck labels, notes + formula, Pick / Add / Practise changes, and
 // all shapes as a grid grouped root position / inversions.
 
+import { TryIn } from '../Teacher/TryIn';
+import { lessonForChord } from '../../teacher/tryIn';
+
 const STORE = 'dudestar-p-chord-library'; // per profile
 const ALL_BASSES = 'auto';
 const DEFAULTS = { root: 9, type: 'major', bass: ALL_BASSES, tuning: 'standard', labels: 'note', advanced: false, autoPlay: true };
@@ -44,7 +47,7 @@ function load() {
 }
 
 export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [leftHanded] = useLeftHanded();
   const [prefs, setPrefs] = useState(load);
   const [pick, setPick] = useState({ group: 0, index: 0 });
@@ -117,6 +120,8 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
 
   const symbol = group ? appSymbol(root, type, group.bass) : null;
   const baseSymbol = appSymbol(root, type);
+  const lessonOf = prefs.tuning === 'standard' ? lessonForChord(baseSymbol) : null;
+  const lessonLink = lessonOf ? { tool: 'lesson', id: lessonOf.id, title: lessonOf.title[lang] ?? lessonOf.title.en } : null;
   const formula = tones.map((x) => x.interval).join(' – ');
   const otherBasses = Array.from({ length: 12 }, (_, pc) => pc).filter((pc) => !tones.some((x) => x.pc === pc));
   const inversionLabel = (i) => t(`chordlib.inv${Math.min(i, 3)}`);
@@ -221,6 +226,9 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
           )}
         </section>
       )}
+
+      {/* Stage 6: the lesson that teaches this chord (open chords so far). */}
+      {!advanced && lessonLink && <TryIn className="cl-try" title={false} specs={[lessonLink]} />}
 
       {advanced && (
         <>

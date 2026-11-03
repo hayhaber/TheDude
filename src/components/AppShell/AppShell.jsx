@@ -7,6 +7,7 @@ import { HomeButton } from '../HomeButton/HomeButton';
 import { RewardToast } from '../Achievements/RewardToast';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
+import { FirstVisit } from '../FirstVisit/FirstVisit';
 import { supportsInstrument } from '../../instruments/featureCapabilities';
 import '../ModeToggle/ModeToggle.css';
 import './AppShell.css';
@@ -201,6 +202,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
           {/* Inside a group of two: an iOS segmented control between them
               (desktop: above the title; phone/tablet: in the top strip). */}
           {groupSwitch('is-inline')}
+          {!bare && <FirstVisit key={instrument + ':' + activeSection} section={activeSection} instrument={instrument} />}
           {children}
         </div>
         {stage && (

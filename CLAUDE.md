@@ -200,6 +200,22 @@ no tools).
   (note / finger — was a row of its own) and Delete for imports (was a
   button in the row); on phones the select is a row of its own and Add +
   ••• share the next.
+- STAGE 6 (v1.0.98): guidance. (a) `components/FirstVisit` = a tinted
+  note above a screen's title the FIRST time it opens (how to use it, not
+  what it is) + "Got it"; seen per profile AND instrument in personal key
+  `dudestar-p-seen-intro` (["guitar:chords", …]); text `intro.<section>` or
+  `intro.<section>.<instrument>` in `i18n/tips/intro.js` (no text = no
+  note); AppShell renders it after the group switch (not in Vocal).
+  (b) "Try it in…": `teacher/tryIn.js` `TRY_IN[lessonId]` = launchBus specs
+  shown as LibraryRow rows (`components/Teacher/TryIn.jsx`) on the lesson's
+  done screen; `lessonForChord('Em')` = the written lesson whose skills hold
+  `chord-<name>` -> a "Learn it in a lesson" row under the Chord Library's
+  simple card (standard tuning). launchBus gained `{tool:'chordLibrary',
+  root, type}` (writes the library prefs, remounts it via App `chordLibN`)
+  and `{tool:'lesson', id}` (App teacherStart.lesson -> TeacherView
+  `initialLesson`). (c) ProfileChip `onSettings` -> a Settings button in the
+  profile popover's foot (opens the settings tool screen, Home returns to
+  the card you were on).
 
 ## Architecture essentials
 

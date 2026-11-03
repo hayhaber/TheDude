@@ -654,6 +654,31 @@ function App() {
   function launchPractice(spec) {
     const { tool } = spec;
     const finite = (v) => Number.isFinite(v);
+    // "Try it in…" (stage 6): the Chord Library on a chord, or a named lesson.
+    if (tool === 'chordLibrary' || tool === 'lesson') {
+      if (home) {
+        setHomeCard(null);
+        enteredCardRef.current = null;
+        setHome(false);
+        setLeftHome(true);
+      }
+      if (tool === 'chordLibrary') {
+        try {
+          const key = 'dudestar-p-chord-library';
+          const prev = JSON.parse(localStorage.getItem(key)) ?? {};
+          localStorage.setItem(key, JSON.stringify({ ...prev, root: spec.root, type: spec.type, bass: 'auto', advanced: false }));
+        } catch {
+          /* storage unavailable */
+        }
+        setChordLibN((n) => n + 1);
+        setActiveSection('chords');
+      } else {
+        setTeacherStart((s) => ({ screen: 'lesson', lesson: spec.id, n: s.n + 1 }));
+        setActiveSection('teacher');
+      }
+      window.scrollTo(0, 0);
+      return true;
+    }
     const tabFor = {
       lick: 'trainer',
       rhythm: 'rhythm',
@@ -791,6 +816,7 @@ function App() {
   const [teacherStage, setTeacherStage] = useState(null);
   // Which teacher screen the home card opened: {screen, n} (n re-keys the view).
   const [teacherStart, setTeacherStart] = useState({ screen: 'today', n: 0 });
+  const [chordLibN, setChordLibN] = useState(0);
   // Piano -> Chord Library: the voicing's keys [{midi, hand, finger}] and the
   // handler that hears the keys played on the Stage keyboard.
   const [pianoChordKeys, setPianoChordKeys] = useState(null);
@@ -2459,6 +2485,7 @@ function App() {
       )}
       {activeSection === 'chords' && instrument !== 'piano' && (
         <ChordLibraryView
+          key={chordLibN}
           onStage={setChordLibStage}
           onAddToCompose={addToCompose}
           onPracticeChanges={(chords) => launchPracticeRef.current({ tool: 'minuteChanges', chords })}
@@ -2468,7 +2495,7 @@ function App() {
       {activeSection === 'coach' && <CoachView />}
       {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} metronome={metronome} />}
       {activeSection === 'teacher' && (
-        <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} onStage={setTeacherStage} />
+        <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} />
       )}
     </AppShell>
   );

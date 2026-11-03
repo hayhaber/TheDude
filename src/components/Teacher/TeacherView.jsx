@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { CoachView } from '../Coach/CoachView';
 import { MinuteChanges } from '../MinuteChanges/MinuteChanges';
-import { LESSONS, LEVELS, SKILLS } from '../../teacher/curriculum/guitar';
+import { LESSONS, LEVELS, SKILLS, lessonById } from '../../teacher/curriculum/guitar';
 import { recordPass, saveIntake, useTeacher } from '../../teacher/teacherState';
 import { allSkillStatus, nextLesson, openHomework } from '../../teacher/mastery';
 import { onPerf } from '../../coach/perfLog';
@@ -234,7 +234,7 @@ function PathView({ state, tx, onOpen }) {
   );
 }
 
-export function TeacherView({ initialScreen = 'today', onStage }) {
+export function TeacherView({ initialScreen = 'today', initialLesson = null, onStage }) {
   const { t, lang } = useLanguage();
   const tx = useCallback((x) => (x ? x[lang] ?? x.en : ''), [lang]);
   const [state] = useTeacher();
@@ -248,6 +248,13 @@ export function TeacherView({ initialScreen = 'today', onStage }) {
   // The card's "Lesson" shortcut goes straight into the next written lesson.
   useEffect(() => {
     if (initialScreen !== 'lesson') return;
+    // A "try it in" link names its lesson; the card's shortcut takes the next.
+    const named = initialLesson ? lessonById(initialLesson) : null;
+    if (named?.steps) {
+      setLesson(named);
+      setScreen('lesson');
+      return;
+    }
     const l = nextLesson(state);
     if (l?.steps && state.intake) {
       setLesson(l);

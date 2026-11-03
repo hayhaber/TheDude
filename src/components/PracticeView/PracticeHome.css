@@ -236,3 +236,26 @@
     text-overflow: ellipsis;
   }
 }
+
+/* "Try it in…" (stage 6): the same rows, under a lesson / in the Chord Library. */
+.try-in {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  text-align: start;
+}
+
+.try-in-title {
+  margin: 0;
+  padding-inline: 4px;
+  font-size: var(--type-footnote);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.try-in-group {
+  background: var(--fill-tertiary);
+}

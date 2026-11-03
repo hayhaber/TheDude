@@ -257,6 +257,18 @@
   font-size: 14px;
 }
 
+.profile-pop-foot {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.profile-settings {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
 .profile-new span {
   font-size: 17px;
   line-height: 1;

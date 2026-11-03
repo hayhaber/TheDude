@@ -20,6 +20,8 @@ import { FINGERS, SHAPES, skillById } from '../../teacher/curriculum/guitar';
 import { finishLesson, reachStep, recordPass, useTeacher } from '../../teacher/teacherState';
 import { homeworkStatus } from '../../teacher/mastery';
 import '../ChordLibrary/ChordLibraryView.css';
+import { TRY_IN } from '../../teacher/tryIn';
+import { TryIn } from './TryIn';
 
 const midisOf = (frets) => frets.map((f, s) => (f == null ? null : STD_TUNING[s] + f)).filter((m) => m != null);
 
@@ -506,6 +508,7 @@ export function LessonPlayer({ lesson, onClose, onStage }) {
           <h2>{t('teacher.done.title')}</h2>
           <p className="tc-text">{t('teacher.done.text')}</p>
           {lesson.homework && <HomeworkList items={lesson.homework.map((item) => ({ item, lesson }))} tx={tx} />}
+          <TryIn specs={TRY_IN[lesson.id]} />
           <button type="button" className="tc-btn is-primary" onClick={onClose}>
             {t('teacher.done.ok')}
           </button>

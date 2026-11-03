@@ -6,6 +6,7 @@ import { LickTrainer, ImportPanel, NeckLabelToggle } from '../LickTrainer/LickTr
 import { GpSongPlayer } from './GpSongPlayer';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { onSoundFontProgress, prefetchGpSoundFont } from '../../audio/alphaTabSound';
+import { MoreMenu } from '../MoreMenu/MoreMenu';
 import './GuitarProView.css';
 
 // MusicXML too (e.g. sheet music converted from a PDF): alphaTab reads it the same way.
@@ -78,6 +79,8 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   // Bass / keys / vocals / drums are shown, not practiced.
   const canPractice = !!solo && !solo.displayOnly && !solo.practiceOff;
+  // Neck note / finger labels: guitar (Song + Practice) and bass, not piano.
+  const showNeckLabels = !!solo && (trainer.bassMode || !songOnly);
   const micWithBand =
     !songOnly &&
     view === 'practice' && trainer.backingTracks.length > 0 && getAudioInputSettings().inputMode === 'microphone';
@@ -125,22 +128,6 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
             ))}
           </select>
         </label>
-        {solo?.source === 'import' && (
-          // Two taps: the file goes from every device.
-          <button
-            type="button"
-            className={'gp-delete' + (confirmDelete === solo.id ? ' danger' : '')}
-            onClick={() => {
-              if (confirmDelete === solo.id) {
-                setConfirmDelete(null);
-                trainer.deleteImport(solo.id);
-              } else setConfirmDelete(solo.id);
-            }}
-            disabled={busy}
-          >
-            {t(confirmDelete === solo?.id ? 'lickTrainer.deleteConfirm' : 'lickTrainer.delete')}
-          </button>
-        )}
         {/* Adding a file: one obvious target — click it, or drop a file on it
             (or anywhere on this page). */}
         <button
@@ -154,10 +141,31 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
             <path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="gp-drop-text">
-            <strong>{t(dragging ? 'gp.dropHere' : 'gp.addTitle')}</strong>
-            <span>{t('gp.addHint')}</span>
+            <strong>{t(dragging ? 'gp.dropHere' : 'gp.addShort')}</strong>
           </span>
         </button>
+        {/* Secondary: the neck's labels and deleting an import. */}
+        {(showNeckLabels || solo?.source === 'import') && (
+          <MoreMenu label={t('gp.more')}>
+            {showNeckLabels && <NeckLabelToggle trainer={trainer} t={t} />}
+            {solo?.source === 'import' && (
+              // Two taps: the file goes from every device.
+              <button
+                type="button"
+                className="more-menu-item is-danger"
+                onClick={() => {
+                  if (confirmDelete === solo.id) {
+                    setConfirmDelete(null);
+                    trainer.deleteImport(solo.id);
+                  } else setConfirmDelete(solo.id);
+                }}
+                disabled={busy}
+              >
+                {t(confirmDelete === solo?.id ? 'lickTrainer.deleteConfirm' : 'lickTrainer.delete')}
+              </button>
+            )}
+          </MoreMenu>
+        )}
         <input
           ref={fileRef}
           type="file"
@@ -209,8 +217,6 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
         <p className="lt-muted">{t('lickTrainer.noSolos')}</p>
       ) : (
         <>
-          {/* Bass: the neck's note/finger labels; no Practice. */}
-          {trainer.bassMode && <NeckLabelToggle trainer={trainer} t={t} />}
           {/* Piano and bass: song view only (the instrument lights up with the part). */}
           {!songOnly && (
             <>
@@ -246,7 +252,6 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
                 <InfoTooltip text={t('tip.tools.gpView')} />
               </div>
 
-              <NeckLabelToggle trainer={trainer} t={t} />
               {/* Song view has its tracks in a rail beside the score. */}
               {view === 'practice' && canPractice && <TrackMixer trainer={trainer} t={t} busy={busy} />}
               {view === 'practice' && canPractice && trainer.tracks.length > 0 && (

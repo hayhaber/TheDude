@@ -191,6 +191,15 @@ no tools).
   transpose / Smart / training / Play / Insights); with chords, Play comes
   right under the chips, then positions, then the secondary tools row,
   then Insights.
+- STAGE 5, part 2 (v1.0.97): `components/MoreMenu` = the iOS ••• button
+  (gray circle, accent dots) opening a Liquid Glass popover with a screen's
+  SECONDARY settings / actions (kept on screen by measuring; closes on a tap
+  outside / Escape; `.more-menu-item` rows, `.is-danger`). GuitarPro: the
+  file row = file select + "Add" (tinted pill, `gp.addShort`; dropping a
+  file anywhere on the page still works) + ••• holding the neck labels
+  (note / finger — was a row of its own) and Delete for imports (was a
+  button in the row); on phones the select is a row of its own and Add +
+  ••• share the next.
 
 ## Architecture essentials
 

@@ -44,8 +44,21 @@
   width: auto;
   min-width: 0;
   padding: 0 14px;
-  gap: 8px;
-  border-radius: 8px;
+  gap: 6px;
+  /* An iOS tinted button (stage 5): no dashed box — dropping a file
+     anywhere on the page still works, and the button says so while
+     dragging. */
+  border: none;
+  border-radius: var(--radius-pill);
+}
+
+.gp-file-row .gp-drop.is-dragging {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+
+.gp-file-row .more-menu {
+  align-self: flex-end;
 }
 
 .gp-file-row .gp-drop-icon {
@@ -1271,5 +1284,21 @@
           env(safe-area-inset-bottom, 0px) - var(--control-height, 36px) - 112px - var(--gp-loop-h, 0px)
       )
     );
+  }
+}
+
+/* Phone: the file on its own row, Add + More side by side under it. */
+@media (max-width: 600px) {
+  .gp-file-row {
+    flex-wrap: wrap;
+  }
+
+  .gp-file-row .gp-file-field {
+    flex: 1 1 100%;
+  }
+
+  .gp-file-row .gp-drop {
+    flex: 1 1 0;
+    justify-content: center;
   }
 }

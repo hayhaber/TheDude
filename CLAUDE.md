@@ -102,6 +102,25 @@ bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
   20 classes, scratchpad btnfix.py) = gray fill `--fill-tertiary`, border
   1px transparent (sizes unchanged); device faces (amp, recorder, studio,
   metronome, drums, tuner, necks, keys) untouched.
+- STAGE 2 (v1.0.91): the bar (desktop top bar + phone/tablet bottom tabs)
+  shows GOAL GROUPS, not sections — sections.js `NAV_GROUPS`: learn
+  [teacher, studies] (+ `also` coach = lights the tab, no switch), practice
+  [practice | bassPractice], chords, play [guitarpro, songs], create
+  [compose, improvise, freeplay]. Guitar 5 tabs, piano 5 (learn = studies
+  alone, create = Compose | Free play), bass 3. A group with ONE section
+  here shows that section's own name + icon; with two, AppShell draws an iOS
+  segmented control (`.app-group-switch.mode-toggle`, max 420px) above the
+  screen's title. A tab returns to the section last used in its group
+  (device key `dudestar-nav-last`, `lastSectionIn` / `rememberSection`).
+  Both bars + the home shortcuts now run in READING order (dir from the
+  language; Learn first = rightmost in Hebrew) — replaces the old "always
+  LTR, Compose leftmost" rule (user approved the RTL mockup 2026-11-03).
+  Home cards: guitar + piano shortcuts = the 5 groups (`group` option opens
+  the last-used section of the group), one row of 5 on phones; bass card
+  reordered (Practice, GuitarPro, Compose). The phone-only rule hiding Songs
+  is gone (Songs is inside Play). New LineIcons `play`, `create`; strings
+  `nav.group.*`; piano `nav.freeplay` = "Free play" / "נגינה חופשית" (it sat
+  next to "ניגון"). Sections, their state and App logic are unchanged.
 
 ## Architecture essentials
 

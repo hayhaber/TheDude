@@ -6,6 +6,7 @@ import { AppLogo } from '../AppLogo/AppLogo';
 import { INSTRUMENT_ART } from './instrumentArt';
 import { ProfileChip } from '../../profile/ProfileChip';
 import { LineIcon } from '../LineIcon/LineIcon';
+import { NAV_GROUPS, lastSectionIn } from '../AppShell/sections';
 import './HomeMenu.css';
 
 // One card per instrument. `instrument: null` keeps whatever is selected
@@ -17,14 +18,15 @@ const CARDS = [
     instrument: 'guitar',
     titleKey: 'home.guitar.title',
     descKey: 'home.guitar.desc',
+    // The same five goal groups as the in-app bar (sections.js NAV_GROUPS;
+    // stage 2 of the redesign, 2026-11-03). `group` opens the section last
+    // used inside it, else `section`.
     options: [
-      // Chord Library first, then Compose (user's order, 2026-10-19).
-      { section: 'chords', icon: 'chords' },
-      { section: 'compose', icon: 'compose' },
-      { section: 'improvise', icon: 'improvise' },
+      { group: 'learn', section: 'teacher', icon: 'teacher', labelKey: 'nav.group.learn' },
       { section: 'practice', icon: 'practice' },
-      { section: 'studies', icon: 'studies' },
-      { section: 'guitarpro', icon: 'guitarpro' },
+      { section: 'chords', icon: 'chords' },
+      { group: 'play', section: 'guitarpro', icon: 'play', labelKey: 'nav.group.play' },
+      { group: 'create', section: 'compose', icon: 'create', labelKey: 'nav.group.create' },
     ],
   },
   {
@@ -45,12 +47,11 @@ const CARDS = [
     titleKey: 'home.piano.title',
     descKey: 'home.piano.desc',
     options: [
-      { section: 'chords', icon: 'pianoChords' },
-      { section: 'compose', icon: 'compose' },
       { section: 'studies', icon: 'studies' },
       { section: 'practice', icon: 'practice' },
-      { section: 'guitarpro', icon: 'guitarpro', labelKey: 'nav.pianopro' },
-      { section: 'freeplay', icon: 'freeplay' },
+      { section: 'chords', icon: 'pianoChords' },
+      { group: 'play', section: 'guitarpro', icon: 'play', labelKey: 'nav.group.play' },
+      { group: 'create', section: 'compose', icon: 'create', labelKey: 'nav.group.create' },
     ],
   },
   {
@@ -59,9 +60,9 @@ const CARDS = [
     titleKey: 'home.bass.title',
     descKey: 'home.bass.desc',
     options: [
-      { section: 'compose', icon: 'compose' },
       { section: 'bassPractice', icon: 'practice', labelKey: 'nav.practice' },
       { section: 'guitarpro', icon: 'guitarpro' },
+      { section: 'compose', icon: 'compose' },
     ],
   },
   {
@@ -166,7 +167,7 @@ const easeOut = (x) => 1 - Math.pow(1 - x, 3);
  * shortcut.
  */
 export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
   const trackRef = useRef(null);
   const rootRef = useRef(null);
@@ -393,6 +394,15 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
     return () => box.removeEventListener('wheel', onWheel);
   }, [step]);
 
+  // A group shortcut returns to the screen last used in that group (when it
+  // exists on this instrument).
+  const openSectionFor = (option, inst) => {
+    if (!option.group) return option.section;
+    const last = lastSectionIn(option.group);
+    const g = NAV_GROUPS.find((x) => x.key === option.group);
+    return last && g?.members.includes(last) && supportsInstrument(last, inst) ? last : option.section;
+  };
+
   const open = (card, option) => {
     if (option.songwriter) {
       onOpen({ songwriter: option.songwriter, card: card.key });
@@ -405,7 +415,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
     }
     onOpen({
       instrument: card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument),
-      section: option.section,
+      section: openSectionFor(option, card.instrument ?? instrument),
       practiceTab: option.practiceTab ?? null,
       vocalScreen: option.vocalScreen ?? null,
       teacherScreen: option.teacherScreen ?? null,
@@ -481,8 +491,8 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
                     <span className="home-desc">{t(card.descKey)}</span>
                   </span>
                 </button>
-                {/* Shortcuts left to right in both languages (Compose first), like the in-app nav. */}
-                <div className="home-options" dir="ltr">
+                {/* Shortcuts in reading order, like the in-app bar. */}
+                <div className="home-options" dir={lang === 'he' ? 'rtl' : 'ltr'}>
                   {opts.map((o) => (
                     <button
                       key={o.tool ?? o.songwriter ?? o.section + (o.practiceTab ?? '') + (o.vocalScreen ?? '') + (o.teacherScreen ?? '')}

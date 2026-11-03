@@ -177,6 +177,21 @@ export const ICON_PATHS = {
       <path d="M12 3.5a6 6 0 0 0-3.6 10.8c.6.5.9 1.2.9 1.9v1.3h5.4v-1.3c0-.7.3-1.4.9-1.9A6 6 0 0 0 12 3.5z" />
     </>
   ),
+  // Play (songs + Guitar Pro): a play triangle in a rounded square.
+  play: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+      <path d="M10 8.6v6.8l5.6-3.4z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // Create (compose + improvise): a pencil drawing a wave.
+  create: (
+    <>
+      <path d="M3 18c1.6-2.4 3.2-2.4 4.8 0" />
+      <path d="M13.8 5.2l3 3L9 16H6v-3z" />
+      <path d="M12.2 6.8l3 3" />
+    </>
+  ),
   ear: (
     <>
       <path d="M7 9a5 5 0 1 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0" />

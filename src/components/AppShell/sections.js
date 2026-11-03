@@ -20,3 +20,44 @@ export const SECTIONS = [
   { key: 'freeplay', labelKey: 'nav.freeplay', icon: 'freeplay' },
   { key: 'vocal', labelKey: 'nav.vocal', icon: 'vocal' },
 ];
+
+// The bar shows GROUPS, not sections (stage 2 of the Apple-style redesign,
+// 2026-11-03: 8 tabs -> 5). A group is a goal; its sections are reached
+// through a segmented control at the top of the screen. Groups with no
+// section on this instrument are left out; a group with ONE section shows
+// that section's own name and icon. `members` are in segmented-control
+// order; the first visible one is the group's default. `also` = screens
+// opened from inside the group (the Coach) that light its tab too.
+export const NAV_GROUPS = [
+  { key: 'learn', labelKey: 'nav.group.learn', icon: 'teacher', members: ['teacher', 'studies'], also: ['coach'] },
+  { key: 'practice', labelKey: 'nav.practice', icon: 'practice', members: ['practice', 'bassPractice'] },
+  { key: 'chords', labelKey: 'nav.chords', icon: 'chords', pianoIcon: 'pianoChords', members: ['chords'] },
+  { key: 'play', labelKey: 'nav.group.play', icon: 'play', members: ['guitarpro', 'songs'] },
+  { key: 'create', labelKey: 'nav.group.create', icon: 'create', members: ['compose', 'improvise', 'freeplay'] },
+];
+
+export function groupOfSection(sectionKey) {
+  return NAV_GROUPS.find((g) => g.members.includes(sectionKey)) ?? null;
+}
+
+// The last section opened in each group (device-wide), so a tab returns to
+// where you were inside it.
+const LAST_KEY = 'dudestar-nav-last';
+export function lastSectionIn(groupKey) {
+  try {
+    return JSON.parse(localStorage.getItem(LAST_KEY) || '{}')[groupKey] ?? null;
+  } catch {
+    return null;
+  }
+}
+export function rememberSection(sectionKey) {
+  const g = groupOfSection(sectionKey);
+  if (!g) return;
+  try {
+    const all = JSON.parse(localStorage.getItem(LAST_KEY) || '{}');
+    all[g.key] = sectionKey;
+    localStorage.setItem(LAST_KEY, JSON.stringify(all));
+  } catch {
+    /* private mode */
+  }
+}

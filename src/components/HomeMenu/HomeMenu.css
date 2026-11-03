@@ -461,9 +461,15 @@
     flex-basis: 33.333%;
   }
 
-  /* Five or six shortcuts: two rows of three (not three rows of two). */
+  /* Five shortcuts (the five goal groups): one row, like the tab bar. */
   .home-option:first-child:nth-last-child(5),
-  .home-option:first-child:nth-last-child(5) ~ .home-option,
+  .home-option:first-child:nth-last-child(5) ~ .home-option {
+    flex-basis: 20%;
+    font-size: 12px;
+    padding-inline: 2px;
+  }
+
+  /* Six shortcuts: two rows of three (not three rows of two). */
   .home-option:first-child:nth-last-child(6),
   .home-option:first-child:nth-last-child(6) ~ .home-option {
     flex-basis: 33.333%;

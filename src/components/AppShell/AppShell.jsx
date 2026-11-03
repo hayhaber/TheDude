@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { LineIcon } from '../LineIcon/LineIcon';
-import { SECTIONS } from './sections';
+import { SECTIONS, NAV_GROUPS, lastSectionIn, rememberSection } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
 import { HomeButton } from '../HomeButton/HomeButton';
@@ -44,6 +44,23 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
   const visibleSections = bare ? [] : SECTIONS.filter((s) => s.key !== 'vocal' && supportsInstrument(s.key, instrument));
   // On the piano the Guitar Pro player is "PianoPro".
   const label = (s) => t(s.key === 'guitarpro' && instrument === 'piano' ? 'nav.pianopro' : s.labelKey);
+  // The bar shows goal GROUPS (sections.js NAV_GROUPS); a group with one
+  // section here is shown as that section. Sections outside every group
+  // (vocal, coach) keep the bar as it is with nothing selected.
+  const visibleKeys = new Set(visibleSections.map((s) => s.key));
+  const groups = NAV_GROUPS.map((g) => ({ ...g, sections: g.members.map((k) => SECTIONS.find((s) => s.key === k)).filter((s) => s && visibleKeys.has(s.key)) })).filter((g) => g.sections.length);
+  const activeGroup = groups.find((g) => g.sections.some((s) => s.key === activeSection) || g.also?.includes(activeSection)) ?? null;
+  const inGroupSwitch = activeGroup?.sections.some((s) => s.key === activeSection);
+  const groupLabel = (g) => (g.sections.length === 1 ? label(g.sections[0]) : t(g.labelKey));
+  const groupIcon = (g) => (g.sections.length === 1 ? g.sections[0] : g);
+  const openGroup = (g) => {
+    if (g === activeGroup && inGroupSwitch) return;
+    const last = lastSectionIn(g.key);
+    onSectionChange(g.sections.some((s) => s.key === last) ? last : g.sections[0].key);
+  };
+  useEffect(() => {
+    rememberSection(activeSection);
+  }, [activeSection]);
   // The pinned instrument's height, as --stage-height on the root, so a
   // section can size a panel to exactly the room left above it.
   const stageRef = useRef(null);
@@ -75,21 +92,21 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
           <div className="app-topbar-brand">
             <HomeButton className="app-topbar-home" onClick={() => onHome?.()} />
           </div>
-          {/* Features left to right in both languages (Compose first). */}
-          <nav className={'app-topbar-nav mode-toggle wrap' + (bare ? ' is-empty' : '')} dir="ltr" aria-label={t('nav.mainLabel')}>
-            {visibleSections.map((s) => (
+          {/* The goal groups in reading order (Learn first). */}
+          <nav className={'app-topbar-nav mode-toggle wrap' + (bare ? ' is-empty' : '')} dir={dir} aria-label={t('nav.mainLabel')}>
+            {groups.map((g) => (
               <button
-                key={s.key}
+                key={g.key}
                 type="button"
-                className={activeSection === s.key ? 'active' : ''}
-                aria-current={activeSection === s.key ? 'page' : undefined}
-                onClick={() => onSectionChange(s.key)}
-                title={label(s)}
+                className={activeGroup === g ? 'active' : ''}
+                aria-current={activeGroup === g ? 'page' : undefined}
+                onClick={() => openGroup(g)}
+                title={groupLabel(g)}
               >
                 <span className="app-topbar-nav-icon" aria-hidden="true">
-                  <SectionIcon section={s} instrument={instrument} size={ICON_SIZE} />
+                  <SectionIcon section={groupIcon(g)} instrument={instrument} size={ICON_SIZE} />
                 </span>
-                <span className="app-topbar-nav-label">{label(s)}</span>
+                <span className="app-topbar-nav-label">{groupLabel(g)}</span>
               </button>
             ))}
           </nav>
@@ -99,7 +116,26 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
             <InfoTooltipsToggle />
           </div>
         </header>
-        <div className="app-section-content">{children}</div>
+        <div className="app-section-content">
+          {/* Inside a group of two: an iOS segmented control between them. */}
+          {inGroupSwitch && activeGroup.sections.length > 1 && (
+            <div className="app-group-switch mode-toggle" role="tablist" aria-label={t('nav.group.switch')} dir={dir}>
+              {activeGroup.sections.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeSection === s.key}
+                  className={activeSection === s.key ? 'active' : ''}
+                  onClick={() => onSectionChange(s.key)}
+                >
+                  {label(s)}
+                </button>
+              ))}
+            </div>
+          )}
+          {children}
+        </div>
         {stage && <div className="app-stage-anchor" ref={stageRef}>{stage}</div>}
       </main>
 
@@ -111,20 +147,20 @@ export function AppShell({ activeSection, onSectionChange, metronomeSlot, stage,
       )}
 
       {!bare && (
-        <nav className="app-bottom-tabs" aria-label={t('nav.mainLabel')}>
-        {visibleSections.map((s) => (
+        <nav className="app-bottom-tabs" aria-label={t('nav.mainLabel')} dir={dir}>
+        {groups.map((g) => (
           <button
-            key={s.key}
+            key={g.key}
             type="button"
-            data-section={s.key}
-            className={'app-bottom-tab' + (activeSection === s.key ? ' active' : '')}
-            aria-current={activeSection === s.key ? 'page' : undefined}
-            onClick={() => onSectionChange(s.key)}
+            data-group={g.key}
+            className={'app-bottom-tab' + (activeGroup === g ? ' active' : '')}
+            aria-current={activeGroup === g ? 'page' : undefined}
+            onClick={() => openGroup(g)}
           >
             <span className="app-bottom-tab-icon" aria-hidden="true">
-              <SectionIcon section={s} instrument={instrument} size={TAB_ICON_SIZE} />
+              <SectionIcon section={groupIcon(g)} instrument={instrument} size={TAB_ICON_SIZE} />
             </span>
-            {label(s)}
+            {groupLabel(g)}
           </button>
         ))}
         </nav>

@@ -64,6 +64,8 @@
 
 .cl-field select {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: var(--control-height);
   padding: 0 10px;
   font-size: 15px;
@@ -98,6 +100,11 @@
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.cl-info > * {
+  min-width: 0;
 }
 
 .cl-name {

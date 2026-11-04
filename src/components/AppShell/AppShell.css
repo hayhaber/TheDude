@@ -148,6 +148,11 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  /* Never pans sideways: with overflow-y auto, x would compute to auto too,
+     and iOS let a page whose content was a few px too wide (Chord Library
+     -> Advanced on an iPhone, 2026-11-04) slide left/right. Wide things
+     (chip strips, tabs, scores) scroll inside their own boxes. */
+  overflow-x: hidden;
   padding: 28px var(--space-8) var(--space-2);
 }
 

@@ -216,6 +216,12 @@ no tools).
   `initialLesson`). (c) ProfileChip `onSettings` -> a Settings button in the
   profile popover's foot (opens the settings tool screen, Home returns to
   the card you were on).
+- v1.0.99 (2026-11-04): iPhone, Guitar -> Chords -> Advanced: the page
+  slid left/right. `.app-section-content` (overflow-y auto => x computed
+  auto = a touch-pannable scroller) now has `overflow-x: hidden`; plus
+  min-width 0 on `.cl-info` + its children and the library selects. Not
+  reproducible in Chromium (sweep of every section x instrument at 390 /
+  820 / 1366 = 0 px overflow, so nothing is clipped); no WebKit here.
 
 ## Architecture essentials
 

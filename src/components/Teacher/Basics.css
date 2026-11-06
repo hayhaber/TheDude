@@ -25,6 +25,40 @@
   font-family: inherit;
 }
 
+.tb-svgbox {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  container-type: inline-size;
+}
+.tb-svgbox svg {
+  max-width: none;
+}
+/* words over a drawing (never SVG <text>: iPad Safari reversed Hebrew there) */
+.tb-lbl {
+  position: absolute;
+  white-space: nowrap;
+  line-height: 1;
+  font-size: calc(var(--fs) * 1px);
+  font-size: calc(var(--fs) * 100cqw / 340);
+  transform: translate(-50%, -80%);
+  pointer-events: none;
+}
+.tb-lbl[data-a='start'] {
+  transform: translate(0, -80%);
+}
+.tb-lbl[data-a='end'] {
+  transform: translate(-100%, -80%);
+}
+.tb-lbl > span {
+  display: inline-block;
+}
+.tb-c-quiet {
+  color: var(--text-secondary);
+}
+.tb-c-ink {
+  color: var(--text-h);
+}
 .tb-svg-quiet {
   fill: var(--text-secondary);
 }

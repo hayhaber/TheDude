@@ -3,8 +3,9 @@
 // mockups the user approved on the Design canvas; the guitar and hand are the
 // user's own photos (logo and background removed) in public/teacher/.
 // Pictures are physical objects: drawn LTR in both languages; text is
-// translated. SVG <text> gets direction="rtl" in Hebrew (anchors swapped):
-// in an LTR svg, iPad Safari drew Hebrew labels letter-reversed. Animations loop in CSS; "Again" / "Hear" restart them.
+// translated. Words never go inside an <svg>: iPad Safari drew Hebrew SVG
+// <text> letter-reversed. They are HTML labels (`Lbl`) placed over the
+// drawing in viewBox units and sized with it (container query units). Animations loop in CSS; "Again" / "Hear" restart them.
 import { useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { playMidis } from '../../audio/chordPlayer';
@@ -19,6 +20,17 @@ function Again({ onClick, label }) {
     <button type="button" className="tc-btn" onClick={onClick}>
       {label}
     </button>
+  );
+}
+
+/** A word over a drawing: (x, y) = the SVG text's anchor + baseline in viewBox units. */
+function Lbl({ x, y, w = 340, h, a = 'middle', fs = 12, fw = 600, color, cls, children }) {
+  return (
+    <span className="tb-lbl" data-a={a} style={{ left: (x / w) * 100 + '%', top: (y / h) * 100 + '%', '--fs': fs, fontWeight: fw, color }}>
+      <span className={cls} dir="auto">
+        {children}
+      </span>
+    </span>
   );
 }
 
@@ -151,12 +163,13 @@ function Fingers({ tx, t }) {
 
 // ---- 4. where to press --------------------------------------------------------
 
-function Fret({ tx, t, rtl }) {
+function Fret({ tx, t }) {
   const [n, setN] = useState(0);
   return (
     <>
       <div className="tb-figure" dir="ltr" key={n}>
-        <svg viewBox="0 0 340 250" direction={rtl ? 'rtl' : 'ltr'} role="img" aria-label={tx(L('A finger pressing just before the fret', 'אצבע לוחצת לפני השריג'))}>
+        <div className="tb-svgbox">
+        <svg viewBox="0 0 340 250" role="img" aria-label={tx(L('A finger pressing just before the fret', 'אצבע לוחצת לפני השריג'))}>
           <rect x="10" y="30" width="320" height="110" rx="6" fill="#5b3a22" />
           <rect x="10" y="30" width="6" height="110" fill="#f2ead8" />
           <g fill="#d9d9de">
@@ -184,15 +197,7 @@ function Fret({ tx, t, rtl }) {
           </g>
           <circle className="tb-wave" cx="186" cy="96" r="24" fill="none" stroke="#34c759" strokeWidth="2" />
           <circle className="tb-wave is-late" cx="186" cy="96" r="24" fill="none" stroke="#34c759" strokeWidth="2" />
-          <g fontSize="12" fontWeight="600" textAnchor="middle">
-            <text x="186" y="26" fill="#248a3d">{tx(L('here ✓', 'כאן ✓'))}</text>
-            <text x="136" y="12" fill="#c25e00">{tx(L('too far — buzz', 'רחוק — זמזום'))}</text>
-            <text x="206" y="12" fill="#d70015" textAnchor={rtl ? 'end' : 'start'}>{tx(L('on the strip ✗', 'על הפס ✗'))}</text>
-          </g>
           <g transform="translate(0 170)">
-            <text className="tb-svg-quiet" x="10" y="0" fontSize="11" fontWeight="600" textAnchor={rtl ? 'end' : 'start'}>
-              {tx(L('from the side', 'מהצד'))}
-            </text>
             <rect x="10" y="30" width="320" height="18" fill="#5b3a22" />
             <g fill="#a9a9b0">
               <rect x="96" y="22" width="5" height="8" rx="2" />
@@ -201,11 +206,14 @@ function Fret({ tx, t, rtl }) {
             </g>
             <path d="M10 14 L 200 20 L 330 14" fill="none" stroke="#8e8e93" strokeWidth="2" />
             <path d="M178 2 c 6 -2 14 -2 18 4 l -4 14 c -4 2 -10 2 -14 -2 z" fill="#f2d3bd" stroke="#c99f86" strokeWidth="1.5" />
-            <text className="tb-svg-text" x="250" y="70" fontSize="12" fontWeight="600" textAnchor="middle">
-              {tx(L('The string rests on the strip — a clean note', 'המיתר נשען על הפס — הצליל נקי'))}
-            </text>
           </g>
         </svg>
+        <Lbl x={186} y={26} h={250} color="#248a3d">{tx(L('here ✓', 'כאן ✓'))}</Lbl>
+        <Lbl x={136} y={12} h={250} color="#c25e00">{tx(L('too far — buzz', 'רחוק — זמזום'))}</Lbl>
+        <Lbl x={206} y={12} h={250} a="start" color="#d70015">{tx(L('on the strip ✗', 'על הפס ✗'))}</Lbl>
+        <Lbl x={10} y={170} h={250} a="start" fs={11} cls="tb-c-quiet">{tx(L('from the side', 'מהצד'))}</Lbl>
+        <Lbl x={250} y={240} h={250} cls="tb-c-ink">{tx(L('The string rests on the strip — a clean note', 'המיתר נשען על הפס — הצליל נקי'))}</Lbl>
+        </div>
       </div>
       <div className="tb-ok">{tx(L('A clean note: E — string 4, fret 2. Press Hear.', 'צליל נקי: ⁦E⁩ — מיתר 4, שריג 2. לחצו שמע.'))}</div>
       <div className="tb-note">
@@ -227,12 +235,13 @@ function Fret({ tx, t, rtl }) {
 
 // ---- 5. the neck on screen ----------------------------------------------------
 
-function Neck({ tx, t, rtl }) {
+function Neck({ tx, t }) {
   const [n, setN] = useState(0);
   return (
     <>
       <div className="tb-figure tb-neck" dir="ltr" key={n}>
-        <svg viewBox="0 0 340 260" direction={rtl ? 'rtl' : 'ltr'} role="img" aria-label={tx(L('The app’s neck with E minor', 'הצוואר באפליקציה עם אקורד מי מינור'))}>
+        <div className="tb-svgbox">
+        <svg viewBox="0 0 340 260" role="img" aria-label={tx(L('The app’s neck with E minor', 'הצוואר באפליקציה עם אקורד מי מינור'))}>
           <g className="tb-scr">
             <rect x="20" y="40" width="310" height="150" rx="8" fill="#4a3020" />
             <rect x="20" y="40" width="7" height="150" fill="#f2ead8" />
@@ -252,7 +261,6 @@ function Neck({ tx, t, rtl }) {
               <text x="139" y="206">2</text>
               <text x="214" y="206">3</text>
               <text x="286" y="206">4</text>
-              <text x="170" y="222" fontWeight="600">{tx(L('fret numbers', 'מספרי השריגים'))}</text>
             </g>
             <g className="tb-dot">
               <circle cx="139" cy="151" r="11" fill="var(--accent-fill)" />
@@ -262,13 +270,13 @@ function Neck({ tx, t, rtl }) {
               <circle cx="139" cy="127" r="11" fill="var(--accent-fill)" />
               <text x="139" y="131.5" fontSize="12" fontWeight="800" fill="#fff" textAnchor="middle">3</text>
             </g>
-            <g className="tb-tag tb-svg-text" fontSize="12" fontWeight="700">
-              <text x="336" y="32" textAnchor={rtl ? 'start' : 'end'}>{tx(L('string 1 · thin ↑', 'מיתר 1 · הדק ↑'))}</text>
-              <text x="20" y="252" textAnchor={rtl ? 'end' : 'start'}>{tx(L('↑ head of the guitar', '↑ ראש הגיטרה'))}</text>
-              <text x="336" y="252" textAnchor={rtl ? 'start' : 'end'}>{tx(L('string 6 · thick ↓', 'מיתר 6 · העבה ↓'))}</text>
-            </g>
           </g>
         </svg>
+        <Lbl x={170} y={222} h={260} fs={11} cls="tb-scr tb-c-quiet">{tx(L('fret numbers', 'מספרי השריגים'))}</Lbl>
+        <Lbl x={336} y={32} h={260} a="end" fw={700} cls="tb-tag tb-c-ink">{tx(L('string 1 · thin ↑', 'מיתר 1 · הדק ↑'))}</Lbl>
+        <Lbl x={20} y={252} h={260} a="start" fw={700} cls="tb-tag tb-c-ink">{tx(L('↑ head of the guitar', 'ראש הגיטרה ↑'))}</Lbl>
+        <Lbl x={336} y={252} h={260} a="end" fw={700} cls="tb-tag tb-c-ink">{tx(L('string 6 · thick ↓', 'מיתר 6 · העבה ↓'))}</Lbl>
+        </div>
         <div className="tb-lap">
           <img src="/teacher/guitar-front.webp" alt={tx(L('An acoustic guitar', 'גיטרה אקוסטית'))} width="1297" height="504" />
           <span dir="auto">{tx(L('Looking down at the guitar…', 'מביטים על הגיטרה מלמעלה…'))}</span>
@@ -298,7 +306,7 @@ function Neck({ tx, t, rtl }) {
 
 // ---- 6. chord diagram ---------------------------------------------------------
 
-function Diagram({ tx, t, rtl }) {
+function Diagram({ tx, t }) {
   const [n, setN] = useState(0);
   const items = [
     [L('Upright lines', 'קווים עומדים'), L('= the strings. The left one is string 6, the thick one.', '= המיתרים. השמאלי הוא מיתר 6, העבה.')],
@@ -309,7 +317,8 @@ function Diagram({ tx, t, rtl }) {
   return (
     <>
       <div className="tb-figure" dir="ltr" key={n}>
-        <svg viewBox="0 0 340 240" direction={rtl ? 'rtl' : 'ltr'} role="img" aria-label={tx(L('The E minor chord diagram', 'שרטוט האקורד מי מינור'))}>
+        <div className="tb-svgbox">
+        <svg viewBox="0 0 340 240" role="img" aria-label={tx(L('The E minor chord diagram', 'שרטוט האקורד מי מינור'))}>
           <g className="tb-turn">
             <rect x="60" y="80" width="220" height="80" rx="6" fill="#4a3020" />
             <rect x="60" y="80" width="6" height="80" fill="#f2ead8" />
@@ -354,12 +363,11 @@ function Diagram({ tx, t, rtl }) {
                 <text key={s} x={120 + k * 24} y="224">{s}</text>
               ))}
             </g>
-            <g className="tb-svg-quiet" fontSize="10" fontWeight="600">
-              <text x="96" y="236" textAnchor={rtl ? 'end' : 'start'}>{tx(L('thick', 'עבה'))}</text>
-              <text x="262" y="236" textAnchor={rtl ? 'start' : 'end'}>{tx(L('thin', 'דק'))}</text>
-            </g>
           </g>
         </svg>
+        <Lbl x={96} y={236} h={240} a="start" fs={10} cls="tb-box tb-c-quiet">{tx(L('thick', 'עבה'))}</Lbl>
+        <Lbl x={262} y={236} h={240} a="end" fs={10} cls="tb-box tb-c-quiet">{tx(L('thin', 'דק'))}</Lbl>
+        </div>
       </div>
       <div className="tb-note" key={'i' + n}>
         {items.map(([a, b], k) => (
@@ -446,11 +454,11 @@ function Strum({ tx }) {
 const VISUALS = { parts: Parts, strings: Strings, fingers: Fingers, fret: Fret, neck: Neck, diagram: Diagram, strum: Strum };
 
 export function BasicsVisual({ name, tx }) {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const V = VISUALS[name];
   return V ? (
     <div className="tb-visual">
-      <V tx={tx} t={t} rtl={lang === 'he'} />
+      <V tx={tx} t={t} />
     </div>
   ) : null;
 }

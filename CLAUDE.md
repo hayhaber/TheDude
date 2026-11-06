@@ -1272,6 +1272,10 @@ no tools).
   v1.0.118: on the iPad the Hebrew labels INSIDE the SVGs came out
   letter-reversed (an SVG under dir="ltr"); each picture's <svg> now gets
   direction="rtl" in Hebrew with start/end anchors swapped (positions same).
+  v1.0.119: replaced by the sure fix — NO words inside those SVGs at all:
+  `Lbl` = an HTML label over the drawing (`.tb-svgbox`, viewBox coords as %,
+  font-size in cqw so it scales with the drawing; data-a start/middle/end);
+  only digits / O / Em stay as SVG <text>.
 - METRONOME IN A STEP (v1.0.117; user: "the text says the button is at the
   bottom, it's at the top"): a checklist step with `metronome: <bpm>` shows
   `MetroBox` (LessonPlayer: Start/Stop + 4 beat dots + BPM) driving the SHARED

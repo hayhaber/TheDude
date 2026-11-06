@@ -1,0 +1,540 @@
+/* The first lesson's animated pictures (BasicsVisual.jsx). Content = solid
+   surfaces; the photos have transparent backgrounds. */
+.tb-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tb-figure {
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 0.5px var(--separator);
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.tb-figure svg {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  font-family: inherit;
+}
+
+.tb-svg-quiet {
+  fill: var(--text-secondary);
+}
+.tb-svg-text,
+.tb-svg-ink {
+  fill: var(--text-h);
+}
+.tb-svg-stroke {
+  stroke: var(--text-h);
+}
+.tb-svg-stroke.is-quiet {
+  stroke: var(--text-secondary);
+}
+
+.tb-note {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--fill-tertiary);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.tb-quiet {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ---- 1. parts -------------------------------------------------------------- */
+.tb-parts {
+  --g: clamp(118px, 34vw, 160px);
+  --lw: 78px;
+  position: relative;
+  width: var(--g);
+  margin: 6px auto;
+  /* room for the labels on both sides */
+  margin-inline: calc(var(--lw) + 14px);
+  align-self: center;
+}
+.tb-parts img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tb-part {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tb-part-line {
+  position: absolute;
+  top: var(--y);
+  height: 1px;
+  background: var(--text-secondary);
+  animation: tb-fade 9s ease-out var(--d) infinite both;
+}
+.tb-part.is-r .tb-part-line {
+  left: var(--x);
+  width: calc(100% - var(--x) + 10px);
+}
+.tb-part.is-l .tb-part-line {
+  right: calc(100% - var(--x));
+  width: calc(var(--x) + 10px);
+}
+.tb-part.is-accent .tb-part-line {
+  background: #ff9500;
+}
+.tb-part-dot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--accent-fill);
+  box-shadow: 0 0 0 2.5px rgba(255, 255, 255, 0.95);
+  animation: tb-glow 9s ease-in-out var(--d) infinite both;
+}
+.tb-part-text {
+  position: absolute;
+  top: var(--y);
+  width: var(--lw);
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-h);
+  animation: tb-lbl 9s ease-out var(--d) infinite both;
+}
+.tb-part-text small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-secondary);
+}
+.tb-part.is-r .tb-part-text {
+  left: calc(100% + 12px);
+  text-align: left;
+}
+.tb-part.is-l .tb-part-text {
+  right: calc(100% + 12px);
+  text-align: right;
+}
+.tb-part.is-accent .tb-part-text {
+  color: #c25e00;
+}
+@keyframes tb-lbl {
+  0%, 8% { opacity: 0; transform: translateY(calc(-50% + 4px)); }
+  14%, 100% { opacity: 1; transform: translateY(-50%); }
+}
+@keyframes tb-fade {
+  0%, 8% { opacity: 0; }
+  14%, 100% { opacity: 1; }
+}
+@keyframes tb-glow {
+  0%, 6% { opacity: 0; transform: scale(0.4); }
+  12% { opacity: 1; transform: scale(1.5); }
+  18%, 100% { opacity: 1; transform: scale(1); }
+}
+
+
+/* ---- 2. strings ------------------------------------------------------------ */
+.tb-strings {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 0.5px var(--separator);
+  direction: ltr;
+}
+.tb-string {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 8px;
+  border-radius: 12px;
+  animation: tb-lit 7.2s ease var(--d) 1 both;
+}
+.tb-num {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--text-h);
+  color: var(--surface);
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tb-sname {
+  width: 96px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.tb-sname strong {
+  font-size: 17px;
+  color: var(--text-h);
+}
+.tb-sname small {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.tb-wire {
+  flex: 1;
+  border-radius: 2px;
+  background: #8e8e93;
+  animation: tb-vib 7.2s steps(2) var(--d) 1 both;
+}
+.tb-wire.is-wound {
+  background: repeating-linear-gradient(90deg, #a1a1a6 0 2px, #7c7c80 2px 3px);
+}
+@keyframes tb-lit {
+  0%, 4% { background: transparent; }
+  6%, 14% { background: var(--accent-bg); }
+  18%, 100% { background: transparent; }
+}
+@keyframes tb-vib {
+  0%, 4% { transform: none; }
+  5%, 13% { transform: translateY(-1.5px); }
+  6%, 14% { transform: translateY(1.5px); }
+  15%, 100% { transform: none; }
+}
+.tb-mnemonic {
+  font-weight: 600;
+  color: var(--accent);
+}
+[dir='rtl'] .tb-mnemonic {
+  text-align: right;
+}
+
+/* ---- 3. fingers ------------------------------------------------------------ */
+.tb-hand {
+  position: relative;
+  width: min(270px, 78%);
+  margin: 58px auto 6px;
+}
+.tb-hand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tb-finger,
+.tb-thumb {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.tb-finger {
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -30px);
+  animation: tb-fon 6s ease var(--d) infinite both;
+}
+.tb-finger-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  animation: tb-non 6s ease var(--d) infinite both;
+}
+.tb-finger-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1d1d1f;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2.5px #fff;
+}
+.tb-thumb {
+  left: 4%;
+  top: 49%;
+  transform: translate(-30%, -50px);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.tb-thumb-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--fill-secondary);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+@keyframes tb-fon {
+  0%, 3% { transform: translate(-50%, -30px) scale(1); }
+  8%, 20% { transform: translate(-50%, -34px) scale(1.18); }
+  25%, 100% { transform: translate(-50%, -30px) scale(1); }
+}
+@keyframes tb-non {
+  0%, 3% { opacity: 0; }
+  6%, 20% { opacity: 1; }
+  24%, 100% { opacity: 0; }
+}
+
+/* ---- 4. where to press ----------------------------------------------------- */
+.tb-fin {
+  animation: tb-move 4.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tb-wave {
+  animation: tb-wave 4.5s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tb-wave.is-late {
+  animation-delay: 0.25s;
+}
+@keyframes tb-move {
+  0% { transform: translate(0, -70px); opacity: 0; }
+  12% { transform: translate(0, -70px); opacity: 1; }
+  30% { transform: translate(0, 0); opacity: 1; }
+  38%, 88% { transform: translate(0, 0) scale(0.92); opacity: 1; }
+  100% { transform: translate(0, 0) scale(0.92); opacity: 0; }
+}
+@keyframes tb-wave {
+  0%, 40% { opacity: 0; transform: scale(0.6); }
+  55% { opacity: 0.9; }
+  80% { opacity: 0; transform: scale(1.5); }
+  100% { opacity: 0; }
+}
+.tb-ok {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(52, 199, 89, 0.14);
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f7a35;
+}
+[data-theme='dark'] .tb-ok {
+  color: #4cd964;
+}
+
+/* ---- 5. neck --------------------------------------------------------------- */
+.tb-neck {
+  position: relative;
+}
+.tb-lap {
+  position: absolute;
+  inset: 46px 8px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: tb-lap 8s ease-in-out infinite;
+  pointer-events: none;
+}
+.tb-lap img {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+}
+.tb-lap span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.tb-scr {
+  animation: tb-scr 8s ease-out infinite;
+}
+.tb-dot {
+  animation: tb-dot 8s cubic-bezier(0.3, 1.6, 0.5, 1) infinite both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tb-dot.is-late {
+  animation-delay: 0.3s;
+}
+.tb-tag {
+  animation: tb-tag 8s ease infinite;
+}
+@keyframes tb-lap {
+  0%, 8% { opacity: 1; transform: scale(1); }
+  30%, 100% { opacity: 0; transform: scale(0.9); }
+}
+@keyframes tb-scr {
+  0%, 22% { opacity: 0; transform: translateY(10px); }
+  34%, 100% { opacity: 1; transform: none; }
+}
+@keyframes tb-dot {
+  0%, 40% { opacity: 0; transform: scale(0.4); }
+  46%, 100% { opacity: 1; transform: scale(1); }
+}
+@keyframes tb-tag {
+  0%, 52% { opacity: 0; }
+  58%, 100% { opacity: 1; }
+}
+
+/* ---- 6. diagram ------------------------------------------------------------ */
+.tb-turn {
+  animation: tb-turn 9s ease-in-out infinite;
+  transform-box: view-box;
+  transform-origin: 170px 120px;
+}
+.tb-box {
+  animation: tb-box 9s ease infinite;
+}
+.tb-item {
+  animation: tb-it 9s ease var(--d) infinite both;
+}
+@keyframes tb-turn {
+  0%, 12% { transform: rotate(0deg); opacity: 1; }
+  38% { transform: rotate(90deg); opacity: 1; }
+  46%, 100% { transform: rotate(90deg); opacity: 0; }
+}
+@keyframes tb-box {
+  0%, 38% { opacity: 0; }
+  48%, 100% { opacity: 1; }
+}
+@keyframes tb-it {
+  0%, 50% { opacity: 0; transform: translateX(-6px); }
+  58%, 100% { opacity: 1; transform: none; }
+}
+
+/* ---- 7. strumming ---------------------------------------------------------- */
+.tb-strum {
+  --t: 4s;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 0.5px var(--separator);
+}
+.tb-strum.is-slow,
+.tb-slots.is-slow {
+  --t: 8s;
+}
+.tb-strum svg {
+  flex: none;
+  max-width: 45%;
+  height: auto;
+}
+.tb-strum-note {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.tb-pick {
+  animation: tb-hand var(--t) linear infinite;
+}
+@keyframes tb-hand {
+  0%, 25%, 50%, 75%, 100% { transform: translateY(0); }
+  12.5%, 37.5%, 62.5%, 87.5% { transform: translateY(150px); }
+}
+.tb-slots {
+  --t: 4s;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
+  text-align: center;
+}
+.tb-slot {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  border-radius: 10px;
+  font-weight: 700;
+  color: var(--text-h);
+  animation: tb-slot var(--t) steps(1) calc(var(--t) / 8 * var(--k)) infinite both;
+}
+.tb-slot.is-rest {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+.tb-slot-arrow {
+  font-size: 20px;
+}
+.tb-slot-count {
+  font-size: 12px;
+}
+@keyframes tb-slot {
+  0% { background: var(--accent-fill); color: #fff; }
+  12.5%, 100% { background: transparent; color: inherit; }
+}
+
+.tc-btn.is-on {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* ---- the metronome inside a step ------------------------------------------- */
+.tc-metro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--fill-tertiary);
+}
+.tc-metro-bpm {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+.tc-metro-beats {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.tc-metro-beats span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--fill-secondary);
+  transition: background 0.06s;
+}
+.tc-metro-beats span.is-on {
+  background: var(--accent-fill);
+}
+.tc-metro-beats span.is-on:first-child {
+  background: #ff9500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-visual *,
+  .tb-visual *::before {
+    animation: none !important;
+  }
+  .tb-lap {
+    display: none;
+  }
+  .tb-finger-name {
+    opacity: 1;
+  }
+}

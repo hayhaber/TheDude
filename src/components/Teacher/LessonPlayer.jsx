@@ -22,6 +22,7 @@ import { homeworkStatus } from '../../teacher/mastery';
 import '../ChordLibrary/ChordLibraryView.css';
 import { TRY_IN } from '../../teacher/tryIn';
 import { TryIn } from './TryIn';
+import { BasicsVisual } from './BasicsVisual';
 
 const midisOf = (frets) => frets.map((f, s) => (f == null ? null : STD_TUNING[s] + f)).filter((m) => m != null);
 
@@ -100,11 +101,51 @@ function TuneStep({ step, tx, onDone, done }) {
   );
 }
 
-function ChecklistStep({ step, tx, ticks, setTicks }) {
+/** The metronome right in the step (the shared one — the tools button shows it running too). */
+function MetroBox({ bpm, metro }) {
+  const { t } = useLanguage();
+  const on = !!metro?.running && metro.bpm === bpm;
+  const metroRef = useRef(metro);
+  metroRef.current = metro;
+  const mine = useRef(false);
+  // a metronome this step started stops when the step is left
+  useEffect(() => () => mine.current && metroRef.current?.stop(), []);
+  if (!metro) return null;
+  return (
+    <div className="tc-metro">
+      <button
+        type="button"
+        className={'tc-btn' + (on ? '' : ' is-primary')}
+        onClick={() => {
+          if (on) {
+            metro.stop();
+            mine.current = false;
+          } else {
+            metro.start(bpm);
+            mine.current = true;
+          }
+        }}
+      >
+        {on ? t('teacher.step.stop') : t('teacher.metro.start')}
+      </button>
+      <span className="tc-metro-beats" aria-hidden="true">
+        {[0, 1, 2, 3].map((k) => (
+          <span key={k} className={on && metro.beat === k ? 'is-on' : ''} />
+        ))}
+      </span>
+      <span className="tc-metro-bpm" dir="ltr">
+        {bpm} BPM
+      </span>
+    </div>
+  );
+}
+
+function ChecklistStep({ step, tx, ticks, setTicks, metro }) {
   const { t } = useLanguage();
   return (
     <>
       {step.text && <p className="tc-text">{tx(step.text)}</p>}
+      {step.metronome && <MetroBox bpm={step.metronome} metro={metro} />}
       <ul className="tc-checklist">
         {step.items.map((item, i) => (
           <li key={i}>
@@ -448,7 +489,7 @@ export function HomeworkList({ items, tx, onPractise }) {
   );
 }
 
-export function LessonPlayer({ lesson, onClose, onStage }) {
+export function LessonPlayer({ lesson, onClose, onStage, metro }) {
   const { t, lang } = useLanguage();
   const tx = useCallback((x) => (x ? x[lang] ?? x.en : ''), [lang]);
   const [leftHanded] = useLeftHanded();
@@ -470,10 +511,11 @@ export function LessonPlayer({ lesson, onClose, onStage }) {
   }, [lesson.id, i]);
 
   // The neck below shows the chord this step is about (empty otherwise).
-  const shape = finished ? null : step.shape ?? step.chord ?? null;
+  const shape = finished ? null : step.shape ?? step.chord ?? step.stage ?? null;
   useEffect(() => {
     // tuner / one-minute changes have their own display: no neck under them
-    const noNeck = !finished && (step.kind === 'tune' || step.kind === 'changes');
+    // (a picture step shows the neck only when it is about a chord on it)
+    const noNeck = !finished && (step.kind === 'tune' || step.kind === 'changes' || (step.kind === 'visual' && !step.stage));
     if (!finished && step.kind === 'play') return; // PlayStep draws its own (with the current note)
     if (!finished && step.kind === 'arp') {
       onStage?.(arpStage(step.arp, step.labels));
@@ -548,7 +590,13 @@ export function LessonPlayer({ lesson, onClose, onStage }) {
             }}
           />
         )}
-        {step.kind === 'checklist' && <ChecklistStep step={step} tx={tx} ticks={ticks} setTicks={setTicks} />}
+        {step.kind === 'checklist' && <ChecklistStep step={step} tx={tx} ticks={ticks} setTicks={setTicks} metro={metro} />}
+        {step.kind === 'visual' && (
+          <>
+            {step.text && <p className="tc-text">{tx(step.text)}</p>}
+            <BasicsVisual name={step.visual} tx={tx} />
+          </>
+        )}
         {step.kind === 'quiz' && <QuizStep step={step} tx={tx} picked={picked} setPicked={setPicked} />}
         {step.kind === 'chord' && (
           <ChordStep step={step} tx={tx} leftHanded={leftHanded} passed={false} onPass={() => pass(`chord-${step.chord}`)} />

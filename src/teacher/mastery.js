@@ -73,7 +73,10 @@ function knownSkill(skill, state) {
 
 /** A not-started lesson the student showed (or said) they already know. */
 function covered(lesson, state) {
-  if (state.lessons[lesson.id] || state.intake?.experience === 'none') return false;
+  if (state.lessons[lesson.id]) return false;
+  // the first-lesson basics are for someone who hasn't started anything yet
+  if (lesson.onlyFirst) return Object.keys(state.lessons).length > 0;
+  if (state.intake?.experience === 'none') return false;
   const skills = lesson.skills.map(skillById).filter((s) => s && (s.check.kind === 'chord' || s.id === 'strum-down'));
   return skills.length > 0 && skills.every((s) => knownSkill(s, state));
 }

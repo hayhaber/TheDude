@@ -2121,6 +2121,19 @@ function App() {
 
   // Leaving the tool screen leaves nothing ticking out of sight.
   const stopMetronome = metronome.stop;
+  // The teacher's steps start the shared metronome from a button of their own
+  // (click only — the drum machine's source would silence it).
+  const teacherMetro = {
+    running: metronome.isRunning,
+    bpm: metronome.bpm,
+    beat: metronome.currentBeat,
+    start: (bpm) => {
+      if (drums.soundSource !== 'standard') drums.setSoundSource('standard');
+      metronome.setBpm(bpm);
+      metronome.start();
+    },
+    stop: metronome.stop,
+  };
   const closeToolScreen = useCallback(() => {
     stopMetronome();
     setToolScreen(null);
@@ -2547,7 +2560,7 @@ function App() {
       {activeSection === 'coach' && <CoachView />}
       {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} metronome={metronome} />}
       {activeSection === 'teacher' && (
-        <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} />
+        <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} metro={teacherMetro} />
       )}
     </AppShell>
     </>

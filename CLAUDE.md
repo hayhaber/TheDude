@@ -1253,6 +1253,29 @@ no tools).
 
 ## Guitar Teacher (built 2026-10-25, phase 1A)
 
+- FIRST LESSON "Meet the guitar" `g0-basics` (v1.0.117, 2026-11-06, from the
+  mockups the user approved on the Design canvas
+  https://claude.ai/artifact/Kjb2yBJwe2iSzJJyiTzWU7): 7 picture steps
+  (`kind: 'visual'`, `visual` = parts / strings / fingers / fret / neck /
+  diagram / strum) drawn by `components/Teacher/BasicsVisual.jsx` +
+  `Basics.css` (`.tb-*`, CSS loops; Again / Hear restart them, Hear plays the
+  open strings / E on string 4 fret 2 / Em; Strum has Slow). Photos = the
+  user's own guitar + hand (Gibson logo and baked digits removed, background
+  keyed): `public/teacher/guitar-front-v.webp` (parts), `guitar-front.webp`
+  (neck step: fades into the drawn neck), `hand-left.webp` (finger badges at
+  % positions). `stage: 'Em'` on neck / diagram = the real neck below shows
+  Em; other picture steps have no neck. Lesson has no skills, `onlyFirst`:
+  mastery `covered()` skips it once any other lesson was started. Neck
+  orientation text: the app's neck = the view looking down while playing
+  (thin string on top); the strum picture = the guitar standing (thick on
+  top). g0-first-note's intro no longer repeats the parts.
+- METRONOME IN A STEP (v1.0.117; user: "the text says the button is at the
+  bottom, it's at the top"): a checklist step with `metronome: <bpm>` shows
+  `MetroBox` (LessonPlayer: Start/Stop + 4 beat dots + BPM) driving the SHARED
+  metronome via App `teacherMetro` (sets the source to 'standard', the bpm,
+  start); a metronome the step started stops when the step is left. Used in
+  g0-first-chord "With the metronome", the arpeggio and tapping practice
+  checklists; their text says "Start below" instead of pointing at the bar.
 - LEVEL 0 lessons (2026-10-31, plan phase 2 — the USER reviews all three
   together): `g0-first-note` (posture + pick checklist, tune, the six strings
   `arp open-strings` + quiz, `play` 6->1->6), `g0-clean-notes` "Notes on the neck: tone

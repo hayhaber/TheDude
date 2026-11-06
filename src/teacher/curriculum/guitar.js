@@ -344,10 +344,11 @@ const lessonArpeggios = {
     },
     {
       kind: 'checklist',
+      metronome: 60,
       title: L('How to pick an arpeggio', 'איך פורטים ארפג׳יו'),
       text: L('The habits that make an arpeggio sound clean:', 'ההרגלים שגורמים לארפג׳יו להישמע נקי:'),
       items: [
-        L('Start with alternate picking — down, up, down, up — one note per click at 60 bpm (the metronome is in the bar).', 'התחל בפריטה מתחלפת — למטה, למעלה, למטה, למעלה — צליל אחד בכל קליק ב־60 BPM (המטרונום בסרגל).'),
+        L('Start with alternate picking — down, up, down, up — one note per click at 60 bpm (Start below).', 'התחל בפריטה מתחלפת — למטה, למעלה, למטה, למעלה — צליל אחד בכל קליק ב־60 BPM (הפעל כאן למטה).'),
         L('Only notes that are clean go faster: when it is clean 3 times in a row, add 4–5 bpm.', 'מהירות רק אחרי ניקיון: כשזה נקי 3 פעמים ברצף, הוסף 4–5 BPM.'),
         L('Mute what you are not playing: the side of the picking hand rests lightly on the low strings.', 'השתק את מה שלא מנגנים: צד כף יד ימין נח בעדינות על המיתרים הנמוכים.'),
         L('Later: when two notes in a row go to the next string in the same direction, one stroke can play both (economy / sweep picking).', 'בהמשך: כשני צלילים ברצף עוברים למיתר הבא באותו כיוון, תנועה אחת יכולה לנגן את שניהם (פריטת אקונומי / סוויפ).'),
@@ -552,6 +553,7 @@ const lessonTapping = {
     },
     {
       kind: 'checklist',
+      metronome: 60,
       title: L('How to practise tapping', 'איך מתרגלים טאפינג'),
       text: L('The habits that make tapping clean:', 'ההרגלים שהופכים טאפינג לנקי:'),
       items: [
@@ -580,6 +582,89 @@ const lessonTapping = {
 // Beethoven (public domain).
 // ---------------------------------------------------------------------------
 
+// The very first lesson (2026-11-06, user-approved mockups on the Design
+// canvas "יסודות הגיטרה — הדמיות"): the words and pictures every later lesson
+// uses — parts of the guitar, string numbers, finger numbers, where to press,
+// how the app draws the neck, how to read a chord diagram, strumming down and
+// up. Each step is an animated picture (`kind: 'visual'`, BasicsVisual.jsx);
+// nothing is measured. Skipped by anyone who already started another lesson.
+const lessonBasics = {
+  id: 'g0-basics',
+  level: 0,
+  onlyFirst: true,
+  title: L('Meet the guitar', 'הכירו את הגיטרה'),
+  objective: L(
+    'Know the words and pictures every lesson uses: parts, strings, fingers, frets, the neck on screen, chord diagrams and strumming.',
+    'להכיר את המילים והציורים שבכל שיעור: חלקי הגיטרה, המיתרים, האצבעות, השריגים, הצוואר במסך, שרטוט אקורד ופריטה.'
+  ),
+  minutes: 5,
+  skills: [],
+  steps: [
+    {
+      kind: 'visual',
+      visual: 'parts',
+      title: L('Meet the guitar', 'הכירו את הגיטרה'),
+      text: L('Six words you will hear in every lesson. Each part lights up in turn.', 'שש מילים שתשמעו בכל שיעור. כל חלק נדלק בתורו.'),
+    },
+    {
+      kind: 'visual',
+      visual: 'strings',
+      title: L('Six strings, six names', 'שישה מיתרים, שישה שמות'),
+      text: L(
+        'Strings are counted from the thinnest: string 1 is the thinnest, string 6 the thickest. With the guitar in your lap, the thickest is the one nearest you.',
+        'סופרים מהדק אל העבה: מיתר 1 הוא הדק ביותר, מיתר 6 העבה. כשהגיטרה בחיקך, העבה הכי קרוב אליך.'
+      ),
+    },
+    {
+      kind: 'visual',
+      visual: 'fingers',
+      title: L('Every finger has a number', 'לכל אצבע מספר'),
+      text: L(
+        'On the hand that presses the strings (the left hand for most people) the fingers are numbered 1 to 4, from the index to the pinky. “Finger 2 on fret 2” means the middle finger.',
+        `ביד שלוחצת על הצוואר (השמאלית אצל רוב האנשים) האצבעות ממוספרות ${H('1')} עד ${H('4')}, מהמורה אל הזרת. „אצבע ${H('2')} על שריג ${H('2')}” — זו האמה.`
+      ),
+    },
+    {
+      kind: 'visual',
+      visual: 'fret',
+      title: L('Where exactly to press', 'איפה בדיוק לוחצים'),
+      text: L(
+        '“Fret 2” = press with the fingertip just before the 2nd metal strip, on the head’s side — not on it and not in the middle.',
+        `„שריג ${H('2')}” = לוחצים בקצה האצבע ממש לפני פס המתכת השני, בצד של הראש — לא עליו ולא באמצע.`
+      ),
+    },
+    {
+      kind: 'visual',
+      visual: 'neck',
+      stage: 'Em',
+      title: L('The neck on screen = the guitar in your lap', 'הצוואר במסך = הגיטרה שבחיקך'),
+      text: L(
+        'The app draws the neck the way you see it when you look down at it while playing: the head on the left, the thin string at the top, the thick one at the bottom.',
+        'הצוואר באפליקציה מצויר כמו שאתם רואים אותו כשמביטים עליו מלמעלה תוך כדי נגינה: הראש משמאל, המיתר הדק למעלה, העבה למטה.'
+      ),
+    },
+    {
+      kind: 'visual',
+      visual: 'diagram',
+      stage: 'Em',
+      title: L('A chord diagram = the neck standing up', 'שרטוט אקורד = הצוואר בעמידה'),
+      text: L(
+        'Turn the neck a quarter turn: the head goes up and the thick string moves to the left.',
+        'מסובבים את הצוואר רבע סיבוב: הראש עולה למעלה, והמיתר העבה עובר לשמאל.'
+      ),
+    },
+    {
+      kind: 'visual',
+      visual: 'strum',
+      title: L('Strumming down and up', 'פריטה למטה ולמעלה'),
+      text: L(
+        '↓ Down = from the thick string to the thin one, toward the floor. ↑ Up = back. The hand keeps moving all the time, like a pendulum.',
+        '↓ למטה = מהמיתר העבה אל הדק, לכיוון הרצפה. ↑ למעלה = חזרה. היד זזה כל הזמן, כמו מטוטלת.'
+      ),
+    },
+  ],
+};
+
 const lessonFirstNote = {
   id: 'g0-first-note',
   level: 0,
@@ -595,8 +680,8 @@ const lessonFirstNote = {
       kind: 'explain',
       title: L('Today’s lesson', 'השיעור של היום'),
       text: L(
-        'Ten minutes, no chords yet. You will learn to hold the guitar, tune it, and play its six strings one by one while the teacher listens. A guitar has a body, a neck with metal strips called frets, and a head with a tuning peg for each string. Turning a peg tightens or loosens its string: tighter = higher.',
-        'עשר דקות, עוד בלי אקורדים. תלמד להחזיק את הגיטרה, לכוון אותה, ולנגן את ששת המיתרים שלה אחד אחד כשהמורה מקשיב. לגיטרה יש גוף, צוואר עם פסי מתכת שנקראים סריגים, וראש עם מפתח כיוון לכל מיתר. סיבוב מפתח מותח או משחרר את המיתר שלו: מתוח יותר = גבוה יותר.'
+        'Ten minutes, no chords yet. You will learn to hold the guitar, tune it, and play its six strings one by one while the teacher listens. Each string has a tuning peg on the head: turning it tightens or loosens the string — tighter = higher.',
+        'עשר דקות, עוד בלי אקורדים. תלמד להחזיק את הגיטרה, לכוון אותה, ולנגן את ששת המיתרים שלה אחד אחד כשהמורה מקשיב. לכל מיתר יש מפתח כיוון בראש: סיבוב המפתח מותח או משחרר את המיתר — מתוח יותר = גבוה יותר.'
       ),
     },
     {
@@ -834,10 +919,11 @@ const lessonFirstChord = {
     {
       kind: 'checklist',
       skill: 'strum-down',
+      metronome: 60,
       title: L('With the metronome', 'עם המטרונום'),
       text: L(
-        'Open the metronome (the pill at the bottom of the screen, or in the top bar on a computer), set 60 and start it. Strum Em on every click.',
-        'פתח את המטרונום (הכפתור בתחתית המסך, או בסרגל העליון במחשב), קבע 60 והפעל. פרוט ' + H('Em') + ' על כל נקישה.'
+        'Press Start below: the metronome clicks at 60. Strum Em on every click.',
+        'לחץ הפעל כאן למטה: המטרונום מקיש ב־' + H('60') + '. פרוט ' + H('Em') + ' על כל נקישה.'
       ),
       items: [
         L('Four strums in a row land on the clicks.', 'ארבע פריטות ברצף נופלות על הנקישות.'),
@@ -873,6 +959,7 @@ const lessonFirstChord = {
 };
 
 export const LESSONS = [
+  lessonBasics,
   lessonFirstNote,
   lessonCleanNotes,
   lessonFirstChord,

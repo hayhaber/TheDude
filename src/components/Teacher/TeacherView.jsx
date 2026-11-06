@@ -258,7 +258,7 @@ function PathView({ state, tx, onOpen }) {
   );
 }
 
-export function TeacherView({ initialScreen = 'today', initialLesson = null, onStage }) {
+export function TeacherView({ initialScreen = 'today', initialLesson = null, onStage, metro }) {
   const { t, lang } = useLanguage();
   const tx = useCallback((x) => (x ? x[lang] ?? x.en : ''), [lang]);
   const [state] = useTeacher();
@@ -308,7 +308,7 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
   if (screen === 'lesson' && lesson) {
     return (
       <div className="teacher" dir={dir}>
-        <LessonPlayer key={lesson.id} lesson={lesson} onClose={back} onStage={onStage} />
+        <LessonPlayer key={lesson.id} lesson={lesson} onClose={back} onStage={onStage} metro={metro} />
       </div>
     );
   }

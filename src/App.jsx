@@ -2123,6 +2123,15 @@ function App() {
   const stopMetronome = metronome.stop;
   // The teacher's steps start the shared metronome from a button of their own
   // (click only — the drum machine's source would silence it).
+  // The teacher's solo goal: open GuitarPro -> Practice on a section and tempo.
+  const [gpPracticeN, setGpPracticeN] = useState(0);
+  const openSolo = (soloId, section, tempoPct) => {
+    lickTrainer.launchSolo(soloId, section, tempoPct);
+    setGpPracticeN((n) => n + 1);
+    setActiveSection('guitarpro');
+    window.scrollTo(0, 0);
+  };
+  const teacherGp = { solos: lickTrainer.solos, openSolo };
   const teacherMetro = {
     running: metronome.isRunning,
     bpm: metronome.bpm,
@@ -2541,7 +2550,7 @@ function App() {
       )}
 
       {activeSection === 'guitarpro' && (
-        <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} onFindSongs={supportsInstrument('songs', instrument) ? () => setActiveSection('songs') : undefined} />
+        <GuitarProView trainer={lickTrainer} openPractice={gpPracticeN} pianoProfile={pianoProfile} bassProfile={bassProfile} onFindSongs={supportsInstrument('songs', instrument) ? () => setActiveSection('songs') : undefined} />
       )}
 
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
@@ -2560,7 +2569,7 @@ function App() {
       {activeSection === 'coach' && <CoachView />}
       {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} metronome={metronome} />}
       {activeSection === 'teacher' && (
-        <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} metro={teacherMetro} />
+        <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} metro={teacherMetro} gp={teacherGp} />
       )}
     </AppShell>
     </>

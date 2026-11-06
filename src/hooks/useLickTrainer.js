@@ -1207,6 +1207,23 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   // Programmatic launch (coach): the lick library with this lick chosen and
   // the tempo set. `expectMount`: the Lick Trainer tab is about to mount
   // (its mount resets the choice — skip that once).
+  // The teacher's solo goal opens a section at a tempo (GuitarPro -> Practice).
+  const launchSolo = useCallback(
+    (id, section = -1, pct) => {
+      stop();
+      setModeState('solos');
+      if (id) setSoloId(id);
+      setSectionIndexState(section);
+      setResult(null);
+      setPhase('idle');
+      if (Number.isFinite(pct)) {
+        const it = `${id}#${section}`;
+        rememberTempo(it, pct);
+        if (it === itemRef.current) setTempoState(pct);
+      }
+    },
+    [stop, rememberTempo]
+  );
   const launchLick = useCallback(
     (id, pct, { expectMount = false } = {}) => {
       stop();
@@ -1399,6 +1416,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     mode,
     setMode,
     solos: allSolos,
+    launchSolo,
     activeSolo,
     activeSoloId: baseSolo?.id ?? null,
     selectSolo,

@@ -1253,6 +1253,32 @@ no tools).
 
 ## Guitar Teacher (built 2026-10-25, phase 1A)
 
+- TEACHER = ONE SCREEN (v1.0.120, 2026-11-06; user: "Today / Goal / Path
+  is unclear — build it all"; mockup canvas
+  https://claude.ai/artifact/DvZN2huEHUCDtC7FpUTrvJ; rollback point = branch
+  `ui-pre-teacher-v1.0.119`). No Today | Goal | Path tabs: `TeacherHome.jsx`
+  draws ONE hero (the student's goal when there is one — solo goal, or the
+  Coach skill goal once the goal row is visible — else the next lesson),
+  then iOS rows (`ph-group` / `LibraryRow`): "My progress" (level · lesson
+  n of m + bar -> `PathList` sub-screen), the next lesson (when the goal is
+  the hero), "Today's practice" (homework, only when there is some), "My
+  goal" (`goalVisible`: players (experience some/lot), level 0 done, or a
+  goal exists) / "The solo plan", Achievements; ••• (MoreMenu) = about you,
+  the path, choose a goal. Path = lessons only (✓ done / ● now / empty),
+  unwritten ones = "N more on the way"; skills no longer listed there.
+  Goal pick: "A specific solo or song" (GuitarPro library: built-in SOLOS +
+  imports, passed from App as `gp={solos, openSolo}`) or "A skill" (=
+  CoachView embedded, screen `skillGoal`; initialScreen 'coach' maps there
+  or to the pick). Solo goal = teacher state `goal {kind:'solo', soloId,
+  target, at}` (`setTeacherGoal`); `soloPlan()` = sectionMastery from the
+  perf log, weakest section at tempo = round5(topTempo ?? 60) clamped
+  50..target, whole solo at min(80, target) (target once all mastered);
+  today's session = bends warm-up (launch 'bending', only when the section
+  has bends) · the weakest section · the whole solo. Continue / Go ->
+  App `openSolo` = `lickTrainer.launchSolo(id, section, pct)` (new: sets
+  solo + section, writes the tempo memory for `<id>#<section>`) + GuitarPro
+  `openPractice` (opens the Practice view). No time estimates shown (no
+  data yet).
 - FIRST LESSON "Meet the guitar" `g0-basics` (v1.0.117, 2026-11-06, from the
   mockups the user approved on the Design canvas
   https://claude.ai/artifact/Kjb2yBJwe2iSzJJyiTzWU7): 7 picture steps

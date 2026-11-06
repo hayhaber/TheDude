@@ -17,6 +17,8 @@ import { recordPass, saveIntake, useTeacher } from '../../teacher/teacherState';
 import { allSkillStatus, nextLesson, openHomework } from '../../teacher/mastery';
 import { onPerf } from '../../coach/perfLog';
 import { HomeworkList, LessonPlayer, PlayStep } from './LessonPlayer';
+import { GoalPick, PathList, SoloGoalForm, SoloPlan, TeacherHome } from './TeacherHome';
+import { MoreMenu } from '../MoreMenu/MoreMenu';
 import '../ModeToggle/ModeToggle.css';
 import './Teacher.css';
 
@@ -258,14 +260,20 @@ function PathView({ state, tx, onOpen }) {
   );
 }
 
-export function TeacherView({ initialScreen = 'today', initialLesson = null, onStage, metro }) {
+export function TeacherView({ initialScreen = 'today', initialLesson = null, onStage, metro, gp }) {
   const { t, lang } = useLanguage();
   const tx = useCallback((x) => (x ? x[lang] ?? x.en : ''), [lang]);
   const [state] = useTeacher();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   usePerfTick();
   // today | path | intake | lesson | coach | practise
-  const [screen, setScreen] = useState(initialScreen === 'lesson' ? 'today' : initialScreen);
+  // today | path | goal | soloGoal | soloPlan | skillGoal | rewards | intake | lesson | practise
+  const coach = useCoach();
+  const coachGoal = activeGoal(coach.state);
+  const coachGoalDef = coachGoal ? goalByKey(coachGoal.goalKey) : null;
+  const [screen, setScreen] = useState(() =>
+    initialScreen === 'lesson' ? 'today' : initialScreen === 'coach' ? (coachGoal ? 'skillGoal' : 'goal') : initialScreen
+  );
   const [lesson, setLesson] = useState(null);
   const [practise, setPractise] = useState(null);
 
@@ -326,7 +334,22 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
     </div>
   );
 
-  if (screen === 'rewards') return sub(null, <RewardsView />);
+  const solo = state.goal?.kind === 'solo' ? gp?.solos?.find((x) => x.id === state.goal.soloId) : null;
+  if (screen === 'rewards') return sub(t('teacher.rewards.title'), <RewardsView />);
+  if (screen === 'path') return sub(t('teacher.path.title'), <PathList state={state} tx={tx} onOpen={open} />);
+  if (screen === 'goal')
+    return sub(
+      t('teacher.goal.pick'),
+      <GoalPick tx={tx} hasSolos={!!gp?.solos?.length} onSolo={() => setScreen('soloGoal')} onSkill={() => setScreen('skillGoal')} />
+    );
+  if (screen === 'soloGoal' && gp?.solos?.length)
+    return sub(t('teacher.goalPick.solo'), <SoloGoalForm tx={tx} solos={gp.solos} initial={state.goal} onDone={() => setScreen('soloPlan')} />);
+  if (screen === 'soloPlan' && solo)
+    return sub(
+      typeof solo.title === 'string' ? solo.title : tx(solo.title),
+      <SoloPlan tx={tx} solo={solo} goal={state.goal} gp={gp} onChange={() => setScreen('soloGoal')} />
+    );
+  if (screen === 'skillGoal') return sub(null, <CoachView embedded />);
   if (screen === 'practise' && practise?.kind === 'play')
     return sub(
       null,
@@ -353,36 +376,36 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
     <div className="teacher" dir={dir}>
       <div className="tc-top">
         <h1>{t('home.teacher.title')}</h1>
-        <div className="mode-toggle tc-tabs" role="tablist">
-          {['today', 'coach', 'path'].map((k) => (
-            <button key={k} type="button" role="tab" aria-selected={screen === k} className={screen === k ? 'active' : ''} onClick={() => setScreen(k)}>
-              {t(`teacher.tab.${k}`)}
+        {state.intake && (
+          <MoreMenu label={t('teacher.more')}>
+            <button type="button" className="more-menu-item" onClick={() => setScreen('intake')}>
+              {t('teacher.intake.title')}
             </button>
-          ))}
-        </div>
+            <button type="button" className="more-menu-item" onClick={() => setScreen('path')}>
+              {t('teacher.path.title')}
+            </button>
+            <button type="button" className="more-menu-item" onClick={() => setScreen('goal')}>
+              {t('teacher.goal.pick')}
+            </button>
+          </MoreMenu>
+        )}
       </div>
-      {screen === 'path' ? (
-        <PathView state={state} tx={tx} onOpen={open} />
-      ) : screen === 'coach' ? (
-        <CoachView embedded />
+      {!state.intake ? (
+        <Today state={state} tx={tx} onOpen={open} onIntake={() => setScreen('intake')} />
       ) : (
-        <Today
+        <TeacherHome
           state={state}
           tx={tx}
+          coachGoal={coachGoal}
+          coachGoalTitle={coachGoalDef ? pick(coachGoalDef.title, lang) : ''}
+          gp={gp}
           onOpen={open}
-          onCoach={() => setScreen('coach')}
-          onRewards={() => setScreen('rewards')}
-          onIntake={() => setScreen('intake')}
+          onScreen={setScreen}
           onPractise={(item) => {
             setPractise(item);
             setScreen('practise');
           }}
         />
-      )}
-      {state.intake && screen === 'today' && (
-        <button type="button" className="tc-quiet" onClick={() => setScreen('intake')}>
-          {t('teacher.intake.title')}
-        </button>
       )}
     </div>
   );

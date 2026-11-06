@@ -80,4 +80,7 @@ export const finishLesson = (lessonId) =>
     return { ...s, lessons: { ...s.lessons, [lessonId]: { ...l, done: l.done ?? Date.now(), at: 0 } } };
   });
 
+/** The student's own goal: { kind: 'solo', soloId, target, at } (null = none). */
+export const setTeacherGoal = (goal) => updateTeacher((s) => ({ ...s, goal: goal ? { ...goal, at: Date.now() } : null }));
+
 export const resetTeacher = () => updateTeacher(() => ({ ...EMPTY }));

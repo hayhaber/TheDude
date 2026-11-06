@@ -46,7 +46,7 @@ function TrackMixer({ trainer, t, busy }) {
   );
 }
 
-export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs }) {
+export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs , openPractice }) {
   const { t, lang } = useLanguage();
   const fileRef = useRef(null);
   const [view, setView] = useState('song'); // 'song' | 'practice' | 'chords'
@@ -58,6 +58,10 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
   useEffect(() => {
     if (pendingName) importRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [pendingName]);
+  // The teacher's solo goal opens straight into Practice.
+  useEffect(() => {
+    if (openPractice) setView('practice');
+  }, [openPractice]);
   const { setMode } = trainer;
   useEffect(() => {
     setMode('solos');

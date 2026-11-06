@@ -839,3 +839,147 @@
   color: #af52de;
   font-weight: 700;
 }
+
+/* ---- the teacher as one screen (2026-11-06 flow review) ------------------ */
+.tc-top .more-menu {
+  margin-inline-start: auto;
+}
+.tc-hero.is-goal .tc-eyebrow {
+  color: #c25e00;
+}
+[data-theme='dark'] .tc-hero.is-goal .tc-eyebrow {
+  color: #ff9f0a;
+}
+.tc-hero-btn {
+  align-self: flex-start;
+  height: 44px;
+  padding: 0 28px;
+  font-size: 17px;
+}
+.tc-secbar {
+  display: flex;
+  gap: 4px;
+}
+.tc-secbar span {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--fill-secondary);
+}
+.tc-secbar .is-mastered {
+  background: #34c759;
+}
+.tc-secbar .is-close {
+  background: var(--accent-fill);
+}
+.tc-secbar .is-weak {
+  background: #ff9500;
+}
+.tc-pbar {
+  display: flex;
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: var(--fill-secondary);
+  overflow: hidden;
+}
+.tc-pbar span {
+  border-radius: 3px;
+  background: #34c759;
+}
+.tc-progress-row .ph-text {
+  flex: 1;
+}
+.tc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tc-section-head {
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.tc-soon {
+  padding: 0 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.tc-pathlist {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.tc-path-row .tc-mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--separator);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+}
+.tc-path-row.is-done .tc-mark,
+.tc-path-row.is-mastered .tc-mark {
+  border: none;
+  background: #34c759;
+}
+.tc-path-row.is-now {
+  background: var(--accent-bg);
+}
+.tc-path-row.is-now .tc-mark {
+  border-color: var(--accent);
+}
+.tc-path-row.is-now .tc-mark span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-fill);
+}
+.tc-path-row.is-done .ph-title {
+  color: var(--text-secondary);
+}
+.tc-now {
+  color: var(--accent);
+}
+.tc-step-n {
+  width: 26px;
+  flex: none;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.tc-go {
+  flex: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+.tc-tempo {
+  flex: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.tc-goal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.tc-btn.tc-danger {
+  color: var(--danger);
+}
+.tc-form {
+  gap: 14px;
+}

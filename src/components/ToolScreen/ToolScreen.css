@@ -239,3 +239,9 @@
   box-shadow: none;
   border: none;
 }
+
+@media (min-width: 900px) {
+  .tool-screen-card.is-settings {
+    width: min(1040px, 100%);
+  }
+}

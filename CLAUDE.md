@@ -310,6 +310,13 @@ no tools).
   (Escape = back to the list first). Every old field kept, on a page.
   Text `settings.page.*`, `settings.account.*`, `settings.explanations*`,
   `settings.done`, `profile.local`.
+- SETTINGS SPLIT VIEW (v1.0.110, user's idea 2026-11-06): >= 900 px wide
+  (iPad landscape / computer) SettingsBody is iPad Settings' split view —
+  `.set-root.is-split` grid: the list (sticky, 280–340 px, reading-start
+  side, no chevrons, chosen row = accent fill `.set-row.is-active`) | the
+  chosen page with its title (default "Instrument sounds"). No back button
+  there; Escape leaves Settings. Narrower = the phone drill-down.
+  `useMediaQuery` in SettingsPanel.jsx. ToolScreen settings card 1040 px.
 - HOME PRIMARY BUTTON = option A (user's pick 2026-11-06, v1.0.108; he
   disliked the full-width blue bar): `.home-primary` is a one-word tinted
   capsule (Start / Continue — `home.primary.btnStart|btnContinue`; accent

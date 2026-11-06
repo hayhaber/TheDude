@@ -742,6 +742,18 @@ no tools).
   `.vocal-diag` line (an/wk peaks, ctx, mic track, session) in VocalRunner
   and RangeTest — ask for a screenshot. Chromium with the analyser forced to
   zeros: voice still read via the tap. NOT verified on a real iPad.
+- **Vocal mic on iPad, round 2 (v1.0.107)**: still silent on the user's
+  iPad after 1.0.105. Now on iOS useVocalMic analyses on its OWN context
+  (`createLiveContext`, resumed in the tap, replaced after getUserMedia when
+  not running, kept across stop/start, closed on unmount — the tuner's
+  iPhone fix); frames are still stamped on the SHARED clock (`ct` =
+  shared.currentTime − half window − baseLatency). The iPad no longer closes
+  / reopens the mic per cue (`CYCLE_MIC` = iPhone only; an iPad has no
+  earpiece). On iOS a grey `.vocal-diag` line shows whenever nothing was
+  heard for 3 s (`mic.quiet`): own|shared, analyser / worklet peaks, ctx
+  state, mic track, session, then `rms … hz … cl …` or `rms … < gate …`.
+  Chromium with an iPad UA: own path used, trill read. NOT verified on the
+  iPad — ask for a screenshot of that line if it still fails.
 - **Singers' ear training** (user's request 2026-10-17): the Singing card's
   Ear Training opens the Vocal section's own `ear` screen (HomeMenu option
   `vocalScreen: 'ear'` -> App `vocalStart` {screen, n} -> `VocalTrainingView

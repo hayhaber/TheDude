@@ -5,6 +5,15 @@ import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { hzToMidi } from '../music/vocal/voiceRange';
 import { activeCalibration, gateFor } from '../audio/noiseCalibration';
 import { createMicTap } from '../audio/micTap';
+import { createLiveContext } from '../audio/amp/liveInput';
+
+// iPhone / iPad: the mic is analysed on an AudioContext of its OWN (the
+// tuner's fix, the Recorder's pattern) — the shared one, which plays the
+// piano cues, can be left paused by iOS once capture starts. Frames are
+// still stamped on the shared clock (the cue's), see tick().
+const IS_IOS =
+  typeof navigator !== 'undefined' &&
+  (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
 // The Vocal section's microphone: a continuous, timestamped pitch track (not
 // just "the current note" like usePitchDetection) — the exercises draw the
@@ -59,11 +68,16 @@ export function useVocalMic() {
   const resumeAt = useRef(0);
   const [deadInput, setDeadInput] = useState(false);
   const [diag, setDiag] = useState('');
+  // No pitch heard for 3 s while listening (shown with the diag line on iOS).
+  const [quiet, setQuiet] = useState(false);
+  const heardAt = useRef(0);
+  const ownCtx = useRef(null);
+  const stat = useRef('');
 
   const tick = useCallback(() => {
     const { analyser, detector, buffer, gain } = nodes.current;
     if (!analyser) return;
-    const ctx = getAudioContext();
+    const ctx = nodes.current.ctx || getAudioContext();
     gain.gain.value = getAudioInputSettings().gain;
     // Backstop: a context that stopped (iOS interruption) is woken again.
     if (ctx.state !== 'running') {
@@ -100,9 +114,9 @@ export function useVocalMic() {
     if (peak > 0) lastSignalAt.current = nowMs;
     const dead = nowMs - lastSignalAt.current > 1500;
     setDeadInput((d) => (d === dead ? d : dead));
-    if (dead) {
+    if (dead || (IS_IOS && tickCount.current % 20 === 0)) {
       const tr = nodes.current.stream?.getAudioTracks()[0];
-      const info = `an ${anPeak.toFixed(4)} wk ${tap ? tap.blocks + '/' + (tapPeak == null ? '-' : tapPeak.toFixed(4)) : 'off'} · ctx ${ctx.state} · ${ctx.sampleRate} Hz · mic ${tr ? tr.readyState + (tr.muted ? ' muted' : '') : 'none'}${navigator.audioSession ? ' · session ' + navigator.audioSession.type : ''}`;
+      const info = `${nodes.current.own ? 'own' : 'shared'} · an ${anPeak.toFixed(4)} wk ${tap ? tap.blocks + '/' + (tapPeak == null ? '-' : tapPeak.toFixed(4)) : 'off'} · ctx ${ctx.state} · ${ctx.sampleRate} Hz · mic ${tr ? tr.readyState + (tr.muted ? ' muted' : '') : 'none'}${navigator.audioSession ? ' · session ' + navigator.audioSession.type : ''} · ${stat.current}`;
       setDiag((d) => (d === info ? d : info));
     }
     let sum = 0;
@@ -118,6 +132,9 @@ export function useVocalMic() {
       // Only when the plain read fails (frames that read today are untouched).
       if (!valid(hz, clarity)) [hz, clarity] = detector.findPitch(flattenEnvelope(buffer, nodes.current.flat, ctx.sampleRate), ctx.sampleRate);
       if (valid(hz, clarity)) midi = hzToMidi(hz);
+      stat.current = `rms ${rms.toFixed(4)} hz ${Math.round(hz)} cl ${clarity.toFixed(2)}`;
+    } else {
+      stat.current = `rms ${rms.toFixed(4)} < gate ${minRms.toFixed(4)}`;
     }
     // 3-frame median (null counts as a gap only when most frames are null).
     const r = recent.current;
@@ -126,11 +143,17 @@ export function useVocalMic() {
     const vals = r.filter((v) => v != null).sort((a, b) => a - b);
     const smooth = midi == null || vals.length < 2 ? midi : vals[vals.length >> 1];
     // The analysed window ends now; its centre is half a window earlier.
-    const ct = ctx.currentTime - FFT_SIZE / 2 / ctx.sampleRate - (ctx.baseLatency || 0);
+    // Stamped on the SHARED clock (the cues'), whichever context analyses.
+    const ct = getAudioContext().currentTime - FFT_SIZE / 2 / ctx.sampleRate - (ctx.baseLatency || 0);
     framesRef.current.push({ ct, midi: smooth });
     if (framesRef.current.length > 6000) framesRef.current.splice(0, 2000);
     tickCount.current += 1;
     if (tickCount.current % 2 === 0) setLive({ midi: smooth, level: Math.min(1, rms * 8) });
+    if (smooth != null) heardAt.current = nowMs;
+    if (tickCount.current % 15 === 0) {
+      const q = nowMs - heardAt.current > 3000;
+      setQuiet((v) => (v === q ? v : q));
+    }
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
@@ -156,6 +179,13 @@ export function useVocalMic() {
     if (nodes.current.analyser) return true;
     setError(null);
     const my = ++gen.current;
+    // iOS: our own context, created / resumed IN the tap (before any await).
+    let own = null;
+    if (IS_IOS) {
+      own = ownCtx.current && ownCtx.current.state !== 'closed' ? ownCtx.current : createLiveContext();
+      own.resume().catch(() => {});
+      ownCtx.current = own;
+    }
     try {
       const { deviceId } = getAudioInputSettings();
       // Processing off: echo cancellation/AGC/noise suppression bend a
@@ -170,10 +200,22 @@ export function useVocalMic() {
           channelCount: 1,
         },
       });
-      const ctx = getAudioContext();
       // Opening the mic can interrupt playback on iOS; wake it again.
       reviveAudioOutput();
-      if (ctx.state !== 'running') await settle(ctx.resume());
+      const shared = getAudioContext();
+      if (shared.state !== 'running') await settle(shared.resume());
+      // While the page captures, WebKit lets a NEW context start without a
+      // gesture: one that isn't running now is replaced.
+      if (own && own.state !== 'running') {
+        await settle(own.resume());
+        if (own.state !== 'running') {
+          own.close().catch(() => {});
+          own = createLiveContext();
+          ownCtx.current = own;
+          await settle(own.resume());
+        }
+      }
+      const ctx = own || shared;
       if (my !== gen.current) {
         stream.getTracks().forEach((tr) => tr.stop());
         return false;
@@ -203,7 +245,11 @@ export function useVocalMic() {
         return false;
       }
       lastSignalAt.current = performance.now();
+      heardAt.current = performance.now();
+      setQuiet(false);
       nodes.current = {
+        ctx: own,
+        own: !!own,
         tap,
         tapBuf: tap ? new Float32Array(FFT_SIZE) : null,
         mute,
@@ -237,7 +283,29 @@ export function useVocalMic() {
     return pending.current;
   }, [open]);
 
-  useEffect(() => stop, [stop]);
+  // Any tap while listening wakes a context that isn't running (a resume
+  // inside a gesture is always allowed on iOS).
+  useEffect(() => {
+    if (!listening) return undefined;
+    const wake = () => {
+      for (const c of [nodes.current.ctx, getAudioContext()]) if (c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => {});
+    };
+    window.addEventListener('touchend', wake, true);
+    window.addEventListener('click', wake, true);
+    return () => {
+      window.removeEventListener('touchend', wake, true);
+      window.removeEventListener('click', wake, true);
+    };
+  }, [listening]);
 
-  return { listening, error, live, framesRef, start, stop, deadInput, diag };
+  useEffect(
+    () => () => {
+      stop();
+      ownCtx.current?.close().catch(() => {});
+      ownCtx.current = null;
+    },
+    [stop]
+  );
+
+  return { listening, error, live, framesRef, start, stop, deadInput, diag, quiet };
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { useVocalExercise, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey } from '../../hooks/useVocalExercise';
+import { useVocalExercise, IS_IOS, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey } from '../../hooks/useVocalExercise';
 import { midiName } from '../../music/vocal/voiceRange';
 import { centsOff } from '../../music/vocal/vocalAnalysis';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -137,11 +137,13 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
         </div>
 
         {mic.error && <p className="vocal-error">{t('vocal.micError', { message: mic.error })}</p>}
-      {mic.listening && mic.deadInput && (
-        <>
-          <p className="vocal-warning">{t('vocal.noSignal')}</p>
-          <p className="vocal-diag" dir="ltr">{mic.diag}</p>
-        </>
+      {mic.listening && mic.deadInput && <p className="vocal-warning">{t('vocal.noSignal')}</p>}
+      {/* iPhone / iPad: what the mic path is doing, while nothing is heard
+          (a screenshot of it tells which link is broken). */}
+      {mic.listening && (mic.deadInput || (IS_IOS && mic.quiet)) && mic.diag && (
+        <p className="vocal-diag" dir="ltr">
+          {mic.diag}
+        </p>
       )}
         <p className="vocal-hint vocal-sound-hint">{t('vocal.soundHint')}</p>
 

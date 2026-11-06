@@ -11,7 +11,7 @@ import {
 } from '../../music/vocal/rangeProbe';
 import { getAudioContext, prepareAudioOutput, reviveAudioOutput } from '../../audio/audioContext';
 import { playPianoNote, preparePiano, schedulePianoNotes } from '../../audio/pianoPlayer';
-import { IS_IOS, LOUDNESS, loadLoudnessKey } from '../../hooks/useVocalExercise';
+import { IS_IOS, CYCLE_MIC, LOUDNESS, loadLoudnessKey } from '../../hooks/useVocalExercise';
 import { RangeBar } from './RangeBar';
 
 // Guided range test, the way a voice teacher (or a voice clinic's "voice
@@ -77,11 +77,11 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
       const ctx = getAudioContext();
       const loud = LOUDNESS[loadLoudnessKey()];
       const t0 = ctx.currentTime + 0.15;
-      const listenFrom = t0 + CUE_DUR + LISTEN_DELAY + (IS_IOS ? 0.4 : 0);
+      const listenFrom = t0 + CUE_DUR + LISTEN_DELAY + (CYCLE_MIC ? 0.4 : 0);
       const deadline = listenFrom + LISTEN_FOR;
       setTarget(probe.target);
       setStatus('cue');
-      if (IS_IOS) {
+      if (CYCLE_MIC) {
         // iPhone: no capture while the piano plays, or it comes out of the earpiece.
         mic.stop();
         r.timer = setTimeout(() => {
@@ -224,11 +224,13 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
       </div>
 
       {mic.error && <p className="vocal-error">{t('vocal.micError', { message: mic.error })}</p>}
-      {mic.listening && mic.deadInput && (
-        <>
-          <p className="vocal-warning">{t('vocal.noSignal')}</p>
-          <p className="vocal-diag" dir="ltr">{mic.diag}</p>
-        </>
+      {mic.listening && mic.deadInput && <p className="vocal-warning">{t('vocal.noSignal')}</p>}
+      {/* iPhone / iPad: what the mic path is doing, while nothing is heard
+          (a screenshot of it tells which link is broken). */}
+      {mic.listening && (mic.deadInput || (IS_IOS && mic.quiet)) && mic.diag && (
+        <p className="vocal-diag" dir="ltr">
+          {mic.diag}
+        </p>
       )}
 
       {phase === 'intro' && (

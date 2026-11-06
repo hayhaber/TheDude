@@ -15,6 +15,12 @@ const GAP = 0.6; // pause between rounds
 export const IS_IOS =
   typeof navigator !== 'undefined' &&
   (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+// The earpiece routing is an iPHONE thing (an iPad has no earpiece and plays
+// through its speakers while capturing): only the iPhone closes the mic for
+// each cue — reopening it outside a tap was one more thing that could fail.
+export const IS_IPAD =
+  typeof navigator !== 'undefined' && (/iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+export const CYCLE_MIC = IS_IOS && !IS_IPAD;
 const IOS_BREATH = 0.75;
 // Cue loudness (the runner's Volume select): note velocity + a limited boost.
 export const LOUDNESS = {
@@ -67,8 +73,8 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = L
     // The first round waits a moment longer: on iPhone the audio session
     // is still settling right after the mic opened.
     const cueStart = ctx.currentTime + (index === 0 ? 0.45 : 0.12);
-    const singStart = cueStart + rep.cueLength + (IS_IOS ? IOS_BREATH : BREATH);
-    if (IS_IOS) {
+    const singStart = cueStart + rep.cueLength + (CYCLE_MIC ? IOS_BREATH : BREATH);
+    if (CYCLE_MIC) {
       // Loudspeaker for the cue: no capture while it plays; reopen the mic
       // as the cue ends (permission was already given on Start).
       micRef.current.stop();
@@ -167,7 +173,7 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = L
    *  always sounds, and a quick way to check the sound is on. */
   const hear = useCallback(() => {
     // iPhone: close the mic first so the notes come out of the loudspeaker.
-    if (IS_IOS && !run.current.alive) micRef.current.stop();
+    if (CYCLE_MIC && !run.current.alive) micRef.current.stop();
     prepareAudioOutput();
     const rep = viewRef.current.rep ?? buildReps(ex, range, { level, tempo })[0];
     if (rep) schedulePianoNotes(rep.cue, getAudioContext().currentTime + 0.05, settings.current.loud);

@@ -795,6 +795,11 @@ no tools).
   `countTick()` in useVocalExercise). Range test: one high tick as each
   note's listening starts (same switch). iPhone: the mic reopens at the
   cue's end, so the ticks come from the earpiece there (quiet).
+  v1.0.113 (user: "2 _ 1 _ start", it felt like starting right after 1):
+  each number now FLASHES for 55 % of its beat (gap before the next), and
+  CountIn reads the HEARD clock (currentTime − outputLatency|baseLatency)
+  so a number appears with its tick. Measured (Chromium): 2 @0, gap @0.37,
+  1 @0.67, gap @1.04, Sing! @1.34 s (beat 0.67).
 - **Several styles (v1.0.111, user's request)**: onboarding, the teacher's
   "about you" and the goal planner pick styles with multi-select chips
   (`styles: []`; `style` = the first, for older readers; `stylesOf()` /

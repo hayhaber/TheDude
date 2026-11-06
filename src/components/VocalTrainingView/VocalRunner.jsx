@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { useVocalExercise, IS_IOS, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey, COUNT_KEY, loadCountClick } from '../../hooks/useVocalExercise';
+import { useVocalExercise, IS_IOS, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey, COUNT_KEY, COUNT_BEATS, loadCountClick } from '../../hooks/useVocalExercise';
 import { midiName } from '../../music/vocal/voiceRange';
 import { centsOff } from '../../music/vocal/vocalAnalysis';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -27,11 +27,21 @@ function CountIn({ viewRef, t }) {
     const step = () => {
       raf = requestAnimationFrame(step);
       const v = viewRef.current;
-      const now = getAudioContext().currentTime;
+      const ctx = getAudioContext();
+      // What is HEARD now: the context clock minus the output delay (large on
+      // Bluetooth), so a number appears with its tick, not before it.
+      const heard = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0);
       let next = null;
-      if (v.phase === 'cue' && v.countStart != null && now >= v.countStart && now < v.singStart) {
-        next = Math.max(1, Math.ceil((v.singStart - now) / v.countBeat - 1e-6));
-      } else if (v.phase === 'sing' && now - v.singStart < 0.5) next = 0;
+      if ((v.phase === 'cue' || v.phase === 'sing') && v.countStart != null) {
+        if (heard >= v.countStart && heard < v.singStart) {
+          // Each number flashes on its beat and is gone before the next one:
+          // 2 _ 1 _ sing (user's request 2026-11-06 — a number held for the
+          // whole beat read as "start right after 1").
+          const k = Math.floor((heard - v.countStart) / v.countBeat);
+          const within = (heard - v.countStart) - k * v.countBeat;
+          if (within < v.countBeat * 0.55) next = COUNT_BEATS - k;
+        } else if (heard >= v.singStart && heard < v.singStart + 0.6) next = 0;
+      }
       setN((x) => (x === next ? x : next));
     };
     raf = requestAnimationFrame(step);

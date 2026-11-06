@@ -4,6 +4,7 @@ import { getAudioContext, reviveAudioOutput } from '../audio/audioContext';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { hzToMidi } from '../music/vocal/voiceRange';
 import { activeCalibration, gateFor } from '../audio/noiseCalibration';
+import { createMicTap } from '../audio/micTap';
 
 // The Vocal section's microphone: a continuous, timestamped pitch track (not
 // just "the current note" like usePitchDetection) — the exercises draw the
@@ -19,6 +20,8 @@ const MAX_HZ = 1300;
 const MIN_CLARITY = 0.86;
 const MIN_RMS = 0.006;
 const ENV_RELEASE_S = 0.004;
+// A refused resume() can stay pending forever on iOS — never wait on it long.
+const settle = (p) => Promise.race([Promise.resolve(p).catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
 
 /**
  * A copy of `buf` with its loudness envelope flattened (fast peak follower,
@@ -52,13 +55,56 @@ export function useVocalMic() {
   const rafRef = useRef(null);
   const recent = useRef([]);
   const tickCount = useRef(0);
+  const lastSignalAt = useRef(0);
+  const resumeAt = useRef(0);
+  const [deadInput, setDeadInput] = useState(false);
+  const [diag, setDiag] = useState('');
 
   const tick = useCallback(() => {
     const { analyser, detector, buffer, gain } = nodes.current;
     if (!analyser) return;
     const ctx = getAudioContext();
     gain.gain.value = getAudioInputSettings().gain;
+    // Backstop: a context that stopped (iOS interruption) is woken again.
+    if (ctx.state !== 'running') {
+      const now = performance.now();
+      if (now - resumeAt.current > 500) {
+        resumeAt.current = now;
+        ctx.resume().catch(() => {});
+      }
+    }
     analyser.getFloatTimeDomainData(buffer);
+    // iPhone / iPad: WebKit's AnalyserNode can read pure zeros from a live
+    // mic while an AudioWorklet on the same node gets the sound (the tuner,
+    // 2026-10-16). Prefer the worklet's frames whenever they carry sound.
+    const peakOf = (b) => {
+      let m = 0;
+      for (let i = 0; i < b.length; i += 1) {
+        const a = Math.abs(b[i]);
+        if (a > m) m = a;
+      }
+      return m;
+    };
+    const anPeak = peakOf(buffer);
+    let peak = anPeak;
+    const { tap, tapBuf } = nodes.current;
+    let tapPeak = null;
+    if (tap && tapBuf && tap.read(tapBuf)) {
+      tapPeak = peakOf(tapBuf);
+      if (tapPeak > 0 || anPeak === 0) {
+        buffer.set(tapBuf);
+        peak = tapPeak;
+      }
+    }
+    const nowMs = performance.now();
+    if (peak > 0) lastSignalAt.current = nowMs;
+    const dead = nowMs - lastSignalAt.current > 1500;
+    setDeadInput((d) => (d === dead ? d : dead));
+    if (dead) {
+      const tr = nodes.current.stream?.getAudioTracks()[0];
+      const info = `an ${anPeak.toFixed(4)} wk ${tap ? tap.blocks + '/' + (tapPeak == null ? '-' : tapPeak.toFixed(4)) : 'off'} · ctx ${ctx.state} · ${ctx.sampleRate} Hz · mic ${tr ? tr.readyState + (tr.muted ? ' muted' : '') : 'none'}${navigator.audioSession ? ' · session ' + navigator.audioSession.type : ''}`;
+      setDiag((d) => (d === info ? d : info));
+    }
     let sum = 0;
     for (let i = 0; i < buffer.length; i += 1) sum += buffer[i] * buffer[i];
     const rms = Math.sqrt(sum / buffer.length);
@@ -88,22 +134,28 @@ export function useVocalMic() {
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
+  const gen = useRef(0);
   const stop = useCallback(() => {
+    gen.current += 1; // a start still awaiting is cancelled
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
     const n = nodes.current;
+    n.tap?.dispose();
     n.source?.disconnect();
     n.gain?.disconnect();
+    n.mute?.disconnect();
     n.stream?.getTracks().forEach((tr) => tr.stop());
     nodes.current = {};
     recent.current = [];
+    setDeadInput(false);
     setListening(false);
     setLive({ midi: null, level: 0 });
   }, []);
 
-  const start = useCallback(async () => {
+  const open = useCallback(async () => {
     if (nodes.current.analyser) return true;
     setError(null);
+    const my = ++gen.current;
     try {
       const { deviceId } = getAudioInputSettings();
       // Processing off: echo cancellation/AGC/noise suppression bend a
@@ -114,18 +166,47 @@ export function useVocalMic() {
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false,
+          // The Recorder's request (works on the iPhone): one channel.
+          channelCount: 1,
         },
       });
       const ctx = getAudioContext();
       // Opening the mic can interrupt playback on iOS; wake it again.
       reviveAudioOutput();
-      if (ctx.state !== 'running') await ctx.resume().catch(() => {});
+      if (ctx.state !== 'running') await settle(ctx.resume());
+      if (my !== gen.current) {
+        stream.getTracks().forEach((tr) => tr.stop());
+        return false;
+      }
       const source = ctx.createMediaStreamSource(stream);
       const gain = ctx.createGain();
       const analyser = ctx.createAnalyser();
       analyser.fftSize = FFT_SIZE;
       source.connect(gain).connect(analyser);
+      // Keep the graph pulled by the output, silently (WebKit can leave a
+      // graph with no path to the speakers idle).
+      const mute = ctx.createGain();
+      mute.gain.value = 0;
+      analyser.connect(mute).connect(ctx.destination);
+      let tap = null;
+      try {
+        tap = await createMicTap(ctx, gain, FFT_SIZE * 2);
+      } catch {
+        tap = null; // the analyser alone, as before
+      }
+      if (my !== gen.current) {
+        tap?.dispose();
+        source.disconnect();
+        gain.disconnect();
+        mute.disconnect();
+        stream.getTracks().forEach((tr) => tr.stop());
+        return false;
+      }
+      lastSignalAt.current = performance.now();
       nodes.current = {
+        tap,
+        tapBuf: tap ? new Float32Array(FFT_SIZE) : null,
+        mute,
         stream,
         source,
         gain,
@@ -145,7 +226,18 @@ export function useVocalMic() {
     }
   }, [tick]);
 
+  const pending = useRef(null);
+  const start = useCallback(() => {
+    // A start already on its way is shared, not raced.
+    if (!pending.current) {
+      pending.current = open().finally(() => {
+        pending.current = null;
+      });
+    }
+    return pending.current;
+  }, [open]);
+
   useEffect(() => stop, [stop]);
 
-  return { listening, error, live, framesRef, start, stop };
+  return { listening, error, live, framesRef, start, stop, deadInput, diag };
 }

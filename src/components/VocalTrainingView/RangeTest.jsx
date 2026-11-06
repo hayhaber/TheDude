@@ -224,6 +224,12 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
       </div>
 
       {mic.error && <p className="vocal-error">{t('vocal.micError', { message: mic.error })}</p>}
+      {mic.listening && mic.deadInput && (
+        <>
+          <p className="vocal-warning">{t('vocal.noSignal')}</p>
+          <p className="vocal-diag" dir="ltr">{mic.diag}</p>
+        </>
+      )}
 
       {phase === 'intro' && (
         <div className="vocal-card vocal-range-step">

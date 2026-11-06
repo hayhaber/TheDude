@@ -700,6 +700,18 @@ no tools).
   are untouched. Chromium fake-mic check: E3 trill 3 % -> ~88 % (rest = the
   fake device's loop gap, same on a steady tone). NOT verified with a real
   voice.
+- **Vocal mic on iPad (v1.0.105, 2026-11-06)**: user: singing practice on
+  the iPad heard nothing. useVocalMic now does what fixed the tuner on the
+  iPhone: AudioWorklet tap (`createMicTap` on the SHARED context — the frame
+  clock must stay the cue's clock) preferred over the AnalyserNode whenever
+  it carries sound, graph pulled by a silent gain -> destination,
+  `channelCount: 1`, resume() bounded (400 ms — a refused resume could hang
+  Start forever), concurrent starts share one promise, a stop() during a
+  pending start cancels it (gen counter; iOS closes / reopens the mic per
+  cue). `deadInput` (pure digital zeros > 1.5 s) -> `vocal.noSignal` + LTR
+  `.vocal-diag` line (an/wk peaks, ctx, mic track, session) in VocalRunner
+  and RangeTest — ask for a screenshot. Chromium with the analyser forced to
+  zeros: voice still read via the tap. NOT verified on a real iPad.
 - **Singers' ear training** (user's request 2026-10-17): the Singing card's
   Ear Training opens the Vocal section's own `ear` screen (HomeMenu option
   `vocalScreen: 'ear'` -> App `vocalStart` {screen, n} -> `VocalTrainingView

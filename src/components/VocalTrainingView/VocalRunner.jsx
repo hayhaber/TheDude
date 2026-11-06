@@ -137,6 +137,12 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
         </div>
 
         {mic.error && <p className="vocal-error">{t('vocal.micError', { message: mic.error })}</p>}
+      {mic.listening && mic.deadInput && (
+        <>
+          <p className="vocal-warning">{t('vocal.noSignal')}</p>
+          <p className="vocal-diag" dir="ltr">{mic.diag}</p>
+        </>
+      )}
         <p className="vocal-hint vocal-sound-hint">{t('vocal.soundHint')}</p>
 
         <div className="vocal-controls-row">

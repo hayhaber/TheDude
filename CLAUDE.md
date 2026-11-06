@@ -1269,6 +1269,9 @@ no tools).
   orientation text: the app's neck = the view looking down while playing
   (thin string on top); the strum picture = the guitar standing (thick on
   top). g0-first-note's intro no longer repeats the parts.
+  v1.0.118: on the iPad the Hebrew labels INSIDE the SVGs came out
+  letter-reversed (an SVG under dir="ltr"); each picture's <svg> now gets
+  direction="rtl" in Hebrew with start/end anchors swapped (positions same).
 - METRONOME IN A STEP (v1.0.117; user: "the text says the button is at the
   bottom, it's at the top"): a checklist step with `metronome: <bpm>` shows
   `MetroBox` (LessonPlayer: Start/Stop + 4 beat dots + BPM) driving the SHARED

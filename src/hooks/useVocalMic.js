@@ -27,7 +27,20 @@ const FFT_SIZE = 2048;
 const MIN_HZ = 70;
 const MAX_HZ = 1300;
 const MIN_CLARITY = 0.86;
+// Loudness gate against room noise. It used to be a fixed 0.006 RMS — but an
+// iPad's built-in mic with processing off delivers a voice at ~0.001–0.003
+// (the user's diag line 2026-11-06: "rms 0.0016 < gate 0.0060", a hum never
+// heard). Now the gate follows the room: 2.2x the quietest level of the last
+// 20 s (the noise floor — there's always a breath / cue gap in that time),
+// between 0.0007 and the old 0.006, so a loud room gates as before and a
+// quiet mic is heard. A room calibration, when there is one, still wins.
 const MIN_RMS = 0.006;
+const FLOOR_RMS = 0.0007;
+const FLOOR_X = 2.2;
+const FLOOR_WINDOW_MS = 20000;
+// The meter in dB (-66 .. -16 dBFS = empty .. full): a quiet iPad mic moved
+// the old linear meter (rms x 8) by 1 %.
+const levelOf = (rms) => Math.max(0, Math.min(1, (20 * Math.log10(Math.max(rms, 1e-6)) + 66) / 50));
 const ENV_RELEASE_S = 0.004;
 // A refused resume() can stay pending forever on iOS — never wait on it long.
 const settle = (p) => Promise.race([Promise.resolve(p).catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
@@ -73,6 +86,7 @@ export function useVocalMic() {
   const heardAt = useRef(0);
   const ownCtx = useRef(null);
   const stat = useRef('');
+  const floorRef = useRef([]);
 
   const tick = useCallback(() => {
     const { analyser, detector, buffer, gain } = nodes.current;
@@ -125,7 +139,18 @@ export function useVocalMic() {
     let midi = null;
     // Fixed gate, raised to the room calibration's gate when there is one
     // (the vocal mic always opens with processing off -> 'direct' mode).
-    const minRms = Math.max(MIN_RMS, gateFor(nodes.current.cal, gain.gain.value));
+    // Noise floor: the quietest frame of each 0.5 s bucket, over 20 s.
+    const fl = floorRef.current;
+    const bucket = Math.floor(nowMs / 500);
+    const lastB = fl[fl.length - 1];
+    if (!lastB || lastB.b !== bucket) fl.push({ b: bucket, rms });
+    else if (rms < lastB.rms) lastB.rms = rms;
+    while (fl.length && fl[0].b < bucket - FLOOR_WINDOW_MS / 500) fl.shift();
+    let floor = Infinity;
+    for (const f of fl) if (f.rms < floor) floor = f.rms;
+    const roomGate = Math.min(MIN_RMS, Math.max(FLOOR_RMS, floor * FLOOR_X));
+    const cal = nodes.current.cal;
+    const minRms = cal ? Math.max(roomGate, gateFor(cal, gain.gain.value)) : roomGate;
     if (rms >= minRms) {
       const valid = (hz, clarity) => clarity >= MIN_CLARITY && hz >= MIN_HZ && hz <= MAX_HZ;
       let [hz, clarity] = detector.findPitch(buffer, ctx.sampleRate);
@@ -148,7 +173,7 @@ export function useVocalMic() {
     framesRef.current.push({ ct, midi: smooth });
     if (framesRef.current.length > 6000) framesRef.current.splice(0, 2000);
     tickCount.current += 1;
-    if (tickCount.current % 2 === 0) setLive({ midi: smooth, level: Math.min(1, rms * 8) });
+    if (tickCount.current % 2 === 0) setLive({ midi: smooth, level: levelOf(rms) });
     if (smooth != null) heardAt.current = nowMs;
     if (tickCount.current % 15 === 0) {
       const q = nowMs - heardAt.current > 3000;
@@ -246,6 +271,7 @@ export function useVocalMic() {
       }
       lastSignalAt.current = performance.now();
       heardAt.current = performance.now();
+      floorRef.current = [];
       setQuiet(false);
       nodes.current = {
         ctx: own,

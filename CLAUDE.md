@@ -763,6 +763,14 @@ no tools).
   state, mic track, session, then `rms … hz … cl …` or `rms … < gate …`.
   Chromium with an iPad UA: own path used, trill read. NOT verified on the
   iPad — ask for a screenshot of that line if it still fails.
+- **Vocal mic gate (v1.0.109)**: the user's iPad diag line read `own · an
+  0.0035 wk 2822/0.0035 · ctx running · mic live · rms 0.0016 < gate
+  0.0060` = the sound DID arrive (1.0.107's own context works); the fixed
+  loudness gate (0.006 RMS) threw the quiet iPad mic away. The gate now
+  follows the room: 2.2x the quietest 0.5-s bucket of the last 20 s,
+  clamped 0.0007..0.006 (a calibration, when present, still raises it).
+  Meter `live.level` is dB-scaled (-66..-16 dBFS). Fake-mic tests: a hum
+  at rms 0.0016 read (D3), white noise at 0.0015 not read, trill still read.
 - **Singers' ear training** (user's request 2026-10-17): the Singing card's
   Ear Training opens the Vocal section's own `ear` screen (HomeMenu option
   `vocalScreen: 'ear'` -> App `vocalStart` {screen, n} -> `VocalTrainingView

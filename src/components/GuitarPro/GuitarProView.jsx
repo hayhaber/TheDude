@@ -46,7 +46,7 @@ function TrackMixer({ trainer, t, busy }) {
   );
 }
 
-export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
+export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs }) {
   const { t, lang } = useLanguage();
   const fileRef = useRef(null);
   const [view, setView] = useState('song'); // 'song' | 'practice' | 'chords'
@@ -104,7 +104,10 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
         if (!busy) trainer.readFile(e.dataTransfer.files[0]);
       }}
     >
-      <div>
+      {/* With a file open the song itself is the title (flow review
+          2026-11-06: the score gets the room) — the page title stays for
+          screen readers only. */}
+      <div className={'gp-head' + (solo ? ' is-compact' : '')}>
         <h1>{t(trainer.pianoMode ? 'nav.pianopro' : 'gp.title')}</h1>
         <p className="subtitle">{t(trainer.pianoMode ? 'gp.pianoSubtitle' : 'gp.subtitle')}</p>
       </div>
@@ -119,6 +122,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
               trainer.selectSolo(e.target.value);
             }}
             disabled={busy || trainer.solos.length === 0}
+            dir="auto"
           >
             {trainer.solos.map((so) => (
               <option key={so.id} value={so.id}>
@@ -145,8 +149,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
           </span>
         </button>
         {/* Secondary: the neck's labels and deleting an import. */}
-        {(showNeckLabels || solo?.source === 'import') && (
-          <MoreMenu label={t('gp.more')}>
+        <MoreMenu label={t('gp.more')}>
             {showNeckLabels && <NeckLabelToggle trainer={trainer} t={t} />}
             {solo?.source === 'import' && (
               // Two taps: the file goes from every device.
@@ -164,7 +167,46 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
                 {t(confirmDelete === solo?.id ? 'lickTrainer.deleteConfirm' : 'lickTrainer.delete')}
               </button>
             )}
+            {/* Finding a song on the web (was a Play tab of its own). */}
+            {onFindSongs && (
+              <button type="button" className="more-menu-item" onClick={onFindSongs}>
+                {t('gp.findSongs')}
+              </button>
+            )}
           </MoreMenu>
+        {/* Song | Practice | Chords: on the file's row on wide screens. */}
+        {solo && !songOnly && (
+              <div className="gp-modes">
+                <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')} style={{ margin: 0 }}>
+                  <button
+                    type="button"
+                    className={view === 'song' ? 'active' : ''}
+                    onClick={() => {
+                      trainer.stop();
+                      setView('song');
+                    }}
+                    disabled={busy}
+                  >
+                    {t('gp.viewSong')}
+                  </button>
+                  <button type="button" className={view === 'practice' ? 'active' : ''} onClick={() => setView('practice')}>
+                    {t('gp.viewPractice')}
+                  </button>
+                  {/* The song as a chord sheet (same player as Song). */}
+                  <button
+                    type="button"
+                    className={view === 'chords' ? 'active' : ''}
+                    onClick={() => {
+                      trainer.stop();
+                      setView('chords');
+                    }}
+                    disabled={busy}
+                  >
+                    {t('gpx.viewChords')}
+                  </button>
+                </div>
+                <InfoTooltip text={t('tip.tools.gpView')} />
+              </div>
         )}
         <input
           ref={fileRef}
@@ -220,37 +262,6 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile }) {
           {/* Piano and bass: song view only (the instrument lights up with the part). */}
           {!songOnly && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')} style={{ margin: 0 }}>
-                  <button
-                    type="button"
-                    className={view === 'song' ? 'active' : ''}
-                    onClick={() => {
-                      trainer.stop();
-                      setView('song');
-                    }}
-                    disabled={busy}
-                  >
-                    {t('gp.viewSong')}
-                  </button>
-                  <button type="button" className={view === 'practice' ? 'active' : ''} onClick={() => setView('practice')}>
-                    {t('gp.viewPractice')}
-                  </button>
-                  {/* The song as a chord sheet (same player as Song). */}
-                  <button
-                    type="button"
-                    className={view === 'chords' ? 'active' : ''}
-                    onClick={() => {
-                      trainer.stop();
-                      setView('chords');
-                    }}
-                    disabled={busy}
-                  >
-                    {t('gpx.viewChords')}
-                  </button>
-                </div>
-                <InfoTooltip text={t('tip.tools.gpView')} />
-              </div>
 
               {/* Song view has its tracks in a rail beside the score. */}
               {view === 'practice' && canPractice && <TrackMixer trainer={trainer} t={t} busy={busy} />}

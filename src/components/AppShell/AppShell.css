@@ -99,12 +99,12 @@
   height: 36px;
 }
 
-/* Narrower desktops: the features as icons only (name on hover). */
-@media (max-width: 1360px) {
-  .app-topbar-nav-label {
-    display: none;
+/* The five tabs always carry their names (an iPad in landscape showed bare
+   icons, flow review 2026-11-06); narrower bars only tighten the pills. */
+@media (max-width: 1180px) {
+  .app-topbar-nav button {
+    padding-inline: 12px;
   }
-
 }
 
 .app-mobile-brand {

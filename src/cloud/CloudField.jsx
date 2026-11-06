@@ -32,6 +32,7 @@ export function CloudField() {
   const cloud = useCloud();
   const now = useNow(30000);
   const [confirm, setConfirm] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const link = getLink();
   const email = cloud.email || link?.email;
   const signIn = () => loadCloud().then((m) => m.signIn());
@@ -47,7 +48,18 @@ export function CloudField() {
   let body;
   // Signed out: ONE form — email + password + Continue (signs in or opens an
   // account); Google is a quiet shortcut under it (user's call 2026-10-25).
-  if (!link || !email || cloud.status === 'signedOut') {
+  if ((!link || !email || cloud.status === 'signedOut') && !formOpen && !(link && email) && cloud.error !== 'signin') {
+    // Settings open on what people come to change (flow review 2026-11-06):
+    // signed out, the account is one quiet row until it's asked for.
+    body = (
+      <>
+        <span className="settings-install-text">{t('cloud.introShort')}</span>
+        <button type="button" className="settings-install-btn" onClick={() => setFormOpen(true)}>
+          {t('cloud.signIn')}
+        </button>
+      </>
+    );
+  } else if (!link || !email || cloud.status === 'signedOut') {
     const signedOut = link && email && cloud.status === 'signedOut';
     body = (
       <>

@@ -4,7 +4,7 @@ export const TIPS_ACHIEVE = {
   en: {
     'achieve.tabPlan': 'Plan',
     'achieve.tabRewards': 'Rewards',
-    'achieve.tabsLabel': 'Coach view',
+    'achieve.tabsLabel': 'Goal view',
     'achieve.level': 'Level {n}',
     'achieve.xpOf': '{into} / {need} XP',
     'achieve.xpToday': '+{n} XP today',
@@ -34,7 +34,7 @@ export const TIPS_ACHIEVE = {
   he: {
     'achieve.tabPlan': 'תוכנית',
     'achieve.tabRewards': 'הישגים',
-    'achieve.tabsLabel': 'תצוגת המאמן',
+    'achieve.tabsLabel': 'תצוגת היעד',
     'achieve.level': 'רמה {n}',
     'achieve.xpOf': '{into} / {need} XP',
     'achieve.xpToday': 'היום: ⁦+{n} XP⁩',

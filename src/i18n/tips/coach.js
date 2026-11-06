@@ -1,7 +1,7 @@
 // UI text (coach area) — EN + HE, keys 'coach.*' (+ 'nav.coach').
 export const TIPS_COACH = {
   en: {
-    'nav.coach': 'Coach',
+    'nav.coach': 'Teacher',
 
     // Wizard
     'coach.steps': 'Step {n} of {total}',
@@ -9,10 +9,10 @@ export const TIPS_COACH = {
     'coach.next': 'Next',
     'coach.cancel': 'Cancel',
     'coach.save': 'Save',
-    'coach.welcome.eyebrow': 'Your practice coach',
-    'coach.welcome.title': 'A goal, a plan, and a coach that listens',
+    'coach.welcome.eyebrow': 'Your goal',
+    'coach.welcome.title': 'A goal, and a plan that listens',
     'coach.welcome.lead':
-      'Pick something you want to be able to play. The coach finds where you are now with a short test, tells you honestly how long it should take, and builds each day’s session from the app’s practice tools — then adjusts as you improve.',
+      'Pick something you want to be able to play. The teacher finds where you are now with a short test, tells you honestly how long it should take, and builds each day’s session from the app’s practice tools — then adjusts as you improve.',
     'coach.welcome.measures': 'What it measures (through the microphone)',
     'coach.welcome.m1': 'Right notes and pitch',
     'coach.welcome.m2': 'Timing against the click',
@@ -79,7 +79,7 @@ export const TIPS_COACH = {
     'coach.plan.weeks': '{low}–{high} weeks',
     'coach.plan.weeksOne': 'about {n} week',
     'coach.plan.target': 'Target date: {date}',
-    'coach.plan.basis': 'At {minutes} min a day, {days} days a week. Estimates — the coach re-checks them as you go.',
+    'coach.plan.basis': 'At {minutes} min a day, {days} days a week. Estimates — the teacher re-checks them as you go.',
     'coach.plan.session': 'A session looks like this',
     'coach.plan.total': '{n} min',
     'coach.plan.start': 'Start',
@@ -147,25 +147,25 @@ export const TIPS_COACH = {
     'coach.pairNone': 'not tested',
 
     // Banner
-    'coach.banner.label': 'Coach block',
+    'coach.banner.label': 'Teacher’s plan block',
     'coach.banner.test': 'Test {i}/{n}',
     'coach.banner.done': 'Done',
-    'coach.banner.back': 'Coach',
+    'coach.banner.back': 'Teacher',
     'coach.banner.waiting': 'Waiting for a result…',
     'coach.unit.perMin': '/min',
   },
   he: {
-    'nav.coach': 'מאמן',
+    'nav.coach': 'המורה',
 
     'coach.steps': 'שלב {n} מתוך {total}',
     'coach.back': 'חזרה',
     'coach.next': 'הבא',
     'coach.cancel': 'ביטול',
     'coach.save': 'שמירה',
-    'coach.welcome.eyebrow': 'המאמן האישי שלכם',
-    'coach.welcome.title': 'יעד, תוכנית, ומאמן שמקשיב',
+    'coach.welcome.eyebrow': 'היעד שלך',
+    'coach.welcome.title': 'יעד, ותוכנית שמקשיבה לך',
     'coach.welcome.lead':
-      'בחרו משהו שתרצו לדעת לנגן. המאמן יבדוק איפה אתם היום במבחן קצר, יגיד בכנות כמה זמן זה אמור לקחת, ויבנה בכל יום אימון מכלי התרגול של האפליקציה — ויתאים אותו ככל שתשתפרו.',
+      'בחרו משהו שתרצו לדעת לנגן. המורה יבדוק איפה אתם היום במבחן קצר, יגיד בכנות כמה זמן זה אמור לקחת, ויבנה בכל יום אימון מכלי התרגול של האפליקציה — ויתאים אותו ככל שתשתפרו.',
     'coach.welcome.measures': 'מה הוא מודד (דרך המיקרופון)',
     'coach.welcome.m1': 'תווים נכונים וגובה צליל',
     'coach.welcome.m2': 'דיוק בזמן מול הקליק',
@@ -231,7 +231,7 @@ export const TIPS_COACH = {
     'coach.plan.weeks': '{low}–{high} שבועות',
     'coach.plan.weeksOne': 'כשבוע',
     'coach.plan.target': 'תאריך יעד: {date}',
-    'coach.plan.basis': 'ב-{minutes} דקות ביום, {days} ימים בשבוע. אלה הערכות — המאמן בודק אותן מחדש לאורך הדרך.',
+    'coach.plan.basis': 'ב-{minutes} דקות ביום, {days} ימים בשבוע. אלה הערכות — המורה בודק אותן מחדש לאורך הדרך.',
     'coach.plan.session': 'כך נראה אימון',
     'coach.plan.total': '{n} דק׳',
     'coach.plan.start': 'התחלה',
@@ -297,10 +297,10 @@ export const TIPS_COACH = {
     'coach.pairRuns': '{n} מבחנים',
     'coach.pairNone': 'לא נבדק',
 
-    'coach.banner.label': 'מקטע של המאמן',
+    'coach.banner.label': 'מקטע מהתוכנית של המורה',
     'coach.banner.test': 'מבחן {i}/{n}',
     'coach.banner.done': 'סיום',
-    'coach.banner.back': 'מאמן',
+    'coach.banner.back': 'המורה',
     'coach.banner.waiting': 'ממתינים לתוצאה…',
     'coach.unit.perMin': '/דק׳',
   },

@@ -91,7 +91,11 @@ export function PracticeView({
       {/* iOS: a back button to the library; tapping the Practice tab again does the same. */}
       <div className="practice-detail-head" dir={dir}>
         <BackButton label={t('ph.back')} onClick={() => onTabChange('home')} />
-        {item?.title && <h1 className="ph-detail-title">{t(`ph.ex.${item.tab}.title`)}</h1>}
+        {/* One header for every exercise (flow review 2026-11-06): the name
+            it has in the list + its one-line description. The tools' own
+            titles are hidden here (PracticeHome.css). */}
+        {item && <h1 className="ph-detail-title">{t(`ph.ex.${item.tab}.title`)}</h1>}
+        {item && <p className="subtitle ph-detail-sub">{t(`ph.ex.${item.tab}.desc`)}</p>}
       </div>
 
       {activeTab === 'drills' && (

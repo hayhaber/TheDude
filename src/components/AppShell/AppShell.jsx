@@ -65,8 +65,12 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
   const groups = NAV_GROUPS.map((g) => ({ ...g, sections: g.members.map((k) => SECTIONS.find((s) => s.key === k)).filter((s) => s && visibleKeys.has(s.key)) })).filter((g) => g.sections.length);
   const activeGroup = groups.find((g) => g.sections.some((s) => s.key === activeSection) || g.also?.includes(activeSection)) ?? null;
   const inGroupSwitch = activeGroup?.sections.some((s) => s.key === activeSection);
-  const groupLabel = (g) => (g.sections.length === 1 ? label(g.sections[0]) : t(g.labelKey));
-  const groupIcon = (g) => (g.sections.length === 1 ? g.sections[0] : g);
+  // Every instrument shows the same five goal names (Learn, Practice,
+  // Chords, Play, Create), whatever sections a group holds on it — the bass
+  // said "GuitarPro" / "Compose" and the piano "Studies" where the guitar
+  // said "Play" / "Create" / "Learn" (flow review 2026-11-06).
+  const groupLabel = (g) => t(g.labelKey);
+  const groupIcon = (g) => g;
   const openGroup = (g) => {
     if (g === activeGroup && inGroupSwitch) {
       onReselect?.(activeSection);

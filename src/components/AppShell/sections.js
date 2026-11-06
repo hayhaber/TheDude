@@ -32,7 +32,10 @@ export const NAV_GROUPS = [
   { key: 'learn', labelKey: 'nav.group.learn', icon: 'teacher', members: ['teacher', 'studies'], also: ['coach'] },
   { key: 'practice', labelKey: 'nav.practice', icon: 'practice', members: ['practice', 'bassPractice'] },
   { key: 'chords', labelKey: 'nav.chords', icon: 'chords', pianoIcon: 'pianoChords', members: ['chords'] },
-  { key: 'play', labelKey: 'nav.group.play', icon: 'play', members: ['guitarpro', 'songs'] },
+  // Songs (finding chords / tabs / files on the web) is reached from
+  // GuitarPro's ••• menu, not a segmented control of its own (flow review
+  // 2026-11-06); it still lights the Play tab.
+  { key: 'play', labelKey: 'nav.group.play', icon: 'play', members: ['guitarpro'], also: ['songs'] },
   { key: 'create', labelKey: 'nav.group.create', icon: 'create', members: ['compose', 'improvise', 'freeplay'] },
 ];
 

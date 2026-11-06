@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BackButton } from '../PracticeView/PracticeHome';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
 import { SongVideoPlayer } from '../SongVideoPlayer/SongVideoPlayer';
@@ -70,7 +71,7 @@ const SEARCH_MODE_TEXT = {
   gpFiles: { fieldLabelKey: 'songs.gpFilesFieldLabel', placeholderKey: 'songs.gpFilesPlaceholder', emptyHintKey: 'songs.emptyHintGpFiles' },
 };
 
-export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSongTabPlayingOrderChange, onTabModeChange }) {
+export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSongTabPlayingOrderChange, onTabModeChange, onBack }) {
   const [mode, setMode] = useState('song');
   // Tells App when a tab is on screen (the neck is drawn smaller then).
   useEffect(() => {
@@ -88,6 +89,7 @@ export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSong
   return (
     <div className="songs-view" dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <div>
+        {onBack && <BackButton label={t('nav.group.play')} onClick={onBack} />}
         <h1>{t('songs.title')}</h1>
         <p className="subtitle">{t('songs.subtitle')}</p>
       </div>

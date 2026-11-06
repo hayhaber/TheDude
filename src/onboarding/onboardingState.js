@@ -73,6 +73,19 @@ const COACH_LEVEL = { new: 'new', few: 'beginner', songs: 'intermediate' };
 const COACH_STYLE = { pop: 'pop', rock: 'rock', blues: 'blues', metal: 'metal', israeli: 'acoustic', folk: 'acoustic', jazz: 'blues' };
 const TEACHER_GOALS = ['songs', 'accompany', 'solo', 'theory', 'band'];
 
+// The teacher's "about you" answers in the goal planner's terms, so the Goal
+// tab never asks them again (flow review 2026-11-06: one teacher).
+const LEVEL_OF_EXPERIENCE = { none: 'new', little: 'beginner', some: 'intermediate', lot: 'advanced' };
+export function coachIntakeFromTeacher(intake) {
+  if (!intake) return null;
+  return {
+    minutesPerDay: intake.minutes ?? 20,
+    daysPerWeek: 5,
+    level: LEVEL_OF_EXPERIENCE[intake.experience] ?? 'beginner',
+    style: COACH_STYLE[intake.style] ?? 'rock',
+  };
+}
+
 const PLAYER_GOAL = { barre: 'barre', solo: 'pentatonic', blues: 'blues', rhythm: 'timing', speed: 'speed', bends: 'bending', ear: 'ear' };
 
 /** The coach goal that fits the answers (null for a complete beginner). */

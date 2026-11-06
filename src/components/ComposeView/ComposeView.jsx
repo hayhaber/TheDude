@@ -111,7 +111,7 @@ export function ComposeView({
             Guitar, has a fretted neck, so it belongs with Guitar's "neck"
             copy, not Piano's "keyboard" copy (same reasoning as isPiano's
             own comment above, just missed here originally). */}
-        <p className="subtitle">{t(isPiano ? 'compose.subtitlePiano' : 'compose.subtitle')}</p>
+        <p className="subtitle">{t(isPiano ? 'compose.subtitlePiano' : instrument === 'bass' ? 'compose.subtitleBass' : 'compose.subtitle')}</p>
       </div>
 
       <div className="compose-input-row">

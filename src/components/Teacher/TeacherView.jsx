@@ -5,8 +5,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { CoachView } from '../Coach/CoachView';
+import { RewardsView } from '../Achievements/RewardsView';
 import { MinuteChanges } from '../MinuteChanges/MinuteChanges';
 import { LESSONS, LEVELS, SKILLS, lessonById } from '../../teacher/curriculum/guitar';
+import { useCoach, setIntake } from '../../coach/useCoach';
+import { coachIntakeFromTeacher } from '../../onboarding/onboardingState';
+import { activeGoal, loadCoach } from '../../coach/engine';
+import { goalByKey } from '../../coach/goals';
+import { pick } from '../Coach/coachFormat';
 import { recordPass, saveIntake, useTeacher } from '../../teacher/teacherState';
 import { allSkillStatus, nextLesson, openHomework } from '../../teacher/mastery';
 import { onPerf } from '../../coach/perfLog';
@@ -138,8 +144,11 @@ function NextLessonCard({ state, tx, onOpen }) {
   );
 }
 
-function Today({ state, tx, onOpen, onCoach, onPractise, onIntake }) {
-  const { t } = useLanguage();
+function Today({ state, tx, onOpen, onCoach, onRewards, onPractise, onIntake }) {
+  const { t, lang } = useLanguage();
+  const coach = useCoach();
+  const g = activeGoal(coach.state);
+  const goal = g ? goalByKey(g.goalKey) : null;
   if (!state.intake) {
     return (
       <div className="tc-card tc-hero tc-welcome">
@@ -159,10 +168,21 @@ function Today({ state, tx, onOpen, onCoach, onPractise, onIntake }) {
         <h3>{t('teacher.hw.title')}</h3>
         {hw.length ? <HomeworkList items={hw} tx={tx} onPractise={onPractise} /> : <p className="tc-hint">{t('teacher.hw.none')}</p>}
       </div>
+      {/* The goal is the teacher's too (flow review 2026-11-06: "teacher"
+          and "coach" were one thing to the user) — its plan is the Goal tab. */}
       <button type="button" className="tc-card tc-link" onClick={onCoach}>
         <span className="tc-link-body">
-          <strong>{t('teacher.coach.title')}</strong>
-          <span>{t('teacher.coach.text')}</span>
+          <strong>{goal ? t('teacher.goal.yours', { goal: pick(goal.title, lang) }) : t('teacher.goal.set')}</strong>
+          <span>{t(goal ? 'teacher.goal.open' : 'teacher.goal.setText')}</span>
+        </span>
+        <span className="tc-chev" aria-hidden="true">
+          ›
+        </span>
+      </button>
+      <button type="button" className="tc-card tc-link" onClick={onRewards}>
+        <span className="tc-link-body">
+          <strong>{t('teacher.rewards.title')}</strong>
+          <span>{t('teacher.rewards.text')}</span>
         </span>
         <span className="tc-chev" aria-hidden="true">
           ›
@@ -263,6 +283,12 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // One teacher: answers given here (or at the first run) carry into the
+  // Goal tab, whose planner would otherwise ask "about you" again.
+  useEffect(() => {
+    if (state.intake && !loadCoach()?.intake) setIntake(coachIntakeFromTeacher(state.intake));
+  }, [state.intake]);
+
   // The neck is shown only inside a lesson.
   useEffect(() => {
     if (screen !== 'lesson' && !(screen === 'practise' && practise?.kind === 'play')) onStage?.(null);
@@ -296,7 +322,7 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
     </div>
   );
 
-  if (screen === 'coach') return sub(null, <CoachView />);
+  if (screen === 'rewards') return sub(null, <RewardsView />);
   if (screen === 'practise' && practise?.kind === 'play')
     return sub(
       null,
@@ -313,6 +339,7 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
         initial={state.intake}
         onDone={(v) => {
           saveIntake(v);
+          if (!loadCoach()?.intake) setIntake(coachIntakeFromTeacher(v));
           setScreen('today');
         }}
       />
@@ -323,7 +350,7 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
       <div className="tc-top">
         <h1>{t('home.teacher.title')}</h1>
         <div className="mode-toggle tc-tabs" role="tablist">
-          {['today', 'path'].map((k) => (
+          {['today', 'coach', 'path'].map((k) => (
             <button key={k} type="button" role="tab" aria-selected={screen === k} className={screen === k ? 'active' : ''} onClick={() => setScreen(k)}>
               {t(`teacher.tab.${k}`)}
             </button>
@@ -332,12 +359,15 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
       </div>
       {screen === 'path' ? (
         <PathView state={state} tx={tx} onOpen={open} />
+      ) : screen === 'coach' ? (
+        <CoachView embedded />
       ) : (
         <Today
           state={state}
           tx={tx}
           onOpen={open}
           onCoach={() => setScreen('coach')}
+          onRewards={() => setScreen('rewards')}
           onIntake={() => setScreen('intake')}
           onPractise={(item) => {
             setPractise(item);

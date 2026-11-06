@@ -1302,3 +1302,73 @@
     justify-content: center;
   }
 }
+
+/* ---- Flow review 2026-11-06: the score gets the room ----
+   With a file open the song is the title: the page title is for screen
+   readers only, the "File" label goes, and file + Add + ••• + Song|
+   Practice|Chords share ONE row (two on a phone). */
+.gp-head.is-compact,
+.gp-file-row .gp-file-field > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.gp-file-row {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.gp-file-row .gp-file-field {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.gp-file-row .gp-file-field select {
+  height: 40px;
+  font-size: var(--type-headline, 17px);
+  font-weight: 650;
+  color: var(--text-h);
+  border-color: transparent;
+  background-color: var(--fill-tertiary);
+  box-shadow: none;
+}
+
+.gp-file-row .gp-drop,
+.gp-file-row .more-menu {
+  align-self: center;
+}
+
+.gp-modes {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+}
+
+@media (max-width: 600px) {
+  .gp-file-row .gp-file-field {
+    flex: 1 1 0;
+  }
+
+  /* Add = its icon alone beside the file; the modes take the next row. */
+  .gp-file-row .gp-drop {
+    flex: 0 0 auto;
+    padding: 0 10px;
+  }
+
+  .gp-file-row .gp-drop .gp-drop-text {
+    display: none;
+  }
+
+  .gp-modes {
+    flex: 1 1 100%;
+  }
+
+  .gp-modes .mode-toggle {
+    flex: 1 1 auto;
+  }
+}

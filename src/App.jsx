@@ -817,6 +817,8 @@ function App() {
   // Which teacher screen the home card opened: {screen, n} (n re-keys the view).
   const [teacherStart, setTeacherStart] = useState({ screen: 'today', n: 0 });
   const [chordLibN, setChordLibN] = useState(0);
+  // Theory opens on its course list (flow review 2026-11-06).
+  const [studiesBrowse, setStudiesBrowse] = useState(true);
   // Piano -> Chord Library: the voicing's keys [{midi, hand, finger}] and the
   // handler that hears the keys played on the Stage keyboard.
   const [pianoChordKeys, setPianoChordKeys] = useState(null);
@@ -2250,6 +2252,7 @@ function App() {
       // Tapping the tab you're on again = back to its root (iOS).
       onReselect={(key) => {
         if (key === 'practice') setPracticeTab('home');
+        if (key === 'studies') setStudiesBrowse(true);
       }}
       toolsActive={metronome.isRunning}
       metronomeSlot={
@@ -2268,6 +2271,14 @@ function App() {
         activeSection === 'coach' ||
         (activeSection === 'teacher' && !teacherStage) ||
         (activeSection === 'practice' && (practiceTab === 'minuteChanges' || practiceTab === 'home')) ||
+        // Nothing to show on the neck yet (flow review 2026-11-06: an empty
+        // neck took a third of a phone): it appears once there is.
+        (activeSection === 'practice' && practiceTab === 'rhythm' && !rhythmGame.exercise) ||
+        (activeSection === 'practice' && practiceTab === 'drills' && !drill.exercise) ||
+        (activeSection === 'practice' && practiceTab === 'trainer' && !lickTrainer.licksShown) ||
+        (activeSection === 'practice' && practiceTab === 'ear-training' && !earTraining.open) ||
+        (activeSection === 'compose' && progression.length === 0) ||
+        (activeSection === 'studies' && studiesBrowse) ||
         (activeSection === 'bassPractice' && !bassPractice.built) ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
@@ -2405,7 +2416,15 @@ function App() {
           activeTab={practiceTab}
           onTabChange={setPracticeTab}
           lickTrainer={lickTrainer}
-          onSetLevel={supportsInstrument('coach', instrument) ? () => setActiveSection('coach') : null}
+          onSetLevel={
+            supportsInstrument('coach', instrument)
+              ? () => {
+                  // The goal lives in the teacher now (its Goal tab).
+                  setTeacherStart((v) => ({ screen: 'coach', n: v.n + 1 }));
+                  setActiveSection('teacher');
+                }
+              : null
+          }
         />
       )}
 
@@ -2413,6 +2432,8 @@ function App() {
         <StudiesSection
           course={studiesCourse}
           onCourseChange={setStudiesCourse}
+          browsing={studiesBrowse}
+          onBrowse={setStudiesBrowse}
           onChordBuilderStage={setChordBuilderStage}
           cagedLessonId={studiesLessonId}
           onSelectCagedLesson={setStudiesLessonId}
@@ -2474,10 +2495,13 @@ function App() {
           onSongTabLickChange={setSongTabLick}
           onSongTabPlayingOrderChange={setSongTabPlayingOrder}
           onTabModeChange={setSongsTabMode}
+          onBack={() => setActiveSection('guitarpro')}
         />
       )}
 
-      {activeSection === 'guitarpro' && <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} />}
+      {activeSection === 'guitarpro' && (
+        <GuitarProView trainer={lickTrainer} pianoProfile={pianoProfile} bassProfile={bassProfile} onFindSongs={supportsInstrument('songs', instrument) ? () => setActiveSection('songs') : undefined} />
+      )}
 
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
       {activeSection === 'chords' && instrument === 'piano' && (

@@ -88,7 +88,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     return (
       <div className="ear-training-start-card">
         <p className="ear-training-start-copy" dir="auto">
-          {t('earTraining.startCopy')}
+          {t(instrument === 'piano' ? 'earTraining.startCopyPiano' : 'earTraining.startCopy')}
         </p>
         <button type="button" className="play-button" onClick={earTraining.start}>
           {t('earTraining.startQuiz')}

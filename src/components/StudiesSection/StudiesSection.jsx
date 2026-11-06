@@ -1,4 +1,6 @@
 import { StudiesView } from '../StudiesView/StudiesView';
+import { LibraryRow, BackButton } from '../PracticeView/PracticeHome';
+import '../PracticeView/PracticeHome.css';
 import { ScalesView } from '../ScalesView/ScalesView';
 import { TechniqueMastersView } from '../TechniqueMastersView/TechniqueMastersView';
 import { CircleOfFifthsView } from '../CircleOfFifthsView/CircleOfFifthsView';
@@ -27,6 +29,18 @@ const COURSE_FEATURE = { caged: 'caged', techniqueMasters: 'techniqueMasters', p
 // is completely untouched — this just wraps it as one tab alongside the new
 // Scales course, the same Drills/Ear-Training tab pattern PracticeView
 // already uses one level up.
+// The courses in list order (colour tile + LineIcon, like the Practice library).
+const COURSES = [
+  { key: 'chordBuilder', icon: 'chords', color: '#AF52DE' },
+  { key: 'caged', icon: 'path', color: '#FF9500' },
+  { key: 'scales', icon: 'note', color: '#007AFF' },
+  { key: 'techniqueMasters', icon: 'hand', color: '#30B0C7' },
+  { key: 'circleOfFifths', icon: 'changes', color: '#5856D6' },
+  { key: 'harmony', icon: 'studies', color: '#FF2D55' },
+  { key: 'chordsByEar', icon: 'ear', color: '#34C759' },
+  { key: 'pianoCurriculum', icon: 'freeplay', color: '#A2845E' },
+];
+
 export function StudiesSection({
   course,
   onCourseChange,
@@ -65,6 +79,8 @@ export function StudiesSection({
   pianoLesson,
   pianoCurriculumProgress,
   onChordBuilderStage,
+  browsing = false,
+  onBrowse = () => {},
 }) {
   const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
@@ -85,57 +101,39 @@ export function StudiesSection({
 
   return (
     <div className="studies-section" dir={lang === 'he' ? 'rtl' : 'ltr'}>
-      <div>
-        <h1>{t('studies.title')}</h1>
-      </div>
-
-      <div className="studies-course-tabs" role="group" aria-label={t('studies.courseLabel')}>
-        {courseSupported('chordBuilder') && (
-          <button type="button" className={course === 'chordBuilder' ? 'active' : ''} onClick={() => onCourseChange('chordBuilder')}>
-            {t('studies.course.chordBuilder')}
-          </button>
-        )}
-        {courseSupported('caged') && (
-          <button type="button" className={course === 'caged' ? 'active' : ''} onClick={() => onCourseChange('caged')}>
-            {t('studies.course.caged')}
-          </button>
-        )}
-        <button type="button" className={course === 'scales' ? 'active' : ''} onClick={() => onCourseChange('scales')}>
-          {t('studies.course.scales')}
-        </button>
-        {courseSupported('techniqueMasters') && (
-          <button
-            type="button"
-            className={course === 'techniqueMasters' ? 'active' : ''}
-            onClick={() => onCourseChange('techniqueMasters')}
-          >
-            {t('studies.course.techniqueMasters')}
-          </button>
-        )}
-        <button
-          type="button"
-          className={course === 'circleOfFifths' ? 'active' : ''}
-          onClick={() => onCourseChange('circleOfFifths')}
-        >
-          {t('studies.course.circleOfFifths')}
-        </button>
-        <button type="button" className={course === 'harmony' ? 'active' : ''} onClick={() => onCourseChange('harmony')}>
-          {t('studies.course.harmony')}
-        </button>
-        <button type="button" className={course === 'chordsByEar' ? 'active' : ''} onClick={() => onCourseChange('chordsByEar')}>
-          {t('studies.course.chordsByEar')}
-        </button>
-        {courseSupported('pianoCurriculum') && (
-          <button
-            type="button"
-            className={course === 'pianoCurriculum' ? 'active' : ''}
-            onClick={() => onCourseChange('pianoCurriculum')}
-          >
-            {t('studies.course.pianoCurriculum')}
-          </button>
-        )}
-      </div>
-
+      {/* Theory = a library of courses (flow review 2026-11-06: seven
+          chips + a lesson list + an empty neck on arrival). A course opens
+          under an iOS back button; the Learn tab / segment returns here. */}
+      {browsing ? (
+        <div className="ph studies-library">
+          <div className="ph-head">
+            <h1>{t('studies.title')}</h1>
+            <p className="subtitle">{t('studies.lead')}</p>
+          </div>
+          <div className="ph-group">
+            {COURSES.filter((c) => courseSupported(c.key)).map((c) => (
+              <LibraryRow
+                key={c.key}
+                color={c.color}
+                icon={c.icon}
+                title={t(`studies.course.${c.key}`)}
+                desc={t(`studies.desc.${c.key}`)}
+                onClick={() => {
+                  onCourseChange(c.key);
+                  onBrowse(false);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="practice-detail-head">
+          <BackButton label={t('studies.title')} onClick={() => onBrowse(true)} />
+          <h1 className="ph-detail-title">{t(`studies.course.${course}`)}</h1>
+        </div>
+      )}
+      {!browsing && (
+      <>
       {course === 'chordBuilder' && <ChordBuilderView onStage={onChordBuilderStage} />}
 
       {course === 'caged' && (
@@ -195,6 +193,8 @@ export function StudiesSection({
       )}
 
       {course === 'pianoCurriculum' && <PianoView lessons={PIANO_LESSONS} pianoLesson={pianoLesson} progress={pianoCurriculumProgress} />}
+      </>
+      )}
     </div>
   );
 }

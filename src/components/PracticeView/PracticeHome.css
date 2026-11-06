@@ -259,3 +259,17 @@
 .try-in-group {
   background: var(--fill-tertiary);
 }
+
+/* One exercise header (flow review 2026-11-06): the shell draws the title
+   + one-line description; each tool's own title / subtitle is hidden here
+   (they repeated it under another name). How-to hints stay. */
+.ph-detail-sub {
+  margin: 2px 0 6px;
+}
+
+.practice-view.is-detail .minute-head .minute-title,
+.practice-view.is-detail .minute-head .minute-subtitle,
+.practice-view.is-detail .exercise-drawer-title,
+.practice-view.is-detail :is(.guitar-chord-rhythm-panel, .scale-practice-panel, .bending-panel, .solo-opener-panel, .chord-rhythm-panel, .falling-notes-panel) > div:first-child > :is(h1, p.subtitle) {
+  display: none;
+}

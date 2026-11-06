@@ -877,7 +877,7 @@ function Dashboard({ coach, state, g, goal, onEdit, onGoal, lang, t }) {
 
 let lastTab = 'plan';
 
-export function CoachView() {
+export function CoachView({ embedded = false } = {}) {
   const { t, lang } = useLanguage();
   const coach = useCoach();
   const { state } = coach;
@@ -958,7 +958,10 @@ export function CoachView() {
   const viewClass = tab === 'rewards' ? ' is-rewards' : mode === 'dashboard' ? ' is-dashboard' : ' is-wizard';
   return (
     <div className={'coach-view' + viewClass} dir={lang === 'he' ? 'rtl' : 'ltr'}>
-      <div className="coach-switch-row">
+      {/* Inside the teacher (its Goal tab) there is no Plan | Rewards switch:
+          the achievements open from the teacher's Today (flow review
+          2026-11-06 — three stacked segmented controls). */}
+      {!embedded && <div className="coach-switch-row">
         <div className="mode-toggle coach-switch" role="tablist" aria-label={t('achieve.tabsLabel')}>
           {['plan', 'rewards'].map((k) => (
             <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>
@@ -966,8 +969,8 @@ export function CoachView() {
             </button>
           ))}
         </div>
-      </div>
-      {tab === 'rewards' ? <RewardsView /> : body}
+      </div>}
+      {tab === 'rewards' && !embedded ? <RewardsView /> : body}
     </div>
   );
 }

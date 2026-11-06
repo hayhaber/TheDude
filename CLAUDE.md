@@ -222,6 +222,45 @@ no tools).
   min-width 0 on `.cl-info` + its children and the library selects. Not
   reproducible in Chromium (sweep of every section x instrument at 390 /
   820 / 1366 = 0 px overflow, so nothing is clipped); no WebKit here.
+- FLOW REVIEW (v1.0.100, 2026-11-06; the user: "the system isn't
+  understandable enough, especially for people new to playing"; map
+  artifact https://claude.ai/artifact/GRgY48ojh3kz9nZeETR6fy; baseline
+  branch `ui-pre-flow-v1.0.99`). User's rules from it: (a) the TEACHER is
+  one companion for the whole journey — lessons, tasks, listening,
+  exercises, a goal and the way to it ("teacher" and "coach" are the same
+  thing to him); (b) wherever notation / tab is shown it gets the most room.
+  Done: every instrument's bar shows the same five group names (AppShell
+  `groupLabel` = the group's label always — bass was "GuitarPro"/"Compose",
+  piano "Studies"); tab names never hidden (the <=1360px icon-only rule is
+  gone — the iPad in landscape showed bare icons); Studies is named
+  "Theory"/"תאוריה" and opens on a COURSE LIST (StudiesSection `browsing`,
+  App `studiesBrowse`, LibraryRow rows + `studies.desc.*`, BackButton back,
+  no neck on the list, re-tapping Learn returns to it); Practice detail =
+  one header for every exercise (PracticeView: h1 = the list name + the
+  one-line `ph.ex.*.desc`; the tools' own titles hidden by PracticeHome.css
+  — "Rhythm" and "Finger drills" were both "Practice drills"); no neck
+  until there's something on it (practice rhythm / drills / lick trainer /
+  ear training before start, Compose with no chords, the Theory list);
+  bass Compose subtitle (`compose.subtitleBass`), piano ear-training copy
+  (`earTraining.startCopyPiano`); first-visit notes only on teacher,
+  chords, GuitarPro, improvise; GuitarPro: with a file open the song is the
+  title (page h1 + "File" label screen-reader only), file + Add + ••• +
+  Song|Practice|Chords on one row (Add = icon only on phones), the score
+  went from ~140 px to ~430 px visible on the iPad; Songs left the Play
+  segmented control — it opens from GuitarPro's ••• ("Find songs on the
+  web", `gp.findSongs`; NAV_GROUPS play `also: ['songs']`, SongsView
+  `onBack`); Teacher tabs Today | Goal | Path — the Coach is the Goal tab
+  (CoachView `embedded`: no Plan | Rewards switch; Achievements = a row on
+  Today -> sub-screen), Today's goal card, "Coach"/"מאמן" wording -> the
+  teacher / goal everywhere (coach.js, teacher.opt.coach = Goal, banner),
+  Practice "tell us your level" opens the teacher's Goal tab; Settings:
+  signed out, the account is one row + Sign in (CloudField `formOpen`).
+  Open: the Teacher home card (the same door as Guitar -> Learn) — the
+  user decides; Improvise waits for his explanation. The teacher's intake
+  (or the first run) fills the Goal planner's "about you"
+  (`coachIntakeFromTeacher()` in onboardingState.js, applied in
+  TeacherView when the coach has no intake) — the Goal tab starts at the
+  goal step.
 
 ## Architecture essentials
 

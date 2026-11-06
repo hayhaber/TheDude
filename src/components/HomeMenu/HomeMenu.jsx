@@ -30,18 +30,6 @@ const CARDS = [
     ],
   },
   {
-    // The guitar teacher (the Coach is inside it).
-    key: 'teacher',
-    instrument: 'guitar',
-    titleKey: 'home.teacher.title',
-    descKey: 'home.teacher.desc',
-    options: [
-      { section: 'teacher', teacherScreen: 'lesson', icon: 'teacher', labelKey: 'teacher.opt.lesson' },
-      { section: 'teacher', teacherScreen: 'path', icon: 'path', labelKey: 'teacher.opt.path' },
-      { section: 'teacher', teacherScreen: 'coach', icon: 'coach', labelKey: 'teacher.opt.coach' },
-    ],
-  },
-  {
     key: 'piano',
     instrument: 'piano',
     titleKey: 'home.piano.title',

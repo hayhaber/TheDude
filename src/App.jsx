@@ -2152,7 +2152,7 @@ function App() {
   })();
   const openNextLesson = () => {
     if (instrument !== 'guitar') setInstrument('guitar');
-    enteredCardRef.current = 'teacher';
+    enteredCardRef.current = 'guitar';
     setTeacherStart((v) => ({ screen: 'today', n: v.n + 1 }));
     setActiveSection('teacher');
     setHome(false);
@@ -2166,7 +2166,7 @@ function App() {
           setOnboarding(false);
           if (action === 'lesson' || action === 'coach') {
             if (instrument !== 'guitar') setInstrument('guitar');
-            enteredCardRef.current = 'teacher';
+            enteredCardRef.current = 'guitar';
             setTeacherStart((v) => ({ screen: action === 'coach' ? 'coach' : 'today', n: v.n + 1 }));
             setActiveSection('teacher');
             setHome(false);

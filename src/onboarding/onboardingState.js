@@ -64,7 +64,9 @@ export function restartOnboarding() {
 /** The home card the app opens on for this profile. */
 export function homeCardFor(ob) {
   if (!ob?.done || ob.skipped) return 'guitar';
-  if (ob.instrument === 'guitar') return ob.level === 'songs' ? 'guitar' : 'teacher';
+  // The Teacher card is gone (flow review 2026-11-06): it was the same door
+  // as Guitar -> Learn; beginners land on Guitar, with the Next lesson pill.
+  if (ob.instrument === 'guitar') return 'guitar';
   return ob.instrument ?? 'guitar';
 }
 

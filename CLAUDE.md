@@ -255,8 +255,13 @@ no tools).
   teacher / goal everywhere (coach.js, teacher.opt.coach = Goal, banner),
   Practice "tell us your level" opens the teacher's Goal tab; Settings:
   signed out, the account is one row + Sign in (CloudField `formOpen`).
-  Open: the Teacher home card (the same door as Guitar -> Learn) — the
-  user decides; Improvise waits for his explanation. The teacher's intake
+  v1.0.101: the Teacher home card is GONE (user's OK — it was the same
+  door as Guitar -> Learn); beginners land on the Guitar card (homeCardFor)
+  and its "Next lesson" pill / openNextLesson enter via enteredCardRef
+  'guitar'. Its art (`public/home/teacher-3.webp`) stays in the repo for the
+  Guitar card redesign (5 directions on a Design canvas,
+  https://claude.ai/artifact/KGRGySQvj9p2aEUgB3nbaa — the user picks).
+  Open: Improvise waits for his explanation. The teacher's intake
   (or the first run) fills the Goal planner's "about you"
   (`coachIntakeFromTeacher()` in onboardingState.js, applied in
   TeacherView when the coach has no intake) — the Goal tab starts at the

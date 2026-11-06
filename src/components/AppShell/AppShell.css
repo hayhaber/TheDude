@@ -40,6 +40,9 @@
   justify-content: safe center;
   flex-wrap: nowrap;
   overflow-x: auto;
+  /* Never a vertical scroller: the pills' 44 pt hit areas (index.css) stick
+     out 4 px and made the bar pannable up/down by a finger (iPad). */
+  overflow-y: hidden;
   scrollbar-width: none;
 }
 
@@ -153,6 +156,8 @@
      -> Advanced on an iPhone, 2026-11-04) slide left/right. Wide things
      (chip strips, tabs, scores) scroll inside their own boxes. */
   overflow-x: hidden;
+  /* Its own bounce never drags the page / bars along (iPad). */
+  overscroll-behavior: contain;
   padding: 28px var(--space-8) var(--space-2);
 }
 

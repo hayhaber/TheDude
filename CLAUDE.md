@@ -479,6 +479,14 @@ no tools).
   and uses the analyser only when the tap has no data; it also asks for
   `channelCount: 1` like the Recorder. Diag prefix: `wk|an an <peak> wk
   <blocks>/<peak>` (which path fed the frame).
+- **No page bounce (v1.0.116, iPad: "the Learn page drags up and down")**:
+  html + body `overscroll-behavior: none` (body had `contain`, which still
+  lets iOS rubber-band the page itself — the bars moved with the finger;
+  every screen scrolls inside `.app-section-content`, now `contain`, and the
+  document never needs to move — measured scrollHeight = innerHeight at
+  390 / 820 / 1180). `.app-topbar-nav` `overflow-y: hidden`: the stage-7
+  44 pt hit areas stuck out 4 px and made the top bar a vertical scroller.
+  Install / privacy pages still scroll (none only stops the bounce).
 - **Navigation inside an instrument (AppShell)**: NO hamburger drawer and NO
   Guitar/Piano/Bass switch any more — the instrument is chosen on the home
   screen (logo = back home). Desktop (>=900px): `.app-topbar` = on the LEFT

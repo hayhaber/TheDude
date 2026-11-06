@@ -207,8 +207,16 @@ body {
      meant for something else on the page (string-bend drag, fretboard
      pan) — without this, dragging near the top/bottom of the viewport on
      an iPhone can trigger the page's own overscroll instead of the
-     gesture the user actually intended. */
-  overscroll-behavior-y: contain;
+     gesture the user actually intended. `none`, not `contain`: with
+     contain iOS still rubber-bands the page itself, so on the iPad a finger
+     dragged the whole Learn screen — bars and all — up and down
+     (2026-11-06). The app's screens scroll inside their own areas; the
+     document never needs to move. */
+  overscroll-behavior: none;
+}
+
+html {
+  overscroll-behavior: none;
 }
 
 #root {

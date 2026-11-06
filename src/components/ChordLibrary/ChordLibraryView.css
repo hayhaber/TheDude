@@ -182,7 +182,7 @@
 
 .cl-btn.is-primary {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -427,7 +427,7 @@
 }
 
 .cl-chip.is-on {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 

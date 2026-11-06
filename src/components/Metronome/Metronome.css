@@ -65,7 +65,7 @@
 }
 
 .metronome-beat-dot.active {
-  background: var(--accent);
+  background: var(--accent-fill);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
   transform: scale(1.2);
 }
@@ -264,7 +264,7 @@
 }
 
 .metronome-toggle {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   margin-top: 6px;
   width: 100%;
@@ -328,7 +328,7 @@
 }
 
 .metronome-source-pill.active {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 

@@ -74,7 +74,7 @@
   padding: 0 20px;
   border-radius: 980px;
   border: none;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.12s ease;

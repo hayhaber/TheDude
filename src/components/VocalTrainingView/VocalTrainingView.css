@@ -57,7 +57,7 @@
 }
 
 .vocal-training-view button.primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: transparent;
   color: #fff;
 }
@@ -223,7 +223,7 @@
 
 .vocal-week-bar {
   width: 100%;
-  background: var(--accent);
+  background: var(--accent-fill);
   border-radius: 6px;
 }
 
@@ -363,7 +363,7 @@
   top: 0;
   height: 5px;
   border-radius: 3px;
-  background: var(--accent);
+  background: var(--accent-fill);
 }
 
 /* ---------- Runner ---------- */
@@ -449,7 +449,7 @@
 }
 
 .vocal-status.is-cue .vocal-dot {
-  background: var(--accent);
+  background: var(--accent-fill);
   opacity: 1;
 }
 

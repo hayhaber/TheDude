@@ -34,7 +34,7 @@
 }
 
 .shape-shift-chip.active {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }
@@ -106,7 +106,7 @@
 
 .shape-shift-controls button.primary {
   min-width: 80px;
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }

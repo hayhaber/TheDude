@@ -46,6 +46,6 @@
 
 /* Same chips as .mode-toggle.wrap (stage 1 redesign). */
 .studies-course-tabs button.active {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }

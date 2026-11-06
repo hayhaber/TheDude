@@ -106,7 +106,7 @@
 
 .tc-btn.is-primary {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -546,7 +546,7 @@
 }
 
 .tc-progress span.is-now {
-  background: var(--accent);
+  background: var(--accent-fill);
 }
 
 .tc-step {
@@ -816,7 +816,7 @@
 
 .tc-notes li.is-now {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
 

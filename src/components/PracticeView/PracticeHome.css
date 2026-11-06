@@ -89,7 +89,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-fill);
 }
 
 .ph-text {
@@ -197,7 +197,7 @@
   padding: 0 16px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   font: inherit;
   font-size: var(--type-subhead);

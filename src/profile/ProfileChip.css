@@ -191,7 +191,7 @@
 
 .profile-btn.is-primary {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -437,4 +437,23 @@
 
 .profile-pop.is-compact .set-row {
   min-height: 48px;
+}
+
+/* Popovers open the same way everywhere (stage 7): a quick scale + fade
+   from the button's corner. */
+.profile-pop {
+  transform-origin: top right;
+  animation: profile-pop-in var(--dur-pop) var(--ease-ios);
+}
+
+[dir='rtl'] .profile-pop,
+.profile-pop[dir='rtl'] {
+  transform-origin: top left;
+}
+
+@keyframes profile-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
 }

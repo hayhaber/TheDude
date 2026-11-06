@@ -337,6 +337,34 @@ no tools).
   request) with the space given back above the shortcuts (row margin-top
   -26, column padding-bottom 38, text padding-bottom 34; phones +8 px gap).
 
+- STAGE 7 polish (v1.0.114, 2026-11-06). Audit = scratchpad s7/audit.cjs
+  (every home-card shortcut + its segmented 2nd section, phone 390 + iPad
+  1180, light + dark = 112 screens): controls < 44 pt, text under WCAG AA.
+  Fixes: (1) 44 pt HIT AREAS without changing looks — index.css gives a
+  list of small controls an invisible `::before` grown to 44 x 44
+  (`top/left/... : min(0px, calc((100% - 44px) / 2))`), rows of pills /
+  segments / chips grow in height only, home dots 44 tall x half the gap;
+  `position: relative` inside :where() so fixed/absolute controls keep
+  theirs. A control whose OWN overflow is hidden clips its ::before — put
+  the ellipsis on a child span (the group switch now has
+  `.app-group-switch-label`). Instrument surfaces (keys, drum grid, device
+  faces) are left alone. (2) Contrast tokens: light `--text-secondary`
+  #636366 (was #6e6e73, 4.1:1 on chips), dark #a1a1a6; light `--accent`
+  #006bd6 (was #0071e3, 4.3:1 as text on the grey ground); NEW
+  `--accent-fill` for filled accent surfaces with white text (light
+  #006bd6, dark #0a6cff — white on dark #0a84ff was 3.65:1); every
+  `background: var(--accent)` in CSS now uses it; light `--danger`
+  #d70015 (Apple's accessible red; #ff3b30 text was 3.55:1); placeholder
+  opacity removed. Re-audit: only a muted GP track label, the DR-7's
+  device-face "BPM" and a few 4.3:1 tints remain. (3) Motion tokens
+  `--ease-ios` cubic-bezier(.32,.72,0,1), `--dur-fast/pop/sheet`; all
+  drawers slide on it (was Material's .4,0,.2,1), popovers (MoreMenu,
+  profile) scale+fade in, settings pages fade in; global
+  prefers-reduced-motion = instant CSS animations/transitions (rAF
+  playheads unaffected). (4) Dark mode: every screen screenshotted, no
+  broken surfaces found. (5) Parity: piano / bass / singing already have
+  the library lists, one header, no empty neck.
+
 ## Architecture essentials
 
 - **Home screen** (`components/HomeMenu/`): opens first (App `home` state;

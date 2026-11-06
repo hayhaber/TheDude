@@ -58,7 +58,7 @@
   overflow-y: auto;
   transform: translateX(100%);
   pointer-events: none;
-  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--dur-sheet) var(--ease-ios);
 }
 
 .settings-drawer.open {
@@ -251,7 +251,7 @@
    slide-out ends. */
 .settings-drawer:not(.open) {
   box-shadow: none;
-  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0s linear 0.26s;
+  transition: transform var(--dur-sheet) var(--ease-ios), box-shadow 0s linear var(--dur-sheet);
 }
 
 /* Install the app (hidden inside the installed app) */
@@ -282,7 +282,7 @@
 
 .settings-install-btn.is-primary {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -534,14 +534,14 @@
 /* The chosen row: accent fill, like the iPad sidebar. */
 .set-row.is-active,
 .set-row.is-active:hover {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
 .set-row.is-active .set-row-value,
 .set-row.is-active .set-row-sub,
 .set-row.is-active .set-chev {
-  color: rgba(255, 255, 255, 0.85);
+  color: #fff;
 }
 
 .set-row.is-active::before,
@@ -552,4 +552,18 @@
 /* A sidebar has no chevrons (the page opens beside it). */
 .set-root.is-split .set-list .set-chev {
   display: none;
+}
+
+/* A settings page fades in (stage 7). */
+.set-detail,
+.set-root:not(.is-split) > .set-page,
+.set-root:not(.is-split) > .set-group {
+  animation: set-page-in var(--dur-pop) var(--ease-ios);
+}
+
+@keyframes set-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }

@@ -1,15 +1,30 @@
 :root {
+  /* Motion (stage 7): one curve for sheets / drawers / popovers — iOS's
+     decelerating spring-like ease — and three durations. */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 0.15s;
+  --dur-pop: 0.2s;
+  --dur-sheet: 0.34s;
   --text: #1d1d1f;
-  --text-secondary: #6e6e73;
+  /* Stage 7 contrast: #6e6e73 fell to ~4.1:1 on the grey chips; #636366
+     keeps AA (4.5:1) on white, the grey ground and the chips. */
+  --text-secondary: #636366;
   --text-h: #1d1d1f;
   --bg: #f5f5f7;
   --surface: #ffffff;
   --border: rgba(0, 0, 0, 0.08);
   --divider: rgba(0, 0, 0, 0.1);
-  --accent: #0071e3;
-  --accent-hover: #0077ed;
-  --accent-bg: rgba(0, 113, 227, 0.1);
-  --danger: #ff3b30;
+  /* Stage 7: #0071e3 was 4.3:1 as text on the grey ground; #006bd6 keeps
+     AA as text on white, grey and with white text on it. */
+  --accent: #006bd6;
+  --accent-hover: #0074e8;
+  --accent-bg: rgba(0, 107, 214, 0.1);
+  /* A FILLED accent surface (white text on it). In dark mode the accent
+     text colour #0a84ff only gives white 3.65:1, so fills use a deeper
+     blue (4.56:1) while accent TEXT stays the bright one. */
+  --accent-fill: #006bd6;
+  /* Apple's accessible red: #ff3b30 as text was 3.55:1 on white. */
+  --danger: #d70015;
   --scale-root-color: #ff9f0a;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.03);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -140,7 +155,7 @@
    happens to be set to. */
 :root[data-theme='dark'] {
   --text: #f5f5f7;
-  --text-secondary: #98989d;
+  --text-secondary: #a1a1a6;
   --text-h: #f5f5f7;
   --bg: #000000;
   --surface: #1c1c1e;
@@ -149,6 +164,7 @@
   --accent: #0a84ff;
   --accent-hover: #3395ff;
   --accent-bg: rgba(10, 132, 255, 0.16);
+  --accent-fill: #0a6cff;
   --danger: #ff453a;
   --scale-root-color: #ff9f0a;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -380,4 +396,96 @@ button {
   svg {
     -webkit-user-drag: none;
   }
+}
+
+
+/* Stage 7: "Reduce Motion" on the device turns every CSS animation and
+   transition into an instant change (rAF-drawn playheads / reels are not
+   CSS and keep working — they carry information, not decoration). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Stage 7: 44 pt touch targets (Apple HIG) ----
+   Small controls keep their look; an invisible ::before grows the area a
+   finger can hit to at least 44 x 44 around them. `position: relative`
+   sits in :where() (no specificity) so a control positioned on purpose
+   (fixed / absolute) keeps its own position. */
+:where(
+    .icon-circle-button,
+    .profile-chip.is-compact,
+    .first-visit-ok,
+    .bpm-field-step,
+    .piano-panel-chevron,
+    .piano-panel-volume-icon,
+    .gp-rail-expand,
+    .gp-rail-track,
+    .sw-icon-btn,
+    .more-menu-btn,
+    .cl-adv-btn,
+    .ph-invite-btn,
+    .dm-mute,
+    .tn-step,
+    .home-dots button,
+    .mode-toggle > button,
+    .app-group-switch button,
+    .app-topbar-nav button,
+    .cl-chip
+  ) {
+  position: relative;
+}
+
+.icon-circle-button::before,
+.profile-chip.is-compact::before,
+.first-visit-ok::before,
+.bpm-field-step::before,
+.piano-panel-chevron::before,
+.piano-panel-volume-icon::before,
+.gp-rail-expand::before,
+.gp-rail-track::before,
+.gp-rail-mute::before,
+.sw-icon-btn::before,
+.more-menu-btn::before,
+.cl-adv-btn::before,
+.ph-invite-btn::before,
+.dm-mute::before,
+.tn-step::before,
+.app-stage-toggle::before,
+.piano-keyboard-nav::before {
+  content: '';
+  position: absolute;
+  top: min(0px, calc((100% - 44px) / 2));
+  bottom: min(0px, calc((100% - 44px) / 2));
+  left: min(0px, calc((100% - 44px) / 2));
+  right: min(0px, calc((100% - 44px) / 2));
+}
+
+/* Rows of pills / chips / segments: taller only (they touch side by side). */
+.mode-toggle > button::before,
+.app-group-switch button::before,
+.app-topbar-nav button::before,
+.cl-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: min(0px, calc((100% - 44px) / 2));
+  bottom: min(0px, calc((100% - 44px) / 2));
+}
+
+/* The home dots sit 8 px apart: 44 tall, and only half the gap wide. */
+.home-dots button::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  top: -18px;
+  bottom: -18px;
 }

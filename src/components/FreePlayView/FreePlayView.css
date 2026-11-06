@@ -74,7 +74,7 @@
 }
 
 .freeplay-pedal.is-on .freeplay-pedal-dot {
-  background: var(--accent);
+  background: var(--accent-fill);
   box-shadow: 0 0 6px var(--accent);
 }
 

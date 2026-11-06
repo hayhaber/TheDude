@@ -554,7 +554,7 @@
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   cursor: pointer;
 }

@@ -549,7 +549,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-fill);
   box-shadow: 0 0 0 2px var(--glass-control);
 }
 
@@ -626,7 +626,13 @@
     height: 28px;
     padding: 0 6px;
     font-size: 13px;
+    min-width: 0;
+  }
+
+  .app-group-switch.is-strip .app-group-switch-label {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

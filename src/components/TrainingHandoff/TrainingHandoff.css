@@ -135,7 +135,7 @@
 
 .training-handoff-send {
   border-color: var(--accent) !important;
-  background: var(--accent) !important;
+  background: var(--accent-fill) !important;
   color: #fff !important;
 }
 

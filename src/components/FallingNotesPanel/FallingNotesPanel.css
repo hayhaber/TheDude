@@ -97,7 +97,7 @@
 }
 
 .falling-note-block.black {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   z-index: 1;
 }
@@ -180,7 +180,7 @@
 }
 
 .falling-key-black.target {
-  background: var(--accent);
+  background: var(--accent-fill);
 }
 
 .falling-key-black.hit {

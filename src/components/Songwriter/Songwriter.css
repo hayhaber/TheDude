@@ -63,7 +63,7 @@
 }
 
 .sw-btn.is-primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }
@@ -97,7 +97,7 @@
 }
 
 .sw-btn.is-primary.is-on {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -121,7 +121,7 @@
 }
 
 .sw-icon-btn.is-on {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -763,7 +763,6 @@
   border: none;
   background: none;
   color: var(--text-secondary);
-  opacity: 0.7;
   font: inherit;
   font-size: 19px;
   cursor: text;
@@ -861,7 +860,7 @@
 }
 
 .sw-tool.is-on {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }
@@ -1172,7 +1171,7 @@
 }
 
 .sw-chip.is-on {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }

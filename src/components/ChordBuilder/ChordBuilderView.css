@@ -306,7 +306,7 @@
 }
 
 .cb-slide-roots button.is-on {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 

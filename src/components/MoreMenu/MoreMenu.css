@@ -34,7 +34,7 @@
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
   box-shadow: var(--glass-shadow), 0 16px 40px rgba(0, 0, 0, 0.16);
-  animation: more-menu-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: more-menu-in var(--dur-pop) var(--ease-ios);
 }
 
 .more-menu.is-end .more-menu-pop {

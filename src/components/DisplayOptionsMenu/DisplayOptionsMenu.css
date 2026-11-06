@@ -100,7 +100,7 @@
   overflow-y: auto;
   transform: translateX(100%);
   pointer-events: none;
-  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--dur-sheet) var(--ease-ios);
 }
 
 .display-options-drawer.open {
@@ -187,5 +187,5 @@
    slide-out ends. */
 .display-options-drawer:not(.open) {
   box-shadow: none;
-  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0s linear 0.26s;
+  transition: transform var(--dur-sheet) var(--ease-ios), box-shadow 0s linear var(--dur-sheet);
 }

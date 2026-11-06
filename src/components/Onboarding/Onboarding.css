@@ -46,7 +46,7 @@
 }
 
 .onb-dots span.is-on {
-  background: var(--accent);
+  background: var(--accent-fill);
 }
 
 .onb-skip {
@@ -331,7 +331,7 @@
 }
 
 .onb-btn.is-primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 

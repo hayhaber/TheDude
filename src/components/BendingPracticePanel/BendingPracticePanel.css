@@ -32,7 +32,7 @@
 }
 
 .bending-toggle-btn:hover {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -228,7 +228,7 @@
 }
 
 .bending-again-btn:hover {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 

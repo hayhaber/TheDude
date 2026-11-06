@@ -23,7 +23,7 @@
 
 .audio-input-meter-fill {
   height: 100%;
-  background: var(--accent);
+  background: var(--accent-fill);
   transition: width 0.05s linear;
 }
 
@@ -217,12 +217,12 @@
 }
 
 .room-cal-go {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }
 
 .room-cal-go:hover {
-  background: var(--accent);
+  background: var(--accent-fill);
   filter: brightness(1.08);
 }

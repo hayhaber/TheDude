@@ -126,7 +126,9 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
             className={activeSection === s.key ? 'active' : ''}
             onClick={() => onSectionChange(s.key)}
           >
-            {label(s)}
+            {/* The label clips (ellipsis), not the button — so the button's
+                44 pt hit area (index.css) isn't clipped with it. */}
+            <span className="app-group-switch-label">{label(s)}</span>
           </button>
         ))}
       </div>

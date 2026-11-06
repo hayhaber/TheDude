@@ -175,7 +175,7 @@
 
 .lt-controls button.record,
 .lt-actions button.primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }
@@ -703,7 +703,7 @@
 }
 
 .lt-wait .lt-actions button.primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }

@@ -436,7 +436,7 @@ export function SettingsBody({
       )}
 
       {shown && (
-        <div className="set-detail">
+        <div className="set-detail" key={shown}>
           {wide && <h2 className="set-title">{t(`settings.page.${shown}`)}</h2>}
 
           {shown === "account" && (

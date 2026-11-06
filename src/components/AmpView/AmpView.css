@@ -104,7 +104,7 @@
 }
 
 .amp-btn-primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 

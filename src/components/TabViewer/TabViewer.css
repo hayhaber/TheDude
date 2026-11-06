@@ -13,7 +13,7 @@
   font-weight: 590;
   padding: 10px 20px;
   border-radius: 980px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   cursor: pointer;
 }

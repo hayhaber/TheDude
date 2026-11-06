@@ -128,7 +128,7 @@
 
 .inst-btn.is-primary {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 
@@ -181,7 +181,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   font-size: 11.5px;
   font-weight: 700;
@@ -826,7 +826,7 @@
 .reel-progress i {
   display: block;
   height: 100%;
-  background: var(--accent);
+  background: var(--accent-fill);
   transform-origin: left;
   animation: reel-progress linear forwards;
 }

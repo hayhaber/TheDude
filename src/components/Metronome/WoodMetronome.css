@@ -211,7 +211,7 @@
 }
 
 .metronome.mw .mw-start {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: transparent;
   color: #fff;
 }

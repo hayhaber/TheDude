@@ -115,7 +115,7 @@
 
 .cloud-modal-btn.is-primary {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
 }
 

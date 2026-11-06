@@ -155,7 +155,7 @@
 }
 
 .lick-motif-chip.active {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: var(--accent);
   color: #fff;
 }

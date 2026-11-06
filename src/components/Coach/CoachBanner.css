@@ -22,7 +22,7 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -130,7 +130,7 @@
 }
 
 .coach-banner-btn.is-primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   border-color: transparent;
   color: #fff;
 }

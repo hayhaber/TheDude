@@ -779,6 +779,11 @@ html.home-locked body {
   flex: none;
 }
 
+/* Accent text on its own 13 % tint was 4.3:1 — a shade deeper reads AA. */
+:root:not([data-theme='dark']) .home-primary {
+  color: #0060c7;
+}
+
 @media (hover: hover) {
   .home-primary:hover {
     background: color-mix(in srgb, var(--accent) 19%, transparent);

@@ -124,7 +124,7 @@
   box-shadow: var(--shadow-lg);
   transform: translateX(100%);
   pointer-events: none;
-  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.2s ease;
+  transition: transform var(--dur-sheet) var(--ease-ios), max-height 0.2s ease;
 }
 
 .metronome-drawer.expanded {
@@ -219,6 +219,6 @@
 @media (min-width: 481px) {
   .metronome-drawer:not(.open) {
     box-shadow: none;
-    transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0s linear 0.26s;
+    transition: transform var(--dur-sheet) var(--ease-ios), box-shadow 0s linear var(--dur-sheet);
   }
 }

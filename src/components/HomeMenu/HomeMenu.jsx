@@ -424,37 +424,41 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
     if (section === 'practice' && tab && tab !== 'home') return `${base} · ${t(`ph.ex.${tab}.title`)}`;
     return base;
   };
+  // The card's primary action (option A, 2026-11-06): a one-word tinted
+  // capsule (Start / Continue) + a grey caption saying what it opens.
+  const CONT = t('home.primary.btnContinue');
+  const START = t('home.primary.btnStart');
   const primaryFor = (card) => {
     const inst = card.instrument;
     if (!inst && card.key !== 'vocal') return null;
     const here = place && (card.key === 'vocal' ? place.section === 'vocal' : place.instrument === inst && place.section !== 'vocal');
     if (here && onContinue) {
       const name = placeName(place.instrument, place.section, place.practiceTab);
-      if (name) return { title: t('home.primary.continue', { place: name }), sub: t('home.primary.where'), go: onContinue };
+      if (name) return { label: CONT, caption: `${name} · ${t('home.primary.where')}`, go: onContinue };
     }
-    if (card.key === 'vocal') return { title: t('home.primary.vocal'), sub: t('home.primary.vocalSub'), go: () => open(card, card.options[0]) };
+    if (card.key === 'vocal') return { label: START, caption: `${t('home.primary.vocal')} · ${t('home.primary.vocalSub')}`, go: () => open(card, card.options[0]) };
     const lessonFirst = inst === 'guitar' && nextLesson && onNextLesson;
     const last = lastPlace(inst);
     const lastOk = last && last !== 'vocal' && supportsInstrument(last, inst);
     if (lessonFirst && (nextLesson.beginner || !lastOk)) {
       const title = nextLesson.title?.[lang] ?? nextLesson.title?.en ?? '';
-      const bits = [t('home.primary.lessonSub')];
+      const bits = [`${t('home.primary.lessonSub')}: ${title}`];
       if (nextLesson.minutes) bits.push(t('home.primary.min', { n: nextLesson.minutes }));
       if (nextLesson.step) bits.push(t('home.primary.step', { n: nextLesson.step, m: nextLesson.steps }));
-      return { title: t(nextLesson.step ? 'home.primary.continue' : 'home.primary.start', { place: title }), sub: bits.join(' · '), go: onNextLesson };
+      return { label: nextLesson.step ? CONT : START, caption: bits.join(' · '), go: onNextLesson };
     }
     if (lastOk) {
       const tab = last === 'practice' ? lastPracticeTab() : null;
       const name = placeName(inst, last, tab);
       return {
-        title: t('home.primary.continue', { place: name }),
-        sub: t('home.primary.last'),
+        label: CONT,
+        caption: `${name} · ${t('home.primary.last')}`,
         go: () => onOpen({ instrument: inst, section: last, practiceTab: tab ?? null, card: card.key }),
       };
     }
-    if (inst === 'guitar') return { title: t('home.primary.teacher'), sub: t('home.primary.teacherSub'), go: () => onOpen({ instrument: 'guitar', section: 'teacher', card: card.key }) };
+    if (inst === 'guitar') return { label: START, caption: t('home.primary.teacherCap'), go: () => onOpen({ instrument: 'guitar', section: 'teacher', card: card.key }) };
     const practice = inst === 'bass' ? 'bassPractice' : 'practice';
-    return { title: t('home.primary.practice'), sub: t('home.primary.practiceSub'), go: () => onOpen({ instrument: inst, section: practice, card: card.key }) };
+    return { label: START, caption: t('home.primary.practiceSub'), go: () => onOpen({ instrument: inst, section: practice, card: card.key }) };
   };
 
   // A tap at the end of a drag isn't a click.
@@ -506,7 +510,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
               >
                 <button
                   type="button"
-                  className="home-card-main"
+                  className={'home-card-main' + (primary ? ' has-primary' : '')}
                   onClick={guard(() => (isActive ? open(card, opts[0]) : goToCard(i)))}
                   tabIndex={isActive ? 0 : -1}
                 >
@@ -517,23 +521,29 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
                   </span>
                 </button>
                 {primary && (
-                  <button
-                    type="button"
-                    className="home-primary"
-                    dir={lang === 'he' ? 'rtl' : 'ltr'}
-                    onClick={guard(() => (isActive ? primary.go() : goToCard(i)))}
-                    tabIndex={isActive ? 0 : -1}
-                  >
-                    <span className="home-primary-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path d="M8 5l11 7-11 7z" fill="currentColor" />
-                      </svg>
+                  // Under the text column (a spacer the width of the art keeps
+                  // it there on wide cards); centred on phones.
+                  <div className="home-primary-row" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+                    <span className="home-primary-spacer" aria-hidden="true" />
+                    <span className="home-primary-col">
+                      <button
+                        type="button"
+                        className="home-primary"
+                        onClick={guard(() => (isActive ? primary.go() : goToCard(i)))}
+                        tabIndex={isActive ? 0 : -1}
+                        aria-describedby={`home-primary-cap-${card.key}`}
+                      >
+                        {/* The play triangle never mirrors (iOS media controls). */}
+                        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+                          <path d="M7 4l13 8-13 8z" fill="currentColor" />
+                        </svg>
+                        {primary.label}
+                      </button>
+                      <span className="home-primary-caption" id={`home-primary-cap-${card.key}`} dir="auto">
+                        {primary.caption}
+                      </span>
                     </span>
-                    <span className="home-primary-text">
-                      <span className="home-primary-title" dir="auto">{primary.title}</span>
-                      <span className="home-primary-sub">{primary.sub}</span>
-                    </span>
-                  </button>
+                  </div>
                 )}
                 {/* Shortcuts in reading order, like the in-app bar. */}
                 <div className={'home-options' + (primary ? ' is-quiet' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>

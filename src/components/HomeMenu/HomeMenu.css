@@ -728,34 +728,63 @@ html.home-locked body {
   height: 100%;
 }
 
-/* ---- The card's ONE primary action (home redesign option 2, 2026-11-06):
-   a filled accent button with context ("Continue: …" / the next lesson),
-   the shortcuts under it quieter. ---- */
-.home-primary {
+/* ---- The card's primary action (option A, user's pick 2026-11-06): a
+   compact tinted capsule (accent text on ~12 % accent) with a grey caption —
+   the first thing the eye finds, without the full-width bar that pulled
+   attention from the shortcuts. Wide cards: under the text column (the
+   spacer mirrors the art's column, same padding / gap / basis). ---- */
+.home-primary-row {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  /* Sits on top of the shortcuts at the card's foot (both pushed down). */
-  margin: auto 44px 0;
-  padding: 12px 16px;
-  min-height: 64px;
-  border: none;
-  border-radius: 18px;
-  background: var(--accent);
-  color: #fff;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-  transition: transform 0.12s ease, filter 0.12s ease;
+  gap: 32px;
+  padding: 0 56px;
+  margin-top: -6px;
 }
 
-.home-primary:hover {
-  filter: brightness(1.06);
+.home-primary-spacer {
+  flex: 0 0 42%;
+}
+
+.home-primary-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 18px;
+}
+
+.home-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px 0 18px;
+  border: none;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.home-primary svg {
+  flex: none;
+}
+
+@media (hover: hover) {
+  .home-primary:hover {
+    background: color-mix(in srgb, var(--accent) 19%, transparent);
+  }
 }
 
 .home-primary:active {
-  transform: scale(0.985);
+  transform: scale(0.97);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .home-primary:focus-visible {
@@ -767,30 +796,12 @@ html.home-locked body {
   cursor: default;
 }
 
-.home-primary-icon {
-  flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* The play triangle never mirrors (media controls stay left-to-right in iOS). */
-
-.home-primary-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.home-primary-title {
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.25;
+.home-primary-caption {
+  max-width: 380px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  text-align: center;
   /* A lesson's name may take two lines, never more. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -798,9 +809,30 @@ html.home-locked body {
   overflow: hidden;
 }
 
-.home-primary-sub {
-  font-size: 13px;
-  opacity: 0.86;
+/* With a primary action the text sits low in its column, so title,
+   description and capsule read as one group beside the art. */
+.home-card-main.has-primary {
+  height: 250px;
+  overflow: visible;
+}
+
+.home-card-main.has-primary .home-art {
+  align-self: flex-start;
+  height: 300px;
+}
+
+.home-card-main.has-primary .home-text {
+  align-self: flex-end;
+  padding-bottom: 14px;
+}
+
+@media (min-width: 641px) and (min-height: 1000px) {
+  .home-card-main.has-primary {
+    height: 330px;
+  }
+  .home-card-main.has-primary .home-art {
+    height: 400px;
+  }
 }
 
 /* Under a primary action the shortcuts are secondary: no rule above them,
@@ -824,34 +856,70 @@ html.home-locked body {
 }
 
 @media (max-width: 640px) {
-  .home-primary {
-    margin: auto 16px 0;
-    min-height: 60px;
-    padding: 10px 14px;
+  .home-primary-row {
+    padding: 0 16px;
+    margin-top: 6px;
   }
-
-  /* The button takes ~70px: the art gives it back so card + dots still fit. */
-  .home-card:has(.home-primary) {
-    --home-art-h: clamp(90px, calc(100dvh - 630px), 236px);
+  .home-primary-spacer {
+    display: none;
   }
-
+  .home-primary-col {
+    padding-bottom: 6px;
+    gap: 6px;
+  }
+  .home-card-main.has-primary {
+    height: auto;
+  }
+  .home-card-main.has-primary .home-art {
+    align-self: auto;
+    height: auto;
+  }
+  .home-card-main.has-primary .home-text {
+    align-self: auto;
+    padding-bottom: 0;
+  }
   .home-options.is-quiet {
     margin-top: 0;
-    padding: 6px 0 12px;
+    padding: 4px 0 12px;
   }
-  /* The freed height goes to the guitar, not to a gap. */
+  /* The capsule + caption take ~70px: the art gives it back so card + dots
+     still fit. */
   .home-card:has(.home-primary) {
-    --home-art-h: clamp(90px, calc(100dvh - 590px), 260px);
+    --home-art-h: clamp(90px, calc(100dvh - 600px), 250px);
   }
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .home-primary {
-    margin: 0 16px;
-    min-height: 48px;
-    padding: 6px 12px;
+  .home-primary-row {
+    gap: 16px;
+    padding: 0 32px;
+    margin-top: -4px;
   }
-  .home-primary-sub {
+  .home-primary-spacer {
+    display: block;
+    flex-basis: 40%;
+  }
+  .home-primary-col {
+    padding-bottom: 2px;
+  }
+  .home-primary {
+    height: 38px;
+    font-size: 15px;
+  }
+  .home-primary-caption {
     display: none;
+  }
+  .home-card-main.has-primary {
+    height: calc(100dvh - 250px);
+    min-height: 100px;
+    max-height: 160px;
+  }
+  .home-card-main.has-primary .home-art {
+    align-self: auto;
+    height: 100%;
+  }
+  .home-card-main.has-primary .home-text {
+    align-self: auto;
+    padding-bottom: 0;
   }
 }

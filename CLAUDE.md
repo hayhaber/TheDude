@@ -310,10 +310,19 @@ no tools).
   (Escape = back to the list first). Every old field kept, on a page.
   Text `settings.page.*`, `settings.account.*`, `settings.explanations*`,
   `settings.done`, `profile.local`.
-- HOME PRIMARY BUTTON (2026-11-06): the user dislikes the full-width blue
-  bar ("takes attention from the other buttons"). 3 mockups on the Guitar
-  card canvas (row "הכפתור הראשי"): A tinted capsule (recommended), B glass
-  capsule over the art, C continue row. Waiting for his pick.
+- HOME PRIMARY BUTTON = option A (user's pick 2026-11-06, v1.0.108; he
+  disliked the full-width blue bar): `.home-primary` is a one-word tinted
+  capsule (Start / Continue — `home.primary.btnStart|btnContinue`; accent
+  text on 13 % accent, 44 px, play glyph never mirrored) + a grey 2-line
+  `.home-primary-caption` (what it opens: lesson name · ~min · step / the
+  last screen · "last time" / teacher / practice / vocal). Wide cards: in
+  `.home-primary-row` whose `.home-primary-spacer` mirrors the art column
+  (same 56 px padding / 32 gap / 42 % basis; landscape phones 32 / 16 /
+  40 %), so it sits under the text column; `.home-card-main.has-primary`
+  is 250 px (330 on tall tablets) with the text at its foot and the art
+  keeping its full height. Phones: centred, no spacer. primaryFor()
+  returns {label, caption, go}. Canvas: Guitar card canvas, row
+  "הכפתור הראשי".
 
 ## Architecture essentials
 

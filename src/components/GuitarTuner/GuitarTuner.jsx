@@ -4,6 +4,7 @@ import { useInfoTooltipsEnabled } from '../../hooks/useInfoTooltipsEnabled';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { tuningsFor, findTuning, loadTuningId, saveTuningId, nearestString } from '../../music/tunings';
+import { frequencyToNote } from '../../music/pitchUtils';
 import './GuitarTuner.css';
 
 // Both tuner instances (TunerBar mounts one per layout) follow a change.
@@ -23,6 +24,90 @@ function useTunerTuning(mode) {
     window.dispatchEvent(new Event(TUNING_EVENT));
   };
   return [findTuning(mode, id), choose];
+}
+
+// A steady reading (user, 2026-11-06: "jumps a lot and fast"). The raw
+// detector gives a value every frame (~60/s) with a few cents of jitter and
+// the odd outlier. Here: the median of the last 120 ms (outliers gone), then
+// an exponential glide (~130 ms) for small moves — a real retune still
+// arrives within a fraction of a second and settles on the exact value
+// (smoothing never biases the steady state); a jump of more than 60 cents
+// (a new string) is taken only after 3 frames agree, and then at once; when
+// the sound stops the last reading HOLDS 0.8 s instead of blinking out.
+const MEDIAN_MS = 120;
+const GLIDE = 0.12;
+const JUMP_CENTS = 60;
+const JUMP_FRAMES = 3;
+const HOLD_MS = 800;
+function useSteadyPitch(frequency) {
+  const st = useRef({ buf: [], sm: null, cand: null, candN: 0, lastAt: 0 });
+  const [out, setOut] = useState(null);
+  const timer = useRef(null);
+  useEffect(() => {
+    const s = st.current;
+    const now = performance.now();
+    clearTimeout(timer.current);
+    if (!frequency) {
+      if (s.sm == null) return undefined;
+      const left = HOLD_MS - (now - s.lastAt);
+      timer.current = setTimeout(() => {
+        s.sm = null;
+        s.buf = [];
+        s.cand = null;
+        setOut(null);
+      }, Math.max(0, left));
+      return () => clearTimeout(timer.current);
+    }
+    const c = 1200 * Math.log2(frequency / 440);
+    s.buf.push({ t: now, c });
+    while (s.buf.length && s.buf[0].t < now - MEDIAN_MS) s.buf.shift();
+    const sorted = s.buf.map((b) => b.c).sort((a, b) => a - b);
+    const m = sorted[sorted.length >> 1];
+    s.lastAt = now;
+    if (s.sm == null || Math.abs(m - s.sm) > JUMP_CENTS) {
+      if (s.cand != null && Math.abs(m - s.cand) < JUMP_CENTS / 2) s.candN += 1;
+      else {
+        s.cand = m;
+        s.candN = 1;
+      }
+      if (s.candN >= JUMP_FRAMES) {
+        s.sm = m;
+        s.cand = null;
+        s.candN = 0;
+      }
+    } else {
+      s.cand = null;
+      s.candN = 0;
+      s.sm += GLIDE * (m - s.sm);
+    }
+    if (s.sm != null) setOut(440 * 2 ** (s.sm / 1200));
+    return undefined;
+  }, [frequency]);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return out;
+}
+
+// Numbers change at most 8 times a second (the LEDs / strobe stay live), so
+// they can be read.
+function useThrottled(value, ms = 125) {
+  const [shown, setShown] = useState(value);
+  const last = useRef(0);
+  const pending = useRef(null);
+  useEffect(() => {
+    const now = performance.now();
+    clearTimeout(pending.current);
+    if (now - last.current >= ms || value == null) {
+      last.current = now;
+      setShown(value);
+    } else {
+      pending.current = setTimeout(() => {
+        last.current = performance.now();
+        setShown(value);
+      }, ms - (now - last.current));
+    }
+    return () => clearTimeout(pending.current);
+  }, [value, ms]);
+  return shown;
 }
 
 const IN_TUNE_CENTS = 5; // vibrant-green "In Tune!" threshold
@@ -56,9 +141,12 @@ export function GuitarTuner({ mode = 'guitar' }) {
   const { t } = useLanguage();
   const { enabled: infoTooltipsEnabled } = useInfoTooltipsEnabled();
   const bass = mode === 'bass';
-  const { isListening, startListening, stopListening, currentNote, frequency, error, deadInput, diag } = usePitchDetection(
+  const { isListening, startListening, stopListening, frequency: rawFrequency, error, deadInput, diag } = usePitchDetection(
     bass ? BASS_PITCH_RANGE : TUNER_PITCH_RANGE
   );
+  // Everything below reads the STEADY pitch (see useSteadyPitch).
+  const frequency = useSteadyPitch(isListening ? rawFrequency : null);
+  const currentNote = frequency ? frequencyToNote(frequency) : null;
   const [tuning, setTuningId] = useTunerTuning(bass ? 'bass' : 'guitar');
   const listeningRef = useRef(isListening);
   listeningRef.current = isListening;
@@ -125,7 +213,9 @@ export function GuitarTuner({ mode = 'guitar' }) {
   const stepTuning = (d) => setTuningId(list[(at + d + list.length) % list.length].id);
   const flatOn = currentNote && (isInTune || cents < 0);
   const sharpOn = currentNote && (isInTune || cents > 0);
-  const centsText = currentNote ? `${rawCents > 0 ? '+' : rawCents < 0 ? '−' : '±'}${Math.abs(Math.round(rawCents))}` : '--';
+  const shownCents = useThrottled(currentNote ? Math.round(rawCents) : null);
+  const shownHz = useThrottled(frequency ? frequency.toFixed(1) : null);
+  const centsText = shownCents != null ? `${shownCents > 0 ? '+' : shownCents < 0 ? '−' : '±'}${Math.abs(shownCents)}` : '--';
 
   return (
     <div className={'guitar-tuner' + (bass ? ' is-bass' : '')}>
@@ -184,7 +274,7 @@ export function GuitarTuner({ mode = 'guitar' }) {
             <span className={`tn-in-tune guitar-tuner-in-tune-badge${isInTune ? ' visible' : ''}`} dir="auto">{t('trainer.inTune')}</span>
             <span className="tn-readout">
               <span className="tn-readout-value">
-                {frequency ? frequency.toFixed(1) : '---.-'}
+                {shownHz ?? '---.-'}
                 {string && Math.abs(rawCents) > MAX_CENTS && heardName ? ` ${heardName}` : ''}
               </span>
               <span className="tn-readout-unit">

@@ -827,6 +827,8 @@ html.home-locked body {
 .home-card-main.has-primary .home-art {
   align-self: flex-start;
   height: 300px;
+  /* Off the card's top edge (the headstock touched it, 2026-11-06). */
+  margin-top: 28px;
 }
 
 .home-card-main.has-primary .home-text {
@@ -840,6 +842,7 @@ html.home-locked body {
   }
   .home-card-main.has-primary .home-art {
     height: 400px;
+    margin-top: 28px;
   }
 }
 
@@ -881,6 +884,7 @@ html.home-locked body {
   .home-card-main.has-primary .home-art {
     align-self: auto;
     height: auto;
+    margin-top: 0;
   }
   .home-card-main.has-primary .home-text {
     align-self: auto;
@@ -925,6 +929,7 @@ html.home-locked body {
   .home-card-main.has-primary .home-art {
     align-self: auto;
     height: 100%;
+    margin-top: 0;
   }
   .home-card-main.has-primary .home-text {
     align-self: auto;

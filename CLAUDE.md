@@ -410,6 +410,17 @@ no tools).
   SettingsPanel.jsx, shared with the app's settings drawer via App's
   `settingsProps`) on its own page, with `allSounds` (guitar/piano/bass
   sound pickers all shown). Tuner title = "Guitar Tuner"/"Bass Tuner".
+- **Steady tuner (v1.0.115, user: "jumps a lot and fast")**: GuitarTuner
+  reads `useSteadyPitch(rawFrequency)`: median of the last 120 ms (kills
+  outliers / octave slips), then an exponential glide (0.12 per frame,
+  ~130 ms) for moves under 60 ¢ — the steady state is the exact value; a
+  jump over 60 ¢ (another string) needs 3 agreeing frames, then snaps;
+  silence HOLDS the last reading 0.8 s. Cents / Hz numbers update at most
+  8x/s (`useThrottled`); LEDs + strobe stay live. Fake-mic pluck at
+  A2 +3 ¢: displayed cents changed 11x in 3 s (incl. a −7 blip) before, 0x
+  after (+3 throughout). Pitch detection itself (usePitchDetection) is
+  unchanged. Home cards: the art sits 28 px below the card's top edge on
+  wide cards (the headstock touched it).
 - **Tuner, guitar + bass**: `GuitarTuner mode='guitar'|'bass'`. Bass =
   `usePitchDetection(BASS_PITCH_RANGE)` (4096 window, 35–500 Hz; other
   callers keep the guitar default 2048 / 60–1500) and its own blue display

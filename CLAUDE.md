@@ -687,6 +687,19 @@ no tools).
   gain + limiter (threshold -2 dB) into the piano's smplr channel
   (`setBoost` in pianoPlayer.js); every other piano path resets it to 1.
   Measured peaks: Normal 0.18, Loud 0.45, Max 0.80 (no clipping).
+- **Lip trill / low voices (v1.0.104, 2026-11-06)**: the user asked if the
+  lip-trill exercise can really score 100. Checked: tempo (eighths at 92 =
+  0.33 s/note, the usual 1-2-3-4-5-4-3-2-1 warm-up speed) and scoring are
+  fine — simulated singers through analyzeRep: perfect = 100, pro ~98, good
+  ~92, amateur ~82, same as fiveNote at half the speed. The real fault was the
+  PITCH TRACKER: a trill chops the voice 20–35x/s and below ~200 Hz McLeod
+  locked onto the chopped pattern's period (27–33 Hz, discarded) -> most
+  frames empty (E3 trill: 3 % read live). useVocalMic now retries a failed
+  frame on an envelope-flattened copy (`flattenEnvelope`, 4 ms peak follower):
+  96–100 % read, 0 wrong notes, noise still unread; frames that read before
+  are untouched. Chromium fake-mic check: E3 trill 3 % -> ~88 % (rest = the
+  fake device's loop gap, same on a steady tone). NOT verified with a real
+  voice.
 - **Singers' ear training** (user's request 2026-10-17): the Singing card's
   Ear Training opens the Vocal section's own `ear` screen (HomeMenu option
   `vocalScreen: 'ear'` -> App `vocalStart` {screen, n} -> `VocalTrainingView

@@ -18,6 +18,29 @@ const MIN_HZ = 70;
 const MAX_HZ = 1300;
 const MIN_CLARITY = 0.86;
 const MIN_RMS = 0.006;
+const ENV_RELEASE_S = 0.004;
+
+/**
+ * A copy of `buf` with its loudness envelope flattened (fast peak follower,
+ * 4 ms release). A lip trill / tongue trill chops the voice 20–35 times a
+ * second; on a low voice (below ~200 Hz) the analyser then finds the period
+ * of the whole chopped pattern (27–33 Hz) instead of the note, so most frames
+ * came back empty. With the envelope flattened the note's own period is the
+ * strongest again. Synthetic test (2026-11-06): 98–196 Hz, 90 % modulation at
+ * 22–34 Hz -> 0–86 % of frames read before, 96–100 % after, 0 wrong notes,
+ * noise still unread.
+ */
+function flattenEnvelope(buf, out, sampleRate) {
+  const a = Math.exp(-1 / (sampleRate * ENV_RELEASE_S));
+  let e = 0;
+  const warm = Math.min(buf.length, Math.round(sampleRate * 0.01));
+  for (let i = 0; i < warm; i += 1) e = Math.max(Math.abs(buf[i]), e * a);
+  for (let i = 0; i < buf.length; i += 1) {
+    e = Math.max(Math.abs(buf[i]), e * a);
+    out[i] = buf[i] / Math.max(e, 1e-4);
+  }
+  return out;
+}
 
 export function useVocalMic() {
   const [listening, setListening] = useState(false);
@@ -44,8 +67,11 @@ export function useVocalMic() {
     // (the vocal mic always opens with processing off -> 'direct' mode).
     const minRms = Math.max(MIN_RMS, gateFor(nodes.current.cal, gain.gain.value));
     if (rms >= minRms) {
-      const [hz, clarity] = detector.findPitch(buffer, ctx.sampleRate);
-      if (clarity >= MIN_CLARITY && hz >= MIN_HZ && hz <= MAX_HZ) midi = hzToMidi(hz);
+      const valid = (hz, clarity) => clarity >= MIN_CLARITY && hz >= MIN_HZ && hz <= MAX_HZ;
+      let [hz, clarity] = detector.findPitch(buffer, ctx.sampleRate);
+      // Only when the plain read fails (frames that read today are untouched).
+      if (!valid(hz, clarity)) [hz, clarity] = detector.findPitch(flattenEnvelope(buffer, nodes.current.flat, ctx.sampleRate), ctx.sampleRate);
+      if (valid(hz, clarity)) midi = hzToMidi(hz);
     }
     // 3-frame median (null counts as a gap only when most frames are null).
     const r = recent.current;
@@ -106,6 +132,7 @@ export function useVocalMic() {
         analyser,
         detector: PitchDetector.forFloat32Array(FFT_SIZE),
         buffer: new Float32Array(FFT_SIZE),
+        flat: new Float32Array(FFT_SIZE),
         cal: activeCalibration('direct'),
       };
       setListening(true);

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { useVocalExercise, IS_IOS, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey } from '../../hooks/useVocalExercise';
+import { useVocalExercise, IS_IOS, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey, COUNT_KEY, loadCountClick } from '../../hooks/useVocalExercise';
 import { midiName } from '../../music/vocal/voiceRange';
 import { centsOff } from '../../music/vocal/vocalAnalysis';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -15,10 +15,49 @@ const TEMPOS = [
 ];
 
 // One exercise: how-to, the pitch roll, transport, and the result.
+/**
+ * The count-in on the roll: big 2 · 1 on each beat between the cue and the
+ * singing (its own rAF — on iPhone the mic is closed then, so nothing else
+ * re-renders), then "Sing!" for a moment.
+ */
+function CountIn({ viewRef, t }) {
+  const [n, setN] = useState(null);
+  useEffect(() => {
+    let raf;
+    const step = () => {
+      raf = requestAnimationFrame(step);
+      const v = viewRef.current;
+      const now = getAudioContext().currentTime;
+      let next = null;
+      if (v.phase === 'cue' && v.countStart != null && now >= v.countStart && now < v.singStart) {
+        next = Math.max(1, Math.ceil((v.singStart - now) / v.countBeat - 1e-6));
+      } else if (v.phase === 'sing' && now - v.singStart < 0.5) next = 0;
+      setN((x) => (x === next ? x : next));
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [viewRef]);
+  if (n == null) return null;
+  return (
+    <div className={'vocal-count' + (n === 0 ? ' is-go' : '')} aria-live="assertive">
+      <span key={n}>{n === 0 ? t('vocal.count.go') : n}</span>
+    </div>
+  );
+}
+
 export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLast }) {
   const { t } = useLanguage();
   const [tempoKey, setTempoKey] = useState('normal');
   const [guide, setGuide] = useState(false);
+  const [countClick, setCountClick] = useState(loadCountClick);
+  const changeCount = (v) => {
+    setCountClick(v);
+    try {
+      localStorage.setItem(COUNT_KEY, v ? 'on' : 'off');
+    } catch {
+      /* private mode */
+    }
+  };
   const [volumeKey, setVolumeKey] = useState(loadLoudnessKey);
   const changeVolume = (v) => {
     setVolumeKey(v);
@@ -29,7 +68,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
     }
   };
   const tempo = TEMPOS.find((x) => x.key === tempoKey)?.value ?? 1;
-  const run = useVocalExercise({ ex, range, level, tempo, guide, mic, loud: LOUDNESS[volumeKey] });
+  const run = useVocalExercise({ ex, range, level, tempo, guide, mic, loud: LOUDNESS[volumeKey], countClick });
   const running = run.phase === 'cue' || run.phase === 'sing';
   const timed = ex.kind === 'pattern' || ex.kind === 'glide';
   const resultRef = useRef(null);
@@ -129,6 +168,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
         </div>
         <div className="vocal-roll-wrap" dir="ltr">
           <PitchRoll viewRef={run.viewRef} framesRef={mic.framesRef} level={level} />
+          <CountIn viewRef={run.viewRef} t={t} />
           {run.phase === 'ready' && (
             <div className="vocal-roll-empty">
               <p>{t('vocal.phase.ready')}</p>
@@ -199,6 +239,12 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
               </label>
               <InfoTooltip text={t('tip.tools.vocalGuide')} />
             </span>
+            {/* The count-in's tick (the 2 · 1 on the roll always shows). */}
+            <label className="vocal-switch" title={t('vocal.countHint')}>
+              <input type="checkbox" checked={countClick} onChange={(e) => changeCount(e.target.checked)} />
+              <span className="vocal-switch-track" aria-hidden="true" />
+              {t('vocal.count')}
+            </label>
           </div>
         </div>
       </div>

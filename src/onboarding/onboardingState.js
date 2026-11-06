@@ -75,6 +75,15 @@ const COACH_LEVEL = { new: 'new', few: 'beginner', songs: 'intermediate' };
 const COACH_STYLE = { pop: 'pop', rock: 'rock', blues: 'blues', metal: 'metal', israeli: 'acoustic', folk: 'acoustic', jazz: 'blues' };
 const TEACHER_GOALS = ['songs', 'accompany', 'solo', 'theory', 'band'];
 
+/** Every style the student picked (several allowed since 2026-11-06; old
+ *  answers carry `style` alone). */
+export function stylesOf(x) {
+  if (Array.isArray(x?.styles) && x.styles.length) return x.styles;
+  return x?.style ? [x.style] : [];
+}
+/** The teacher's styles in the goal planner's terms (deduplicated). */
+export const coachStyles = (styles) => [...new Set(styles.map((s) => COACH_STYLE[s] ?? 'rock'))];
+
 // The teacher's "about you" answers in the goal planner's terms, so the Goal
 // tab never asks them again (flow review 2026-11-06: one teacher).
 const LEVEL_OF_EXPERIENCE = { none: 'new', little: 'beginner', some: 'intermediate', lot: 'advanced' };
@@ -84,7 +93,8 @@ export function coachIntakeFromTeacher(intake) {
     minutesPerDay: intake.minutes ?? 20,
     daysPerWeek: 5,
     level: LEVEL_OF_EXPERIENCE[intake.experience] ?? 'beginner',
-    style: COACH_STYLE[intake.style] ?? 'rock',
+    style: COACH_STYLE[stylesOf(intake)[0]] ?? 'rock',
+    styles: coachStyles(stylesOf(intake)),
   };
 }
 
@@ -114,14 +124,15 @@ export function finishOnboarding(answers) {
     experience: EXPERIENCE[v.level] ?? 'none',
     can: [...(v.heard ?? []), ...(v.level === 'songs' ? v.know ?? [] : [])],
     goals: (v.goals ?? []).filter((g) => TEACHER_GOALS.includes(g)),
-    style: v.style,
+    style: stylesOf(v)[0] ?? 'pop',
+    styles: stylesOf(v),
     minutes: v.minutes,
     songs: '',
   });
   for (const c of v.heard ?? []) recordPass(`chord-${c}`);
   // A lesson left open from before must not jump ahead of the new answers.
   updateTeacher((st) => ({ ...st, current: null }));
-  setIntake({ minutesPerDay: v.minutes, daysPerWeek: 5, level: COACH_LEVEL[v.level] ?? 'beginner', style: COACH_STYLE[v.style] ?? 'rock' });
+  setIntake({ minutesPerDay: v.minutes, daysPerWeek: 5, level: COACH_LEVEL[v.level] ?? 'beginner', style: COACH_STYLE[stylesOf(v)[0]] ?? 'rock', styles: coachStyles(stylesOf(v)) });
   const goal = coachGoalFor(v);
   // The plan follows the latest answers (a re-run with another goal switches it).
   const cur = activeGoal(loadCoach());

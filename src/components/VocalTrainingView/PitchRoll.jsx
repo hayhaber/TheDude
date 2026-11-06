@@ -103,10 +103,13 @@ export function PitchRoll({ viewRef, framesRef, level }) {
       const resultNotes = showResult ? v.last.result.notes : null;
 
       // Target bars / slide lines.
+      // During the count-in the FIRST note stands out: that's where you start.
+      const counting = v.phase === 'cue' && v.countStart != null && getAudioContext().currentTime >= v.countStart;
       rep.targets.forEach((n, i) => {
         const res = resultNotes?.[i];
         const color = res ? (res.good ? COLORS.good : res.hit ? COLORS.ok : COLORS.off) : null;
-        ctx2.globalAlpha = v.phase === 'cue' ? 0.55 : 1;
+        const armed = counting && i === 0;
+        ctx2.globalAlpha = v.phase === 'cue' && !armed ? 0.55 : 1;
         if (n.glide) {
           ctx2.strokeStyle = color ?? theme.barEdge;
           ctx2.lineWidth = Math.max(6, semi * 0.9);
@@ -122,7 +125,7 @@ export function PitchRoll({ viewRef, framesRef, level }) {
           const bh = Math.max(6, semi * 0.9);
           ctx2.fillStyle = color ? color + '33' : theme.bar;
           ctx2.strokeStyle = color ?? theme.barEdge;
-          ctx2.lineWidth = 1.5;
+          ctx2.lineWidth = armed ? 3 : 1.5;
           ctx2.beginPath();
           ctx2.roundRect(x0, y(n.midi) - bh / 2, Math.max(4, x1 - x0), bh, Math.min(6, bh / 2));
           ctx2.fill();

@@ -11,7 +11,7 @@ import {
 } from '../../music/vocal/rangeProbe';
 import { getAudioContext, prepareAudioOutput, reviveAudioOutput } from '../../audio/audioContext';
 import { playPianoNote, preparePiano, schedulePianoNotes } from '../../audio/pianoPlayer';
-import { IS_IOS, CYCLE_MIC, LOUDNESS, loadLoudnessKey } from '../../hooks/useVocalExercise';
+import { IS_IOS, CYCLE_MIC, LOUDNESS, loadLoudnessKey, loadCountClick, countTick } from '../../hooks/useVocalExercise';
 import { RangeBar } from './RangeBar';
 
 // Guided range test, the way a voice teacher (or a voice clinic's "voice
@@ -46,6 +46,8 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
     r.alive = false;
     if (r.raf) cancelAnimationFrame(r.raf);
     clearTimeout(r.timer);
+    r.stopTick?.();
+    r.stopTick = null;
     r.raf = null;
   }, []);
 
@@ -89,6 +91,9 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
         }, (CUE_DUR + 0.15) * 1000);
       }
       schedulePianoNotes([{ midi: probe.target, start: 0, dur: CUE_DUR }], t0, loud);
+      // "Now you": one soft high tick as listening starts (above the mic's
+      // range); the target turns to "sing" on screen at the same moment.
+      if (loadCountClick()) r.stopTick = countTick(ctx, listenFrom, true);
       const tick = () => {
         if (!r.alive) return;
         const now = ctx.currentTime;

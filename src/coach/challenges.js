@@ -425,7 +425,8 @@ export function challengeContext({ perf, day, coach = null, now }) {
     day,
     now: at,
     level: estimateLevel(before, { intakeLevel: coach?.intake?.level, now: at }),
-    style: coach?.intake?.style ?? null,
+    // The first picked style that has licks (several allowed since 2026-11-06).
+    style: (coach?.intake?.styles ?? []).find((x) => STYLE_GENRE[x]) ?? coach?.intake?.style ?? null,
     minutesPerDay: coach?.intake?.minutesPerDay,
     goal,
     recentTools,

@@ -9,7 +9,7 @@ import { RewardsView } from '../Achievements/RewardsView';
 import { MinuteChanges } from '../MinuteChanges/MinuteChanges';
 import { LESSONS, LEVELS, SKILLS, lessonById } from '../../teacher/curriculum/guitar';
 import { useCoach, setIntake } from '../../coach/useCoach';
-import { coachIntakeFromTeacher } from '../../onboarding/onboardingState';
+import { coachIntakeFromTeacher, stylesOf } from '../../onboarding/onboardingState';
 import { activeGoal, loadCoach } from '../../coach/engine';
 import { goalByKey } from '../../coach/goals';
 import { pick } from '../Coach/coachFormat';
@@ -35,7 +35,10 @@ function usePerfTick() {
 function Intake({ initial, onDone }) {
   const { t } = useLanguage();
   const [v, setV] = useState(
-    () => initial ?? { experience: 'none', can: [], goals: ['songs'], style: 'pop', minutes: 20, songs: '' }
+    () => {
+      const base = initial ?? { experience: 'none', can: [], goals: ['songs'], style: 'pop', minutes: 20, songs: '' };
+      return { ...base, styles: stylesOf(base) };
+    }
   );
   const set = (patch) => setV((x) => ({ ...x, ...patch }));
   const toggle = (key, item) => set({ [key]: v[key].includes(item) ? v[key].filter((x) => x !== item) : [...v[key], item] });
@@ -75,17 +78,18 @@ function Intake({ initial, onDone }) {
           ))}
         </div>
       </fieldset>
+      {/* Styles: several allowed (2026-11-06). */}
+      <fieldset className="tc-field">
+        <legend>{t('teacher.intake.style')}</legend>
+        <div className="tc-chips">
+          {STYLES.map((x) => (
+            <button key={x} type="button" className={'tc-chip' + (v.styles.includes(x) ? ' is-on' : '')} aria-pressed={v.styles.includes(x)} onClick={() => toggle('styles', x)}>
+              {t(`teacher.style.${x}`)}
+            </button>
+          ))}
+        </div>
+      </fieldset>
       <div className="tc-row">
-        <label className="tc-field">
-          <span>{t('teacher.intake.style')}</span>
-          <select value={v.style} onChange={(e) => set({ style: e.target.value })}>
-            {STYLES.map((x) => (
-              <option key={x} value={x}>
-                {t(`teacher.style.${x}`)}
-              </option>
-            ))}
-          </select>
-        </label>
         <label className="tc-field">
           <span>{t('teacher.intake.minutes')}</span>
           <select value={v.minutes} onChange={(e) => set({ minutes: Number(e.target.value) })}>
@@ -102,7 +106,7 @@ function Intake({ initial, onDone }) {
         <textarea rows={3} value={v.songs} dir="auto" onChange={(e) => set({ songs: e.target.value })} />
         <small>{t('teacher.intake.songsHint')}</small>
       </label>
-      <button type="button" className="tc-btn is-primary tc-wide" onClick={() => onDone(v)}>
+      <button type="button" className="tc-btn is-primary tc-wide" onClick={() => onDone({ ...v, style: v.styles[0] ?? v.style ?? 'pop' })}>
         {t('teacher.intake.save')}
       </button>
     </div>

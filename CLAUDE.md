@@ -778,6 +778,23 @@ no tools).
   clamped 0.0007..0.006 (a calibration, when present, still raises it).
   Meter `live.level` is dB-scaled (-66..-16 dBFS). Fake-mic tests: a hum
   at rms 0.0016 read (D3), white noise at 0.0015 not read, trill still read.
+- **Vocal count-in (v1.0.111, user's request 2026-11-06)**: after each
+  round's cue, `COUNT_BEATS` = 2 beats in the exercise's tempo (beat clamped
+  0.45–0.9 s; singStart = cue end + 0.15 + 2 beats, never earlier than the
+  old breath): big glass "2 · 1" over the roll then "Sing!" (`CountIn` in
+  VocalRunner, own rAF), the first target bar drawn full + thicker during
+  the count (PitchRoll `armed`), and — `Count` switch, device key
+  `dudestar-vocal-count`, default on — a soft tick per beat (1.8 kHz,
+  2.4 kHz on the last: above the vocal mic's 1300 Hz, never a note;
+  `countTick()` in useVocalExercise). Range test: one high tick as each
+  note's listening starts (same switch). iPhone: the mic reopens at the
+  cue's end, so the ticks come from the earpiece there (quiet).
+- **Several styles (v1.0.111, user's request)**: onboarding, the teacher's
+  "about you" and the goal planner pick styles with multi-select chips
+  (`styles: []`; `style` = the first, for older readers; `stylesOf()` /
+  `coachStyles()` in onboardingState.js). buildSession's music block
+  rotates through `intake.styles` by day; challenges take the first style
+  that has licks.
 - **Singers' ear training** (user's request 2026-10-17): the Singing card's
   Ear Training opens the Vocal section's own `ear` screen (HomeMenu option
   `vocalScreen: 'ear'` -> App `vocalStart` {screen, n} -> `VocalTrainingView

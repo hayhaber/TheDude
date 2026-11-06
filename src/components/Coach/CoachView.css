@@ -1418,3 +1418,10 @@
     grid-column: 2;
   }
 }
+
+.coach-styles {
+  grid-column: 1 / -1;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}

@@ -5,7 +5,43 @@ import { buildReps } from '../music/vocal/exercises';
 import { analyzeRep, diagnose } from '../music/vocal/vocalAnalysis';
 import { recordResult } from '../music/vocal/vocalProgress';
 
-const BREATH = 0.35; // seconds between the cue ending and singing
+const BREATH = 0.35; // seconds between the cue ending and singing (no count-in)
+// Count-in (user's request 2026-11-06: "show when to start"): after the
+// cue, COUNT_BEATS beats in the exercise's tempo, shown as big 2 · 1 on the
+// roll and (Count on) a soft high tick each — 1.8 / 2.4 kHz, above the
+// vocal mic's range (1300 Hz), so a tick that reaches the mic is never a
+// note. Singing starts on the beat after the last one.
+export const COUNT_BEATS = 2;
+const COUNT_GAP = 0.15; // after the cue's last note, before the first count
+export const COUNT_KEY = 'dudestar-vocal-count';
+export function loadCountClick() {
+  try {
+    return localStorage.getItem(COUNT_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+export function countTick(ctx, time, high) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = 'sine';
+  o.frequency.value = high ? 2400 : 1800;
+  g.gain.setValueAtTime(0.0001, time);
+  g.gain.exponentialRampToValueAtTime(high ? 0.32 : 0.22, time + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
+  o.connect(g).connect(ctx.destination);
+  o.start(time);
+  o.stop(time + 0.06);
+  return () => {
+    try {
+      o.stop();
+    } catch {
+      /* already stopped */
+    }
+    o.disconnect();
+  };
+}
 const TAIL = 0.45; // keep listening a little after the last note
 const GAP = 0.6; // pause between rounds
 // iPhone/iPad: while the microphone is open iOS plays everything through the
@@ -43,7 +79,7 @@ export function loadLoudnessKey() {
  * singer, then the analysis of that round. `mic` is useVocalMic().
  * The drawing reads `viewRef` every frame (no re-render per frame).
  */
-export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = LOUDNESS.loud }) {
+export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = LOUDNESS.loud, countClick = true }) {
   const [phase, setPhase] = useState('ready'); // ready | cue | sing | done
   const [repIndex, setRepIndex] = useState(0);
   const [results, setResults] = useState([]);
@@ -53,8 +89,8 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = L
   const run = useRef({ reps: [], index: 0, results: [], stopCue: null, raf: null, started: 0, alive: false });
   const micRef = useRef(mic);
   micRef.current = mic;
-  const settings = useRef({ guide, level, ex, loud });
-  settings.current = { guide, level, ex, loud };
+  const settings = useRef({ guide, level, ex, loud, tempo, countClick });
+  settings.current = { guide, level, ex, loud, tempo, countClick };
 
   const cancel = useCallback(() => {
     const r = run.current;
@@ -73,7 +109,11 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = L
     // The first round waits a moment longer: on iPhone the audio session
     // is still settling right after the mic opened.
     const cueStart = ctx.currentTime + (index === 0 ? 0.45 : 0.12);
-    const singStart = cueStart + rep.cueLength + (CYCLE_MIC ? IOS_BREATH : BREATH);
+    // The count-in beat: the exercise's own, kept between 0.45 and 0.9 s.
+    const { ex: e0, tempo: tp = 1 } = settings.current;
+    const countBeat = Math.min(0.9, Math.max(0.45, 60 / ((e0?.bpm ?? 90) * (tp || 1))));
+    const countStart = cueStart + rep.cueLength + COUNT_GAP;
+    const singStart = Math.max(cueStart + rep.cueLength + (CYCLE_MIC ? IOS_BREATH : BREATH), countStart + COUNT_BEATS * countBeat);
     if (CYCLE_MIC) {
       // Loudspeaker for the cue: no capture while it plays; reopen the mic
       // as the cue ends (permission was already given on Start).
@@ -96,9 +136,12 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = L
       );
       stops.push(schedulePianoNotes(guideNotes, singStart, { velocity: Math.round(velocity * 0.52), boost }));
     }
+    if (settings.current.countClick) {
+      for (let k = 0; k < COUNT_BEATS; k += 1) stops.push(countTick(ctx, countStart + k * countBeat, k === COUNT_BEATS - 1));
+    }
     r.stopCue = () => stops.forEach((s) => s());
     r.index = index;
-    viewRef.current = { ...viewRef.current, rep, phase: 'cue', cueStart, singStart, singEnd, last: null };
+    viewRef.current = { ...viewRef.current, rep, phase: 'cue', cueStart, countStart, countBeat, singStart, singEnd, last: null };
     setRepIndex(index);
     setPhase('cue');
   }, []);

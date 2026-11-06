@@ -707,7 +707,11 @@ export function buildSession(state, perf, weaknesses = findWeaknesses(perf), day
   if (t.brk) add({ kind: 'break', title: L('Break', 'הפסקה'), how: L('Stand up, shake out the hands, drink water. Rest is when the brain consolidates what you practised.', 'קומו, נערו את הידיים, שתו מים. בזמן המנוחה המוח מקבע את מה שתרגלתם.'), minutes: t.brk, launch: null, measure: null });
 
   // Real music in the student's style.
-  const style = intake.style ?? 'rock';
+  // Several styles (2026-11-06): the music block rotates through them, a
+  // different one each day.
+  const styleList = intake.styles?.length ? intake.styles : [intake.style ?? 'rock'];
+  const dayN = Math.floor(Date.parse(`${day}T12:00:00Z`) / 86400000) || 0;
+  const style = styleList[((dayN % styleList.length) + styleList.length) % styleList.length];
   const genre = STYLE_GENRE[style];
   const lickLevel = level === 'advanced' ? 'advanced' : level === 'intermediate' ? 'intermediate' : 'beginner';
   const lick = genre && level !== 'new' ? pickLick(genre, lickLevel, perf) ?? pickLick(genre, 'beginner', perf) : null;

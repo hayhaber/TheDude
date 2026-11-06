@@ -21,6 +21,7 @@ import {
 import { pick, formatValue, formatTarget, clock, formatDate } from './coachFormat';
 import { ProgressChart } from './ProgressChart';
 import { RewardsView } from '../Achievements/RewardsView';
+import '../Teacher/Teacher.css';
 import './CoachView.css';
 
 // Coach section: a goal-based practice plan. No plan yet -> a short wizard
@@ -169,8 +170,14 @@ function Field({ id, label, children, hint }) {
 }
 
 function AboutStep({ initial, editing, onBack, onDone, t }) {
-  const [d, setD] = useState({ ...DEFAULT_INTAKE, ...initial });
+  const [d, setD] = useState(() => {
+    const v = { ...DEFAULT_INTAKE, ...initial };
+    return { ...v, styles: v.styles?.length ? v.styles : [v.style] };
+  });
   const set = (k, v) => setD((x) => ({ ...x, [k]: v }));
+  const styles = d.styles;
+  // The first chosen stays `style` (what older code reads); none = rock.
+  const setStyles = (list) => setD((x) => ({ ...x, styles: list, style: list[0] ?? 'rock' }));
   return (
     <WizardFrame
       step={editing ? null : 2}
@@ -217,15 +224,20 @@ function AboutStep({ initial, editing, onBack, onDone, t }) {
             ))}
           </select>
         </Field>
-        <Field id="coach-style" label={t('coach.about.style')}>
-          <select id="coach-style" value={d.style} onChange={(e) => set('style', e.target.value)}>
-            {STYLES.map((k) => (
-              <option key={k} value={k}>
-                {t(`coach.style.${k}`)}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {/* Styles: several allowed (2026-11-06; the plan's music rotates). */}
+        <fieldset className="coach-field coach-styles">
+          <legend className="coach-field-label">{t('coach.about.style')}</legend>
+          <div className="tc-chips">
+            {STYLES.map((k) => {
+              const on = styles.includes(k);
+              return (
+                <button key={k} type="button" className={'tc-chip' + (on ? ' is-on' : '')} aria-pressed={on} onClick={() => setStyles(on ? styles.filter((x) => x !== k) : [...styles, k])}>
+                  {t(`coach.style.${k}`)}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
       </div>
     </WizardFrame>
   );

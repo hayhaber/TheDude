@@ -27,7 +27,7 @@ export function Onboarding({ onDone }) {
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const [leftHanded] = useLeftHanded();
   const [name, setName] = useState(() => activeProfile()?.name ?? '');
-  const [a, setA] = useState({ instrument: null, level: null, goals: [], style: 'pop', minutes: 20, heard: [], know: [] });
+  const [a, setA] = useState({ instrument: null, level: null, goals: [], styles: [], minutes: 20, heard: [], know: [] });
   const [step, setStep] = useState('welcome');
   const [checking, setChecking] = useState(null); // chord being checked
   const [result, setResult] = useState(null); // after finish: {lesson}
@@ -160,6 +160,7 @@ export function Onboarding({ onDone }) {
   } else if (step === 'goals') {
     const list = goalsFor(a.instrument, a.level);
     const toggle = (g) => set({ goals: a.goals.includes(g) ? a.goals.filter((x) => x !== g) : [...a.goals, g] });
+    const toggleStyle = (x) => set({ styles: a.styles.includes(x) ? a.styles.filter((y) => y !== x) : [...a.styles, x] });
     body = (
       <>
         <h1>{t('onb.goals.title')}</h1>
@@ -171,17 +172,16 @@ export function Onboarding({ onDone }) {
             </button>
           ))}
         </div>
+        {/* Styles: as many as they like (2026-11-06; was one select). */}
+        <p className="onb-sublabel">{t('onb.goals.style')}</p>
+        <div className="onb-chips">
+          {STYLES.map((x) => (
+            <button key={x} type="button" className={'onb-chip' + (a.styles.includes(x) ? ' is-on' : '')} aria-pressed={a.styles.includes(x)} onClick={() => toggleStyle(x)}>
+              {t(`teacher.style.${x}`)}
+            </button>
+          ))}
+        </div>
         <div className="onb-pair">
-          <label className="onb-field">
-            <span>{t('onb.goals.style')}</span>
-            <select value={a.style} onChange={(e) => set({ style: e.target.value })}>
-              {STYLES.map((x) => (
-                <option key={x} value={x}>
-                  {t(`teacher.style.${x}`)}
-                </option>
-              ))}
-            </select>
-          </label>
           <label className="onb-field">
             <span>{t('onb.goals.minutes')}</span>
             <select value={a.minutes} onChange={(e) => set({ minutes: Number(e.target.value) })}>

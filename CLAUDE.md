@@ -57,10 +57,10 @@ on the container; content inside stays top-aligned). Stacked on a phone
 
 **9. Version number.** Every push bumps the patch number of `version` in
 `package.json` (1.0.74 -> 1.0.75 …; user's request 2026-10-31). Settings
-(Tools card) shows it at the very bottom with the build time (Israel) and
-the commit (`AppVersion` in SettingsPanel.jsx; vite.config.js `define`
-__APP_VERSION__ / __BUILD_TIME__ / __COMMIT__ — VERCEL_GIT_COMMIT_SHA on
-Vercel), so the phone can confirm the latest deploy arrived.
+(Tools card) shows it at the very bottom — the NUMBER ONLY, no date, time
+or commit (user's request 2026-11-06; `AppVersion` in SettingsPanel.jsx,
+vite.config.js `define` __APP_VERSION__), so the phone can confirm the
+latest deploy arrived.
 
 **10. Cross-instrument parity.** A fix or improvement made to an exercise on
 one instrument is applied to the same exercise on every other instrument

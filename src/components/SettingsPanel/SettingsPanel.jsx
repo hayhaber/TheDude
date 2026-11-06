@@ -265,22 +265,13 @@ export function SettingsBody({
 }
 
 // Which build this is — to confirm on a phone that the latest deploy arrived.
-/* global __APP_VERSION__, __BUILD_TIME__, __COMMIT__ */
+// The number alone (user's request 2026-11-06: no date, time or commit).
+/* global __APP_VERSION__ */
 function AppVersion({ t }) {
   const version = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '';
-  const built = typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : '';
-  const commit = typeof __COMMIT__ !== 'undefined' ? __COMMIT__ : '';
-  let when = '';
-  try {
-    when = built
-      ? new Date(built).toLocaleString('en-GB', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      : '';
-  } catch {
-    when = built;
-  }
   return (
     <p className="settings-version">
-      {t('settings.version')} <bdi dir="ltr">{[version, when, commit].filter(Boolean).join(' · ')}</bdi>
+      {t('settings.version')} <bdi dir="ltr">{version}</bdi>
     </p>
   );
 }

@@ -330,6 +330,12 @@ no tools).
   keeping its full height. Phones: centred, no spacer. primaryFor()
   returns {label, caption, go}. Canvas: Guitar card canvas, row
   "הכפתור הראשי".
+  v1.0.112: the row has NO dir (it must run like the card's art | text
+  row, which follows the home page's direction in both languages — in
+  English dir="ltr" put the capsule under the guitar); the column carries
+  the language dir. Title + text + capsule lifted 20 px (~5 %, user's
+  request) with the space given back above the shortcuts (row margin-top
+  -26, column padding-bottom 38, text padding-bottom 34; phones +8 px gap).
 
 ## Architecture essentials
 

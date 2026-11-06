@@ -523,9 +523,12 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
                 {primary && (
                   // Under the text column (a spacer the width of the art keeps
                   // it there on wide cards); centred on phones.
-                  <div className="home-primary-row" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+                  // No dir here: the row must run the same way as the card's art |
+                  // text row above it (the home page's own direction, in either
+                  // language) — in English a dir="ltr" put the capsule under the art.
+                  <div className="home-primary-row">
                     <span className="home-primary-spacer" aria-hidden="true" />
-                    <span className="home-primary-col">
+                    <span className="home-primary-col" dir={lang === 'he' ? 'rtl' : 'ltr'}>
                       <button
                         type="button"
                         className="home-primary"

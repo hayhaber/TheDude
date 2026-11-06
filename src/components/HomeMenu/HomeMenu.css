@@ -737,7 +737,10 @@ html.home-locked body {
   display: flex;
   gap: 32px;
   padding: 0 56px;
-  margin-top: -6px;
+  /* Title, text and capsule sit ~5 % higher than the art's centre line, for
+     more room above the shortcuts (user, 2026-11-06): the row is pulled up
+     by 20 px and gives them back underneath. */
+  margin-top: -26px;
 }
 
 .home-primary-spacer {
@@ -751,7 +754,7 @@ html.home-locked body {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding-bottom: 18px;
+  padding-bottom: 38px;
 }
 
 .home-primary {
@@ -823,7 +826,7 @@ html.home-locked body {
 
 .home-card-main.has-primary .home-text {
   align-self: flex-end;
-  padding-bottom: 14px;
+  padding-bottom: 34px;
 }
 
 @media (min-width: 641px) and (min-height: 1000px) {
@@ -864,7 +867,7 @@ html.home-locked body {
     display: none;
   }
   .home-primary-col {
-    padding-bottom: 6px;
+    padding-bottom: 14px;
     gap: 6px;
   }
   .home-card-main.has-primary {

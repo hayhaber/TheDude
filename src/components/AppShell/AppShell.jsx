@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LineIcon } from '../LineIcon/LineIcon';
 import { SECTIONS, NAV_GROUPS, lastSectionIn, rememberSection, rememberPlace } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
-import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
+import { ProfileChip } from '../../profile/ProfileChip';
 import { HomeButton } from '../HomeButton/HomeButton';
 import { RewardToast } from '../Achievements/RewardToast';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -40,7 +40,7 @@ function loadStageCollapsed() {
   }
 }
 
-export function AppShell({ activeSection, onSectionChange, onReselect, metronomeSlot, stage, onHome, toolsActive = false, children }) {
+export function AppShell({ activeSection, onSectionChange, onReselect, metronomeSlot, stage, onHome, onSettings, toolsActive = false, children }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const { instrument } = useInstrument();
@@ -165,7 +165,9 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
 
       <div className="app-mobile-settings">
         <div className="app-mobile-settings-icons">
-          <InfoTooltipsToggle />
+          {/* The profile (Settings, the ⓘ switch, who's practising) — it
+              replaced the ⓘ button (2026-11-06). */}
+          <ProfileChip compact onSettings={onSettings} />
           {/* Outer corner, like the top bar's — the popover drops from it. */}
           {hasTools && toolsButton}
         </div>
@@ -200,7 +202,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
           </nav>
           <div className="app-topbar-tools" dir={dir}>
             {hasTools && toolsButton}
-            <InfoTooltipsToggle />
+            <ProfileChip compact onSettings={onSettings} />
           </div>
         </header>
         <div className="app-section-content" dir={dir}>

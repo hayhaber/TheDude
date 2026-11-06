@@ -75,6 +75,13 @@ floating transport keys — uses the glass material (index.css tokens
 utility `.glass`; dark values under data-theme dark). Content itself
 (cards, lists, text, the necks and drawn devices) stays solid.
 
+**13. Design as Apple would, always** (user's standing rule 2026-11-06 —
+"I don't want to repeat it every time"): every visual / UI / UX decision,
+new or touched, follows Apple's HIG thinking (clarity, deference, one
+primary action that doesn't shout, quiet secondary ones, system colours,
+SF-like type scale, 44 pt targets) and uses the Liquid Glass bubbles
+(rule 11) wherever a control floats over content. No need to ask him.
+
 **12. Nothing jumps.** Shared chrome keeps its physical position across
 screens: the desktop top bar is a 3-column grid (`minmax(0,1fr) auto
 minmax(0,1fr)`) so the tabs stay centred on the bar whatever the side
@@ -284,6 +291,29 @@ no tools).
   (`coachIntakeFromTeacher()` in onboardingState.js, applied in
   TeacherView when the coach has no intake) — the Goal tab starts at the
   goal step.
+
+- SETTINGS REDESIGN (v1.0.106, 2026-11-06; user: "do what you recommend";
+  canvas https://claude.ai/artifact/5NSyeNP6J1hZBMtXW2Y6Gd): (1) inside an
+  instrument the ⓘ round button is GONE — the avatar (`ProfileChip
+  compact`: round glass button, popover portaled to <body> and placed fixed
+  under the button by JS — the glass top bar is its own stacking context)
+  holds: who you are + sync status, Settings, the ⓘ explanations switch
+  (`components/SettingsPanel/SwitchRow.jsx` `InfoSwitchRow`), profiles.
+  Settings from there = a SHEET over the screen (App `settingsSheet` ->
+  `.settings-sheet` + ToolScreen `asSheet`: "Done" instead of Home; the
+  screen stays mounted). (2) `SettingsBody` = an iOS Settings list
+  (`.set-*` classes — NOT `.st-*`, Studio.css owns `.st-row`): account row
+  (avatar, name, synced/sign-in), Instrument sounds · Microphone &
+  calibration | Language · Display (appearance, playing hand, ⓘ switch) |
+  Install · Advanced (shared library, YouTube, shortcuts, getting started
+  again), version at the bottom; each opens its own page with "‹ Settings"
+  (Escape = back to the list first). Every old field kept, on a page.
+  Text `settings.page.*`, `settings.account.*`, `settings.explanations*`,
+  `settings.done`, `profile.local`.
+- HOME PRIMARY BUTTON (2026-11-06): the user dislikes the full-width blue
+  bar ("takes attention from the other buttons"). 3 mockups on the Guitar
+  card canvas (row "הכפתור הראשי"): A tinted capsule (recommended), B glass
+  capsule over the art, C continue row. Waiting for his pick.
 
 ## Architecture essentials
 

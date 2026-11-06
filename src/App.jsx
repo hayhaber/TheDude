@@ -151,6 +151,9 @@ function App() {
   const [leftHome, setLeftHome] = useState(false);
   // A tool opened from the home screen's Tools card, on its own screen.
   const [toolScreen, setToolScreen] = useState(null);
+  // Settings opened from the avatar inside an instrument: a sheet over the
+  // screen (the screen stays mounted underneath; Done returns to it).
+  const [settingsSheet, setSettingsSheet] = useState(false);
   // The Songwriter card's screen: { view: 'list'|'new'|'idea', n } | null.
   const [songwriter, setSongwriter] = useState(null);
   // Which Vocal screen the Singing card opened (home / ear); n remounts it.
@@ -2260,7 +2263,14 @@ function App() {
   }
 
   return (
+    <>
+    {settingsSheet && (
+      <div className="settings-sheet">
+        <ToolScreen tool="settings" asSheet onBack={() => setSettingsSheet(false)} settingsProps={settingsProps} metronome={metronome} drums={drums} />
+      </div>
+    )}
     <AppShell
+      onSettings={() => setSettingsSheet(true)}
       onHome={() => {
         setHomeCard(enteredCardRef.current);
         setHome(true);
@@ -2540,6 +2550,7 @@ function App() {
         <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} />
       )}
     </AppShell>
+    </>
   );
 }
 

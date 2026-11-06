@@ -1,10 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CloudField } from '../../cloud/CloudField';
+import { useCloud } from '../../cloud/useCloud';
+import { getLink } from '../../cloud/cloudState';
+import { useProfiles } from '../../profile/profileStorage';
+import { Avatar } from '../../profile/ProfileChip';
+import { BackButton } from '../PracticeView/PracticeHome';
+import { InfoSwitchRow } from './SwitchRow';
+import { getAudioInputSettings } from '../../audio/audioInputSettingsStore';
 import { LibraryBar } from '../LickTrainer/LickTrainer';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
-import { LanguageToggle } from '../LanguageToggle/LanguageToggle';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { GUITAR_SOUND_PROFILES, PIANO_SOUND_PROFILES, BASS_SOUND_PROFILES } from '../../audio/instrumentProfiles';
 import { AudioInputSettings } from '../AudioInputSettings/AudioInputSettings';
@@ -116,6 +122,69 @@ function InstallField() {
   );
 }
 
+// The settings as an iOS Settings list (user approved 2026-11-06): one page
+// of grouped rows (account, sound, microphone, language, display, install,
+// advanced) — each opens its own page with a "‹ Settings" back button.
+// Nothing was removed; every field lives on one of the pages.
+
+const PAGE_ICONS = {
+  sound: { color: '#ff2d55', path: 'M9 18V5l11-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z' },
+  mic: { color: '#ff9500', path: 'M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v4' },
+  language: { color: '#0a84ff', path: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18' },
+  display: { color: '#5856d6', path: 'M12 4a8 8 0 1 0 0 16zM12 4a8 8 0 0 1 0 16' },
+  install: { color: '#34c759', path: 'M12 3v12M7 10l5 5 5-5M5 21h14' },
+  advanced: { color: '#8e8e93', path: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2' },
+};
+
+function PageIcon({ page }) {
+  const ic = PAGE_ICONS[page];
+  return (
+    <span className="set-icon" style={{ background: ic.color }} aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d={ic.path} />
+      </svg>
+    </span>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg className="set-chev" viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1.5 1.5L6.5 7l-5 5.5" />
+    </svg>
+  );
+}
+
+function NavRow({ page, label, value, onOpen }) {
+  return (
+    <button type="button" className="set-row" onClick={() => onOpen(page)}>
+      <PageIcon page={page} />
+      <span className="set-row-label">{label}</span>
+      {value && (
+        <span className="set-row-value" dir="auto">
+          {value}
+        </span>
+      )}
+      <Chevron />
+    </button>
+  );
+}
+
+function CheckRow({ label, checked, onClick }) {
+  return (
+    <button type="button" className="set-row is-check" role="menuitemradio" aria-checked={checked} onClick={onClick}>
+      <span className="set-row-label" dir="auto">
+        {label}
+      </span>
+      {checked && (
+        <svg className="set-check" viewBox="0 0 16 12" width="16" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M1.5 6.5l4 4 9-9" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 export function SettingsBody({
   theme,
   onThemeChange,
@@ -130,136 +199,223 @@ export function SettingsBody({
   syncTrainer = null,
   allSounds = false,
 }) {
-  const { t } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
   const { instrument } = useInstrument();
   const [leftHanded, setLeftHanded] = useLeftHanded();
-  // Left-handed only means something where there's a neck: on the home
-  // screen's page (allSounds) and inside guitar/bass, not inside piano.
+  const [page, setPage] = useState(null);
+  const cloud = useCloud();
+  const { active } = useProfiles();
+  const link = getLink();
+  const email = cloud.email || link?.email;
+  const profileName = active?.name?.trim() || t('profile.defaultName');
   const showHand = allSounds || instrument !== 'piano';
   const showSound = (key) => allSounds || (key === 'guitar' ? instrument !== 'piano' && instrument !== 'bass' : instrument === key);
+  const installable = !isStandalone();
+  const rootRef = useRef(null);
+
+  // A sub-page: Escape goes back to the list (before the screen's own
+  // Escape, which leaves Settings).
+  useEffect(() => {
+    if (!page) return undefined;
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      e.stopImmediatePropagation();
+      setPage(null);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [page]);
+
+  // A new page starts at its top.
+  useEffect(() => {
+    rootRef.current?.scrollIntoView?.({ block: 'start' });
+  }, [page]);
+
+  const labelOf = (list, key) => {
+    const p = list.find((x) => x.key === key);
+    return p ? t(p.labelKey) : '';
+  };
+  const soundValue =
+    instrument === 'piano' && !allSounds
+      ? labelOf(PIANO_SOUND_PROFILES, pianoProfile)
+      : instrument === 'bass' && !allSounds
+        ? labelOf(BASS_SOUND_PROFILES, bassProfile)
+        : labelOf(GUITAR_SOUND_PROFILES, guitarProfile);
+  const micValue = t(getAudioInputSettings().inputMode === 'microphone' ? 'audioInput.mode.microphone' : 'audioInput.mode.direct');
+  const displayValue = [t(theme === 'dark' ? 'settings.dark' : 'settings.light'), showHand ? t(leftHanded ? 'tuning.hand.left' : 'tuning.hand.right') : null]
+    .filter(Boolean)
+    .join(' · ');
+
+  const title = page ? t(`settings.page.${page}`) : t('settings.title');
 
   return (
-    <div className="settings-drawer-body">
-      <CloudField />
-      <InstallField />
-      <div className="settings-field">
-        <span className="settings-field-label">{t('languageToggle.label')}</span>
-        <LanguageToggle />
-      </div>
+    <div className="set-root" ref={rootRef}>
+      {page && <BackButton label={t('settings.title')} onClick={() => setPage(null)} />}
+      <h1 className="set-title">{title}</h1>
 
-      <div className="settings-field">
-        <span className="settings-field-label">{t('onb.again.label')}</span>
-        <button
-          type="button"
-          className="settings-install-btn"
-          onClick={() => {
-            restartOnboarding();
-            window.location.reload();
-          }}
-        >
-          {t('onb.again.btn')}
-        </button>
-      </div>
-
-      <div className="settings-field">
-        <span className="settings-field-label">{t('settings.appearance')}</span>
-        <div className="mode-toggle" role="group" aria-label={t('settings.appearance')}>
-          <button type="button" className={theme === 'light' ? 'active' : ''} onClick={() => onThemeChange('light')}>
-            {t('settings.light')}
-          </button>
-          <button type="button" className={theme === 'dark' ? 'active' : ''} onClick={() => onThemeChange('dark')}>
-            {t('settings.dark')}
-          </button>
-        </div>
-      </div>
-
-      {showHand && (
-        <div className="settings-field">
-          <span className="settings-field-label">
-            {t('tuning.hand')}
-            <InfoTooltip text={t('tuning.tip.leftHanded')} />
-          </span>
-          <div className="mode-toggle" role="group" aria-label={t('tuning.hand')}>
-            <button type="button" className={!leftHanded ? 'active' : ''} aria-pressed={!leftHanded} onClick={() => setLeftHanded(false)}>
-              {t('tuning.hand.right')}
+      {!page && (
+        <>
+          <div className="set-group">
+            <button type="button" className="set-row is-account" onClick={() => setPage('account')}>
+              <Avatar profile={active} name={profileName} size={48} />
+              <span className="set-row-text">
+                <span className="set-account-name" dir="auto">
+                  {profileName}
+                </span>
+                <span className="set-row-sub" dir="auto">
+                  {email ? t('settings.account.synced', { email }) : t('settings.account.signedOut')}
+                </span>
+              </span>
+              <Chevron />
             </button>
-            <button type="button" className={leftHanded ? 'active' : ''} aria-pressed={leftHanded} onClick={() => setLeftHanded(true)}>
-              {t('tuning.hand.left')}
+          </div>
+
+          <div className="set-group">
+            <NavRow page="sound" label={t('settings.page.sound')} value={soundValue} onOpen={setPage} />
+            <NavRow page="mic" label={t('settings.page.mic')} value={micValue} onOpen={setPage} />
+          </div>
+
+          <div className="set-group">
+            <NavRow page="language" label={t('settings.page.language')} value={lang === 'he' ? 'עברית' : 'English'} onOpen={setPage} />
+            <NavRow page="display" label={t('settings.page.display')} value={displayValue} onOpen={setPage} />
+          </div>
+
+          <div className="set-group">
+            {installable && <NavRow page="install" label={t('settings.page.install')} onOpen={setPage} />}
+            <NavRow page="advanced" label={t('settings.page.advanced')} onOpen={setPage} />
+          </div>
+
+          <AppVersion t={t} />
+        </>
+      )}
+
+      {page === 'account' && (
+        <div className="set-page settings-drawer-body">
+          <CloudField />
+        </div>
+      )}
+
+      {page === 'sound' && (
+        <div className="set-page settings-drawer-body">
+          {showSound('guitar') && (
+            <label className="settings-field">
+              <span className="settings-field-label">{t('settings.guitarSound')}</span>
+              <select value={guitarProfile} onChange={(e) => onGuitarProfileChange(e.target.value)}>
+                {GUITAR_SOUND_PROFILES.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {t(p.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {showSound('piano') && (
+            <label className="settings-field">
+              <span className="settings-field-label">
+                {t('settings.pianoSound')}
+                <InfoTooltip text={t('tip.tools.pianoSound')} />
+              </span>
+              <select value={pianoProfile} onChange={(e) => onPianoProfileChange(e.target.value)}>
+                {PIANO_SOUND_PROFILES.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {t(p.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {showSound('bass') && (
+            <label className="settings-field">
+              <span className="settings-field-label">
+                {t('settings.bassSound')}
+                <InfoTooltip text={t('tip.tools.bassSound')} />
+              </span>
+              <select value={bassProfile} onChange={(e) => onBassProfileChange(e.target.value)}>
+                {BASS_SOUND_PROFILES.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {t(p.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <p className="set-footnote">
+            {t('settings.audioAttribution')} {t('settings.pianoAudioAttribution')}
+          </p>
+        </div>
+      )}
+
+      {page === 'mic' && (
+        <div className="set-page settings-drawer-body">
+          <AudioInputSettings />
+        </div>
+      )}
+
+      {page === 'language' && (
+        <div className="set-group" role="menu" aria-label={t('settings.page.language')}>
+          <CheckRow label="עברית" checked={lang === 'he'} onClick={() => setLang('he')} />
+          <CheckRow label="English" checked={lang === 'en'} onClick={() => setLang('en')} />
+        </div>
+      )}
+
+      {page === 'display' && (
+        <>
+          <p className="set-section">{t('settings.appearance')}</p>
+          <div className="set-group" role="menu" aria-label={t('settings.appearance')}>
+            <CheckRow label={t('settings.light')} checked={theme !== 'dark'} onClick={() => onThemeChange('light')} />
+            <CheckRow label={t('settings.dark')} checked={theme === 'dark'} onClick={() => onThemeChange('dark')} />
+          </div>
+          {showHand && (
+            <>
+              <p className="set-section">
+                {t('tuning.hand')}
+                <InfoTooltip text={t('tuning.tip.leftHanded')} />
+              </p>
+              <div className="set-group" role="menu" aria-label={t('tuning.hand')}>
+                <CheckRow label={t('tuning.hand.right')} checked={!leftHanded} onClick={() => setLeftHanded(false)} />
+                <CheckRow label={t('tuning.hand.left')} checked={leftHanded} onClick={() => setLeftHanded(true)} />
+              </div>
+            </>
+          )}
+          <div className="set-group">
+            <InfoSwitchRow />
+          </div>
+        </>
+      )}
+
+      {page === 'install' && (
+        <div className="set-page settings-drawer-body">
+          <InstallField />
+        </div>
+      )}
+
+      {page === 'advanced' && (
+        <div className="set-page settings-drawer-body">
+          {syncTrainer && (
+            <>
+              <h3 className="settings-drawer-subtitle">{t('lickTrainer.libTitle')}</h3>
+              <LibraryBar trainer={syncTrainer} t={t} bare />
+            </>
+          )}
+          <h3 className="settings-drawer-subtitle">{t('settings.youtube')}</h3>
+          <YoutubeApiKeySettings />
+          <h3 className="settings-drawer-subtitle">{t('settings.shortcuts.title')}</h3>
+          <KeyboardShortcutsSettings shortcuts={shortcuts} />
+          <div className="settings-field">
+            <span className="settings-field-label">{t('onb.again.label')}</span>
+            <button
+              type="button"
+              className="settings-install-btn"
+              onClick={() => {
+                restartOnboarding();
+                window.location.reload();
+              }}
+            >
+              {t('onb.again.btn')}
             </button>
           </div>
         </div>
       )}
-
-      {/* Instrument-aware, per docs/PIANO_MODE_ARCHITECTURE.md's roadmap —
-          one sound-profile field, showing whichever instrument's own
-          profile list applies, rather than always showing Guitar Sound
-          even while in Piano mode. Explicit per-instrument checks
-          (not an `else` catch-all) — with Bass as a 3rd instrument
-          value, an `else` here would have silently shown Guitar's
-          own profile list/setter while in Bass mode. */}
-      {showSound('guitar') && (
-        <label className="settings-field">
-          <span className="settings-field-label">{t('settings.guitarSound')}</span>
-          <select value={guitarProfile} onChange={(e) => onGuitarProfileChange(e.target.value)}>
-            {GUITAR_SOUND_PROFILES.map((p) => (
-              <option key={p.key} value={p.key}>
-                {t(p.labelKey)}
-              </option>
-            ))}
-          </select>
-          <span className="settings-attribution">{t('settings.audioAttribution')}</span>
-        </label>
-      )}
-      {showSound('piano') && (
-        <label className="settings-field">
-          <span className="settings-field-label">
-            {t('settings.pianoSound')}
-            <InfoTooltip text={t('tip.tools.pianoSound')} />
-          </span>
-          <select value={pianoProfile} onChange={(e) => onPianoProfileChange(e.target.value)}>
-            {PIANO_SOUND_PROFILES.map((p) => (
-              <option key={p.key} value={p.key}>
-                {t(p.labelKey)}
-              </option>
-            ))}
-          </select>
-          <span className="settings-attribution">{t('settings.pianoAudioAttribution')}</span>
-        </label>
-      )}
-      {showSound('bass') && (
-        <label className="settings-field">
-          <span className="settings-field-label">
-            {t('settings.bassSound')}
-            <InfoTooltip text={t('tip.tools.bassSound')} />
-          </span>
-          <select value={bassProfile} onChange={(e) => onBassProfileChange(e.target.value)}>
-            {BASS_SOUND_PROFILES.map((p) => (
-              <option key={p.key} value={p.key}>
-                {t(p.labelKey)}
-              </option>
-            ))}
-          </select>
-          <span className="settings-attribution">{t('settings.audioAttribution')}</span>
-        </label>
-      )}
-
-      {syncTrainer && (
-        <>
-          <h3 className="settings-drawer-subtitle">{t('lickTrainer.libTitle')}</h3>
-          <LibraryBar trainer={syncTrainer} t={t} bare />
-        </>
-      )}
-
-      <h3 className="settings-drawer-subtitle">{t('settings.audioInput')}</h3>
-      <AudioInputSettings />
-
-      <h3 className="settings-drawer-subtitle">{t('settings.youtube')}</h3>
-      <YoutubeApiKeySettings />
-
-      <h3 className="settings-drawer-subtitle">{t('settings.shortcuts.title')}</h3>
-      <KeyboardShortcutsSettings shortcuts={shortcuts} />
-
-      <AppVersion t={t} />
     </div>
   );
 }

@@ -366,3 +366,75 @@
     --size: 26px;
   }
 }
+
+/* ---- inside an instrument: the avatar alone, a round glass button ---- */
+.profile-chip.is-compact {
+  width: 37px;
+  height: 37px;
+  max-width: none;
+  padding: 0;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+}
+
+.profile-pop.is-compact {
+  padding: 14px 10px 10px;
+  border: none;
+  border-radius: 22px;
+}
+
+.profile-pop.is-compact.glass {
+  background: var(--glass-bg);
+}
+
+.profile-pop-me {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 6px 12px;
+}
+
+.profile-pop-me-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.profile-pop-me-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.profile-pop-group {
+  margin-bottom: 12px;
+}
+
+.profile-pop-section {
+  padding: 0 8px 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Compact (inside an instrument): in the bar, not the home screen's dots
+   row; the popover is fixed on <body>, placed by JS under the button. */
+.profile-chip-box.is-compact {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+}
+
+.profile-pop.is-compact {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+  z-index: 120;
+  width: min(320px, calc(100vw - 16px));
+  overflow-y: auto;
+}
+
+.profile-pop.is-compact .set-row {
+  min-height: 48px;
+}

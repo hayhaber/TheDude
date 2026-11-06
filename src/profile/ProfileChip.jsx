@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { InfoSwitchRow } from '../components/SettingsPanel/SwitchRow';
+import { useCloud } from '../cloud/useCloud';
+import { getLink } from '../cloud/cloudState';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useProfiles } from './profileStorage';
 import './ProfileChip.css';
@@ -11,7 +15,7 @@ function hueOf(id = '') {
   return HUES[h % HUES.length];
 }
 
-function Avatar({ profile, name, size }) {
+export function Avatar({ profile, name, size }) {
   const initial = Array.from(name.trim())[0]?.toUpperCase() ?? '?';
   return (
     <span className="profile-avatar" style={{ '--hue': hueOf(profile?.id), '--size': size ? `${size}px` : undefined }} aria-hidden="true">
@@ -24,7 +28,7 @@ function Avatar({ profile, name, size }) {
  * "Who's practising?" — the home screen's profile chip and its popover:
  * switch / add / rename / delete local profiles (src/profile/profileStorage).
  */
-export function ProfileChip({ onSettings }) {
+export function ProfileChip({ onSettings, compact = false }) {
   const { t, lang } = useLanguage();
   const { ready, profiles, active, activeId, create, rename, remove, switchTo } = useProfiles();
   const [open, setOpen] = useState(false);
@@ -33,6 +37,34 @@ export function ProfileChip({ onSettings }) {
   const [draft, setDraft] = useState('');
   const boxRef = useRef(null);
   const inputRef = useRef(null);
+  const popRef = useRef(null);
+  const cloud = useCloud();
+  const email = cloud.email || getLink()?.email;
+  // Keep the popover on screen. Compact (inside an instrument): fixed under
+  // the button, on <body> — the glass top bar is its own stacking context,
+  // so a popover inside it went under the page.
+  useLayoutEffect(() => {
+    const pop = popRef.current;
+    if (!open || !pop) return;
+    const vw = document.documentElement.clientWidth;
+    if (compact) {
+      const btn = boxRef.current?.getBoundingClientRect();
+      if (!btn) return;
+      const w = pop.offsetWidth;
+      let left = btn.left + btn.width / 2 > vw / 2 ? btn.right - w : btn.left;
+      left = Math.max(8, Math.min(vw - 8 - w, left));
+      pop.style.left = `${left}px`;
+      pop.style.top = `${btn.bottom + 8}px`;
+      pop.style.maxHeight = `${window.innerHeight - btn.bottom - 20}px`;
+      return;
+    }
+    pop.style.transform = '';
+    const r = pop.getBoundingClientRect();
+    let dx = 0;
+    if (r.left < 8) dx = 8 - r.left;
+    else if (r.right > vw - 8) dx = vw - 8 - r.right;
+    if (dx) pop.style.transform = `translateX(${dx}px)`;
+  }, [open, compact]);
 
   const nameOf = (p) => (p?.name?.trim() ? p.name.trim() : t('profile.defaultName'));
 
@@ -44,7 +76,7 @@ export function ProfileChip({ onSettings }) {
   useEffect(() => {
     if (!open) return undefined;
     const onDown = (e) => {
-      if (boxRef.current && !boxRef.current.contains(e.target)) close();
+      if (boxRef.current && !boxRef.current.contains(e.target) && !popRef.current?.contains(e.target)) close();
     };
     const onKey = (e) => {
       if (e.key === 'Escape') close();
@@ -62,6 +94,7 @@ export function ProfileChip({ onSettings }) {
   }, [edit]);
 
   if (!ready || !active) return null;
+  const portal = (node) => (compact ? createPortal(node, document.body) : node);
 
   const startEdit = (next, value = '') => {
     setDraft(value);
@@ -106,7 +139,7 @@ export function ProfileChip({ onSettings }) {
 
   return (
     <div
-      className="profile-chip-box"
+      className={'profile-chip-box' + (compact ? ' is-compact' : '')}
       ref={boxRef}
       // Keys typed here (arrows in the name field) mustn't turn the cards.
       onKeyDown={(e) => {
@@ -115,25 +148,66 @@ export function ProfileChip({ onSettings }) {
     >
       <button
         type="button"
-        className={'profile-chip' + (open ? ' is-open' : '')}
+        className={'profile-chip' + (compact ? ' is-compact glass' : '') + (open ? ' is-open' : '')}
         onClick={() => (open ? close() : setOpen(true))}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={t('profile.chipLabel', { name: nameOf(active) })}
         title={t('profile.chipLabel', { name: nameOf(active) })}
       >
-        <Avatar profile={active} name={nameOf(active)} />
-        <span className="profile-chip-name" dir="auto">
-          {nameOf(active)}
-        </span>
+        <Avatar profile={active} name={nameOf(active)} size={compact ? 29 : undefined} />
+        {!compact && (
+          <span className="profile-chip-name" dir="auto">
+            {nameOf(active)}
+          </span>
+        )}
       </button>
 
-      {open && (
-        <div className="profile-pop" role="dialog" aria-label={t('profile.title')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
-          <div className="profile-pop-head">
-            <div className="profile-pop-title">{t('profile.title')}</div>
-            <div className="profile-pop-hint">{t('profile.hint')}</div>
-          </div>
+      {open && portal(
+        <div ref={popRef} className={'profile-pop' + (compact ? ' is-compact glass' : '')} role="dialog" aria-label={t('profile.title')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+          {compact ? (
+            <>
+              {/* Inside an instrument (2026-11-06): the avatar replaces the
+                  ⓘ button — who you are, Settings and the ⓘ switch. */}
+              <div className="profile-pop-me">
+                <Avatar profile={active} name={nameOf(active)} size={44} />
+                <span className="profile-pop-me-text">
+                  <span className="profile-pop-me-name" dir="auto">
+                    {nameOf(active)}
+                  </span>
+                  <span className="profile-pop-hint" dir="auto">
+                    {email ? t('settings.account.synced', { email }) : t('profile.local')}
+                  </span>
+                </span>
+              </div>
+              <div className="set-group profile-pop-group">
+                {onSettings && (
+                  <button
+                    type="button"
+                    className="set-row"
+                    onClick={() => {
+                      close();
+                      onSettings();
+                    }}
+                  >
+                    <span className="set-icon" style={{ background: '#8e8e93' }} aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" />
+                      </svg>
+                    </span>
+                    <span className="set-row-label">{t('settings.title')}</span>
+                  </button>
+                )}
+                <InfoSwitchRow />
+              </div>
+              <div className="profile-pop-section">{t('profile.title')}</div>
+            </>
+          ) : (
+            <div className="profile-pop-head">
+              <div className="profile-pop-title">{t('profile.title')}</div>
+              <div className="profile-pop-hint">{t('profile.hint')}</div>
+            </div>
+          )}
 
           <ul className="profile-list">
             {profiles.map((p) => {
@@ -211,7 +285,7 @@ export function ProfileChip({ onSettings }) {
               </button>
             )}
             {/* Stage 6: Settings reachable from the profile too. */}
-            {onSettings && edit?.kind !== 'new' && (
+            {onSettings && !compact && edit?.kind !== 'new' && (
               <button
                 type="button"
                 className="profile-btn profile-settings"

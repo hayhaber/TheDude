@@ -174,3 +174,68 @@
     0 1px 0 rgba(0, 0, 0, 0.95),
     0 4px 9px rgba(0, 0, 0, 0.6);
 }
+
+/* Settings: the iOS grouped list on the grey ground — no card around it. */
+.tool-screen.is-settings {
+  background: var(--bg);
+}
+
+.tool-screen.is-settings .tool-screen-body {
+  padding-top: 12px;
+}
+
+.tool-screen-card.is-settings {
+  width: min(620px, 100%);
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.tool-screen-done {
+  justify-self: end;
+  height: 38px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 19px;
+  color: var(--accent);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Settings as a sheet over an instrument screen (the avatar's Settings). */
+.settings-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--bg);
+  animation: settings-sheet-in 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes settings-sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-sheet {
+    animation: none;
+  }
+}
+
+:root[data-theme='dark'] .tool-screen.is-settings,
+:root[data-theme='dark'] .settings-sheet {
+  background: var(--bg);
+}
+
+:root[data-theme='dark'] .tool-screen-card.is-settings {
+  background: none;
+  box-shadow: none;
+  border: none;
+}

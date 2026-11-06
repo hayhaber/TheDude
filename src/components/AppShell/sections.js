@@ -64,3 +64,24 @@ export function rememberSection(sectionKey) {
     /* private mode */
   }
 }
+
+// The last section opened on each instrument (device-wide) — the home card's
+// "Continue" when this visit hasn't been inside that instrument yet.
+const PLACE_KEY = 'dudestar-last-section';
+export function rememberPlace(instrument, sectionKey) {
+  if (!instrument || !sectionKey || sectionKey === 'vocal') return;
+  try {
+    const all = JSON.parse(localStorage.getItem(PLACE_KEY) || '{}');
+    all[instrument] = sectionKey;
+    localStorage.setItem(PLACE_KEY, JSON.stringify(all));
+  } catch {
+    /* private mode */
+  }
+}
+export function lastPlace(instrument) {
+  try {
+    return JSON.parse(localStorage.getItem(PLACE_KEY) || '{}')[instrument] ?? null;
+  } catch {
+    return null;
+  }
+}

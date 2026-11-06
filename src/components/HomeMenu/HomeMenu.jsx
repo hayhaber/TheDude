@@ -6,7 +6,8 @@ import { AppLogo } from '../AppLogo/AppLogo';
 import { INSTRUMENT_ART } from './instrumentArt';
 import { ProfileChip } from '../../profile/ProfileChip';
 import { LineIcon } from '../LineIcon/LineIcon';
-import { NAV_GROUPS, lastSectionIn } from '../AppShell/sections';
+import { NAV_GROUPS, SECTIONS, lastSectionIn, lastPlace } from '../AppShell/sections';
+import { lastPracticeTab } from '../PracticeView/practiceLibrary';
 import './HomeMenu.css';
 
 // One card per instrument. `instrument: null` keeps whatever is selected
@@ -154,7 +155,7 @@ const easeOut = (x) => 1 - Math.pow(1 - x, 3);
  * and shortcuts into the app. Tapping the card itself opens its first
  * shortcut.
  */
-export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
+export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, place = null, initialCard }) {
   const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
   const trackRef = useRef(null);
@@ -411,6 +412,51 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
     });
   };
 
+  // The card's ONE primary action (home redesign, option 2 — user's choice
+  // 2026-11-06): what you'd most likely do now. Continue where you were
+  // (this visit, on this card's instrument), the next lesson for a guitar
+  // student the teacher knows, else the instrument's last screen, else a
+  // first step. The shortcuts under it stay, quieter.
+  const placeName = (inst, section, tab) => {
+    const sec = SECTIONS.find((x) => x.key === section);
+    if (!sec) return null;
+    const base = t(section === 'guitarpro' && inst === 'piano' ? 'nav.pianopro' : sec.labelKey);
+    if (section === 'practice' && tab && tab !== 'home') return `${base} · ${t(`ph.ex.${tab}.title`)}`;
+    return base;
+  };
+  const primaryFor = (card) => {
+    const inst = card.instrument;
+    if (!inst && card.key !== 'vocal') return null;
+    const here = place && (card.key === 'vocal' ? place.section === 'vocal' : place.instrument === inst && place.section !== 'vocal');
+    if (here && onContinue) {
+      const name = placeName(place.instrument, place.section, place.practiceTab);
+      if (name) return { title: t('home.primary.continue', { place: name }), sub: t('home.primary.where'), go: onContinue };
+    }
+    if (card.key === 'vocal') return { title: t('home.primary.vocal'), sub: t('home.primary.vocalSub'), go: () => open(card, card.options[0]) };
+    const lessonFirst = inst === 'guitar' && nextLesson && onNextLesson;
+    const last = lastPlace(inst);
+    const lastOk = last && last !== 'vocal' && supportsInstrument(last, inst);
+    if (lessonFirst && (nextLesson.beginner || !lastOk)) {
+      const title = nextLesson.title?.[lang] ?? nextLesson.title?.en ?? '';
+      const bits = [t('home.primary.lessonSub')];
+      if (nextLesson.minutes) bits.push(t('home.primary.min', { n: nextLesson.minutes }));
+      if (nextLesson.step) bits.push(t('home.primary.step', { n: nextLesson.step, m: nextLesson.steps }));
+      return { title: t(nextLesson.step ? 'home.primary.continue' : 'home.primary.start', { place: title }), sub: bits.join(' · '), go: onNextLesson };
+    }
+    if (lastOk) {
+      const tab = last === 'practice' ? lastPracticeTab() : null;
+      const name = placeName(inst, last, tab);
+      return {
+        title: t('home.primary.continue', { place: name }),
+        sub: t('home.primary.last'),
+        go: () => onOpen({ instrument: inst, section: last, practiceTab: tab ?? null, card: card.key }),
+      };
+    }
+    if (inst === 'guitar') return { title: t('home.primary.teacher'), sub: t('home.primary.teacherSub'), go: () => onOpen({ instrument: 'guitar', section: 'teacher', card: card.key }) };
+    const practice = inst === 'bass' ? 'bassPractice' : 'practice';
+    return { title: t('home.primary.practice'), sub: t('home.primary.practiceSub'), go: () => onOpen({ instrument: inst, section: practice, card: card.key }) };
+  };
+
   // A tap at the end of a drag isn't a click.
   const guard = (fn) => (e) => {
     if (suppressClickRef.current) {
@@ -430,16 +476,6 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
         <div className="home-top-end">
           {/* Who's practising (local profiles), at the far right. */}
           <ProfileChip onSettings={() => onOpen({ tool: 'settings', card: CARDS[((Math.round(targetRef.current) % N) + N) % N].key })} />
-          {onContinue && (
-            <button type="button" className="home-continue" onClick={onContinue}>
-              {t('home.continue')}
-            </button>
-          )}
-          {!onContinue && onNextLesson && (
-            <button type="button" className="home-continue is-lesson" onClick={onNextLesson}>
-              {t('home.nextLesson')}
-            </button>
-          )}
         </div>
       </header>
 
@@ -459,6 +495,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
               return supportsInstrument(o.section, inst);
             });
             const isActive = i === active;
+            const primary = primaryFor(card);
             return (
               <article
                 key={card.key}
@@ -479,8 +516,27 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, initialCard }) {
                     <span className="home-desc">{t(card.descKey)}</span>
                   </span>
                 </button>
+                {primary && (
+                  <button
+                    type="button"
+                    className="home-primary"
+                    dir={lang === 'he' ? 'rtl' : 'ltr'}
+                    onClick={guard(() => (isActive ? primary.go() : goToCard(i)))}
+                    tabIndex={isActive ? 0 : -1}
+                  >
+                    <span className="home-primary-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M8 5l11 7-11 7z" fill="currentColor" />
+                      </svg>
+                    </span>
+                    <span className="home-primary-text">
+                      <span className="home-primary-title" dir="auto">{primary.title}</span>
+                      <span className="home-primary-sub">{primary.sub}</span>
+                    </span>
+                  </button>
+                )}
                 {/* Shortcuts in reading order, like the in-app bar. */}
-                <div className="home-options" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+                <div className={'home-options' + (primary ? ' is-quiet' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
                   {opts.map((o) => (
                     <button
                       key={o.tool ?? o.songwriter ?? o.section + (o.practiceTab ?? '') + (o.vocalScreen ?? '') + (o.teacherScreen ?? '')}

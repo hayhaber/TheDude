@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { LineIcon } from '../LineIcon/LineIcon';
-import { SECTIONS, NAV_GROUPS, lastSectionIn, rememberSection } from './sections';
+import { SECTIONS, NAV_GROUPS, lastSectionIn, rememberSection, rememberPlace } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { InfoTooltipsToggle } from '../InfoTooltipsToggle/InfoTooltipsToggle';
 import { HomeButton } from '../HomeButton/HomeButton';
@@ -81,7 +81,8 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
   };
   useEffect(() => {
     rememberSection(activeSection);
-  }, [activeSection]);
+    rememberPlace(instrument, activeSection);
+  }, [activeSection, instrument]);
 
   // Phone/tablet: metronome / drums / tuner sit behind ONE Tools button in
   // the top strip (stage 3): a floating glass row above the tab bar.

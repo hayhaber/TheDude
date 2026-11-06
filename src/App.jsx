@@ -2150,10 +2150,12 @@ function App() {
     const l = teacherNextLesson(st);
     return l?.steps ? l : null;
   })();
+  // The Guitar card's primary button (home redesign option 2, 2026-11-06):
+  // straight into the next lesson.
   const openNextLesson = () => {
     if (instrument !== 'guitar') setInstrument('guitar');
     enteredCardRef.current = 'guitar';
-    setTeacherStart((v) => ({ screen: 'today', n: v.n + 1 }));
+    setTeacherStart((v) => ({ screen: 'lesson', lesson: homeNextLesson?.id ?? null, n: v.n + 1 }));
     setActiveSection('teacher');
     setHome(false);
     setLeftHome(true);
@@ -2235,7 +2237,23 @@ function App() {
           setLeftHome(true);
         }}
         onContinue={leftHome ? () => setHome(false) : null}
-        onNextLesson={!leftHome && homeNextLesson ? openNextLesson : null}
+        place={leftHome ? { instrument, section: activeSection, practiceTab } : null}
+        nextLesson={
+          homeNextLesson
+            ? (() => {
+                const st = getTeacher();
+                const saved = st.lessons?.[homeNextLesson.id];
+                return {
+                  title: homeNextLesson.title,
+                  minutes: homeNextLesson.minutes ?? null,
+                  step: saved && !saved.done && (saved.at ?? 0) > 0 ? saved.at + 1 : 0,
+                  steps: homeNextLesson.steps.length,
+                  beginner: ['none', 'little'].includes(st.intake?.experience),
+                };
+              })()
+            : null
+        }
+        onNextLesson={homeNextLesson ? openNextLesson : null}
         initialCard={homeCard}
       />
     );

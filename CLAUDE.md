@@ -260,7 +260,25 @@ no tools).
   and its "Next lesson" pill / openNextLesson enter via enteredCardRef
   'guitar'. Its art (`public/home/teacher-3.webp`) stays in the repo for the
   Guitar card redesign (5 directions on a Design canvas,
-  https://claude.ai/artifact/KGRGySQvj9p2aEUgB3nbaa — the user picks).
+  https://claude.ai/artifact/KGRGySQvj9p2aEUgB3nbaa).
+  v1.0.102 — the user chose option 2 "one action": every instrument card
+  (guitar, piano, bass, singing) has ONE primary button (`.home-primary`,
+  accent fill, play icon that never mirrors, title + one line) above the
+  shortcuts, which turn quiet (`.home-options.is-quiet`: no rule, smaller,
+  grey). HomeMenu `primaryFor(card)`: (1) this visit was inside the card's
+  instrument -> "Continue: <screen>" = App onContinue (exact state); (2)
+  guitar + the teacher knows you + a written next lesson, and you're a
+  beginner (experience none / little) or have no last screen -> "Start /
+  Continue: <lesson>" (lesson · ~N min · step n of m) -> App openNextLesson
+  (now opens the LESSON itself); (3) the instrument's last screen
+  (`rememberPlace` / `lastPlace` in sections.js, device key
+  `dudestar-last-section`, written by AppShell; practice adds its last tool)
+  -> "Continue: …"; (4) guitar -> "Start with the teacher", piano / bass ->
+  "Start practising", singing -> "Today's workout". The header pills
+  ("Back to where I was", "Next lesson") are gone — the card's button does
+  both. Phones: the art gives the button its height (`--home-art-h` on
+  `.home-card:has(.home-primary)`). Guitar card text = the teacher first
+  (`home.guitar.desc`). Text `home.primary.*` (tips/onboarding.js).
   Open: Improvise waits for his explanation. The teacher's intake
   (or the first run) fills the Goal planner's "about you"
   (`coachIntakeFromTeacher()` in onboardingState.js, applied in

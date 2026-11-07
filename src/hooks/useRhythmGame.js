@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { STANDARD_TUNING } from '../music/notes';
 import { usePitchDetection } from './usePitchDetection';
 import { logPerf } from '../coach/perfLog';
-import { nextBpm, startBpm } from '../coach/skillLevel';
+import { GUITAR_SPEED_TOOLS, nextBpm, startBpm } from '../coach/skillLevel';
 import { playNote } from '../audio/chordPlayer';
 
 // One note per metronome beat, played on a real guitar (Practice -> Rhythm
@@ -349,7 +349,7 @@ export function useRhythmGame(metronome, { logAs = null } = {}) {
     setStepIndex(-1);
     setFeedbackCell(null);
     setLive({ hits: 0, misses: 0, onTime: 0, combo: 0, maxCombo: 0 });
-    const s = startBpm({ tool: logAs ?? 'rhythm', item: ex.id ?? '', suggested: ex.bpmSuggested ?? 80 });
+    const s = startBpm({ tool: logAs ?? 'rhythm', item: ex.id ?? '', suggested: ex.bpmSuggested ?? 80, tools: GUITAR_SPEED_TOOLS });
     setStartWhy(s.why);
     metronome.setBpm(s.bpm);
   }

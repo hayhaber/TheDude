@@ -28,7 +28,7 @@ import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
 import { logPerf, loadPerf, onPerf } from '../coach/perfLog';
-import { fluentNps } from '../coach/skillLevel';
+import { fluentNps, GUITAR_SPEED_TOOLS } from '../coach/skillLevel';
 
 // Practice -> Lick Trainer: pick a lick, hear it, play it back, get judged.
 //
@@ -467,7 +467,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     else {
       // Never practised: start from the player's measured speed (any
       // exercise), not from a beginner's tempo (user, 2026-11-07).
-      const f = fluentNps();
+      const f = fluentNps({ tools: GUITAR_SPEED_TOOLS });
       const own = lickNps(lick, lick.bpm);
       if (f && own) {
         const want = ((f * 0.85) / own) * 100;

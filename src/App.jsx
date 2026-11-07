@@ -447,7 +447,7 @@ function App() {
   const bending = useBendingTraining();
   const soloOpener = useSoloOpener(metronome);
   const pianoPractice = usePianoPractice();
-  const fallingNotes = useFallingNotes();
+  const fallingNotes = useFallingNotes(metronome);
   const chordRhythm = useChordRhythm(metronome);
   const guitarChordRhythm = useGuitarChordRhythm(metronome);
 

@@ -120,7 +120,7 @@ export function PracticeView({
 
       {activeTab === 'piano' && <PianoPracticePanel pianoPractice={pianoPractice} />}
 
-      {activeTab === 'fallingNotes' && <FallingNotesPanel fallingNotes={fallingNotes} />}
+      {activeTab === 'fallingNotes' && <FallingNotesPanel fallingNotes={fallingNotes} metronome={metronome} />}
 
       {activeTab === 'chordRhythm' && <ChordRhythmPanel chordRhythm={chordRhythm} metronome={metronome} />}
 

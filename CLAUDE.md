@@ -1586,6 +1586,29 @@ no tools).
   passed. Timing accuracy with a real guitar NOT verified (fake mic only:
   silent run -> 0 %, tempo down, phases right).
 
+- PIANO (v1.0.132, user: "build the new mechanism for the piano too"):
+  Practice -> Chord rhythm (`useChordRhythm`) and Flow (`useFallingNotes`,
+  now `useFallingNotes(metronome)`) run on the same model: phases idle /
+  demo (the trainer plays: chords via playPianoChord with the keys lit /
+  Flow notes lit as played) / countin (the whole-beat lead-in, counted
+  down) / run / done; the clock starts on the HEARD first click
+  (onBeatTime, 800 ms fallback); every chord / note is judged for the notes
+  AND the time of its (first right) key vs its click (on time ±100 ms
+  chords, ±90 ms Flow); result + adaptive tempo + find-my-speed via the pure
+  `coach/playRun.js` (`runResult`, `tempoAfter`); PlayAlong strip in both
+  panels (new props `idleText` / `runText`, texts `pa.idleChords` /
+  `pa.idleFlow` / `pa.runKeys`; `pa.inTime` takes {ms}); the old play
+  buttons + score lines are gone. Start tempo per panel open (`prepare()`):
+  startBpm with a tool FAMILY (`tools`, new param) — chord rhythm
+  ['chordRhythm'] (item `preset` or `custom:<chords>`), Flow
+  ['fallingNotes'] (item = song key); guitar = `GUITAR_SPEED_TOOLS` (scale /
+  rhythm / lick) so the instruments' levels never mix. Starter set: a new
+  random progression after each played run (Demo + Start play the same
+  one; find-my-speed keeps it). Logged tools 'chordRhythm' / 'fallingNotes'
+  (nps = bpm / 60). Playwright bots: Flow on the click 13/13 100 % in time
+  -> tempo up; chords 180 ms late -> "late by ~191 ms", tempo down; silent
+  runs 0 % -> down. Guitar chord rhythm (GuitarChordRhythmPanel) not yet.
+
 ## Country style (v1.0.125, 2026-11-07)
 
 - 'country' is a style everywhere a style is picked (onboarding, the

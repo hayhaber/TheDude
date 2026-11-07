@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { playPianoNote } from '../../audio/pianoPlayer';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { PlayAlong } from '../PlayAlong/PlayAlong';
 import './FallingNotesPanel.css';
 
 const WHITE_PITCH_CLASSES = new Set([0, 2, 4, 5, 7, 9, 11]);
@@ -64,10 +65,15 @@ function keyStateForMidi(midi, song, results, now) {
   return recent ? results[recent.id] : null;
 }
 
-export function FallingNotesPanel({ fallingNotes }) {
+export function FallingNotesPanel({ fallingNotes, metronome }) {
   const { t } = useLanguage();
-  const { song, songs, songKey, setSongKey, isPlaying, isComplete, now, results, score, midiState, enableMidi, start, stop, handleNotePlayed } =
-    fallingNotes;
+  const { song, songs, songKey, setSongKey, isPlaying, now, results, midiState, enableMidi, handleNotePlayed, prepare } = fallingNotes;
+
+  // A new song (or opening the exercise): start at the player's level for it.
+  useEffect(() => {
+    prepare();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [songKey]);
 
   const layout = useMemo(() => buildKeyboardLayout(song.minMidi, song.maxMidi), [song]);
 
@@ -111,11 +117,9 @@ export function FallingNotesPanel({ fallingNotes }) {
           </button>
           <InfoTooltip text={t('tip.practice.midi')} />
         </span>
-
-        <button type="button" className="play-button" onClick={isPlaying ? stop : start}>
-          {isPlaying ? t('vocal.stop') : t('vocal.start')}
-        </button>
       </div>
+
+      <PlayAlong game={fallingNotes} metronome={metronome} idleText={t('pa.idleFlow')} runText={t('pa.runKeys')} />
 
       {midiStatusKey && <p className={'falling-notes-midi-status' + (midiState === 'connected' ? ' connected' : '')}>{t(midiStatusKey)}</p>}
 
@@ -170,13 +174,6 @@ export function FallingNotesPanel({ fallingNotes }) {
         </div>
       </div>
 
-      {(isPlaying || isComplete) && (
-        <p className="falling-notes-score">
-          {t('fallingNotes.score')}: {score.hits} / {score.hits + score.misses}
-        </p>
-      )}
-
-      {isComplete && <p className="falling-notes-complete">{t('vocal.complete')}</p>}
     </div>
   );
 }

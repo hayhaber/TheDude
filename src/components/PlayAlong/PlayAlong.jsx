@@ -24,7 +24,7 @@ const MIC = (
  * counts and the result card (notes right, in time, the tendency, what the
  * tempo does next). Logic: hooks/useRhythmGame.js.
  */
-export function PlayAlong({ game, metronome }) {
+export function PlayAlong({ game, metronome, idleText = null, runText = null }) {
   const { t } = useLanguage();
   const { phase, countIn, live, result, exercise } = game;
   const total = exercise?.sequence?.length ?? 0;
@@ -34,9 +34,9 @@ export function PlayAlong({ game, metronome }) {
   let status;
   if (phase === 'countin') status = { kind: 'count', text: demo ? t('pa.countDemo') : t('pa.countPlay'), big: countIn };
   else if (phase === 'demo') status = { kind: 'demo', text: t('pa.demo') };
-  else if (phase === 'run') status = { kind: 'run', text: game.findSpeed ? t('pa.runSpeed', { bpm: metronome.bpm }) : t('pa.run') };
+  else if (phase === 'run') status = { kind: 'run', text: game.findSpeed ? t('pa.runSpeed', { bpm: metronome.bpm }) : runText ?? t('pa.run') };
   else if (phase === 'done') status = { kind: 'done', text: t('pa.done') };
-  else status = { kind: 'idle', text: t('pa.idle') };
+  else status = { kind: 'idle', text: idleText ?? t('pa.idle') };
 
   return (
     <div className="pa" dir="auto">
@@ -128,7 +128,7 @@ function Result({ result: r, t }) {
         </div>
         <div className="pa-tile">
           <span className="pa-tile-v">{r.timingPct == null ? '—' : `${r.timingPct}%`}</span>
-          <span className="pa-tile-l">{t('pa.inTime')}</span>
+          <span className="pa-tile-l">{t('pa.inTime', { ms: r.onTimeMs ?? 75 })}</span>
         </div>
         <div className="pa-tile">
           <span className="pa-tile-v">{r.bpm}</span>

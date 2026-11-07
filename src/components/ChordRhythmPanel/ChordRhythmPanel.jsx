@@ -3,6 +3,7 @@ import { colorForChord } from '../../styles/colors';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { LEAD_TIME_S } from '../../hooks/useChordRhythm';
+import { PlayAlong } from '../PlayAlong/PlayAlong';
 import './ChordRhythmPanel.css';
 
 // Same range useChordRhythm.js's own LENIENT_RANGE covers — used here only
@@ -91,15 +92,14 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
     now,
     results,
     isPlaying,
-    ended,
-    play,
-    restart,
-    stop,
-    score,
-    combo,
-    maxCombo,
-    accuracyPct,
+    prepare,
   } = chordRhythm;
+
+  // Opening the exercise / switching the source: start at the player's level.
+  useEffect(() => {
+    prepare();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source]);
 
   // Block size preps for a future "hold the chord for the whole window"
   // exercise — more beats per chord (a longer window, i.e. a longer
@@ -232,16 +232,9 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
             </button>
           </div>
         </div>
-
-        <div className="chord-rhythm-field">
-          <span className="chord-rhythm-field-label" aria-hidden="true">
-            &nbsp;
-          </span>
-          <button type="button" className="play-button" onClick={isPlaying ? stop : ended ? restart : play}>
-            {isPlaying ? t('vocal.stop') : ended ? t('chordRhythm.tryAgain') : t('vocal.start')}
-          </button>
-        </div>
       </div>
+
+      <PlayAlong game={chordRhythm} metronome={metronome} idleText={t('pa.idleChords')} runText={t('pa.runKeys')} />
 
       {viewMode === 'falling' ? (
         <div className="chord-rhythm-lane" ref={laneRef}>
@@ -301,14 +294,6 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
         </div>
       )}
 
-      {(isPlaying || ended) && (
-        <p className="chord-rhythm-score">
-          {t('chordRhythm.score')}: {score.hits} / {score.hits + score.misses}
-          {accuracyPct != null && ` · ${accuracyPct}%`} · {t('chordRhythm.combo')}: {combo} ({t('chordRhythm.maxCombo')}: {maxCombo})
-        </p>
-      )}
-
-      {ended && <p className="chord-rhythm-complete">{t('vocal.complete')}</p>}
     </div>
   );
 }

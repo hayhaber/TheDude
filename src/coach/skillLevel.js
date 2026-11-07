@@ -8,6 +8,9 @@ import { loadPerf } from './perfLog';
 
 const DAY = 86400000;
 
+// Families whose speeds are comparable (notes per second on ONE instrument).
+export const GUITAR_SPEED_TOOLS = ['scale', 'rhythm', 'lick'];
+
 /** Did this run count as "played it right"? */
 export function passed(e) {
   const m = e?.metrics ?? {};
@@ -54,14 +57,15 @@ export function lastPassedBpm({ tool, item, perf = loadPerf() }) {
 /**
  * Where a beat-based exercise starts: the item's last passed tempo; else the
  * player's fluent speed (a little under it, converted with the exercise's
- * notes per beat); never below the exercise's own suggestion.
+ * notes per beat; `tools` = the family whose speed counts — guitar runs
+ * don't set the piano's level); never below the exercise's own suggestion.
  * Returns { bpm, why: 'item' | 'level' | 'default' }.
  */
-export function startBpm({ tool, item, suggested, notesPerBeat = 1, min = 40, max = 220 }) {
+export function startBpm({ tool, item, suggested, notesPerBeat = 1, min = 40, max = 220, tools = null }) {
   const clamp = (x) => Math.max(min, Math.min(max, Math.round(x)));
   const mine = lastPassedBpm({ tool, item });
   if (mine) return { bpm: clamp(mine), why: 'item' };
-  const f = fluentNps();
+  const f = fluentNps({ tools });
   if (f) {
     const fromLevel = (f * 60 * 0.85) / notesPerBeat;
     if (fromLevel > suggested) return { bpm: clamp(fromLevel), why: 'level' };

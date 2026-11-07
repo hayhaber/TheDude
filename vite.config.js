@@ -54,6 +54,14 @@ export default defineConfig({
         // over workbox's 2MB default) DOES get precached, hence the raised
         // limit — that one's needed on every visit.
         globIgnores: ['**/alphaTab.worker-*.js', '**/alphaTab.worklet-*.js'],
+        // The home cards' pictures (~750 KB) are precached too: they are on
+        // the very first screen, and without this every visit after a
+        // deploy re-fetched them over the network (the cards showed empty
+        // for ~2 s on the iPad). A changed picture gets a new revision.
+        globPatterns: [
+          '**/*.{js,css,html}',
+          'home/{guitar-lp,piano-grand,bass-pb2,vocal-mic4,songwriter-notebook,tools-studio}.webp',
+        ],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         // A new service worker version now takes over immediately instead
         // of waiting for every open tab/PWA instance to fully close first

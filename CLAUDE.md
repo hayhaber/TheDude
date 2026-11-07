@@ -2211,6 +2211,17 @@ no tools).
   can't open the installed app from a page, only its home-screen icon is full
   screen (user expected "Open DudeStar" to go full screen, 2026-10-21).
   Language = the device language until the visitor picks one (LanguageContext).
+- **Home pictures load at once (v1.0.145, user: "after an update the card
+  picture takes ~2 s to appear")**: the 6 card pictures (guitar, piano,
+  bass, vocal, songwriter, tools — ~750 KB) are PRECACHED by the service
+  worker (vite.config.js workbox `globPatterns` lists them; a changed
+  picture = new revision), `index.html` preloads them (guitar
+  fetchpriority high — before, the <img> only started after the JS
+  bundle had run), and vercel.json gives `/home/*` a 7-day cache +
+  stale-while-revalidate. Measured (Chromium, 820x1180): after a reload
+  every picture comes from the service worker, the active card's image is
+  ready ~0.6 s after navigation incl. the app's JS. A NEW picture must be
+  added to that globPatterns list.
 - Build: main bundle > 4 MiB, so `workbox.maximumFileSizeToCacheInBytes` is
   6 MiB in vite.config.js.
 

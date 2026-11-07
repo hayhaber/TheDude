@@ -29,10 +29,10 @@ import './CoachView.css';
 // dashboard (today's session, progress chart + goal ladder, weak points,
 // practice time, chord pairs). Logic lives in src/coach/ (engine + store).
 
-const MINUTES = [10, 15, 20, 30, 45, 60];
+const MINUTES = [10, 15, 20, 25, 30, 45, 60];
 const DAYS = [3, 4, 5, 6, 7];
 const LEVELS = ['new', 'beginner', 'intermediate', 'advanced'];
-const STYLES = ['rock', 'blues', 'pop', 'acoustic', 'metal'];
+const STYLES = ['rock', 'blues', 'country', 'pop', 'acoustic', 'metal'];
 const DEFAULT_INTAKE = { minutesPerDay: 20, daysPerWeek: 5, level: 'beginner', style: 'rock' };
 const PARTS = ['warm', 'goal', 'support', 'brk', 'music'];
 

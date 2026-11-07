@@ -1503,6 +1503,18 @@ no tools).
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.
 
+## Country style (v1.0.125, 2026-11-07)
+
+- 'country' is a style everywhere a style is picked (onboarding, the
+  teacher's "about you", the goal planner; COACH_STYLE / STYLE_GENRE in
+  engine.js + challenges.js -> lick genre 'country'; STYLE_SONG country =
+  G C G D). Lick genre `country` = COUNTRY_LICKS in library.js (5, ours:
+  bass walk-up G->C, G major pentatonic open, the bluegrass G run with the
+  ♭3->3 hammer, bend B->C♯ over A, ♭3->3 sixteenth run in A at fret 5;
+  pitches checked). Drum style `country` (two-beat boom-chick). Minutes
+  lists gained 25. The intake's "songs you'd like to learn" field is only
+  STORED (nothing reads it yet) — its hint now says so.
+
 ## Arpeggio licks + Arpeggio Builder (built 2026-10-31)
 
 - From the user's reel (tab screenshots): Dm C Bb A as one 6-note triad

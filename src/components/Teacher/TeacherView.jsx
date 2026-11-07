@@ -25,8 +25,8 @@ import './Teacher.css';
 const EXPERIENCE = ['none', 'little', 'some', 'lot'];
 const CAN = ['D', 'A', 'E', 'Am', 'Em', 'G', 'C', 'Dm', 'barre', 'pentatonic', 'tab'];
 const GOALS = ['songs', 'accompany', 'solo', 'theory', 'band'];
-const STYLES = ['pop', 'rock', 'blues', 'israeli', 'folk', 'jazz', 'metal'];
-const MINUTES = [10, 15, 20, 30, 45, 60];
+const STYLES = ['pop', 'rock', 'blues', 'country', 'israeli', 'folk', 'jazz', 'metal'];
+const MINUTES = [10, 15, 20, 25, 30, 45, 60];
 
 // Re-render when a practice run is logged (homework / mastery come from it).
 function usePerfTick() {

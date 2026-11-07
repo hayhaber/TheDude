@@ -132,7 +132,7 @@ function tempoAccuracyCheck(tool, item, bpm, min) {
 // ---------------------------------------------------------------------------
 
 const GENRE_NAME = { blues: L('blues', 'בלוז'), rock: L('rock', 'רוק'), metal: L('metal', 'מטאל') };
-const STYLE_GENRE = { rock: 'rock', blues: 'blues', metal: 'metal' };
+const STYLE_GENRE = { rock: 'rock', blues: 'blues', metal: 'metal', country: 'country' };
 const PAIRS_BY_LEVEL = [
   [['A', 'D'], ['D', 'E'], ['A', 'E'], ['Em', 'Am']],
   [['G', 'C'], ['C', 'D'], ['G', 'D'], ['Em', 'C'], ['Am', 'Dm']],

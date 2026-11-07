@@ -639,13 +639,14 @@ function goalBlocks(goal, params, rung, perf, minutes) {
   return b;
 }
 
-const STYLE_GENRE = { rock: 'rock', blues: 'blues', metal: 'metal', pop: null, acoustic: null };
+const STYLE_GENRE = { rock: 'rock', blues: 'blues', metal: 'metal', country: 'country', pop: null, acoustic: null };
 const STYLE_SONG = {
   pop: ['G', 'D', 'Em', 'C'],
   acoustic: ['G', 'C', 'D', 'G'],
   rock: ['E', 'A', 'D', 'A'],
   blues: ['A', 'D', 'E', 'A'],
   metal: ['Em', 'C', 'D', 'Em'],
+  country: ['G', 'C', 'G', 'D'],
 };
 
 /** Build the blocks of a day's session. */
@@ -718,7 +719,7 @@ export function buildSession(state, perf, weaknesses = findWeaknesses(perf), day
   if (lick && goal?.key !== 'blues') {
     add({
       kind: 'music',
-      title: L(`${style[0].toUpperCase()}${style.slice(1)} lick`, `ליק ${{ rock: 'רוק', blues: 'בלוז', metal: 'מטאל' }[style] ?? ''}`),
+      title: L(`${style[0].toUpperCase()}${style.slice(1)} lick`, `ליק ${{ rock: 'רוק', blues: 'בלוז', metal: 'מטאל', country: 'קאנטרי' }[style] ?? ''}`),
       how: L('Learn it phrase by phrase at 70 %, then play it with the band. Musicality over speed.', 'למדו אותו משפט אחרי משפט ב-70%, ואז נגנו עם הלהקה. מוזיקליות לפני מהירות.'),
       minutes: t.music,
       launch: { tool: 'lick', lickId: lick, tempoPct: 70 },

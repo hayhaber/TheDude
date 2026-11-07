@@ -46,6 +46,7 @@ export const TIPS_TEACHER = {
     'teacher.style.pop': 'Pop',
     'teacher.style.rock': 'Rock',
     'teacher.style.blues': 'Blues',
+    'teacher.style.country': 'Country',
     'teacher.style.israeli': 'Israeli',
     'teacher.style.folk': 'Folk / acoustic',
     'teacher.style.jazz': 'Jazz',
@@ -53,7 +54,7 @@ export const TIPS_TEACHER = {
     'teacher.intake.minutes': 'Time to practise each day',
     'teacher.min': '{n} minutes',
     'teacher.intake.songs': 'Songs you would like to learn',
-    'teacher.intake.songsHint': 'One per line — the teacher will use them in the lessons.',
+    'teacher.intake.songsHint': 'One per line: song + artist. Kept with your profile for now — lessons built from your songs are not ready yet.',
     'teacher.intake.save': 'Save',
 
     'teacher.next.label': 'Your next lesson',
@@ -165,6 +166,7 @@ export const TIPS_TEACHER = {
     'teacher.style.pop': 'פופ',
     'teacher.style.rock': 'רוק',
     'teacher.style.blues': 'בלוז',
+    'teacher.style.country': 'קאנטרי',
     'teacher.style.israeli': 'ישראלי',
     'teacher.style.folk': 'פולק / אקוסטי',
     'teacher.style.jazz': "ג'אז",
@@ -172,7 +174,7 @@ export const TIPS_TEACHER = {
     'teacher.intake.minutes': 'זמן תרגול ביום',
     'teacher.min': '{n} דקות',
     'teacher.intake.songs': 'שירים שהיית רוצה ללמוד',
-    'teacher.intake.songsHint': 'שיר בכל שורה — המורה ישלב אותם בשיעורים.',
+    'teacher.intake.songsHint': 'שיר בכל שורה: שם השיר + המבצע. נשמר בפרופיל בינתיים — שיעורים שנבנים מהשירים שלך עוד לא מוכנים.',
     'teacher.intake.save': 'שמור',
 
     'teacher.next.label': 'השיעור הבא שלך',

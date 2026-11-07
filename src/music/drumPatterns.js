@@ -59,6 +59,18 @@ export const DRUM_STYLES = {
     fill: [{ tomHigh: 0.7 }, { tomMid: 0.85 }, { tomLow: 1 }],
     fillCrashVelocity: 0.55,
   },
+  country: {
+    label: 'Country / Two-beat',
+    stepsPerBeat: 2, // boom-chick: kick on 1 and 3, snare on 2 and 4, light eighth hats
+    cell: [
+      [{ kick: 1, hihatClosed: 0.6 }, { hihatClosed: 0.35 }],
+      [{ snare: 0.8, hihatClosed: 0.6 }, { hihatClosed: 0.35 }],
+      [{ kick: 0.9, hihatClosed: 0.6 }, { hihatClosed: 0.35 }],
+      [{ snare: 0.8, hihatClosed: 0.6 }, { hihatClosed: 0.35 }],
+    ],
+    fill: [{ snare: 0.6 }, { snare: 0.8, tomLow: 0.6 }],
+    fillCrashVelocity: 0.6,
+  },
   funk: {
     label: 'Funk',
     stepsPerBeat: 4, // 16th-note grid, syncopated kick + ghost-note snare

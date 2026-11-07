@@ -40,6 +40,7 @@ export const LICK_GENRES = [
   { key: 'blues', label: { en: 'Blues', he: 'בלוז' } },
   { key: 'rock', label: { en: 'Rock', he: 'רוק' } },
   { key: 'metal', label: { en: 'Metal', he: 'מטאל' } },
+  { key: 'country', label: { en: 'Country', he: 'קאנטרי' } },
   { key: 'tapping', label: { en: 'Tapping', he: 'טאפינג' } },
   { key: 'arpeggio', label: { en: 'Arpeggios', he: 'ארפג׳יו' } },
 ];
@@ -164,6 +165,114 @@ const ARPEGGIO_LICKS = [
     en: 'Five-String Sweeps: Am – G – F – E',
     he: 'סוויפ על חמישה מיתרים: ⁦Am – G – F – E⁩',
   }),
+];
+
+
+// ---- Country (genre 'country', 2026-11-07) --------------------------------
+// Written for this app from the standard country vocabulary: the major
+// pentatonic (not the minor of blues/rock), the ♭3 -> 3 hammer-on, a bend UP
+// to the 3rd, bass walk-ups between chords and the bluegrass "G run" ending.
+const COUNTRY_LICKS = [
+  {
+    id: 'country-bass-walk-g-c',
+    title: { en: 'Bass Walk-Up G → C', he: 'הליכת בס G ← C' },
+    genre: 'country', level: 'beginner', key: 'G', scale: 'G major', bpm: 80, source: 'dudestar',
+    about: {
+      en: 'The country rhythm player\'s link between chords: G A B up to C on the bass strings, then back down. One pick per quarter note, even and strong.',
+      he: 'החיבור של נגן הקצב בקאנטרי בין אקורדים: G A B עד C במיתרי הבס, ובחזרה למטה. מכה אחת לכל רבע, אחיד וחזק.',
+    },
+    notes: [
+      n(0, 1, 6, 3),
+      n(1, 1, 5, 0),
+      n(2, 1, 5, 2),
+      n(3, 1, 5, 3),
+      n(4, 1, 5, 3),
+      n(5, 1, 5, 2),
+      n(6, 1, 5, 0),
+      n(7, 1, 6, 3),
+    ],
+  },
+  {
+    id: 'country-g-major-pent',
+    title: { en: 'G Major Pentatonic, Open', he: 'פנטטוני G מז׳ור, פתוח' },
+    genre: 'country', level: 'beginner', key: 'G', scale: 'G major pentatonic', bpm: 84, source: 'dudestar',
+    about: {
+      en: 'The sound of country is the MAJOR pentatonic: G A B D E. Up from the low G to the open G string and back, in eighths.',
+      he: 'הצליל של קאנטרי הוא הפנטטוני המז׳ורי: G A B D E. עלייה מ־G הנמוך עד מיתר G הפתוח וחזרה, בשמיניות.',
+    },
+    notes: [
+      n(0, 0.5, 6, 3),
+      n(0.5, 0.5, 5, 0),
+      n(1, 0.5, 5, 2),
+      n(1.5, 0.5, 4, 0),
+      n(2, 0.5, 4, 2),
+      n(2.5, 0.5, 3, 0),
+      n(3, 0.5, 4, 2),
+      n(3.5, 0.5, 4, 0),
+      n(4, 0.5, 5, 2),
+      n(4.5, 0.5, 5, 0),
+      n(5, 1, 6, 3, { vib: true }),
+    ],
+  },
+  {
+    id: 'country-g-run',
+    title: { en: 'The G Run (Bluegrass Ending)', he: 'ריצת G (סיום בלוגראס)' },
+    genre: 'country', level: 'beginner', key: 'G', scale: 'G major + ♭3', bpm: 90, source: 'dudestar',
+    about: {
+      en: 'The classic ending of a bluegrass / country phrase: the ♭3 (B♭) slides into the 3rd (B) on the way up to G. Hammer the B♭ to B.',
+      he: 'הסיום הקלאסי של משפט בלוגראס / קאנטרי: ה־♭3 (B♭) מחליק אל הטרצה (B) בדרך ל־G. הכו פטיש מ־B♭ ל־B.',
+    },
+    notes: [
+      n(0, 0.5, 6, 3),
+      n(0.5, 0.5, 5, 0),
+      n(1, 0.5, 5, 1),
+      n(1.5, 0.5, 5, 2, { t: 'hammer' }),
+      n(2, 0.5, 4, 0),
+      n(2.5, 0.5, 4, 2),
+      n(3, 1, 3, 0),
+    ],
+  },
+  {
+    id: 'country-bend-to-3rd-a',
+    title: { en: 'Bend to the 3rd (A)', he: 'כפיפה לטרצה (A)' },
+    genre: 'country', level: 'intermediate', key: 'A', scale: 'A major pentatonic', bpm: 88, source: 'dudestar',
+    about: {
+      en: 'A country bend goes UP to the 3rd of the chord: B bent a whole tone to C♯ over A. Then down the major pentatonic to the root.',
+      he: 'כפיפה של קאנטרי עולה אל הטרצה של האקורד: B נכפף טון שלם ל־C♯ מעל A. אחר כך יורדים בפנטטוני המז׳ורי עד היסוד.',
+    },
+    notes: [
+      n(0, 1, 3, 4, { t: 'bend', bend: 2 }),
+      n(1, 0.5, 2, 5),
+      n(1.5, 0.5, 2, 2),
+      n(2, 0.5, 3, 4),
+      n(2.5, 0.5, 3, 2),
+      n(3, 1, 4, 7, { vib: true }),
+    ],
+  },
+  {
+    id: 'country-a-hammer-run',
+    title: { en: '♭3 → 3 Run in A', he: 'ריצת ♭3 ← 3 ב־A' },
+    genre: 'country', level: 'advanced', key: 'A', scale: 'A major pentatonic + ♭3', bpm: 92, source: 'dudestar',
+    about: {
+      en: 'Sixteenths through the A major pentatonic at the 5th fret, with the country move twice: C hammered to C♯ (♭3 to 3). Clean and even beats fast.',
+      he: 'שש־עשריות בפנטטוני A מז׳ור בשריג 5, עם המהלך של קאנטרי פעמיים: C בפטיש אל C♯ (♭3 אל 3). נקי ואחיד לפני מהיר.',
+    },
+    notes: [
+      n(0, 0.25, 5, 3),
+      n(0.25, 0.25, 5, 4, { t: 'hammer' }),
+      n(0.5, 0.25, 5, 7),
+      n(0.75, 0.25, 4, 4),
+      n(1, 0.25, 4, 7),
+      n(1.25, 0.25, 3, 4),
+      n(1.5, 0.25, 3, 5),
+      n(1.75, 0.25, 3, 6, { t: 'hammer' }),
+      n(2, 0.25, 2, 5),
+      n(2.25, 0.25, 2, 7),
+      n(2.5, 0.25, 2, 5),
+      n(2.75, 0.25, 3, 6),
+      n(3, 1, 4, 7, { vib: true }),
+    ],
+  },
 ];
 
 const RAW_LICKS = [
@@ -858,7 +967,7 @@ export function withDerived(lick) {
   return { ...lick, notes, lengthBeats: notes.length ? Math.ceil(lastEnd) : lick.lengthBeats ?? 0 };
 }
 
-export const LICKS = [...RAW_LICKS, ...TAPPING_LICKS, ...ARPEGGIO_LICKS].map(withDerived);
+export const LICKS = [...RAW_LICKS, ...COUNTRY_LICKS, ...TAPPING_LICKS, ...ARPEGGIO_LICKS].map(withDerived);
 
 // Full solos generated from the user's Guitar Pro files
 // (scripts/gp-to-licks.mjs with solo: true). Each has practice `sections`.

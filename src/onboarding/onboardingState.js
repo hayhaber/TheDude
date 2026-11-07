@@ -25,8 +25,8 @@ export const GOALS_PLAYER = ['barre', 'solo', 'blues', 'rhythm', 'speed', 'bends
 /** "What do you already play?" (guitar, plays songs) — said, not measured. */
 export const KNOW = ['open', 'strum', 'barre', 'penta', 'solo', 'tab'];
 export const goalsFor = (instrument, level) => (instrument === 'guitar' && level === 'songs' ? GOALS_PLAYER : GOALS[instrument] ?? GOALS.guitar);
-export const STYLES = ['pop', 'rock', 'blues', 'israeli', 'folk', 'jazz', 'metal'];
-export const MINUTES = [10, 15, 20, 30, 45, 60];
+export const STYLES = ['pop', 'rock', 'blues', 'country', 'israeli', 'folk', 'jazz', 'metal'];
+export const MINUTES = [10, 15, 20, 25, 30, 45, 60];
 /** Open chords a guitarist can show in the check (teacher skills chord-<X>). */
 export const CHECK_CHORDS = ['D', 'A', 'E', 'Em', 'Am', 'G', 'C'];
 
@@ -72,7 +72,7 @@ export function homeCardFor(ob) {
 
 const EXPERIENCE = { new: 'none', few: 'little', songs: 'some' };
 const COACH_LEVEL = { new: 'new', few: 'beginner', songs: 'intermediate' };
-const COACH_STYLE = { pop: 'pop', rock: 'rock', blues: 'blues', metal: 'metal', israeli: 'acoustic', folk: 'acoustic', jazz: 'blues' };
+const COACH_STYLE = { pop: 'pop', rock: 'rock', blues: 'blues', country: 'country', metal: 'metal', israeli: 'acoustic', folk: 'acoustic', jazz: 'blues' };
 const TEACHER_GOALS = ['songs', 'accompany', 'solo', 'theory', 'band'];
 
 /** Every style the student picked (several allowed since 2026-11-06; old

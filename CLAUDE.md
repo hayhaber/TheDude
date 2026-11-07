@@ -224,7 +224,14 @@ no tools).
   shown as LibraryRow rows (`components/Teacher/TryIn.jsx`) on the lesson's
   done screen; `lessonForChord('Em')` = the written lesson whose skills hold
   `chord-<name>` -> a "Learn it in a lesson" row under the Chord Library's
-  simple card (standard tuning). launchBus gained `{tool:'chordLibrary',
+  simple card (standard tuning). v1.0.153 (user, iPad: the open neck
+  covered the row, and "why offer me D/A when you know I'm advanced?"): the
+  link is now INSIDE the card (`.cl-lesson-link`, quiet accent text +
+  teacher icon; phones take its 44 px out of the diagram via `--cl-extra`)
+  and shows only when the student may need it — not for level >= 2
+  (`studentLevel()`), and not when `knowsChord()` (mastery.js: experience
+  some / lot, chord heard / said in the first run, skill mastered, or the
+  lesson done). launchBus gained `{tool:'chordLibrary',
   root, type}` (writes the library prefs, remounts it via App `chordLibN`)
   and `{tool:'lesson', id}` (App teacherStart.lesson -> TeacherView
   `initialLesson`). (c) ProfileChip `onSettings` -> a Settings button in the

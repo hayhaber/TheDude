@@ -669,6 +669,15 @@
     padding: 8px 10px 10px;
   }
 
+  /* the lesson link's row comes out of the diagram's room */
+  .chord-library .cl-simple:has(.cl-lesson-link) {
+    --cl-extra: 44px;
+  }
+
+  .chord-library .cl-lesson-link {
+    margin-top: 0;
+  }
+
   .chord-library .cl-simple-name {
     font-size: 26px;
   }
@@ -679,7 +688,7 @@
       calc(
           (
               100svh - var(--stage-height, 160px) - var(--bottom-tabs-height) - env(safe-area-inset-bottom, 0px) -
-                var(--mobile-top-clear, 60px) - 232px
+                var(--mobile-top-clear, 60px) - 232px - var(--cl-extra, 0px)
             ) / 1.13
         ),
       min(220px, 52vw)
@@ -751,7 +760,34 @@
 }
 
 /* Stage 6: "Learn it in a lesson" under the simple card. */
-.chord-library .cl-try {
-  max-width: 520px;
-  margin-top: 12px;
+.chord-library .cl-lesson-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  align-self: center;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.chord-library .cl-lesson-link:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.chord-library .cl-lesson-chev {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+}
+
+[dir='rtl'] .chord-library .cl-lesson-chev {
+  transform: scaleX(-1);
 }

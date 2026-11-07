@@ -29,8 +29,12 @@ import './ChordLibraryView.css';
 // tuning, neck labels, notes + formula, Pick / Add / Practise changes, and
 // all shapes as a grid grouped root position / inversions.
 
-import { TryIn } from '../Teacher/TryIn';
+import { launch } from '../../coach/launchBus';
+import { LineIcon } from '../LineIcon/LineIcon';
 import { lessonForChord } from '../../teacher/tryIn';
+import { knowsChord } from '../../teacher/mastery';
+import { useTeacher } from '../../teacher/teacherState';
+import { studentLevel } from '../PracticeView/practiceLibrary';
 
 const STORE = 'dudestar-p-chord-library'; // per profile
 const ALL_BASSES = 'auto';
@@ -120,7 +124,13 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
 
   const symbol = group ? appSymbol(root, type, group.bass) : null;
   const baseSymbol = appSymbol(root, type);
-  const lessonOf = prefs.tuning === 'standard' ? lessonForChord(baseSymbol) : null;
+  // Offered only to a student who may still need it: not to a player (level
+  // 2+ from the goal planner / first run / measured practice), and not for a
+  // chord the teacher knows they play.
+  const [teacher] = useTeacher();
+  const lvl = studentLevel();
+  const lessonCand = prefs.tuning === 'standard' && !(lvl != null && lvl >= 2) ? lessonForChord(baseSymbol) : null;
+  const lessonOf = lessonCand && !knowsChord(baseSymbol, teacher, lessonCand) ? lessonCand : null;
   const lessonLink = lessonOf ? { tool: 'lesson', id: lessonOf.id, title: lessonOf.title[lang] ?? lessonOf.title.en } : null;
   const formula = tones.map((x) => x.interval).join(' – ');
   const otherBasses = Array.from({ length: 12 }, (_, pc) => pc).filter((pc) => !tones.some((x) => x.pc === pc));
@@ -224,11 +234,20 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
               <AutoPlayToggle on={prefs.autoPlay !== false} onChange={(v) => set({ autoPlay: v })} label={t('chordlib.autoPlay')} />
             </div>
           )}
+          {/* The lesson that teaches this chord — inside the card, so the
+              neck never covers it; only for students who may need it. */}
+          {lessonLink && (
+            <button type="button" className="cl-lesson-link" onClick={() => launch(lessonLink)}>
+              <LineIcon name="teacher" size={17} />
+              <span>
+                {t('try.lesson')} · {lessonLink.title}
+              </span>
+              <span className="cl-lesson-chev" aria-hidden="true">›</span>
+            </button>
+          )}
         </section>
       )}
 
-      {/* Stage 6: the lesson that teaches this chord (open chords so far). */}
-      {!advanced && lessonLink && <TryIn className="cl-try" title={false} specs={[lessonLink]} />}
 
       {advanced && (
         <>

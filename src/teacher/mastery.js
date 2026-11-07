@@ -71,6 +71,21 @@ function knownSkill(skill, state) {
   return false;
 }
 
+/**
+ * The student already knows this chord, so nothing should offer its lesson:
+ * a player (experience some / lot), the chord heard or said in the first run,
+ * its skill mastered, or its lesson finished.
+ */
+export function knowsChord(name, state, lesson = null) {
+  if (!state) return false;
+  const exp = state.intake?.experience;
+  if (exp === 'some' || exp === 'lot') return true;
+  if (lesson && state.lessons?.[lesson.id]?.done) return true;
+  const skill = skillById(`chord-${name}`);
+  if (!skill) return false;
+  return knownSkill(skill, state) || skillStatus(skill, state).status === 'mastered';
+}
+
 /** A not-started lesson the student showed (or said) they already know. */
 function covered(lesson, state) {
   if (state.lessons[lesson.id]) return false;

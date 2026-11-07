@@ -61,6 +61,10 @@ export const FINGERS = {
   A: [0, 0, 1, 2, 3, 0],
   E: [0, 2, 3, 1, 0, 0],
   Em: [0, 2, 3, 0, 0, 0],
+  Am: [0, 0, 2, 3, 1, 0],
+  Dm: [0, 0, 0, 2, 3, 1],
+  G: [2, 1, 0, 0, 0, 3],
+  C: [0, 3, 2, 0, 1, 0],
 };
 
 // ---------------------------------------------------------------------------
@@ -96,6 +100,14 @@ export const SKILLS = [
   { id: 'chord-Dm', domain: 'fretting', level: 2, after: ['chord-D'], title: L('Dm chord', `אקורד ${H('Dm')}`), check: { kind: 'chord', chord: 'Dm' } },
   { id: 'chord-G', domain: 'fretting', level: 2, title: L('G chord', `אקורד ${H('G')}`), check: { kind: 'chord', chord: 'G' } },
   { id: 'chord-C', domain: 'fretting', level: 2, title: L('C chord', `אקורד ${H('C')}`), check: { kind: 'chord', chord: 'C' } },
+  { id: 'changes-EAm', domain: 'fretting', level: 2, after: ['chord-E', 'chord-Am'], title: L('E–Am changes, 30 a minute', `החלפות ${H('E–Am')}, 30 בדקה`), check: { kind: 'changes', pair: ['E', 'Am'], min: 30 } },
+  { id: 'changes-AmDm', domain: 'fretting', level: 2, after: ['chord-Am', 'chord-Dm'], title: L('Am–Dm changes, 30 a minute', `החלפות ${H('Am–Dm')}, 30 בדקה`), check: { kind: 'changes', pair: ['Am', 'Dm'], min: 30 } },
+  { id: 'changes-GC', domain: 'fretting', level: 2, after: ['chord-G', 'chord-C'], title: L('G–C changes, 30 a minute', `החלפות ${H('G–C')}, 30 בדקה`), check: { kind: 'changes', pair: ['G', 'C'], min: 30 } },
+  { id: 'changes-CAm', domain: 'fretting', level: 2, after: ['chord-C', 'chord-Am'], title: L('C–Am changes, 40 a minute', `החלפות ${H('C–Am')}, 40 בדקה`), check: { kind: 'changes', pair: ['C', 'Am'], min: 40 } },
+  { id: 'song-G', domain: 'repertoire', level: 2, after: ['changes-GC'], title: L('A song in G: G, D, Em, C', `שיר ב־${H('G')}: ${H('G, D, Em, C')}`), check: { kind: 'self' } },
+  { id: 'penta-shape', domain: 'lead', level: 2, title: L('A minor pentatonic, position 1', `פנטטוני ${H('A')} מינור, תנוחה 1`), check: { kind: 'play', arp: 'am-penta-1' } },
+  { id: 'penta-roots', domain: 'fretboard', level: 2, title: L('The roots in the pentatonic box', 'היסודות בתיבה הפנטטונית'), check: { kind: 'quiz', id: 'penta-roots' } },
+  { id: 'penta-improv', domain: 'lead', level: 2, after: ['penta-shape'], title: L('First improvisation over a blues', 'אלתור ראשון על בלוז'), check: { kind: 'self' } },
   { id: 'arp-tones', domain: 'fretboard', level: 3, title: L('Chord tones: root, 3rd, 5th', 'צלילי האקורד: יסוד, טרצה, קווינטה'), check: { kind: 'quiz', id: 'arp-tones' } },
   { id: 'arp-C-open', domain: 'picking', level: 3, title: L('Open C arpeggio', `ארפג׳יו ${H('C')} פתוח`), check: { kind: 'play', arp: 'C-open' } },
   { id: 'arp-G-E', domain: 'lead', level: 3, title: L('Arpeggio, root on string 6', 'ארפג׳יו, יסוד על מיתר 6'), check: { kind: 'play', arp: 'G-E' } },
@@ -1246,6 +1258,286 @@ const lessonFirstSong = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// LEVEL 2 (RSL Grade 1), written 2026-11-07. Method: JustinGuitar's next
+// stage — the minor chords Am, Em, Dm (each the major's "sister": one finger
+// moves the 3rd down a semitone), then G and C with the anchor-finger change
+// C–Am, songs in G (I–V–vi–IV), then the first scale: A minor pentatonic
+// position 1, one finger per fret, played up and down to the click, roots
+// named, and a first improvisation over the 12-bar blues — the Grade 1
+// syllabus's open chords + one scale. Text is our own.
+// ---------------------------------------------------------------------------
+
+const lessonMinorChords = {
+  id: 'g2-minor-chords',
+  level: 2,
+  title: L('Am, Em and Dm', `${H('Am')}, ${H('Em')} ו־${H('Dm')}`),
+  objective: L(
+    'Play the three open minor chords and hear the difference between major and minor.',
+    'לנגן את שלושת אקורדי המינור הפתוחים ולשמוע את ההבדל בין מז׳ור למינור.'
+  ),
+  minutes: 25,
+  skills: ['chord-Am', 'chord-Em', 'chord-Dm', 'changes-EAm', 'changes-AmDm'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Major and minor', 'מז׳ור ומינור'),
+      text: L(
+        'A major chord and its minor share the root and the 5th — only the 3rd changes, one semitone lower in minor. That single note turns bright into dark. You met it already: E → Em lifts one finger. Today: Am, a new look at Em, and Dm.',
+        `אקורד מז׳ור והמינור שלו חולקים את היסוד ואת הקווינטה — רק הטרצה משתנה, חצי טון נמוכה יותר במינור. הצליל האחד הזה הופך בהיר לכהה. כבר פגשת את זה: ${H('E → Em')} מרים אצבע אחת. היום: ${H('Am')}, מבט חדש על ${H('Em')}, ו־${H('Dm')}.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('Am = the E shape, one string over', `${H('Am')} = הצורה של ${H('E')}, מיתר אחד הלאה`),
+      shape: 'Am',
+      text: L(
+        'Make an E, then move all three fingers one string towards the floor: middle (2) on string 4 fret 2, ring (3) on string 3 fret 2, index (1) on string 2 fret 1. Strum from string 5 — string 6 stays silent. A minor = A (the root), C (the minor 3rd), E (the 5th).',
+        `עשה ${H('E')}, והזז את שלוש האצבעות מיתר אחד לכיוון הרצפה: אמה (2) על מיתר 4 שריג 2, קמיצה (3) על מיתר 3 שריג 2, מורה (1) על מיתר 2 שריג 1. פורטים ממיתר 5 — מיתר 6 שקט. ${H('A')} מינור = ${H('A')} (היסוד), ${H('C')} (הטרצה הקטנה), ${H('E')} (הקווינטה).`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'Am',
+      title: L('Play Am', `נגן ${H('Am')}`),
+      text: L('String by string from 5 to 1, then strum. If string 1 is dead, the index finger is touching it — arch it.', 'מיתר אחרי מיתר מ־5 עד 1, ואז פריטה. אם מיתר 1 מת, האצבע המורה נוגעת בו — קשת אותה.'),
+    },
+    {
+      kind: 'chord',
+      chord: 'Em',
+      title: L('Em again', `שוב ${H('Em')}`),
+      text: L(
+        'E minor = E (root), G (minor 3rd), B (5th) — the E chord without the index finger. Play it, all six strings.',
+        `${H('E')} מינור = ${H('E')} (יסוד), ${H('G')} (טרצה קטנה), ${H('B')} (קווינטה) — אקורד ${H('E')} בלי האצבע המורה. נגן אותו, כל ששת המיתרים.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('Dm = D with one finger lower', `${H('Dm')} = ${H('D')} עם אצבע אחת נמוכה יותר`),
+      shape: 'Dm',
+      text: L(
+        'In D the middle finger holds F♯ on string 1, fret 2 — the major 3rd. Lower it one fret to F and you have D minor = D (root), F (minor 3rd), A (5th). Because the 1st fret is now on string 1, the fingering changes: middle (2) on string 3 fret 2, ring (3) on string 2 fret 3, index (1) on string 1 fret 1. Strum strings 4 to 1.',
+        `ב־${H('D')} האמה מחזיקה ${H('F♯')} על מיתר 1, שריג 2 — הטרצה הגדולה. הורד אותה שריג אחד ל־${H('F')} וקיבלת ${H('D')} מינור = ${H('D')} (יסוד), ${H('F')} (טרצה קטנה), ${H('A')} (קווינטה). כיוון ששריג 1 נמצא עכשיו על מיתר 1, האצבוע משתנה: אמה (2) על מיתר 3 שריג 2, קמיצה (3) על מיתר 2 שריג 3, מורה (1) על מיתר 1 שריג 1. פורטים מיתרים 4 עד 1.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'Dm',
+      title: L('Play Dm', `נגן ${H('Dm')}`),
+      text: L('Four strings only: 4 to 1. Check each one rings.', 'ארבעה מיתרים בלבד: 4 עד 1. בדוק שכל אחד מצלצל.'),
+    },
+    {
+      kind: 'quiz',
+      id: 'major-minor',
+      title: L('Hear the difference', 'לשמוע את ההבדל'),
+      question: L('What is the only difference between D and Dm?', `מה ההבדל היחיד בין ${H('D')} ל־${H('Dm')}?`),
+      options: [
+        L('The 3rd: F♯ in D, F in Dm — one semitone', `הטרצה: ${H('F♯')} ב־${H('D')}, ${H('F')} ב־${H('Dm')} — חצי טון`),
+        L('The root moves up a tone', 'היסוד עולה בטון'),
+        L('Dm has one string more', `ל־${H('Dm')} יש מיתר אחד יותר`),
+      ],
+      answer: 0,
+      why: L('Root (D) and 5th (A) stay; the 3rd drops a semitone. That is what “minor” means.', `היסוד (${H('D')}) והקווינטה (${H('A')}) נשארים; הטרצה יורדת בחצי טון. זה מה ש"מינור" אומר.`),
+    },
+    {
+      kind: 'changes',
+      pair: ['E', 'Am'],
+      title: L('One-minute changes: E and Am', `החלפות בדקה: ${H('E')} ו־${H('Am')}`),
+      text: L('The same shape on two string sets — keep the fingers together and move the whole hand one string.', 'אותה צורה על שתי קבוצות מיתרים — שמור את האצבעות יחד והזז את כל היד מיתר אחד.'),
+    },
+    {
+      kind: 'changes',
+      pair: ['Am', 'Dm'],
+      title: L('One-minute changes: Am and Dm', `החלפות בדקה: ${H('Am')} ו־${H('Dm')}`),
+      text: L('Look at both shapes in the air before you land.', 'ראה את שתי הצורות באוויר לפני הנחיתה.'),
+    },
+    {
+      kind: 'checklist',
+      metronome: 70,
+      title: L('A minor progression', 'מהלך במינור'),
+      text: L('Am, Dm, Am, E — one bar each, down strums, then the common pattern. E here is the V of A minor: it pulls back to Am.', `${H('Am, Dm, Am, E')} — תיבה לכל אחד, פריטות למטה, ואז הדפוס הנפוץ. ${H('E')} כאן הוא ה־${H('V')} של ${H('A')} מינור: הוא מושך חזרה ל־${H('Am')}.`),
+      chart: { bars: ['Am', 'Dm', 'Am', 'E'] },
+      items: [L('Three rounds without stopping.', 'שלושה סיבובים בלי לעצור.'), L('Each chord rings on its “1”.', 'כל אקורד מצלצל ב"1" שלו.')],
+    },
+  ],
+  homework: [
+    { id: 'eam-hw', kind: 'changes', pair: ['E', 'Am'], min: 30, perDay: 1, text: L('One-minute changes E–Am, once a day. Goal: 30.', `החלפות בדקה ${H('E–Am')}, פעם ביום. יעד: 30.`) },
+    { id: 'amdm-hw', kind: 'changes', pair: ['Am', 'Dm'], min: 30, perDay: 1, text: L('One-minute changes Am–Dm, once a day. Goal: 30.', `החלפות בדקה ${H('Am–Dm')}, פעם ביום. יעד: 30.`) },
+  ],
+};
+
+const lessonGC = {
+  id: 'g2-G-C',
+  level: 2,
+  title: L('G and C', `${H('G')} ו־${H('C')}`),
+  objective: L(
+    'Play G and C, change C–Am with anchor fingers, and play a song in G.',
+    `לנגן ${H('G')} ו־${H('C')}, להחליף ${H('C–Am')} עם אצבעות עוגן, ולנגן שיר ב־${H('G')}.`
+  ),
+  minutes: 25,
+  skills: ['chord-G', 'chord-C', 'changes-GC', 'changes-CAm', 'song-G'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('The G chord', `האקורד ${H('G')}`),
+      shape: 'G',
+      text: L(
+        'Middle finger (2) on string 6 fret 3, index (1) on string 5 fret 2, ring (3) on string 1 fret 3; strings 4, 3 and 2 open. All six strings. G major = G (root), B (major 3rd), D (5th) — the open strings give you D, G and B for free.',
+        `אמה (2) על מיתר 6 שריג 3, מורה (1) על מיתר 5 שריג 2, קמיצה (3) על מיתר 1 שריג 3; מיתרים 4, 3 ו־2 פתוחים. כל ששת המיתרים. ${H('G')} מז׳ור = ${H('G')} (יסוד), ${H('B')} (טרצה גדולה), ${H('D')} (קווינטה) — המיתרים הפתוחים נותנים לך ${H('D')}, ${H('G')} ו־${H('B')} בחינם.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'G',
+      title: L('Play G', `נגן ${H('G')}`),
+      text: L('The open strings 4–2 must ring: keep the index and middle fingers on their tips, away from string 4.', 'המיתרים הפתוחים 4–2 חייבים לצלצל: החזק את המורה והאמה על הקצות, הרחק ממיתר 4.'),
+    },
+    {
+      kind: 'explain',
+      title: L('The C chord', `האקורד ${H('C')}`),
+      shape: 'C',
+      text: L(
+        'A diagonal: ring (3) on string 5 fret 3, middle (2) on string 4 fret 2, index (1) on string 2 fret 1; strings 3 and 1 open. Strum from string 5. C major = C (root), E (major 3rd), G (5th).',
+        `אלכסון: קמיצה (3) על מיתר 5 שריג 3, אמה (2) על מיתר 4 שריג 2, מורה (1) על מיתר 2 שריג 1; מיתרים 3 ו־1 פתוחים. פורטים ממיתר 5. ${H('C')} מז׳ור = ${H('C')} (יסוד), ${H('E')} (טרצה גדולה), ${H('G')} (קווינטה).`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'C',
+      title: L('Play C', `נגן ${H('C')}`),
+      text: L('The open G string (3) is the one that dies most — arch the middle finger over it.', `מיתר ${H('G')} הפתוח (3) הוא זה שמת הכי הרבה — קשת את האמה מעליו.`),
+    },
+    {
+      kind: 'explain',
+      title: L('Anchor fingers: C to Am', `אצבעות עוגן: מ־${H('C')} ל־${H('Am')}`),
+      text: L(
+        'Look at C and Am: index on string 2 fret 1, middle on string 4 fret 2 — the same in both! Leave them pressed and move only the ring finger, from string 5 fret 3 to string 3 fret 2. Fingers that stay are “anchors”: the fastest change is the one where fewer fingers move.',
+        `הסתכל על ${H('C')} ועל ${H('Am')}: מורה על מיתר 2 שריג 1, אמה על מיתר 4 שריג 2 — אותו דבר בשניהם! השאר אותן לחוצות והזז רק את הקמיצה, ממיתר 5 שריג 3 למיתר 3 שריג 2. אצבעות שנשארות הן "עוגנים": ההחלפה המהירה ביותר היא זו שבה פחות אצבעות זזות.`
+      ),
+    },
+    {
+      kind: 'changes',
+      pair: ['C', 'Am'],
+      title: L('One-minute changes: C and Am', `החלפות בדקה: ${H('C')} ו־${H('Am')}`),
+      text: L('Only the ring finger moves. Goal for this pair: 40.', 'רק הקמיצה זזה. היעד לזוג הזה: 40.'),
+    },
+    {
+      kind: 'changes',
+      pair: ['G', 'C'],
+      title: L('One-minute changes: G and C', `החלפות בדקה: ${H('G')} ו־${H('C')}`),
+      text: L('No anchors here — move the shape as one, ring finger first.', 'כאן אין עוגנים — הזז את הצורה כיחידה, הקמיצה ראשונה.'),
+    },
+    {
+      kind: 'checklist',
+      skill: 'song-G',
+      metronome: 70,
+      groove: 'rock',
+      title: L('A song in G', `שיר ב־${H('G')}`),
+      text: L(
+        'G – D – Em – C: in the key of G these are I (tonic), V (dominant), vi (the relative minor) and IV (subdominant) — the four chords behind countless pop songs. One bar each, the common pattern. Hear it first.',
+        `${H('G – D – Em – C')}: בסולם ${H('G')} אלה ${H('I')} (טוניקה), ${H('V')} (דומיננטה), ${H('vi')} (המינור המקביל) ו־${H('IV')} (סובדומיננטה) — ארבעת האקורדים שמאחורי אינספור שירי פופ. תיבה לכל אחד, הדפוס הנפוץ. קודם שמע.`
+      ),
+      chart: { bars: ['G', 'D', 'Em', 'C'], pattern: 'D-DU-UDU' },
+      items: [L('Four rounds without stopping.', 'ארבעה סיבובים בלי לעצור.'), L('The strumming hand keeps moving through every change.', 'יד הפריטה ממשיכה לזוז בכל החלפה.')],
+    },
+  ],
+  homework: [
+    { id: 'cam-hw', kind: 'changes', pair: ['C', 'Am'], min: 40, perDay: 1, text: L('One-minute changes C–Am, once a day. Goal: 40.', `החלפות בדקה ${H('C–Am')}, פעם ביום. יעד: 40.`) },
+    { id: 'gc-hw', kind: 'changes', pair: ['G', 'C'], min: 30, perDay: 1, text: L('One-minute changes G–C, once a day. Goal: 30.', `החלפות בדקה ${H('G–C')}, פעם ביום. יעד: 30.`) },
+    { id: 'songg-hw', kind: 'self', text: L('Once a day: G – D – Em – C, four rounds with the drums.', `פעם ביום: ${H('G – D – Em – C')}, ארבעה סיבובים עם התופים.`) },
+  ],
+};
+
+const lessonMinorPent = {
+  id: 'g2-minor-pent',
+  level: 2,
+  title: L('Your first scale: A minor pentatonic', `הסולם הראשון שלך: פנטטוני ${H('A')} מינור`),
+  objective: L(
+    'Play the A minor pentatonic box up and down, know where its roots are, and improvise over the blues.',
+    `לנגן את התיבה של פנטטוני ${H('A')} מינור למעלה ולמטה, לדעת איפה היסודות שלה, ולאלתר על הבלוז.`
+  ),
+  minutes: 25,
+  skills: ['penta-shape', 'penta-roots', 'penta-improv'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Five notes for solos', 'חמישה צלילים לסולו'),
+      text: L(
+        'A scale is a set of notes that sound good together. The minor pentatonic has five: in A they are A (the root, 1), C (minor 3rd, ♭3), D (4th), E (5th) and G (minor 7th, ♭7). It is the scale behind most rock and blues solos — and it has no “wrong” note over a blues in A.',
+        `סולם הוא קבוצת צלילים שנשמעים טוב יחד. לפנטטוני המינורי יש חמישה: ב־${H('A')} הם ${H('A')} (היסוד, ${H('1')}), ${H('C')} (טרצה קטנה, ${H('♭3')}), ${H('D')} (קוורטה, ${H('4')}), ${H('E')} (קווינטה, ${H('5')}) ו־${H('G')} (ספטימה קטנה, ${H('♭7')}). זה הסולם שמאחורי רוב סולואי הרוק והבלוז — ואין בו צליל "שגוי" על בלוז ב־${H('A')}.`
+      ),
+    },
+    {
+      kind: 'arp',
+      arp: 'am-penta-1',
+      labels: 'degree',
+      title: L('The box at fret 5', 'התיבה בשריג 5'),
+      text: L(
+        'Two notes on each string, at frets 5 and 7 or 5 and 8. One finger per fret: index (1) plays fret 5, ring (3) fret 7, pinky (4) fret 8. Hear it, then look at the numbers on the neck: each note’s role in the scale.',
+        'שני צלילים על כל מיתר, בשריגים 5 ו־7 או 5 ו־8. אצבע לכל שריג: מורה (1) מנגנת שריג 5, קמיצה (3) שריג 7, זרת (4) שריג 8. שמע, ואז הסתכל על המספרים על הצוואר: התפקיד של כל צליל בסולם.'
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'am-penta-1',
+      skill: 'penta-shape',
+      title: L('Play it up', 'נגן אותו למעלה'),
+      text: L(
+        'From string 6 fret 5 to string 1 fret 8, one note at a time. The teacher lights the next note when it hears the right one — go slowly, let each note ring.',
+        'ממיתר 6 שריג 5 עד מיתר 1 שריג 8, צליל אחד בכל פעם. המורה מדליק את הצליל הבא כשהוא שומע את הנכון — לאט, תן לכל צליל לצלצל.'
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'am-penta-1',
+      updown: true,
+      title: L('Up and back down', 'למעלה ובחזרה למטה'),
+      text: L('All the way up and back down to string 6 fret 5 — the root.', 'כל הדרך למעלה ובחזרה למטה עד מיתר 6 שריג 5 — היסוד.'),
+    },
+    {
+      kind: 'quiz',
+      id: 'penta-roots',
+      skill: 'penta-roots',
+      title: L('Where is home?', 'איפה הבית?'),
+      question: L('Where are the A roots in this box?', `איפה היסודות ${H('A')} בתיבה הזו?`),
+      options: [
+        L('String 6 fret 5, string 4 fret 7, string 1 fret 5', 'מיתר 6 שריג 5, מיתר 4 שריג 7, מיתר 1 שריג 5'),
+        L('Every note at fret 5', 'כל צליל בשריג 5'),
+        L('Only string 6 fret 5', 'רק מיתר 6 שריג 5'),
+      ],
+      answer: 0,
+      why: L(
+        'Three A’s in the box, an octave apart: string 6 fret 5, string 4 fret 7, string 1 fret 5. A solo sounds finished when it lands on one of them.',
+        `שלושה ${H('A')} בתיבה, אוקטבה זה מזה: מיתר 6 שריג 5, מיתר 4 שריג 7, מיתר 1 שריג 5. סולו נשמע גמור כשהוא נוחת על אחד מהם.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      metronome: 60,
+      title: L('With the click', 'עם הנקישה'),
+      text: L('Up and down, one note on every click, alternate picking (down, up, down, up). When it is clean, two notes per click.', 'למעלה ולמטה, צליל אחד על כל נקישה, פריטה מתחלפת (למטה, למעלה, למטה, למעלה). כשזה נקי, שני צלילים לכל נקישה.'),
+      items: [L('Every note lands on a click.', 'כל צליל נוחת על נקישה.'), L('Alternate picking all the way.', 'פריטה מתחלפת לאורך כל הדרך.'), L('Up and down twice without a mistake.', 'למעלה ולמטה פעמיים בלי טעות.')],
+    },
+    {
+      kind: 'checklist',
+      skill: 'penta-improv',
+      metronome: 80,
+      groove: 'blues',
+      title: L('Your first improvisation', 'האלתור הראשון שלך'),
+      text: L(
+        'Start the drums and play any notes of the box, in any order, over the 12-bar blues in A in your head. Short phrases, leave space between them, end phrases on an A. There are no wrong notes here — only choices.',
+        `הפעל את התופים ונגן כל צלילים מהתיבה, בכל סדר, על הבלוז של 12 תיבות ב־${H('A')} שבראש שלך. משפטים קצרים, השאר רווח ביניהם, סיים משפטים על ${H('A')}. אין כאן צלילים שגויים — רק בחירות.`
+      ),
+      chart: { bars: ['A', 'A', 'A', 'A', 'D', 'D', 'A', 'A', 'E', 'D', 'A', 'E'] },
+      items: [L('Two minutes without stopping.', 'שתי דקות בלי לעצור.'), L('Phrases with silence between them.', 'משפטים עם שקט ביניהם.'), L('Most phrases end on an A.', `רוב המשפטים נגמרים על ${H('A')}.`)],
+    },
+  ],
+  homework: [
+    { id: 'penta-hw', kind: 'play', arp: 'am-penta-1', updown: true, skill: 'penta-shape', text: L('The box up and down once a day with the teacher listening.', 'התיבה למעלה ולמטה פעם ביום כשהמורה מקשיב.') },
+    { id: 'improv-hw', kind: 'self', text: L('3 minutes a day: free improvisation over the blues drums.', '3 דקות ביום: אלתור חופשי על תופי הבלוז.') },
+  ],
+};
+
 export const LESSONS = [
   lessonBasics,
   lessonFirstNote,
@@ -1255,8 +1547,9 @@ export const LESSONS = [
   lessonChordE,
   lessonStrumming,
   lessonFirstSong,
-  { id: 'g2-minor-chords', level: 2, title: L('Am, Em and Dm', `${H('Am')}, ${H('Em')} ו־${H('Dm')}`), skills: ['chord-Am', 'chord-Em', 'chord-Dm'] },
-  { id: 'g2-G-C', level: 2, title: L('G and C', `${H('G')} ו־${H('C')}`), skills: ['chord-G', 'chord-C'] },
+  lessonMinorChords,
+  lessonGC,
+  lessonMinorPent,
   lessonArpeggios,
   lessonTapping,
 ];

@@ -17,6 +17,15 @@ export const TRY_IN = {
   ],
   'g1-strumming': [{ tool: 'chordChanges', chords: ['A', 'D'], bpm: 60 }],
   'g1-first-song': [{ tool: 'chordChanges', chords: ['A', 'D', 'E'], bpm: 70 }],
+  'g2-minor-chords': [
+    { tool: 'minuteChanges', chords: ['Am', 'Dm'] },
+    { tool: 'chordLibrary', root: 9, type: 'minor', name: 'Am' },
+  ],
+  'g2-G-C': [
+    { tool: 'minuteChanges', chords: ['G', 'C'] },
+    { tool: 'chordChanges', chords: ['G', 'D', 'Em', 'C'], bpm: 70 },
+  ],
+  'g2-minor-pent': [{ tool: 'scale', scaleKey: 'minorPentatonic', root: 9, mode: 'position', positionIndex: 0, bpm: 60 }],
   'g3-arpeggios': [
     { tool: 'lick', lickId: 'arp-pop-1564', kind: 'arp' },
     { tool: 'chordLibrary', root: 0, type: 'major', name: 'C' },

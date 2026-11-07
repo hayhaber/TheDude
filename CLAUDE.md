@@ -1514,6 +1514,24 @@ no tools).
   Pure check: every skill / shape / pattern valid, E = E B E G♯ B E, path
   little: D-A -> E -> strumming -> first song. Playwright walked all three
   (HE + EN), Hear lights slots / bars. NOT verified with a real guitar.
+- LEVEL 2 written (v1.0.157, 2026-11-07, user: "keep building, I'll go
+  over it later"; the USER reviews): RSL Grade 1 = all open chords + one
+  scale, in JustinGuitar's order. `g2-minor-chords` (major vs minor = the
+  3rd a semitone lower; Am = the E shape one string over, A C E; Em review;
+  Dm = D with the 3rd F♯ -> F, new fingering; quiz; changes E–Am + Am–Dm;
+  Am Dm Am E chart), `g2-G-C` (G = G B D with 4-2 open; C diagonal C E G;
+  ANCHOR fingers C–Am — index + middle stay, only the ring moves; changes
+  C–Am (40) + G–C; G D Em C = I V vi IV song with the rock groove),
+  `g2-minor-pent` (A C D E G = 1 ♭3 4 5 ♭7; box at fret 5 one finger per
+  fret — ARPS `am-penta-1`; play up, then up+down; roots quiz s6f5 / s4f7 /
+  s1f5; alternate picking at 60; first improvisation over the blues
+  groove). FINGERS Am / Dm / G / C, new skills changes-EAm / changes-AmDm /
+  changes-GC / changes-CAm / song-G / penta-shape / penta-roots /
+  penta-improv. TRY_IN (+ new kind `scale` -> Scale practice, `try.scale*`).
+  Pure check: shapes = right tones, fingers match frets, penta labels +
+  roots, path L1 -> minor chords -> G C -> pentatonic. Playwright walked
+  all three; fake-mic (KS) WAV of the 12 box notes -> the play step heard
+  all 12. NOT verified with a real guitar.
 - Plan doc (Docs artifact): https://claude.ai/artifact/CeJC6CVwAu6KmqVXyjPQ46 —
   user approved: Coach merged into the Teacher, guitar levels 0–3 first, no
   AI chat in phase 1, Claude writes lessons and the USER reviews level 1

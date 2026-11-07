@@ -26,6 +26,8 @@ export const TIPS_INTRO = {
     'try.lick': 'Lick trainer',
     'try.lickArpDesc': 'Triad arpeggios over a progression',
     'try.lickTapDesc': 'Tapping licks, with feedback on every note',
+    'try.scale': 'Scale practice: A minor pentatonic',
+    'try.scaleDesc': 'With the click — or Free: any notes, the teacher checks each one',
   },
   he: {
     'intro.ok': 'הבנתי',
@@ -47,5 +49,7 @@ export const TIPS_INTRO = {
     'try.lick': 'מאמן ליקים',
     'try.lickArpDesc': 'ארפג׳יו של משולשים מעל מהלך אקורדים',
     'try.lickTapDesc': 'ליקי הקשה, עם משוב לכל צליל',
+    'try.scale': 'תרגול סולם: פנטטוני A מינור',
+    'try.scaleDesc': 'עם הנקישה — או חופשי: כל צליל, והמורה בודק כל אחד',
   },
 };

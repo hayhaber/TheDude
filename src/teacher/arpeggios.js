@@ -69,6 +69,12 @@ export const ARPS = {
   // Tapping in a solo: A minor pentatonic box 1 (frets 5-8) + one tapped
   // note per string above the box. Tap - pull - pull triplets, high E then
   // B string, ending on the root A.
+  // ---- Level 2 (g2-minor-pent): A minor pentatonic, position 1 at fret 5,
+  // one finger per fret (1 on fret 5, 3 on 7, 4 on 8), low to high.
+  'am-penta-1': {
+    root: 9, type: 'minor', scale: true, gap: 0.32,
+    notes: [[6, 5, 1], [6, 8, 4], [5, 5, 1], [5, 7, 3], [4, 5, 1], [4, 7, 3], [3, 5, 1], [3, 7, 3], [2, 5, 1], [2, 8, 4], [1, 5, 1], [1, 8, 4]],
+  },
   'tap-penta': {
     root: 9, type: 'minor', scale: true, gap: 0.17,
     notes: [[1, 5, 1], [1, 8, 4], [1, 12, 'T'], [2, 5, 1], [2, 8, 4], [2, 10, 'T']],

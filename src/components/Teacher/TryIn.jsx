@@ -11,6 +11,7 @@ const LOOK = {
   drill: { icon: 'hand', color: '#30B0C7' },
   lick: { icon: 'note', color: '#007AFF' },
   lesson: { icon: 'teacher', color: '#FF2D55' },
+  scale: { icon: 'note', color: '#34C759' },
 };
 
 function rowText(spec, t) {
@@ -25,6 +26,8 @@ function rowText(spec, t) {
       return [t('try.drills'), t('try.drillsDesc')];
     case 'lick':
       return [t('try.lick'), t(spec.kind === 'tap' ? 'try.lickTapDesc' : 'try.lickArpDesc')];
+    case 'scale':
+      return [t('try.scale'), t('try.scaleDesc')];
     case 'lesson':
       return [t('try.lesson'), spec.title];
     default:

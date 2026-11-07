@@ -529,6 +529,13 @@ no tools).
   and uses the analyser only when the tap has no data; it also asks for
   `channelCount: 1` like the Recorder. Diag prefix: `wk|an an <peak> wk
   <blocks>/<peak>` (which path fed the frame).
+- **Tuner drawer never scrolls (v1.0.152, user's computer: the drawer
+  opened with a scrollbar)**: it reserved 160 px for the neck below, so on
+  a short window (browser zoom / small laptop, < ~700 px) the 543 px tuner
+  didn't fit. Now max-height = 100svh − 16 (the tuner needs no neck) and
+  TunerBar.jsx scales the device with CSS `zoom` to the room left when even
+  that is too short (min 0.5; refit on resize). Checked 1024x460 (zoom
+  0.79), 960x600, 1280x650, 1440x900, 390, 820: no scroll.
 - **No page bounce (v1.0.116, iPad: "the Learn page drags up and down")**:
   html + body `overscroll-behavior: none` (body had `contain`, which still
   lets iOS rubber-band the page itself — the bars moved with the finger;

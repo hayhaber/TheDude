@@ -93,7 +93,9 @@
      scrollbar even after the card's own height was made fully uniform),
      this is the difference between the whole card fitting without
      scrolling or not. */
-  max-height: calc(100svh - 160px);
+  /* The tuner needs no neck, so it may cover it; on a still shorter window
+     TunerBar.jsx scales the device down to fit (no scrolling). */
+  max-height: calc(100svh - 16px);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);

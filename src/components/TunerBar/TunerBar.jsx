@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GuitarTuner } from '../GuitarTuner/GuitarTuner';
 import { useInstrument } from '../../instruments/useInstrument';
@@ -29,6 +29,35 @@ export function TunerBar() {
   const [open, setOpen] = useState(false);
   const { instrument } = useInstrument();
   const { t } = useLanguage();
+  const drawerRef = useRef(null);
+  const bodyRef = useRef(null);
+
+  // The whole tuner always shows, never a scrollbar: on a short window
+  // (small laptop, browser zoom) the device is scaled down to the room the
+  // drawer has (CSS zoom keeps taps where they're drawn).
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    const fit = () => {
+      const drawer = drawerRef.current;
+      const tuner = bodyRef.current?.firstElementChild;
+      if (!drawer || !tuner) return;
+      tuner.style.zoom = '';
+      const cs = getComputedStyle(drawer);
+      const maxH = parseFloat(cs.maxHeight) || window.innerHeight;
+      const chrome = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.rowGap || 0) + (drawer.firstElementChild?.offsetHeight ?? 0);
+      const natural = tuner.offsetHeight;
+      const z = natural ? Math.min(1, (maxH - chrome - 2) / natural) : 1;
+      if (z < 0.995) tuner.style.zoom = String(Math.max(0.5, z));
+    };
+    fit();
+    const timers = [requestAnimationFrame(fit), setTimeout(fit, 350)];
+    window.addEventListener('resize', fit);
+    return () => {
+      cancelAnimationFrame(timers[0]);
+      clearTimeout(timers[1]);
+      window.removeEventListener('resize', fit);
+    };
+  }, [open]);
 
   // Same body-scroll-lock + Escape-to-close as AppShell's own nav drawer.
   useEffect(() => {
@@ -66,14 +95,14 @@ export function TunerBar() {
       {createPortal(
         <>
           <div className={'tuner-drawer-scrim' + (open ? ' open' : '')} aria-hidden="true" onClick={() => setOpen(false)} />
-          <div className={'tuner-drawer' + (open ? ' open' : '')} role="dialog" aria-modal="true" aria-label={t('tunerBar.label')} inert={!open}>
+          <div ref={drawerRef} className={'tuner-drawer' + (open ? ' open' : '')} role="dialog" aria-modal="true" aria-label={t('tunerBar.label')} inert={!open}>
             <div className="tuner-drawer-header">
               <h2 className="tuner-drawer-title">{t('tunerBar.label')}</h2>
               <button type="button" className="tuner-drawer-close" onClick={() => setOpen(false)} aria-label={t('tunerBar.close')}>
                 ×
               </button>
             </div>
-            <div className="tuner-drawer-body">{open && <GuitarTuner mode={bass ? 'bass' : 'guitar'} />}</div>
+            <div className="tuner-drawer-body" ref={bodyRef}>{open && <GuitarTuner mode={bass ? 'bass' : 'guitar'} />}</div>
           </div>
         </>,
         document.body

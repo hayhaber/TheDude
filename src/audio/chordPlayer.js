@@ -81,6 +81,33 @@ export function playNote(midi) {
  * Plays MIDI notes low -> high as a strum (`gap` s apart; 0.03 = a strum,
  * ~0.32 = picked one by one). For voicings in any tuning (Chord Library).
  */
+/**
+ * Guitar notes at times from `at` (seconds): [{midi, start, dur, velocity}].
+ * Returns a stop function. Loads the guitar samples if needed (falls back
+ * to the synth pluck until they are ready).
+ */
+export function scheduleGuitarNotes(notes, at = getAudioContext().currentTime) {
+  const ctx = getAudioContext();
+  const instrument = getReadySampledInstrument();
+  const stops = [];
+  for (const n of notes) {
+    const time = at + n.start;
+    if (instrument) {
+      const stop = instrument.start({ note: n.midi, time, velocity: n.velocity ?? SAMPLE_VELOCITY, duration: n.dur ?? NOTE_DURATION });
+      if (typeof stop === 'function') stops.push(stop);
+    } else {
+      playOscillatorNote(ctx, n.midi, time);
+    }
+  }
+  return () => stops.forEach((s) => s());
+}
+
+/** Starts loading the selected guitar sound (call early, e.g. when a panel opens). */
+export function prepareGuitar() {
+  const profile = resolveGuitarProfile(getCurrentGuitarProfile());
+  if (profile.soundfontName) getSoundfontInstrument(profile.soundfontName);
+}
+
 export function playMidis(midis, gap = STRUM_STAGGER) {
   const now = getAudioContext().currentTime;
   midis.forEach((midi, i) => playNoteAt(midi, now + i * gap));

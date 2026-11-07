@@ -1471,6 +1471,31 @@ no tools).
   section header = kind select + play + ••• (Duplicate, Move up / down —
   only when possible —, Delete with Undo); the footer row (Print / Export /
   Delete) and the export footnote are gone (both in •••). Logic untouched.
+- SUGGESTED CHORDS (v1.0.122, 2026-11-07; user: "can it listen to humming
+  and write chords?" -> a hum has no chord: SUGGEST one per bar, play it on
+  guitar or piano). Melody sheet tool "Chords" (`ChordSuggest.jsx`, shown
+  when the line has notes). Pure `music/songwriter/harmonize.js`:
+  `estimateKey()` (Krumhansl–Kessler + tie-breaks: last note = tonic +0.08 /
+  5th +0.03, first = tonic +0.03, major +0.04), `suggestChords(line, {key,
+  time})` per bar: the key's triads (+ harmonic-minor V) scored by the bar's
+  notes (length × onset weight 1.6 downbeat / 1.25 beat / 1; non-chord tones
+  −0.6 strong / −0.15 weak) + function priors, tonic bonus on the first bar,
+  last bar tonic +0.15 / V +0.05; top 3 per bar + the WORD sung at the bar's
+  start (-1 = none / same word); `applyChords()` = the line's plain text with
+  ONLY the chosen chords over those words; `chordsTimeline()`. Key select in
+  the panel (song key, else the guess + a note). Player
+  `audio/songwriter/harmonyPlayer.js` `playHarmony()`: guitar ("E shape"
+  barre voicing R 5 R/♭7 3 5 R, `scheduleGuitarNotes()` new in
+  chordPlayer.js + `prepareGuitar()`) or piano (LH bass, RH close chord),
+  strum (D · D U · U D U per bar, 3/4 and 6/8 patterns), arpeggio (eighths)
+  or held chords; melody = the student's own take (only when sung to the
+  click at this tempo: take.downbeat != null and take.bpm = song.bpm;
+  decoded buffer started at downbeat + fromBeat) else the notes on piano.
+  Tap a chip = choose it and hear THAT bar; Play = the whole line; Apply ->
+  line raw (Undo in the sheet's tools). Prefs per song `song.harmony
+  {instrument, style, voice}`. `.sw-sheet > *` no longer shrinks (a tall
+  sheet squashed its tools row over the panel). Pure checks: Twinkle in C ->
+  C | F | F | C; Am tune -> Am G F E. NOT verified with a real hum.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

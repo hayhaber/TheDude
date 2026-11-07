@@ -668,6 +668,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           onRecord={() => audio.startRec({ sec: melodyTarget.sec, line: melodyTarget.line.id }, { bpm: song.bpm, beatsPerBar: bpb, click: song.click ?? 'count' })}
           onStopRec={() => (audio.rec?.phase === 'rec' ? stopRecording(melodyTarget.sec, melodyTarget.line.id) : audio.cancelRec())}
           onClose={() => setMelodyFor(null)}
+          onHarmonyPrefs={(patch) => set((s) => ({ ...s, harmony: { ...(s.harmony ?? {}), ...patch } }))}
         />
       )}
     </div>

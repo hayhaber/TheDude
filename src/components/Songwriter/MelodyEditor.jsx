@@ -7,6 +7,7 @@ import { MelodyLane, fixOverlaps } from './MelodyLane';
 import { laneFor } from './swHelpers';
 import { Icon } from './icons';
 import { fmt } from './LyricLine';
+import { ChordSuggest } from './ChordSuggest';
 
 /**
  * A line's melody, editable: the roll (tap / drag / stretch), the selected
@@ -14,9 +15,12 @@ import { fmt } from './LyricLine';
  * the line's syllables (hyphens, e.g. "ye-ru-sha-la-yim") and Record /
  * Hear.
  */
-export function MelodyEditor({ song, line, inKey, audio, finding, recTick, onChange, onGrid, onRecord, onStopRec, onClose }) {
+export function MelodyEditor({ song, line, inKey, audio, finding, recTick, onChange, onGrid, onRecord, onStopRec, onClose, onHarmonyPrefs }) {
   const { t, lang } = useLanguage();
   const [sel, setSel] = useState(-1);
+  // Suggested chords panel, and the line's text before the last Apply (for Undo).
+  const [harm, setHarm] = useState(false);
+  const [undoRaw, setUndoRaw] = useState(null);
   const boxRef = useRef(null);
   const [width, setWidth] = useState(600);
   const lane = laneFor(song, line, 1);
@@ -137,6 +141,22 @@ export function MelodyEditor({ song, line, inKey, audio, finding, recTick, onCha
                 <Icon name={playing ? 'stop' : 'play'} />
                 <span>{playing ? t('sw.stop') : t('sw.play')}</span>
               </button>
+              <button type="button" className={'sw-tool' + (harm ? ' is-on' : '')} onClick={() => setHarm(!harm)} disabled={!notes.length}>
+                <Icon name="notes" />
+                <span>{t('sw.harm.go')}</span>
+              </button>
+              {undoRaw != null && (
+                <button
+                  type="button"
+                  className="sw-btn is-small is-tint"
+                  onClick={() => {
+                    onChange((l) => ({ ...l, raw: undoRaw }));
+                    setUndoRaw(null);
+                  }}
+                >
+                  {t('sw.undo')}
+                </button>
+              )}
               <label className="sw-field is-inline">
                 <span>{t('sw.grid')}</span>
                 <select value={lane.grid} onChange={(e) => onGrid(Number(e.target.value))}>
@@ -150,6 +170,20 @@ export function MelodyEditor({ song, line, inKey, audio, finding, recTick, onCha
             </>
           )}
         </div>
+
+        {harm && notes.length > 0 && (
+          <ChordSuggest
+            song={song}
+            line={line}
+            onPrefs={(patch) => onHarmonyPrefs?.(patch)}
+            onClose={() => setHarm(false)}
+            onApply={(raw) => {
+              setUndoRaw(line.raw);
+              onChange((l) => ({ ...l, raw }));
+              setHarm(false);
+            }}
+          />
+        )}
 
         <div className="sw-roll" ref={boxRef}>
           <MelodyLane

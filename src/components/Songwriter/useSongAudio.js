@@ -68,15 +68,23 @@ export function useSongAudio() {
         // arriving" after 2 s of pure digital silence
         let shown = null;
         let peak = 0;
+        let ref = -50;
         const t0 = r.now();
         const loop = () => {
           const now = r.now();
           const beat = Math.floor((now - begin) / spb);
           const lvl = r.level();
           peak = Math.max(peak, lvl);
-          const fresh = r.bands(12);
+          // auto range: the loudest band of the last ~3 s is the top
+          // (never below -50 dBFS, so a quiet room doesn't light up),
+          // 45 dB under it is the bottom — a quiet iPad mic still moves it
+          const db = r.bands(12);
+          const top = Math.max(...db);
+          ref = Math.max(-50, top, ref - 0.25);
+          const fresh = db.map((v) => Math.max(0, Math.min(1, (v - (ref - 45)) / 45)));
           shown = shown ? fresh.map((v, i) => Math.max(v, shown[i] - 0.035)) : fresh;
-          setTick({ beat, level: lvl, elapsed: Math.max(0, now - (downbeatAt ?? begin)), bands: shown, silent: now - t0 > 2 && peak < 1e-5 });
+          const levelDb = lvl > 0 ? Math.round(20 * Math.log10(lvl)) : null;
+          setTick({ beat, level: lvl, levelDb, elapsed: Math.max(0, now - (downbeatAt ?? begin)), bands: shown, silent: now - t0 > 2 && peak < 1e-5, diag: now - t0 > 2 && peak < 1e-5 ? r.diag() : null });
           if (downbeatAt != null && now >= downbeatAt) setRec((s) => (s && s.phase === 'count' ? { ...s, phase: 'rec' } : s));
           raf.current = requestAnimationFrame(loop);
         };

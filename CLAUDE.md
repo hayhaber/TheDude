@@ -1704,6 +1704,21 @@ no tools).
   tick = {…, bands (slow fall), silent (pure zeros for 2 s)} ->
   `sw.rec.silent` warning. Fake-mic hum: meter lit, idea saved (0:04).
   NOT verified on the iPad.
+  v1.0.147 (user: still not recording on the iPad, the iPhone works):
+  three iPad-only suspects fixed at once — (1) `openLiveInput()` (amp /
+  recorder / studio / songwriter) falls back to the DEFAULT input when the
+  Settings device is gone (Overconstrained / NotFound / NotReadable — the
+  iPad had the Riff interface chosen); (2) `inputNode()` splits a channel
+  only from a stream KNOWN to be stereo (an unreported / mono built-in mic
+  with "Input 2" gave silence); (3) a quiet take (the iPad mic with AGC off
+  peaks ~-45 dBFS) is normalised on stop (peak -> -1 dBFS, max +36 dB,
+  `gain` / `inputPeak` on the result), and the meter auto-ranges (top =
+  the loudest band of the last ~3 s, >= -50 dBFS, 45 dB span) + shows the
+  input peak in dB. Silence for 2 s -> the warning + an LTR diag line
+  (`recorder.diag()`: ctx state · rate · track state / channels / label ·
+  audio session) — ask for a screenshot if it still fails. Fake-mic test:
+  quiet hum (0.006) with a missing device + channel 2 -> meter lit, take
+  saved at peak 0.48. NOT verified on the iPad.
 - EMPTY SONGS + DELETE FROM THE LIST (v1.0.146; user's iPad: a list of
   "Untitled · 0 lines" songs that couldn't be deleted). "New" creates a
   song at once, so every New -> back left an empty one. `isEmptySong()`

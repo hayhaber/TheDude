@@ -6,7 +6,7 @@
  */
 const ROWS = 7;
 
-export function RecMeter({ bands, silent = false, label }) {
+export function RecMeter({ bands, silent = false, db = null, label }) {
   const cols = bands ?? new Array(12).fill(0);
   return (
     <span className={'sw-eq' + (silent ? ' is-silent' : '')} dir="ltr" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={1} aria-valuenow={Math.max(0, ...cols).toFixed(2)}>
@@ -23,6 +23,7 @@ export function RecMeter({ bands, silent = false, label }) {
           </span>
         );
       })}
+      {db != null && <span className="sw-eq-db">{db}</span>}
     </span>
   );
 }

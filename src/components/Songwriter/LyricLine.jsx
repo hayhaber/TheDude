@@ -181,8 +181,13 @@ export function LyricLine({
             <>
               <span className="sw-rec-dot" />
               <span className="sw-rec-time">{fmt(recTick.elapsed)}</span>
-              <RecMeter bands={recTick.bands} silent={recTick.silent} label={t('sw.rec.meter')} />
-              {recTick.silent && <span className="sw-rec-silent">{t('sw.rec.silent')}</span>}
+              <RecMeter bands={recTick.bands} silent={recTick.silent} db={recTick.levelDb} label={t('sw.rec.meter')} />
+              {recTick.silent && (
+                <span className="sw-rec-silent">
+                  {t('sw.rec.silent')}
+                  {recTick.diag && <span className="sw-rec-diag" dir="ltr">{recTick.diag}</span>}
+                </span>
+              )}
             </>
           )}
           {recPhase === 'saving' && <span className="sw-muted">{t('sw.rec.finding')}</span>}

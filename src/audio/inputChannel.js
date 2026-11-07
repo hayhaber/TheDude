@@ -28,7 +28,9 @@ export function inputNode(ctx, stream) {
   } catch {
     /* not reported */
   }
-  if (n === 1) return source; // the device gave one channel: nothing to pick
+  // Only a stream KNOWN to be stereo is split: a mono (or unreported) one
+  // — the built-in mic — would give silence on "input 2".
+  if (n !== 2) return source;
   const split = ctx.createChannelSplitter(2);
   const pick = ctx.createGain();
   pick.channelCount = 1;

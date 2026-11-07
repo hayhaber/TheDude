@@ -304,8 +304,13 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
                 <>
                   <span className="sw-rec-dot" />
                   <span className="sw-rec-time">{fmt(audio.tick.elapsed)}</span>
-                  <RecMeter bands={audio.tick.bands} silent={audio.tick.silent} label={t('sw.rec.meter')} />
-                  {audio.tick.silent && <span className="sw-rec-silent">{t('sw.rec.silent')}</span>}
+                  <RecMeter bands={audio.tick.bands} silent={audio.tick.silent} db={audio.tick.levelDb} label={t('sw.rec.meter')} />
+                  {audio.tick.silent && (
+                <span className="sw-rec-silent">
+                  {t('sw.rec.silent')}
+                  {audio.tick.diag && <span className="sw-rec-diag" dir="ltr">{audio.tick.diag}</span>}
+                </span>
+              )}
                 </>
               ) : (
                 <span className="sw-muted">{recIdea.phase === 'saving' ? t('sw.rec.saving') : t('sw.rec.opening')}</span>

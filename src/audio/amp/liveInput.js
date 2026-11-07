@@ -32,16 +32,27 @@ export function createLiveContext() {
  */
 export async function openLiveInput(ctx) {
   const { deviceId, gain } = getAudioInputSettings();
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      deviceId: deviceId ? { exact: deviceId } : undefined,
-      echoCancellation: false,
-      noiseSuppression: false,
-      autoGainControl: false,
-      ...(channelConstraint() ?? { channelCount: 1 }),
-      latency: 0,
-    },
-  });
+  const ask = (id) =>
+    navigator.mediaDevices.getUserMedia({
+      audio: {
+        deviceId: id ? { exact: id } : undefined,
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+        ...(channelConstraint() ?? { channelCount: 1 }),
+        latency: 0,
+      },
+    });
+  let stream;
+  try {
+    stream = await ask(deviceId);
+  } catch (e) {
+    // The device chosen in Settings isn't here (an audio interface that is
+    // unplugged — the iPad with its Riff): use the default input instead
+    // of failing.
+    if (!deviceId || !/Overconstrained|NotFound|NotReadable/.test(e?.name || '')) throw e;
+    stream = await ask(null);
+  }
   const source = inputNode(ctx, stream);
   const input = ctx.createGain();
   input.gain.value = Number.isFinite(gain) ? gain : 1;

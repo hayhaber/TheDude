@@ -143,7 +143,8 @@ export function createSongRecorder() {
   /**
    * Equalizer-style bands for the live meter: n values 0..1, the energy in
    * log-spaced bands across the voice / guitar range (110 Hz – 4 kHz),
-   * Goertzel per band centre, shown on a -60..0 dB scale.
+   * Goertzel per band centre, in dBFS (useSongAudio maps it to 0..1 with
+   * an auto range — the iPad's mic arrives ~30 dB quieter than a phone's).
    */
   function bands(n = 12) {
     const f = frame();
@@ -164,8 +165,7 @@ export function createSongRecorder() {
         s1 = s0;
       }
       const mag = Math.sqrt(Math.max(0, s1 * s1 + s2 * s2 - coeff * s1 * s2)) / (N / 4);
-      const db = 20 * Math.log10(mag + 1e-9);
-      out[b] = Math.max(0, Math.min(1, (db + 60) / 60));
+      out[b] = 20 * Math.log10(mag + 1e-9); // dBFS (the meter scales it)
     }
     return out;
   }
@@ -187,6 +187,16 @@ export function createSongRecorder() {
       }
     }
     const res = await cap.stop();
+    // A quiet input (the iPad's built-in mic with AGC off peaks around
+    // -45 dBFS: the take played back as near silence) is brought up to a
+    // normal level: peak -> -1 dBFS, at most +36 dB, never turned down.
+    let peak = 0;
+    for (let i = 0; i < res.samples.length; i += 1) {
+      const a = Math.abs(res.samples[i]);
+      if (a > peak) peak = a;
+    }
+    const gain = peak > 1e-5 ? Math.min(63, 0.89 / peak) : 1;
+    if (gain > 1.12) for (let i = 0; i < res.samples.length; i += 1) res.samples[i] *= gain;
     if (IS_IOS) {
       closeInput();
       setAudioSession('playback');
@@ -206,6 +216,8 @@ export function createSongRecorder() {
       downbeat,
       clicks: t.clicks.map((c) => c - startTime + latency).filter((c) => c >= 0),
       latency,
+      inputPeak: peak,
+      gain: gain > 1.12 ? gain : 1,
     };
   }
 
@@ -231,5 +243,24 @@ export function createSongRecorder() {
     if (IS_IOS) setAudioSession('auto');
   }
 
-  return { start, stop, cancel, level, bands, now, closeInput, dispose, isRecording: () => !!take };
+  /** One line for a "nothing is arriving" report: context, input, settings. */
+  function diag() {
+    let track = '';
+    try {
+      const t = rig?.stream?.getAudioTracks?.()[0];
+      const st = t?.getSettings?.() ?? {};
+      track = `${t?.readyState ?? '-'}${t?.muted ? ' muted' : ''} · ${st.channelCount ?? '?'}ch · ${(rig?.label || 'default').slice(0, 24)}`;
+    } catch {
+      /* not reported */
+    }
+    let session = '';
+    try {
+      session = navigator.audioSession?.type ?? '';
+    } catch {
+      /* none */
+    }
+    return `${ctx?.state ?? 'no ctx'} · ${ctx?.sampleRate ?? ''} · ${track}${session ? ' · ' + session : ''}`;
+  }
+
+  return { start, stop, cancel, level, bands, diag, now, closeInput, dispose, isRecording: () => !!take };
 }

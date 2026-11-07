@@ -2297,3 +2297,20 @@
 .sw-song-li > .more-menu {
   flex: none;
 }
+.sw-eq-db {
+  align-self: center;
+  min-width: 26px;
+  margin-inline-start: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.sw-rec-diag {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: ui-monospace, monospace;
+}

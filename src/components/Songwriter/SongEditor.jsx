@@ -64,6 +64,9 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const [dictating, setDictating] = useState(false);
   const [performing, setPerforming] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  // The chord suggestion's preview: shown in the lyrics, not saved.
+  const [preview, setPreview] = useState(null);
+  const shown = preview ?? song;
   const [rhymesOn, setRhymesOn] = useState(loadRhymes);
   const toggleRhymes = () => {
     setRhymesOn((v) => {
@@ -276,7 +279,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   // ---- playback ----
   const tl = audio.playing?.handle.timeline;
   const activeLine = tl && audio.pos != null ? tl.lines.find((l) => audio.pos >= l.start && audio.pos < l.end) : null;
-  const spb = 60 / song.bpm;
+  const spb = 60 / shown.bpm;
   const lastActive = useRef(null);
   useEffect(() => {
     if (!activeLine || activeLine.id === lastActive.current) return;
@@ -310,7 +313,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const melodyTarget = melodyFor ? findLine(melodyFor.line) : null;
 
   return (
-    <div className="sw-editor" dir={dir}>
+    <div className={'sw-editor' + (preview ? ' is-previewing' : '')} dir={dir}>
       {performing && <PerformView song={song} audio={audio} onClose={() => setPerforming(false)} />}
       <div className="sw-editor-top">
         <button type="button" className="sw-back" onClick={onBack}>
@@ -372,7 +375,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
 
       <div className="sw-summary">
         <button type="button" className={'sw-meta-chip' + (showMeta ? ' is-open' : '')} aria-expanded={showMeta} onClick={() => setShowMeta(!showMeta)}>
-          <bdi>{[song.key ? keyName(song.key) : t('sw.key.none'), `${song.bpm} BPM`, song.time, bandStyle ? t('sw.band.' + bandStyle) : null].filter(Boolean).join(' · ')}</bdi>
+          <bdi>{[shown.key ? keyName(shown.key) : t('sw.key.none'), `${shown.bpm} BPM`, shown.time, (shown.band?.style || bandStyle) ? t('sw.band.' + (shown.band?.style || bandStyle)) : null].filter(Boolean).join(' · ')}</bdi>
           <Icon name="down" size={14} />
         </button>
         <button
@@ -389,7 +392,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
         </button>
       </div>
 
-      {view === 'write' && needsChords(song) && (
+      {view === 'write' && !preview && needsChords(song) && (
         <div className="sw-pw-hint">
           <span className="sw-pw-hint-icon">
             <Icon name="spark" />
@@ -483,8 +486,8 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
       {view === 'score' ? (
         <ScoreView xml={xml} />
       ) : (
-        <div className="sw-sections">
-          {song.sections.map((sec, si) => {
+        <div className={'sw-sections' + (preview ? ' is-preview' : '')} inert={preview ? true : undefined}>
+          {shown.sections.map((sec, si) => {
             kindCount[sec.kind] = (kindCount[sec.kind] ?? 0) + 1;
             const n = kindCount[sec.kind];
             const texts = sec.lines.map((l) => parseLine(l.raw).text);
@@ -729,8 +732,13 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
         <ProgressionWizard
           song={song}
           audio={audio}
-          onClose={() => setSuggesting(false)}
+          onPreview={setPreview}
+          onClose={() => {
+            setPreview(null);
+            setSuggesting(false);
+          }}
           onApply={(next) => {
+            setPreview(null);
             const before = song;
             setSuggesting(false);
             set(() => next);

@@ -2161,3 +2161,81 @@
     justify-content: center;
   }
 }
+
+/* "Try": the suggestion shown IN the lyrics, the controls in a floating glass bar */
+.sw-pw-bar {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(620px, calc(100vw - 24px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 28px;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow), 0 10px 30px rgba(0, 0, 0, 0.16);
+  animation: sw-pw-bar-in var(--dur-sheet, 0.35s) var(--ease-ios, ease);
+}
+@keyframes sw-pw-bar-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+}
+.sw-pw-bar .sw-btn {
+  min-height: 44px;
+  flex: none;
+}
+.sw-pw-bar-mid {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.sw-pw-bar-play {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  cursor: pointer;
+}
+.sw-pw-bar-play.is-on {
+  background: var(--accent-fill);
+  color: #fff;
+}
+.sw-pw-bar-tempo {
+  display: inline-flex;
+}
+.sw-editor.is-previewing {
+  padding-bottom: 110px;
+}
+.sw-sections.is-preview .sw-chord-slot.has-chord {
+  color: var(--accent);
+}
+@media (max-width: 480px) {
+  .sw-pw-bar {
+    gap: 4px;
+    padding: 6px;
+  }
+  .sw-pw-bar .sw-btn {
+    padding-inline: 10px;
+  }
+  .sw-pw-bar-tempo .sw-bpm {
+    transform: scale(0.92);
+  }
+}
+[dir='rtl'] .sw-pw-bar > .sw-btn.is-quiet .sw-icon {
+  transform: scaleX(-1);
+}

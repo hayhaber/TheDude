@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { BpmField } from '../Metronome/BpmField';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { keyName } from '../../music/songwriter/song';
 import { COLORS, MOODS, STYLES, STYLE_BAND, applyPlan, plans, suggestBpm, suggestKey } from '../../music/songwriter/progressions';
@@ -19,14 +20,20 @@ const ROLE_ORDER = ['verse', 'prechorus', 'chorus', 'bridge'];
  * vision, the chorus landing home and the verse / bridge contrasting with
  * it. ‹ › tries another progression for a section, Hear plays it (with the
  * band of the chosen style), Apply writes the chords over the words.
+ * "Try" folds the sheet into a small glass bar at the bottom and shows the
+ * chords IN the song (a preview — nothing is saved), playing it with the
+ * sung line lit, so the writer checks the fit against the words; the bar
+ * has the tempo, Play / Stop, Options (back to the sheet) and Apply.
  */
-export function ProgressionWizard({ song, audio, onApply, onClose }) {
+export function ProgressionWizard({ song, audio, onApply, onClose, onPreview }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const [brief, setBrief] = useState(() => ({ ...(song.vision ?? {}) }));
   const [step, setStep] = useState(() => (song.vision?.mood && song.vision?.style && song.vision?.color ? 3 : 0));
   const [key, setKey] = useState(() => song.key ?? null);
   const [idx, setIdx] = useState(null); // {role: candidate index}
+  const [bpm, setBpm] = useState(() => (song.bpmSet ? song.bpm : null)); // null = the style's own tempo
+  const [trying, setTrying] = useState(false);
 
   const done = step >= 3;
   const theKey = key ?? (done ? suggestKey(brief) : null);
@@ -36,6 +43,7 @@ export function ProgressionWizard({ song, audio, onApply, onClose }) {
   const choice = Object.fromEntries(roles.map((r) => [r, result.byRole[r][picks[r] ?? 0]]));
   const hadChords = useMemo(() => song.sections.some((s) => s.lines.some((l) => parseLine(l.raw).chords.length)), [song]);
   const bandStyle = song.band?.style || STYLE_BAND[brief.style] || 'pop';
+  const theBpm = bpm ?? (done ? suggestBpm(brief) : song.bpm);
 
   const answer = (q, v) => {
     setBrief((b) => ({ ...b, [q]: v }));
@@ -58,7 +66,8 @@ export function ProgressionWizard({ song, audio, onApply, onClose }) {
     return {
       ...next,
       key: theKey,
-      bpm: song.bpmSet ? song.bpm : suggestBpm(brief),
+      bpm: theBpm,
+      bpmSet: song.bpmSet || bpm != null,
       band: { ...(song.band ?? {}), style: song.band?.style || STYLE_BAND[brief.style] || null },
       vision: { mood: brief.mood, style: brief.style, color: brief.color },
     };
@@ -69,22 +78,83 @@ export function ProgressionWizard({ song, audio, onApply, onClose }) {
     const temp = {
       ...song,
       key: theKey,
-      bpm: song.bpmSet ? song.bpm : suggestBpm(brief),
+      bpm: theBpm,
       band: { style: bandStyle, melody: false },
       sections: [{ id: 'pw-sec', kind: role, lines: [{ id: 'pw-line', raw: c.symbols.map((s) => `[${s}]·`).join(' ') }] }],
     };
     audio.play(temp, 'pw:' + role);
   };
 
-  const hearAll = () => {
-    const s = built();
-    audio.play({ ...s, band: { ...s.band, style: s.band.style || bandStyle } }, 'pw:all');
+  const playable = (s) => ({ ...s, band: { ...s.band, style: s.band.style || bandStyle } });
+  const hearAll = (restart = false) => audio.play(playable(built()), 'pw:all', null, 0, restart);
+
+  // The preview in the editor follows every change (progression, key, tempo).
+  const previewSong = done && trying ? built() : null;
+  const previewSig = previewSong ? JSON.stringify([previewSong.sections, previewSong.key, previewSong.bpm]) : '';
+  useEffect(() => {
+    onPreview?.(previewSong);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewSig]);
+  useEffect(() => () => onPreview?.(null), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const changeBpm = (v) => {
+    const next = Math.max(40, Math.min(220, Math.round(v)));
+    setBpm(next);
+    if (audio.playing?.scope === 'pw:all') {
+      // restart at the new tempo (the band is scheduled ahead)
+      setTimeout(() => audio.play(playable({ ...built(), bpm: next }), 'pw:all', null, 0, true), 0);
+    } else stopAudio();
   };
 
   const close = () => {
     stopAudio();
     onClose();
   };
+
+  const apply = () => {
+    stopAudio();
+    onApply(built());
+  };
+
+  const tempoField = (
+    <BpmField
+      value={theBpm}
+      onChange={changeBpm}
+      min={40}
+      max={220}
+      className="sw-bpm"
+      labels={{ down: t('piano.metronome.tempoDown'), up: t('piano.metronome.tempoUp'), value: t('metronome.bpm'), edit: t('piano.metronome.editHint') }}
+    />
+  );
+
+  if (done && trying) {
+    const on = audio.playing?.scope === 'pw:all';
+    return (
+      <div className="sw-pw-bar glass" role="region" aria-label={t('sw.pw.title')} dir={dir}>
+        <button
+          type="button"
+          className="sw-btn is-quiet"
+          onClick={() => {
+            stopAudio();
+            setTrying(false);
+          }}
+        >
+          <Icon name="back" />
+          {t('sw.pw.options')}
+        </button>
+        <span className="sw-pw-bar-mid">
+          <button type="button" className={'sw-pw-bar-play' + (on ? ' is-on' : '')} onClick={() => hearAll()} aria-label={on ? t('sw.stop') : t('sw.play')}>
+            <Icon name={on ? 'stop' : 'play'} size={22} />
+          </button>
+          <span className="sw-pw-bar-tempo">{tempoField}</span>
+        </span>
+        <button type="button" className="sw-btn is-primary" onClick={apply}>
+          <Icon name="check" />
+          {t('sw.pw.apply')}
+        </button>
+      </div>
+    );
+  }
 
   const q = QUESTIONS[step];
   const keys = [false, true].flatMap((minor) => Array.from({ length: 12 }, (_, pc) => ({ pc, minor })));
@@ -158,6 +228,10 @@ export function ProgressionWizard({ song, audio, onApply, onClose }) {
                   ))}
                 </select>
               </label>
+              <div className="sw-field is-inline">
+                <span>{t('sw.tempo')}</span>
+                {tempoField}
+              </div>
               <p className="sw-pw-note">{!song.key && !key ? t('sw.pw.keyGuess') : theKey.minor !== suggestKey(brief).minor ? t(theKey.minor ? 'sw.pw.keyMinor' : 'sw.pw.keyMajor') : ''}</p>
             </div>
 
@@ -211,18 +285,19 @@ export function ProgressionWizard({ song, audio, onApply, onClose }) {
               {hadChords ? ' ' + t('sw.pw.replace') : ''}
             </p>
             <div className="sw-pw-actions">
-              <button type="button" className={'sw-btn' + (audio.playing?.scope === 'pw:all' ? ' is-on' : '')} onClick={hearAll}>
-                <Icon name={audio.playing?.scope === 'pw:all' ? 'stop' : 'play'} />
-                {audio.playing?.scope === 'pw:all' ? t('sw.stop') : t('sw.pw.hearAll')}
-              </button>
               <button
                 type="button"
-                className="sw-btn is-primary"
+                className="sw-btn"
                 onClick={() => {
                   stopAudio();
-                  onApply(built());
+                  setTrying(true);
+                  setTimeout(() => hearAll(true), 60);
                 }}
               >
+                <Icon name="play" />
+                {t('sw.pw.try')}
+              </button>
+              <button type="button" className="sw-btn is-primary" onClick={apply}>
                 <Icon name="check" />
                 {t('sw.pw.apply')}
               </button>

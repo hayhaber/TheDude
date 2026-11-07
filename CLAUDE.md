@@ -1677,6 +1677,18 @@ no tools).
   row (`.sw-pw-hint`, "Suggest") while the song has words and no chord.
   Text `sw.pw.*`. Playwright 390 HE + 1180 EN: questions -> results ->
   cycle -> hear -> apply, no errors. Band sound not heard here.
+  v1.0.143 (user: "let me change the tempo; Hear covers the words, I
+  can't check the fit — solve it as Apple would"): the results have a
+  Tempo BpmField next to Key (wizard `bpm`, null = the style's
+  `suggestBpm`; Apply sets bpm + bpmSet when changed). "Hear" became
+  "Try" (`sw.pw.try`): the sheet folds into a floating Liquid Glass bar
+  (`.sw-pw-bar`: Options = back to the sheet · round Play/Stop · tempo
+  −/+ · Apply) and the suggestion is shown IN the lyrics as a PREVIEW
+  (SongEditor `preview` via `onPreview`, `shown = preview ?? song`,
+  sections `inert` + chords in accent, nothing saved, the meta chip shows
+  the preview's key / tempo); playback lights + scrolls to the sung line;
+  a tempo change while playing restarts at the new tempo. Playwright 390
+  HE + 1180 EN: tempo, try, lit line, tempo while playing, back, apply.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

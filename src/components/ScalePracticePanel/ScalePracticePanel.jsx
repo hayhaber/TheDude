@@ -5,6 +5,8 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { ChevronIcon } from '../ChevronIcon/ChevronIcon';
 import { LabelModeToggle } from '../LabelModeToggle/LabelModeToggle';
 import { PlayAlong } from '../PlayAlong/PlayAlong';
+import { FreePlay } from '../PlayAlong/FreePlay';
+import { STANDARD_TUNING } from '../../music/notes';
 import './ScalePracticePanel.css';
 
 export const SCALE_PRACTICE_KEYS = ['minorPentatonic', 'majorPentatonic', 'major', 'naturalMinor'];
@@ -20,7 +22,7 @@ const MODES = ['position', 'linear', 'transition'];
 // The exercise regenerates automatically whenever a control changes (not on
 // every keystroke — only real state changes), never mid-session; Play/Stop/
 // score chrome mirrors RhythmGamePanel's own layout for the same feature.
-export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelMode, onLabelModeChange, metronome }) {
+export function ScalePracticePanel({ scalePractice, scaleFree, seed, onSeedConsumed, labelMode, onLabelModeChange, metronome }) {
   const { t } = useLanguage();
   const [scaleKey, setScaleKey] = useState('minorPentatonic');
   const [root, setRoot] = useState(9); // A — the classic first pentatonic key taught (Am pentatonic)
@@ -29,6 +31,9 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
   const [stringIndex, setStringIndex] = useState(2); // D string — comfortable middle string for a linear run
   const [stringCount, setStringCount] = useState(1);
   const [includeBlueNote, setIncludeBlueNote] = useState(false);
+  // 'click' = one note per click, in the shown order (useRhythmGame);
+  // 'free' = any notes, any order and rhythm — only "is it in the scale?"
+  const [style, setStyle] = useState('click');
 
   // One-shot handoff from Studies -> Scales' "practice connecting positions"
   // link (see ScalesView/App.jsx) — jumps straight into Transition mode at
@@ -59,9 +64,18 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seed]);
 
-  const { exercise, isPlaying } = scalePractice;
-  const playingRef = useRef(isPlaying);
-  playingRef.current = isPlaying;
+  const { exercise } = scalePractice;
+  const freeOn = style === 'free';
+  const isPlaying = scalePractice.isPlaying || !!scaleFree?.isPlaying;
+  // A new shape / style starts free play over (the old marks belong to another box).
+  useEffect(() => {
+    scaleFree?.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exercise, style]);
+  const startFree = () =>
+    scaleFree.start({ shape: exercise.shapeNotes, tuning: STANDARD_TUNING, rootPc: root, log: { tool: 'scaleFree', item: exercise.id } });
+  const playingRef = useRef(scalePractice.isPlaying);
+  playingRef.current = scalePractice.isPlaying;
 
   // 'transition' only has 4 valid starting positions (each bridges N into
   // N+1, so there's no position 5 to bridge from) — 'position' has all 5.
@@ -105,6 +119,19 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
       </div>
 
       <div className="scale-practice-controls">
+        <div className="scale-practice-field">
+          <span className="scale-practice-field-label" aria-hidden="true">
+            {t('fp.style')}
+          </span>
+          <div className="mode-toggle" role="group" aria-label={t('fp.style')}>
+            {['click', 'free'].map((key) => (
+              <button key={key} type="button" className={style === key ? 'active' : ''} onClick={() => { if (scalePractice.isPlaying) scalePractice.stop(); setStyle(key); }} disabled={!!scaleFree?.isPlaying}>
+                {t('fp.style.' + key)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="scale-practice-field">
           <span className="scale-practice-field-label align-start" aria-hidden="true">
             {t('scalePractice.scale')}
@@ -238,7 +265,10 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
 
       </div>
 
-      {exercise && <PlayAlong game={scalePractice} metronome={metronome} />}
+      {exercise && !freeOn && <PlayAlong game={scalePractice} metronome={metronome} />}
+      {exercise && freeOn && scaleFree && (
+        <FreePlay free={scaleFree} onStart={startFree} total={new Set(exercise.shapeNotes.map((n) => n.string + ':' + n.fret)).size} />
+      )}
 
       {mode === 'transition' && (
         <div className="scale-practice-transition-legend" dir="auto">
@@ -254,7 +284,7 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
       )}
 
       <p className="scale-practice-hint" dir="auto">
-        {t(`scalePractice.hint.${mode}`)}
+        {freeOn ? t('fp.hint') : t(`scalePractice.hint.${mode}`)}
       </p>
     </div>
   );

@@ -1748,6 +1748,48 @@ no tools).
   -> tempo up; chords 180 ms late -> "late by ~191 ms", tempo down; silent
   runs 0 % -> down. Guitar chord rhythm (GuitarChordRhythmPanel) not yet.
 
+## Free play on a scale (v1.0.142, 2026-11-07)
+
+- User: "show the scale on the neck, mark each note I play, check only that
+  the notes are in the scale — regardless of rhythm or order — and tell me
+  when a note is wrong" (+ look at guitarvisualizerapp.com: a visualizer
+  only — scales / intervals / CAGED / chord tones in gold, no mic). Built
+  for scales only (Claude's recommendation, user's OK): for licks / solos
+  an order-free check is meaningless — the Lick Trainer's Wait mode already
+  = right order, any rhythm.
+- `hooks/useFreePlay.js` `useFreePlay({range})`: own onset detector (a
+  pitch held 3 frames within ±35 ¢ — the way up a bend / slide is not
+  judged, its landing is; re-pick = level jump), `placeNote()` = the mic
+  hears a PITCH, not a string: the shown shape's place for it (or its
+  octave), nearest the last note, else the nearest place to the shape
+  (`inShape: false`) — the UI says so (`fp.placeNote`); `nearestInScale()`
+  names the scale notes a half / whole step away. State: live counts +
+  last note, `hits` (shape cells played), a green / red flash
+  (`feedback` = Fretboard quizFeedbackCell), result on Stop: in-scale %,
+  box coverage n/N, root landings, degrees never played, the top wrong
+  notes, right notes outside the box. Logged as tool 'scaleFree' /
+  'bassFree' with metrics {notes, inScalePct, coverPct, mode:'free'} (no
+  accuracyPct, so the coach's readers skip it), from 8 notes.
+- UI `components/PlayAlong/FreePlay.jsx` (PlayAlong's look; `.fp`, status
+  kinds ok / bad green / red, `.fp-counts`): status (what to do /
+  listening / "F is not in the scale — E is a half step below"), ONE
+  Start / Stop key, live in / outside counts, result card. Fretboard:
+  `scaleNotes[].isHit` -> `.scale-dot-hit` (green ring; plain dots filled
+  green).
+- Guitar: Practice -> Scales gains a "Practice: Click | Free" segmented
+  control (first field); Free hides the PlayAlong strip, any mode
+  (position / linear / transition) gives the shape; App `scaleFree`
+  (isHit on scalePracticeShapeNotes, feedback first), stopped when leaving
+  the tab; a new shape / style resets it. Bass (rule 10): Bass Practice
+  Mode select gains "Free (any order)" for the Scales + Arpeggios
+  categories only (`FREE_CATS`), tempo / Loop / Start hidden there; App
+  `bassFree` (BASS_PITCH_RANGE). Text `fp.*` (tips/playalong.js),
+  `bp.mode.free`.
+- Fake-mic (KS) A C D E F G A A♯ A: guitar Am pentatonic -> every note
+  marked, F / A♯ red with "E / A a half step below", 82 % in scale, 6/12
+  of the box; bass G major -> same + "never played: B (3) · F♯ (7)". NOT
+  verified on a real guitar / bass.
+
 ## Triads course (v1.0.133, 2026-11-07)
 
 - User: "a comprehensive, professional triads course, taught the way a

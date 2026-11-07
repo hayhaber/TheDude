@@ -1216,7 +1216,9 @@ export function Fretboard({
                   // is still "position N" or already "position N+1", so the
                   // two overlapping shapes read as distinguishable instead
                   // of one undifferentiated blob of dots.
-                  (n.transitionSide === 'from' ? ' scale-dot-side-from' : n.transitionSide === 'to' ? ' scale-dot-side-to' : '')
+                  (n.transitionSide === 'from' ? ' scale-dot-side-from' : n.transitionSide === 'to' ? ' scale-dot-side-to' : '') +
+                  // free play: a note of the shape the player has already used
+                  (n.isHit ? ' scale-dot-hit' : '')
                 }
               />
               <text x={cx} y={cy + 4} className="scale-dot-label" textAnchor="middle">

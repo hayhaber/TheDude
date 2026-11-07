@@ -211,3 +211,36 @@
     justify-content: space-between;
   }
 }
+
+/* free play (FreePlay.jsx) */
+.pa-status.is-ok {
+  background: rgba(52, 199, 89, 0.14);
+  color: #1d7a36;
+}
+.pa-status.is-bad {
+  background: rgba(255, 59, 48, 0.12);
+  color: #c4161c;
+}
+[data-theme='dark'] .pa-status.is-ok {
+  color: #5fdc7f;
+}
+[data-theme='dark'] .pa-status.is-bad,
+[data-theme='dark'] .pa-status.is-run {
+  color: #ff7b72;
+}
+.fp-counts {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.fp-count b {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.fp-count.is-ok b {
+  color: #248a3d;
+}
+.fp-count.is-bad b {
+  color: var(--danger);
+}

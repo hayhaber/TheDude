@@ -55,6 +55,7 @@ export function PracticeView({
   chordRhythm,
   guitarChordRhythm,
   scalePractice,
+  scaleFree,
   scalePracticeSeed,
   minuteSeed,
   onScalePracticeSeedConsumed,
@@ -133,6 +134,7 @@ export function PracticeView({
       {activeTab === 'scalePractice' && (
         <ScalePracticePanel
           scalePractice={scalePractice}
+          scaleFree={scaleFree}
           seed={scalePracticeSeed}
           onSeedConsumed={onScalePracticeSeedConsumed}
           labelMode={scalePracticeLabelMode}

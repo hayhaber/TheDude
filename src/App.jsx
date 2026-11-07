@@ -63,6 +63,8 @@ import { usePracticeHistory } from './hooks/usePracticeHistory';
 import { useSavedProgressions } from './hooks/useSavedProgressions';
 import { useEarTraining } from './hooks/useEarTraining';
 import { useRhythmGame } from './hooks/useRhythmGame';
+import { useFreePlay } from './hooks/useFreePlay';
+import { BASS_PITCH_RANGE } from './hooks/usePitchDetection';
 import { useBendingTraining } from './hooks/useBendingTraining';
 import { useSoloOpener } from './hooks/useSoloOpener';
 import { usePianoPractice } from './hooks/usePianoPractice';
@@ -416,7 +418,10 @@ function App() {
   // Stage's bass neck can show the shape / moving note / hit-miss flashes.
   const bassPractice = useBassPractice(metronome);
   const bassPracticeOpen = !home && activeSection === 'bassPractice';
+  // Bass Practice's FREE mode (scales / arpeggios): any notes, any order.
+  const bassFree = useFreePlay({ range: BASS_PITCH_RANGE });
   useEffect(() => {
+    if (!bassPracticeOpen && bassFree.isPlaying) bassFree.stop();
     if (!bassPracticeOpen && bassPractice.running) bassPractice.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bassPracticeOpen]);
@@ -432,18 +437,23 @@ function App() {
       b.steps.filter((x) => x.bar === bar).forEach((x) => seen.set(x.string + ':' + x.fret, x));
       base = [...seen.values()];
     }
+    const free = bassFree.phase !== 'idle';
     return (base ?? []).map((n) => ({
       ...n,
       degreeLabel: n.degreeLabel || n.noteName,
-      isCurrent: !!cur && n.string === cur.string && n.fret === cur.fret,
+      isCurrent: !free && !!cur && n.string === cur.string && n.fret === cur.fret,
+      isHit: free && bassFree.hits.has(n.string + ':' + n.fret),
     }));
-  }, [bassPractice.built, bassPractice.stepIndex]);
+  }, [bassPractice.built, bassPractice.stepIndex, bassFree.phase, bassFree.hits]);
   // Scale Practice reuses the EXACT same generic engine as Rhythm Practice
   // above (a second independent instance — same reasoning as this app's
   // other same-hook-twice cases: fully self-contained, no state to share)
   // fed a different content generator (music/scalePracticeContent.js)
   // instead of the Exercise Drawer's chord/lick catalog.
   const scalePractice = useRhythmGame(metronome, { logAs: 'scale' });
+  // Scale Practice's FREE mode: no click, any order — the mic only checks
+  // that each note is in the scale (hooks/useFreePlay.js).
+  const scaleFree = useFreePlay();
   const bending = useBendingTraining();
   const soloOpener = useSoloOpener(metronome);
   const pianoPractice = usePianoPractice();
@@ -619,6 +629,10 @@ function App() {
 
   // Same mic-session safety for Scale Practice as Rhythm Practice above
   // (its own independent useRhythmGame instance, its own mic stream).
+  useEffect(() => {
+    if (scaleFree.isPlaying && (activeSection !== 'practice' || practiceTab !== 'scalePractice')) scaleFree.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection, practiceTab]);
   useEffect(() => {
     if (scalePractice.isPlaying && activeSection !== 'practice') {
       scalePractice.stop();
@@ -1493,11 +1507,12 @@ function App() {
   // the up-and-down version of shapeNotes and revisits some notes twice.
   const scalePracticeShapeNotes = useMemo(() => {
     const shapeNotes = scalePractice.exercise?.shapeNotes ?? [];
+    if (scaleFree.phase !== 'idle') return shapeNotes.map((n) => (scaleFree.hits.has(n.string + ':' + n.fret) ? { ...n, isHit: true } : n));
     if (!scalePractice.isPlaying || scalePractice.stepIndex < 0) return shapeNotes;
     const current = scalePractice.exercise?.sequence?.[scalePractice.stepIndex];
     if (!current) return shapeNotes;
     return shapeNotes.map((n) => (n.string === current.string && n.fret === current.fret ? { ...n, isCurrent: true } : n));
-  }, [scalePractice.exercise, scalePractice.isPlaying, scalePractice.stepIndex]);
+  }, [scalePractice.exercise, scalePractice.isPlaying, scalePractice.stepIndex, scaleFree.phase, scaleFree.hits]);
 
   // C major reference positions for the Studies -> CAGED course — cheap to
   // recompute per render, same as every other derived value here.
@@ -1639,7 +1654,7 @@ function App() {
           position: null,
           scaleNotes: bassPracticeNotes,
           labelMode: bassPractice.labels,
-          quizFeedbackCell: bassPractice.feedback,
+          quizFeedbackCell: bassFree.feedback ?? bassPractice.feedback,
           noteSound: 'bass',
           capoFret: 0,
         }
@@ -1670,7 +1685,7 @@ function App() {
             position: null,
             scaleNotes: scalePracticeShapeNotes,
             labelMode: scalePracticeLabelMode,
-            quizFeedbackCell: scalePractice.feedbackCell,
+            quizFeedbackCell: scaleFree.feedback ?? scalePractice.feedbackCell,
           }
         : practiceTab === 'bending'
         ? {
@@ -2475,6 +2490,7 @@ function App() {
           chordRhythm={chordRhythm}
           guitarChordRhythm={guitarChordRhythm}
           scalePractice={scalePractice}
+          scaleFree={scaleFree}
           scalePracticeSeed={scalePracticeSeed}
           minuteSeed={minuteSeed}
           onScalePracticeSeedConsumed={() => setScalePracticeSeed(null)}
@@ -2587,7 +2603,7 @@ function App() {
       )}
       {activeSection === 'vocal' && <VocalTrainingView key={vocalStart.n} initialScreen={vocalStart.screen} />}
       {activeSection === 'coach' && <CoachView />}
-      {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} metronome={metronome} />}
+      {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} free={bassFree} metronome={metronome} />}
       {activeSection === 'teacher' && (
         <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} metro={teacherMetro} gp={teacherGp} />
       )}

@@ -8,6 +8,8 @@ import { LibraryRow, BackButton } from '../PracticeView/PracticeHome';
 import '../PracticeView/PracticeHome.css';
 import { loadOnboarding } from '../../onboarding/onboardingState';
 import './BassPractice.css';
+import { FreePlay } from '../PlayAlong/FreePlay';
+import { BASS_TUNING } from '../../music/notes';
 
 // The bass library (stage 4 of the redesign, the same list as the guitar's
 // Practice — rule 10): a group per category, a row per exercise; the
@@ -28,7 +30,10 @@ function bassLevel() {
 const firstSentence = (txt) => (txt ? txt.split(/(?<=[.!?])\s/)[0] : '');
 
 const PREFS = 'dudestar-p-bass-practice';
-const MODES = ['play', 'wait', 'listen'];
+const MODES = ['play', 'wait', 'listen', 'free'];
+// Free play (any notes, any order — only "is it in the scale / chord?") fits
+// the shapes, not fixed technique patterns or grooves.
+const FREE_CATS = ['scales', 'arpeggios'];
 
 function loadPrefs() {
   try {
@@ -41,7 +46,7 @@ function loadPrefs() {
 // Bass card -> Practice. The exercise library (music/bass/bassPractice.js) on
 // the engine (hooks/useBassPractice.js, created in App so the Stage's bass
 // neck can show the shape, the moving note and hit / miss flashes).
-export function BassPracticeView({ bp, metronome }) {
+export function BassPracticeView({ bp, free, metronome }) {
   const { t, lang } = useLanguage();
   const tx = (x) => (x ? x[lang] ?? x.en : '');
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -80,7 +85,22 @@ export function BassPracticeView({ bp, metronome }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [built]);
 
-  const running = bp.running;
+  const freeOk = FREE_CATS.includes(cat);
+  const freeOn = freeOk && bp.mode === 'free';
+  const modes = freeOk ? MODES : MODES.filter((m) => m !== 'free');
+  useEffect(() => {
+    if (bp.mode === 'free' && ex && !freeOk) bp.setMode('play');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ex, freeOk]);
+  // A new exercise / key / mode starts free play over.
+  useEffect(() => {
+    free?.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [built, bp.mode]);
+  const startFree = () =>
+    free.start({ shape: built.shapeNotes ?? [], tuning: BASS_TUNING, rootPc: ex.keyed ? prefs.key : null, log: { tool: 'bassFree', item: built.item } });
+
+  const running = bp.running || !!free?.isPlaying;
   const steps = built?.steps ?? [];
   const cur = bp.stepIndex >= 0 ? steps[bp.stepIndex] : null;
   const curBar = cur?.bar ?? (built?.bars ? 0 : null);
@@ -142,7 +162,8 @@ export function BassPracticeView({ bp, metronome }) {
         <BackButton
           label={t('bp.title')}
           onClick={() => {
-            if (running) bp.stop();
+            if (bp.running) bp.stop();
+            free?.reset();
             setChosen((ch) => ({ ...ch, [cat]: undefined }));
           }}
         />
@@ -179,7 +200,7 @@ export function BassPracticeView({ bp, metronome }) {
               disabled={running}
               onChange={(e) => bp.setMode(e.target.value)}
             >
-              {MODES.map((m) => (
+              {modes.map((m) => (
                 <option key={m} value={m}>
                   {t('bp.mode.' + m)}
                 </option>
@@ -202,7 +223,7 @@ export function BassPracticeView({ bp, metronome }) {
             </select>
           </label>
         )}
-        {ex && bp.mode !== 'wait' && (
+        {ex && bp.mode !== 'wait' && !freeOn && (
           <div className="scale-practice-field">
             <span className="scale-practice-field-label">{t('bp.tempo')}</span>
             <BpmField
@@ -215,15 +236,15 @@ export function BassPracticeView({ bp, metronome }) {
             />
           </div>
         )}
-        {ex && (
+        {ex && !freeOn && (
           <div className="scale-practice-field">
             <span className="scale-practice-field-label">&nbsp;</span>
             <span className="bp-actions">
               <button type="button" className={'bp-latch' + (bp.loop ? ' is-on' : '')} aria-pressed={bp.loop} onClick={() => bp.setLoop(!bp.loop)}>
                 {t('bp.loop')}
               </button>
-              <button type="button" className="play-button" onClick={running ? bp.stop : bp.start}>
-                {running ? t('bp.stop') : t('bp.start')}
+              <button type="button" className="play-button" onClick={bp.running ? bp.stop : bp.start}>
+                {bp.running ? t('bp.stop') : t('bp.start')}
               </button>
             </span>
           </div>
@@ -267,7 +288,11 @@ export function BassPracticeView({ bp, metronome }) {
         </div>
       )}
 
-      {ex && (running || bp.phase === 'done') && (
+      {ex && freeOn && free && built && (
+        <FreePlay free={free} onStart={startFree} total={new Set((built.shapeNotes ?? []).map((n) => n.string + ':' + n.fret)).size} idleText={t(cat === 'arpeggios' ? 'fp.idleChord' : 'fp.idle')} />
+      )}
+
+      {ex && !freeOn && (bp.running || bp.phase === 'done') && (
         <p className="bp-status" aria-live="polite" dir="auto">
           {bp.phase === 'countin' ? (
             <span className="bp-countin">{t('bp.countIn', { n: bp.countIn })}</span>
@@ -286,7 +311,7 @@ export function BassPracticeView({ bp, metronome }) {
         </p>
       )}
 
-      {ex && bp.phase === 'done' && bp.result && <Result r={bp.result} best={bp.best} t={t} />}
+      {ex && !freeOn && bp.phase === 'done' && bp.result && <Result r={bp.result} best={bp.best} t={t} />}
     </div>
   );
 }

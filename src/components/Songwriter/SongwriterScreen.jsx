@@ -27,6 +27,9 @@ export function SongwriterScreen({ start = 'list', onBack }) {
   const [toastMsg, setToastMsg] = useState(null);
   const toastTimer = useRef(null);
   const started = useRef(false);
+  // The card's "Idea" shortcut records at once (catch it before it's gone)
+  // — once per visit, not again on coming back from a song.
+  const [autoRecord, setAutoRecord] = useState(start === 'idea');
 
   const toast = useCallback((msg) => {
     setToastMsg((old) => {
@@ -104,7 +107,15 @@ export function SongwriterScreen({ start = 'list', onBack }) {
             }}
           />
         ) : (
-          <SongList store={store} audio={audio} focusIdeas={start === 'idea'} onOpen={(id) => setOpenId(id)} toast={toast} />
+          <SongList
+            store={store}
+            audio={audio}
+            focusIdeas={start === 'idea'}
+            autoRecord={autoRecord}
+            onAutoRecorded={() => setAutoRecord(false)}
+            onOpen={(id) => setOpenId(id)}
+            toast={toast}
+          />
         )}
       </main>
       {toastMsg && (
@@ -145,7 +156,7 @@ function IdeaWords({ idea, onSave }) {
 // before that it's only the default (90) and isn't shown in the list.
 const tempoShown = (s) => s.bpmSet || s.sections.some((sec) => sec.lines.some((l) => l.melody?.notes?.length));
 
-function SongList({ store, audio, focusIdeas, onOpen, toast }) {
+function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen, toast }) {
   const { t, lang } = useLanguage();
   const ideasRef = useRef(null);
   const recIdea = audio.rec?.target?.idea ? audio.rec : null;
@@ -153,6 +164,13 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
   useEffect(() => {
     if (focusIdeas) ideasRef.current?.scrollIntoView({ block: 'start' });
   }, [focusIdeas]);
+  useEffect(() => {
+    if (!autoRecord) return;
+    onAutoRecorded();
+    if (!audio.rec) audio.startRec({ idea: true }, { bpm: 90, beatsPerBar: 4, click: 'off' });
+    // once, on arriving from the card's Idea shortcut
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRecord]);
 
   const dateFmt = (ms) => {
     try {

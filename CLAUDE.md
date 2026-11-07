@@ -1643,6 +1643,10 @@ no tools).
   390 + 1180: band chip, playback lights lines, perform play + scroll
   follow lines, no page errors (samples blocked here — band SOUND not heard;
   verify on the iPad).
+- IDEA = RECORD AT ONCE (v1.0.140, user's OK): the card's Idea shortcut
+  (`songwriter: 'idea'`) opens the list at Ideas AND starts recording a new
+  idea immediately (SongwriterScreen `autoRecord`, once per visit — coming
+  back from a song doesn't record again); Stop saves it as usual.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

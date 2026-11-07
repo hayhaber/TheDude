@@ -2,7 +2,7 @@
 // keys are namespaced per profile before any other module (or a module-level
 // read) touches storage. ES imports evaluate in order, so a call in
 // main.jsx's body would come too late.
-import { installProfileStorage } from './profileStorage';
+import { installProfileStorage, reconcileProfileName } from './profileStorage';
 import { applyPendingAtBoot, trackChanges } from '../cloud/cloudState';
 
 installProfileStorage();
@@ -10,3 +10,5 @@ installProfileStorage();
 // before any screen reads its state; then every real change is tracked.
 applyPendingAtBoot();
 trackChanges();
+// The profile's name follows the account (after the pulled rows, tracked).
+reconcileProfileName();

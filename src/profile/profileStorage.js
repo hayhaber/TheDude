@@ -286,11 +286,45 @@ export function createProfile(name = '') {
   return id;
 }
 
+// The profile's name also lives in one of its own personal keys, so cloud
+// sync carries it to the person's other devices (the registry is per device).
+export const NAME_KEY = 'dudestar-p-profile-name';
+
 export function renameProfile(id, name) {
   if (!installed) return;
+  const clean = String(name).trim().slice(0, 40);
   const reg = fresh();
-  const profiles = reg.profiles.map((p) => (p.id === id ? { ...p, name: String(name).trim().slice(0, 40) } : p));
+  const profiles = reg.profiles.map((p) => (p.id === id ? { ...p, name: clean } : p));
   writeRegistry({ ...reg, profiles });
+  try {
+    if (id === activeId) window.localStorage.setItem(NAME_KEY, clean); // reported -> synced
+    else rawSet(nsKey(id, NAME_KEY), clean);
+  } catch {
+    /* quota */
+  }
+}
+
+/**
+ * Start-up, after the cloud rows were applied: a name that came from another
+ * device renames this profile here; a name given here before names were
+ * synced is written to the key once (and so uploaded).
+ */
+export function reconcileProfileName() {
+  if (!installed || !activeId) return;
+  try {
+    const reg = fresh();
+    const me = reg.profiles.find((p) => p.id === activeId);
+    if (!me) return;
+    const stored = window.localStorage.getItem(NAME_KEY);
+    if (stored != null) {
+      const clean = String(stored).trim().slice(0, 40);
+      if (clean !== me.name) writeRegistry({ ...reg, profiles: reg.profiles.map((p) => (p.id === activeId ? { ...p, name: clean } : p)) });
+    } else if (me.name) {
+      window.localStorage.setItem(NAME_KEY, me.name);
+    }
+  } catch {
+    /* never block start-up */
+  }
 }
 
 /** Removes the profile and all its data. The last profile can't be deleted. */

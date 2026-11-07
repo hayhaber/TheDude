@@ -1855,6 +1855,13 @@ no tools).
   reload; later = pending for the next start (writing under running hooks
   would be overwritten by their in-memory state). Conflicts = last change
   per key wins (two devices editing the same list offline: one wins).
+- PROFILE NAME syncs (v1.0.123; user: renamed on the iPad, computer +
+  phone still said "Me"): the registry is per device, so the name is ALSO
+  the personal key `dudestar-p-profile-name` (renameProfile writes it).
+  Boot (`reconcileProfileName()`, install.js after applyPendingAtBoot +
+  trackChanges): key present -> the registry takes it; no key but a name
+  here -> written once (= uploaded). A pulled name row is applied at once
+  (cloudSync, not left pending) — it's only displayed.
 - First link: account empty -> upload this device; this device has no real
   data ([] / {} defaults don't count) -> take the account's; both -> the
   CloudPrompt modal "Account | Device" (winner where both have a key;

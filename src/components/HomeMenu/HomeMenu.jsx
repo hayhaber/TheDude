@@ -155,7 +155,7 @@ const easeOut = (x) => 1 - Math.pow(1 - x, 3);
  * and shortcuts into the app. Tapping the card itself opens its first
  * shortcut.
  */
-export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, place = null, initialCard }) {
+export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, place = null, initialCard, learnFor = null }) {
   const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
   const trackRef = useRef(null);
@@ -431,6 +431,28 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
   const primaryFor = (card) => {
     const inst = card.instrument;
     if (!inst && card.key !== 'vocal') return null;
+    // The teacher's next step for this instrument (v1.0.160) comes first.
+    const learn = inst && learnFor ? learnFor(inst) : null;
+    const loc = (x) => (typeof x === 'string' ? x : x?.[lang] ?? x?.en ?? '');
+    const lessonPrimary = () => {
+      const title = nextLesson.title?.[lang] ?? nextLesson.title?.en ?? '';
+      const bits = [`${t('home.primary.lessonSub')}: ${title}`];
+      if (nextLesson.minutes) bits.push(t('home.primary.min', { n: nextLesson.minutes }));
+      if (nextLesson.step) bits.push(t('home.primary.step', { n: nextLesson.step, m: nextLesson.steps }));
+      return { label: nextLesson.step ? CONT : START, caption: bits.join(' · '), go: onNextLesson };
+    };
+    if (learn) {
+      const go = learn.go ?? (() => onOpen({ ...learn.open, card: card.key }));
+      if (learn.kind === 'lesson' && nextLesson && onNextLesson) return lessonPrimary();
+      if (learn.kind === 'goal') return { label: CONT, caption: `${t('home.primary.goal')}: ${loc(learn.title)} · ${t('home.primary.goalSub')}`, go };
+      if (learn.kind === 'weak') {
+        const what = learn.title ? loc(learn.title) : learn.name ? loc(learn.name) : t(learn.nameKey);
+        const spot = learn.spot ? ` · ${t(`home.primary.spot.${learn.spot.kind}`, { n: learn.spot.pct ?? learn.spot.ms })}` : '';
+        return { label: START, caption: `${t('home.primary.weak')}: ${what}${spot}`, go };
+      }
+      if (learn.kind === 'today') return { label: START, caption: `${t('home.primary.today')}: ${t(learn.nameKey)}`, go };
+      if (learn.kind === 'next') return { label: START, caption: `${t('home.primary.next')}: ${loc(learn.name)}`, go };
+    }
     const here = place && (card.key === 'vocal' ? place.section === 'vocal' : place.instrument === inst && place.section !== 'vocal');
     if (here && onContinue) {
       const name = placeName(place.instrument, place.section, place.practiceTab);
@@ -440,13 +462,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
     const lessonFirst = inst === 'guitar' && nextLesson && onNextLesson;
     const last = lastPlace(inst);
     const lastOk = last && last !== 'vocal' && supportsInstrument(last, inst);
-    if (lessonFirst && (nextLesson.beginner || !lastOk)) {
-      const title = nextLesson.title?.[lang] ?? nextLesson.title?.en ?? '';
-      const bits = [`${t('home.primary.lessonSub')}: ${title}`];
-      if (nextLesson.minutes) bits.push(t('home.primary.min', { n: nextLesson.minutes }));
-      if (nextLesson.step) bits.push(t('home.primary.step', { n: nextLesson.step, m: nextLesson.steps }));
-      return { label: nextLesson.step ? CONT : START, caption: bits.join(' · '), go: onNextLesson };
-    }
+    if (lessonFirst && (nextLesson.beginner || !lastOk)) return lessonPrimary();
     if (lastOk) {
       const tab = last === 'practice' ? lastPracticeTab() : null;
       const name = placeName(inst, last, tab);

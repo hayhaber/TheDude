@@ -306,6 +306,30 @@ no tools).
   TeacherView when the coach has no intake) — the Goal tab starts at the
   goal step.
 
+- HOME PRIMARY = THE TEACHER'S NEXT STEP (v1.0.160, 2026-11-07; user:
+  "Continue sent me back to GuitarPro instead of my lesson — it should
+  continue my LEARNING"; + "the teacher watches everything I play and
+  sends me to strengthen each weakness"). App `homeLearnFor(inst)` ->
+  HomeMenu `learnFor` (runs BEFORE "here" / last place): guitar = a lesson
+  in progress · the goal (teacher solo goal / coach skill goal -> teacher
+  home) · a weak spot · the next lesson; piano = a weak spot · today's
+  pick (`forYou`, a tool not played today); bass = a weak spot · the next
+  exercise for the level (`bassNext`: library order, not yet >= 90 %, not
+  played today; opens the exercise via App `bassStart` ->
+  BassPracticeView `start`, applied once per request). null -> the old
+  fallbacks. Pure `coach/nextStep.js`: `weakSpot(inst, perf)` = guitar
+  `findWeaknesses` (with a block) / piano ear, or the last 3-4 runs of one
+  chord-rhythm / flow / bass item: notes < 75 % · |offset| >= 40 ms late /
+  early · timing < 60 %; skipped when that tool / item was played today.
+  perfLog entries now carry `instrument` (from the 'instrument' key);
+  older ones: `instOf()` (chordRhythm / fallingNotes = piano, bass =
+  bass, else guitar). Captions `home.primary.goal / weak / today / next /
+  spot.*` ("Strengthen: Chord rhythm · 50% right notes lately").
+  Playwright: 7 seeded scenarios (lesson in progress, coach goal, guitar
+  slow direction, piano notes, piano today, bass next, bass late) give the
+  right caption + open the right screen. Next stage (not built): detect
+  weaknesses while PLAYING a song (GuitarPro song view has no mic yet).
+
 - SETTINGS REDESIGN (v1.0.106, 2026-11-06; user: "do what you recommend";
   canvas https://claude.ai/artifact/5NSyeNP6J1hZBMtXW2Y6Gd): (1) inside an
   instrument the ⓘ round button is GONE — the avatar (`ProfileChip

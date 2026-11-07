@@ -34,6 +34,17 @@ export function loadPerf() {
   }
 }
 
+// Which instrument a run was played on (the home's "next step" reads each
+// instrument's own runs). Older entries have none: see coach/nextStep.js.
+function currentInstrument() {
+  try {
+    const v = localStorage.getItem('instrument');
+    return ['guitar', 'piano', 'bass'].includes(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 export function logPerf({ tool, item, metrics = {}, bpm, durationMs }) {
   if (!tool) return null;
   const at = Date.now();
@@ -43,6 +54,7 @@ export function logPerf({ tool, item, metrics = {}, bpm, durationMs }) {
     day: localDay(at),
     tool,
     item: item == null ? '' : String(item),
+    ...(currentInstrument() ? { instrument: currentInstrument() } : {}),
     ...(Number.isFinite(bpm) ? { bpm: Math.round(bpm) } : {}),
     ...(Number.isFinite(durationMs) ? { durationMs: Math.round(durationMs) } : {}),
     metrics,

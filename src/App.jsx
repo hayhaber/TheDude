@@ -109,7 +109,12 @@ import { TECHNIQUE_MASTERS_EXERCISES } from './music/techniqueMastersCurriculum'
 import { useTechniqueVisualizer } from './hooks/useTechniqueVisualizer';
 import { DRILLS } from './music/drills';
 import { fivePositionWindows } from './music/scaleShapes';
-import { logPerf } from './coach/perfLog';
+import { logPerf, loadPerf } from './coach/perfLog';
+import { weakSpot, bassNext, parseBassItem } from './coach/nextStep';
+import { loadCoach, activeGoal } from './coach/engine';
+import { goalByKey } from './coach/goals';
+import { exerciseById } from './music/bass/bassPractice';
+import { forYou, studentLevel, itemFor } from './components/PracticeView/practiceLibrary';
 import { registerLauncher, setPendingMinuteChanges } from './coach/launchBus';
 import { Onboarding } from './components/Onboarding/Onboarding';
 import { homeCardFor, loadOnboarding, needsOnboarding } from './onboarding/onboardingState';
@@ -835,6 +840,8 @@ function App() {
   const [teacherStage, setTeacherStage] = useState(null);
   // Which teacher screen the home card opened: {screen, n} (n re-keys the view).
   const [teacherStart, setTeacherStart] = useState({ screen: 'today', n: 0 });
+  // Bass Practice opened on one exercise (the home's next step): {id, key, rootString, n}.
+  const [bassStart, setBassStart] = useState(null);
   const [chordLibN, setChordLibN] = useState(0);
   // Theory opens on its course list (flow review 2026-11-06).
   const [studiesBrowse, setStudiesBrowse] = useState(true);
@@ -2216,6 +2223,90 @@ function App() {
     setLeftHome(true);
   };
 
+  // The home cards' primary button = the teacher's next step (v1.0.160, user:
+  // "it should continue my LEARNING, not the last screen"; and "the teacher
+  // watches everything and sends me to strengthen each weakness"). In order:
+  // guitar — a lesson in progress · the goal chosen with the teacher · a weak
+  // spot found in the runs · the next lesson; piano — a weak spot · today's
+  // pick for the level; bass — a weak spot · the next exercise for the level.
+  // null = the card falls back to the last screen (as before).
+  // Each = {kind, caption parts, go | open}; HomeMenu words it.
+  const homeLearnFor = (inst) => {
+    const perf = loadPerf();
+    const enter = (i) => {
+      if (instrument !== i) setInstrument(i);
+    };
+    const launchFor = (i, spec) => () => {
+      enter(i);
+      launchPractice(spec);
+      enteredCardRef.current = i;
+    };
+    const weak = weakSpot(inst, perf);
+    const weakItem = (() => {
+      if (!weak) return null;
+      if (weak.source === 'coach') return { kind: 'weak', title: weak.title, go: launchFor(inst, weak.launch) };
+      if (weak.tool === 'bass') {
+        const b = parseBassItem(weak.item);
+        const ex = b && exerciseById(b.id);
+        if (!ex) return null;
+        return {
+          kind: 'weak',
+          name: ex.title,
+          spot: weak,
+          open: { instrument: 'bass', section: 'bassPractice', bassExercise: { id: ex.id, key: b.key, rootString: b.rootString } },
+        };
+      }
+      return { kind: 'weak', nameKey: `ph.ex.${weak.tool}.title`, spot: weak, open: { instrument: 'piano', section: 'practice', practiceTab: weak.tool } };
+    })();
+    if (inst === 'guitar') {
+      const st = getTeacher();
+      const l = homeNextLesson;
+      const saved = l && st.lessons?.[l.id];
+      const inProgress = l && saved && !saved.done && (saved.at ?? 0) > 0;
+      if (inProgress) return { kind: 'lesson' };
+      if (st.goal?.kind === 'solo') {
+        const solo = lickTrainer.solos?.find((x) => x.id === st.goal.soloId);
+        if (solo) return { kind: 'goal', title: solo.title, go: () => goTeacher() };
+      }
+      const cg = activeGoal(loadCoach());
+      const def = cg ? goalByKey(cg.goalKey) : null;
+      if (def) return { kind: 'goal', title: def.title, go: () => goTeacher() };
+      if (weakItem) return weakItem;
+      if (l) return { kind: 'lesson' };
+      return null;
+    }
+    if (weakItem) return weakItem;
+    const today = new Date().toDateString();
+    const doneToday = (tool) => perf.some((e) => e.tool === tool && new Date(e.at).toDateString() === today);
+    if (inst === 'piano') {
+      const TOOL = { chordRhythm: 'chordRhythm', fallingNotes: 'fallingNotes', 'ear-training': 'ear' };
+      const pick = forYou('piano', studentLevel()).find((tab) => itemFor(tab) && !doneToday(TOOL[tab] ?? tab));
+      if (pick) return { kind: 'today', nameKey: `ph.ex.${pick}.title`, open: { instrument: 'piano', section: 'practice', practiceTab: pick } };
+      return null;
+    }
+    if (inst === 'bass') {
+      let prefs = {};
+      try {
+        prefs = JSON.parse(localStorage.getItem('dudestar-p-bass-practice')) ?? {};
+      } catch {
+        /* defaults */
+      }
+      const ob = loadOnboarding();
+      const level = ob?.instrument === 'bass' ? ({ new: 0, few: 1, songs: 2 }[ob.level] ?? 0) : 0;
+      const nx = bassNext(level, perf, { key: Number.isFinite(prefs.key) ? prefs.key : 7, rootString: Number.isFinite(prefs.rootString) ? prefs.rootString : 0 });
+      if (nx) return { kind: 'next', name: nx.ex.title, open: { instrument: 'bass', section: 'bassPractice', bassExercise: { id: nx.ex.id, key: nx.key, rootString: nx.rootString } } };
+    }
+    return null;
+  };
+  const goTeacher = () => {
+    if (instrument !== 'guitar') setInstrument('guitar');
+    enteredCardRef.current = 'guitar';
+    setTeacherStart((v) => ({ screen: 'today', n: v.n + 1 }));
+    setActiveSection('teacher');
+    setHome(false);
+    setLeftHome(true);
+  };
+
   if (onboarding) {
     return (
       <Onboarding
@@ -2267,7 +2358,7 @@ function App() {
   if (home) {
     return (
       <HomeMenu
-        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen, teacherScreen, songwriter: swView }) => {
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen, teacherScreen, songwriter: swView, bassExercise }) => {
           if (swView) {
             stopMetronome();
             setSongwriter((v) => ({ view: swView, n: (v?.n ?? 0) + 1 }));
@@ -2287,6 +2378,7 @@ function App() {
           if (tab) setPracticeTab(tab);
           if (section === 'vocal') setVocalStart((v) => ({ screen: vocalScreen ?? 'home', n: v.n + 1 }));
           if (section === 'teacher') setTeacherStart((v) => ({ screen: teacherScreen ?? 'today', n: v.n + 1 }));
+          if (bassExercise) setBassStart((v) => ({ ...bassExercise, n: (v?.n ?? 0) + 1 }));
           setActiveSection(section);
           setHome(false);
           setLeftHome(true);
@@ -2309,6 +2401,7 @@ function App() {
             : null
         }
         onNextLesson={homeNextLesson ? openNextLesson : null}
+        learnFor={homeLearnFor}
         initialCard={homeCard}
       />
     );
@@ -2603,7 +2696,7 @@ function App() {
       )}
       {activeSection === 'vocal' && <VocalTrainingView key={vocalStart.n} initialScreen={vocalStart.screen} />}
       {activeSection === 'coach' && <CoachView />}
-      {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} free={bassFree} metronome={metronome} />}
+      {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} free={bassFree} metronome={metronome} start={bassStart} />}
       {activeSection === 'teacher' && (
         <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} metro={teacherMetro} gp={teacherGp} />
       )}

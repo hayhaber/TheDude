@@ -30,6 +30,7 @@ function bassLevel() {
 const firstSentence = (txt) => (txt ? txt.split(/(?<=[.!?])\s/)[0] : '');
 
 const PREFS = 'dudestar-p-bass-practice';
+let appliedStartN = 0; // the last home "next step" request applied
 const MODES = ['play', 'wait', 'listen', 'free'];
 // Free play (any notes, any order — only "is it in the scale / chord?") fits
 // the shapes, not fixed technique patterns or grooves.
@@ -46,7 +47,7 @@ function loadPrefs() {
 // Bass card -> Practice. The exercise library (music/bass/bassPractice.js) on
 // the engine (hooks/useBassPractice.js, created in App so the Stage's bass
 // neck can show the shape, the moving note and hit / miss flashes).
-export function BassPracticeView({ bp, free, metronome }) {
+export function BassPracticeView({ bp, free, metronome, start = null }) {
   const { t, lang } = useLanguage();
   const tx = (x) => (x ? x[lang] ?? x.en : '');
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -59,6 +60,17 @@ export function BassPracticeView({ bp, free, metronome }) {
   const ex = exerciseById(chosen[cat]);
 
   const save = (patch) => setPrefs((p) => ({ ...p, ...patch }));
+  // Opened from the home's primary button on one exercise (the teacher's
+  // next step / weak spot): that exercise, key and root string.
+  useEffect(() => {
+    const ex0 = start?.id ? exerciseById(start.id) : null;
+    // once per request — a later visit (the view remounts) opens the list
+    if (!ex0 || start.n === appliedStartN) return;
+    appliedStartN = start.n;
+    save({ cat: ex0.cat, ...(start.key != null ? { key: start.key } : {}), ...(start.rootString != null ? { rootString: start.rootString } : {}) });
+    setChosen((ch) => ({ ...ch, [ex0.cat]: ex0.id }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start?.n]);
   useEffect(() => {
     try {
       localStorage.setItem(PREFS, JSON.stringify({ cat: prefs.cat, key: prefs.key, rootString: prefs.rootString, mode: bp.mode }));

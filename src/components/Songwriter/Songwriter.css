@@ -1541,7 +1541,19 @@
   padding: 0;
   border-radius: var(--radius-md);
   background: var(--surface);
-  overflow: hidden;
+  /* no overflow: hidden — it clipped the rows' ••• menus */
+}
+.sw-group > li:first-child {
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+}
+.sw-group > li:last-child {
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
+}
+.sw-group > li:has(.more-menu-pop) {
+  position: relative;
+  z-index: 3;
 }
 .sw-group > li + li {
   border-top: 0.5px solid var(--separator);

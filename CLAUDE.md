@@ -1471,6 +1471,9 @@ no tools).
   section header = kind select + play + ••• (Duplicate, Move up / down —
   only when possible —, Delete with Undo); the footer row (Print / Export /
   Delete) and the export footnote are gone (both in •••). Logic untouched.
+- v1.0.124: the idea rows' ••• menu was invisible — `.sw-group`'s
+  overflow: hidden clipped it; now no overflow (first/last li inherit the
+  radius) and the row holding an open menu is raised (z-index 3).
 - SUGGESTED CHORDS (v1.0.122, 2026-11-07; user: "can it listen to humming
   and write chords?" -> a hum has no chord: SUGGEST one per bar, play it on
   guitar or piano). Melody sheet tool "Chords" (`ChordSuggest.jsx`, shown

@@ -6,6 +6,7 @@
 import { getAudioContext } from '../audioContext';
 import { schedulePianoNotes, preparePiano } from '../pianoPlayer';
 import { chordMidis, songTimeline } from '../../music/songwriter/song';
+import { playBand } from './bandPlayer';
 
 export { preparePiano };
 
@@ -15,6 +16,8 @@ export { preparePiano };
  * there's nothing to play.
  */
 export function playSong(song, { only = null, melody = true, chords = true, from = 0 } = {}) {
+  // A band chosen for the song (Key / tempo panel): drums, bass, chords.
+  if (chords && song.band?.style) return playBand(song, { only, from, style: song.band.style, melody: melody && song.band.melody !== false });
   const tl = songTimeline(song, { only });
   if (!tl.notes.length && !tl.chords.length) return null;
   const ctx = getAudioContext();

@@ -151,14 +151,16 @@ export function useSongAudio() {
 
   // ---- song playback ----
   const play = useCallback(
-    (song, scope, only = null) => {
+    // `from` (s) starts later in the song; `restart` = start again even if
+    // this scope is playing (otherwise a second call on it stops it).
+    (song, scope, only = null, from = 0, restart = false) => {
       stopTake();
       if (playing) {
         const same = playing.scope === scope;
         stopSong();
-        if (same) return;
+        if (same && !restart) return;
       }
-      const handle = playSong(song, { only });
+      const handle = playSong(song, { only, from });
       if (!handle) return;
       setPlaying({ scope, handle });
       const end = handle.timeline.duration + 0.4;

@@ -1802,3 +1802,203 @@
 .sw-sheet > * {
   flex-shrink: 0;
 }
+
+/* ---- Rhyme colours (v1.0.137): one colour per rhyme family ---------------- */
+.sw-word-text.is-rhyme {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--rh) 16%, transparent);
+  box-shadow: inset 0 -2px 0 var(--rh);
+}
+
+/* ---- Perform button + mode (teleprompter) ------------------------------- */
+.sw-perform-btn {
+  margin-inline-start: auto;
+}
+@media (max-width: 430px) {
+  .sw-perform-btn span,
+  .sw-perform-btn {
+    font-size: 0;
+    gap: 0;
+  }
+  .sw-perform-btn {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.sw-perform {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+  animation: sw-pf-in var(--dur-sheet, 0.35s) var(--ease-ios, ease);
+}
+@keyframes sw-pf-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+.sw-perform-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+}
+.sw-perform-title {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sw-pf-size {
+  display: flex;
+  gap: 8px;
+}
+.sw-pf-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  color: #fff;
+  cursor: pointer;
+}
+.sw-pf-round:disabled {
+  opacity: 0.35;
+}
+.sw-pf-a {
+  font-size: 20px;
+  font-weight: 600;
+}
+.sw-pf-a.is-small {
+  font-size: 14px;
+}
+
+.sw-perform-stage {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 30vh max(20px, 6vw) 45vh;
+  font-size: var(--pf-size, 30px);
+  line-height: 1.25;
+}
+.sw-perform-empty {
+  text-align: center;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.sw-pf-sec {
+  max-width: 1100px;
+  margin: 0 auto 1.1em;
+}
+.sw-pf-sec h2 {
+  margin: 0 0 0.35em;
+  font-size: max(13px, 0.45em);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.45);
+}
+.sw-pf-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0 0.3em;
+  width: 100%;
+  margin: 0 0 0.35em;
+  padding: 0.1em 0;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.42);
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--dur-fast, 0.15s) ease, transform var(--dur-pop, 0.25s) var(--ease-ios, ease);
+}
+.sw-pf-line.is-past {
+  color: rgba(255, 255, 255, 0.28);
+}
+.sw-pf-line.is-active {
+  color: #fff;
+}
+.sw-pf-word {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.sw-pf-chord {
+  min-height: 1em;
+  font-size: 0.62em;
+  font-weight: 700;
+  color: #ffd60a;
+  opacity: 0.6;
+  white-space: pre;
+}
+.sw-pf-line.is-active .sw-pf-chord {
+  opacity: 1;
+}
+
+.sw-perform-bar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  pointer-events: none;
+}
+.sw-pf-key {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sw-pf-key.is-primary {
+  background: rgba(255, 255, 255, 0.92);
+  color: #000;
+}
+.sw-pf-key:disabled {
+  opacity: 0.35;
+}
+/* The summary chip keeps one line (the band name made it wrap on phones). */
+.sw-meta-chip {
+  min-width: 0;
+  max-width: 100%;
+}
+.sw-meta-chip bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sw-summary > .sw-meta-chip {
+  flex: 0 1 auto;
+}

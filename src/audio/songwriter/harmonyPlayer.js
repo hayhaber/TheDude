@@ -9,7 +9,7 @@ import { getAudio } from './songAudioStore';
 import { beatsPerBar, chordMidis } from '../../music/songwriter/song';
 
 /** Root, 3rd, 5th, (7th) as semitones above the root, from the app's chord table. */
-function shapeOf(symbol) {
+export function shapeOf(symbol) {
   const ms = chordMidis(symbol);
   if (!ms) return null;
   const tones = ms.slice(1);
@@ -43,7 +43,7 @@ export function pianoVoicing(symbol) {
 const STRUM = { 4: ['D', '', 'D', 'U', '', 'U', 'D', 'U'], 3: ['D', '', 'D', 'U', 'D', 'U'], 2: ['D', '', 'D', 'U'], 6: ['D', '', 'U', 'D', '', 'U', 'D', '', 'U', 'D', '', 'U'] };
 
 /** The accompaniment's notes ({midi, start (beats), dur (beats), velocity}) for one chord span. */
-function accompaniment(symbol, from, to, barStart, { instrument, style, bpb }) {
+export function accompaniment(symbol, from, to, barStart, { instrument, style, bpb }) {
   const out = [];
   const len = to - from;
   if (len <= 0) return out;

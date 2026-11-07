@@ -18,6 +18,7 @@ export function LyricLine({
   caret,
   sylCount,
   rhyme,
+  rhymeOf,
   laneProps,
   playing,
   recording,
@@ -127,7 +128,11 @@ export function LyricLine({
                 >
                   {chordOf[i] ?? (selected ? '+' : '')}
                 </button>
-                <span className="sw-word-text" onClick={() => onEdit(w.end)}>
+                <span
+                  className={'sw-word-text' + (rhymeOf?.[i] != null ? ' is-rhyme' : '')}
+                  style={rhymeOf?.[i] != null ? { '--rh': RHYME_COLORS[rhymeOf[i] % RHYME_COLORS.length] } : undefined}
+                  onClick={() => onEdit(w.end)}
+                >
                   {w.w}
                 </span>
               </span>
@@ -217,6 +222,9 @@ export function LyricLine({
     </div>
   );
 }
+
+// One colour per rhyme family (Apple system colours), in order of appearance.
+export const RHYME_COLORS = ['#FF9500', '#007AFF', '#34C759', '#AF52DE', '#FF2D55', '#30B0C7', '#A2845E', '#5856D6'];
 
 export function fmt(s) {
   const m = Math.floor(s / 60);

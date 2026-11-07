@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { BpmField } from '../Metronome/BpmField';
-import { parseLine, splitRaw, joinRaw, replaceText, setChordOnWord, syllables, rhymeScheme } from '../../music/songwriter/lyrics';
+import { parseLine, splitRaw, joinRaw, replaceText, setChordOnWord, syllables, rhymeScheme, rhymeFamilies } from '../../music/songwriter/lyrics';
+import { BAND_KEYS, prepareBand } from '../../audio/songwriter/bandPlayer';
+import { PerformView } from './PerformView';
 import {
   SECTION_KINDS,
   TIMES,
@@ -34,6 +36,15 @@ import '../ModeToggle/ModeToggle.css';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 
 const CLICKS = ['count', 'all', 'off'];
+// Rhyme colours on / off (device setting, default on).
+const RHYME_KEY = 'dudestar-sw-rhymes';
+function loadRhymes() {
+  try {
+    return localStorage.getItem(RHYME_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
 
 export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const { t, lang } = useLanguage();
@@ -49,6 +60,23 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const [showMeta, setShowMeta] = useState(false);
   const [finding, setFinding] = useState(null); // line id while notes are being found
   const [dictating, setDictating] = useState(false);
+  const [performing, setPerforming] = useState(false);
+  const [rhymesOn, setRhymesOn] = useState(loadRhymes);
+  const toggleRhymes = () => {
+    setRhymesOn((v) => {
+      try {
+        localStorage.setItem(RHYME_KEY, v ? 'off' : 'on');
+      } catch {
+        /* private mode */
+      }
+      return !v;
+    });
+  };
+  const families = useMemo(() => (rhymesOn ? rhymeFamilies(song) : null), [rhymesOn, song]);
+  const bandStyle = song.band?.style ?? '';
+  useEffect(() => {
+    if (bandStyle) prepareBand();
+  }, [bandStyle]);
 
   const set = useCallback((fn) => update(song.id, fn), [update, song.id]);
   const bpb = beatsPerBar(song.time);
@@ -280,6 +308,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
 
   return (
     <div className="sw-editor" dir={dir}>
+      {performing && <PerformView song={song} audio={audio} onClose={() => setPerforming(false)} />}
       <div className="sw-editor-top">
         <button type="button" className="sw-back" onClick={onBack}>
           <Icon name="back" />
@@ -293,6 +322,10 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           ))}
         </div>
         <MoreMenu label={t('sw.more')}>
+          <button type="button" className="more-menu-item" onClick={toggleRhymes} aria-pressed={rhymesOn}>
+            <Icon name={rhymesOn ? 'check' : 'rhyme'} />
+            {t('sw.rhymeColors')}
+          </button>
           <button type="button" className="more-menu-item" onClick={() => window.print()}>
             <Icon name="print" />
             {t('sw.print')}
@@ -332,7 +365,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
 
       <div className="sw-summary">
         <button type="button" className={'sw-meta-chip' + (showMeta ? ' is-open' : '')} aria-expanded={showMeta} onClick={() => setShowMeta(!showMeta)}>
-          <bdi>{[song.key ? keyName(song.key) : t('sw.key.none'), `${song.bpm} BPM`, song.time].join(' · ')}</bdi>
+          <bdi>{[song.key ? keyName(song.key) : t('sw.key.none'), `${song.bpm} BPM`, song.time, bandStyle ? t('sw.band.' + bandStyle) : null].filter(Boolean).join(' · ')}</bdi>
           <Icon name="down" size={14} />
         </button>
         <button
@@ -342,6 +375,10 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
         >
           <Icon name={audio.playing?.scope === 'song' ? 'stop' : 'play'} />
           {audio.playing?.scope === 'song' ? t('sw.stop') : t('sw.play')}
+        </button>
+        <button type="button" className="sw-btn is-tint sw-perform-btn" onClick={() => setPerforming(true)} title={t('sw.perform.hint')}>
+          <Icon name="stage" />
+          {t('sw.perform')}
         </button>
       </div>
 
@@ -388,6 +425,26 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
             ))}
           </select>
         </label>
+        <label className="sw-field">
+          <span>{t('sw.band')}</span>
+          <select value={bandStyle} onChange={(e) => set((s) => ({ ...s, band: { ...(s.band ?? {}), style: e.target.value || null } }))}>
+            <option value="">{t('sw.band.none')}</option>
+            {BAND_KEYS.map((k) => (
+              <option key={k} value={k}>
+                {t('sw.band.' + k)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {bandStyle && (
+          <label className="sw-field">
+            <span>{t('sw.band.melody')}</span>
+            <select value={song.band?.melody === false ? 'off' : 'on'} onChange={(e) => set((s) => ({ ...s, band: { ...(s.band ?? {}), melody: e.target.value === 'on' } }))}>
+              <option value="on">{t('sw.band.melodyOn')}</option>
+              <option value="off">{t('sw.band.melodyOff')}</option>
+            </select>
+          </label>
+        )}
         <label className="sw-field">
           <span>{t('sw.click')}</span>
           <select value={song.click ?? 'count'} onChange={(e) => set((s) => ({ ...s, click: e.target.value }))}>
@@ -532,6 +589,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
                       caret={editing?.id === line.id ? editing.caret : null}
                       sylCount={syl.length}
                       rhyme={sec.lines.length > 1 ? { letter: scheme.letters[li], rhymes: scheme.rhymes[li] } : null}
+                      rhymeOf={families?.get(line.id) ?? null}
                       laneProps={lane ? { ...lane, playBeat, inKey } : null}
                       hasMelody={hasMelody}
                       playing={isPlayingLine || audio.playing?.scope === 'line:' + line.id}

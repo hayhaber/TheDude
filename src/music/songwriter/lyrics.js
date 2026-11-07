@@ -387,3 +387,57 @@ export function joinRaw(rawA, rawB) {
   const off = a.text.length + sep.length;
   return joinLine(a.text + sep + b.text, [...a.chords, ...b.chords.map((c) => ({ ...c, at: c.at + off }))]);
 }
+
+/**
+ * Rhyme families across a whole song, for colouring (Spit Notes / Lazyjot
+ * style): every line-ending word seeds a family by its rhyme sound; a
+ * family counts once it holds two DIFFERENT words (a repeated word isn't a
+ * rhyme), and then every word of the song with that sound joins it —
+ * inside lines too (internal rhymes). Short words (< 3 letters) only join
+ * at a line's end, so "a" / "של" don't light up everywhere.
+ * Returns Map(lineId -> {wordIndex: familyIndex}); families are numbered in
+ * order of first appearance.
+ */
+export function rhymeFamilies(song) {
+  const ends = new Map(); // key -> Set of words
+  const lineWords = [];
+  for (const sec of song.sections) {
+    for (const l of sec.lines) {
+      const ws = words(parseLine(l.raw).text);
+      const keyed = ws.map((w, i) => {
+        const clean = w.w.replace(/[^\p{L}]/gu, '').toLowerCase();
+        const k = clean ? rhymeKey(w.w) : null;
+        return { i, k, clean, end: i === ws.length - 1 };
+      });
+      lineWords.push({ id: l.id, keyed });
+      const last = keyed[keyed.length - 1];
+      if (last?.k) {
+        if (!ends.has(last.k)) ends.set(last.k, new Set());
+        ends.get(last.k).add(last.clean);
+      }
+    }
+  }
+  // Families with 2+ different words among ALL words carrying the sound.
+  const members = new Map();
+  for (const { keyed } of lineWords) {
+    for (const w of keyed) {
+      if (!w.k || !ends.has(w.k)) continue;
+      if (!w.end && [...w.clean].length < 3) continue;
+      if (!members.has(w.k)) members.set(w.k, new Set());
+      members.get(w.k).add(w.clean);
+    }
+  }
+  const index = new Map();
+  const out = new Map();
+  for (const { id, keyed } of lineWords) {
+    const m = {};
+    for (const w of keyed) {
+      if (!w.k || (members.get(w.k)?.size ?? 0) < 2) continue;
+      if (!w.end && [...w.clean].length < 3) continue;
+      if (!index.has(w.k)) index.set(w.k, index.size);
+      m[w.i] = index.get(w.k);
+    }
+    if (Object.keys(m).length) out.set(id, m);
+  }
+  return out;
+}

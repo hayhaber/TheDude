@@ -33,6 +33,28 @@ const P = {
   star: <path d="M12 3.8l2.5 5.2 5.7.7-4.2 3.9 1.1 5.6L12 16.4l-5.1 2.8 1.1-5.6-4.2-3.9 5.7-.7z" />,
   starOn: <path d="M12 3.8l2.5 5.2 5.7.7-4.2 3.9 1.1 5.6L12 16.4l-5.1 2.8 1.1-5.6-4.2-3.9 5.7-.7z" fill="currentColor" />,
   back: <path d="M15 5l-7 7 7 7" />,
+  check: <path d="M5 12.5l4.6 4.6L19 7.5" />,
+  rhyme: (
+    <>
+      <path d="M4 7h9M4 12h6M4 17h9" />
+      <circle cx="18" cy="7" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="17" r="1.8" fill="currentColor" stroke="none" />
+    </>
+  ),
+  stage: (
+    <>
+      <rect x="3.5" y="4" width="17" height="12" rx="2" />
+      <path d="M7 8h10M7 11.5h6M9 20h6M12 16v4" />
+    </>
+  ),
+  close: <path d="M6 6l12 12M18 6L6 18" />,
+  scroll: <path d="M12 4v16M7 15l5 5 5-5" />,
+  pause: (
+    <>
+      <rect x="6.5" y="5.5" width="4" height="13" rx="1.2" fill="currentColor" stroke="none" />
+      <rect x="13.5" y="5.5" width="4" height="13" rx="1.2" fill="currentColor" stroke="none" />
+    </>
+  ),
   print: (
     <>
       <path d="M7 9V4h10v5" />

@@ -59,3 +59,23 @@ export function preloadBassSamples() {
   const profile = resolveBassProfile(getCurrentBassProfile());
   if (profile.soundfontName) getSoundfontInstrument(profile.soundfontName, bassSoundOptions(profile));
 }
+
+/**
+ * Bass notes at times from `at` (s): [{midi, start, dur, velocity}] — for
+ * accompaniments (the Songwriter's band). Returns a stop function. Falls
+ * back to the oscillator pluck while the samples load.
+ */
+export function scheduleBassNotes(notes, at = getAudioContext().currentTime) {
+  const ctx = getAudioContext();
+  const entry = getCurrentBassEntry();
+  const stops = [];
+  for (const n of notes) {
+    const time = at + n.start;
+    if (time < ctx.currentTime - 0.01) continue;
+    if (entry?.isReady) {
+      const stop = entry.instrument.start({ note: n.midi, time, velocity: n.velocity ?? VELOCITY, duration: n.dur ?? NOTE_DURATION });
+      if (typeof stop === 'function') stops.push(stop);
+    } else playOscillatorNote(ctx, n.midi, time);
+  }
+  return () => stops.forEach((s) => s());
+}

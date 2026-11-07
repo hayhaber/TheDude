@@ -1581,6 +1581,40 @@ no tools).
   {instrument, style, voice}`. `.sw-sheet > *` no longer shrinks (a tall
   sheet squashed its tools row over the panel). Pure checks: Twinkle in C ->
   C | F | F | C; Am tune -> Am G F E. NOT verified with a real hum.
+- BAND · PERFORM · RHYME COLOURS (v1.0.137, 2026-11-07; user picked items
+  1-3 of the competitor review — Hookpad band templates, Spit Notes
+  teleprompter + rhyme highlighter). (1) `audio/songwriter/bandPlayer.js`
+  `playBand(song, {only, from, style, melody})` = playSong's handle;
+  playSong delegates when `song.band.style` is set (all play buttons).
+  `BAND_STYLES` pop / rock / ballad / country / blues / reggae / jazz =
+  drum style (drumHits from studio/drumTrack, scheduled 0.35 s ahead every
+  60 ms into a gain = drum level) + `bassLine()` kind (pop 1·&2·3·4-5th,
+  eighths, half, rootFifth, boogie 1-3-5-6 (minor ♭7), reggae, walk 1-3-5 +
+  half-step approach into the next root; roots E1..D#2) + comp (guitar
+  strum / block = harmonyPlayer `accompaniment()` (now exported, with
+  `shapeOf`), piano arp, skank on 2 & 4, jazz comp on 2 & the and of 3);
+  melody on the piano unless `song.band.melody === false` ("I sing it").
+  Drum grid origin = the first line's downbeat (pickups). bassPlayer gained
+  `scheduleBassNotes()`. Editor Key/tempo panel: Band select (Piano only +
+  7) + Melody select; the summary chip adds the style (one line,
+  ellipsis). `prepareBand()` preloads piano / guitar / bass samples.
+  (2) `PerformView.jsx` (portal, black stage, `.sw-perform*`): sections +
+  chords over words big (A/A size, device key `dudestar-sw-perform-size`),
+  the sung line lit and centred, past lines dimmer; glass keys Scroll
+  (silent clock with the song's timing) | Play (useSongAudio scope
+  'perform'; `play(song, scope, only, from, restart)` gained from/restart);
+  tap a line = start there; Escape / × closes; Wake Lock keeps the screen
+  on. Entry = "Perform" tinted capsule beside Play (icon only <= 430 px).
+  (3) `rhymeFamilies(song)` (lyrics.js): line-end words seed families by
+  rhymeKey, a family needs 2 different words, then every word with that
+  sound joins (inside lines too; < 3 letters only at a line end) ->
+  LyricLine `rhymeOf` colours words (`.sw-word-text.is-rhyme`, tint +
+  underline, `RHYME_COLORS` Apple palette); ••• "Rhyme colours" toggle
+  (device key `dudestar-sw-rhymes`, default on). Checked: night / light /
+  bright / right / tonight + nothing / walking; בלילה / שבילה; Playwright
+  390 + 1180: band chip, playback lights lines, perform play + scroll
+  follow lines, no page errors (samples blocked here — band SOUND not heard;
+  verify on the iPad).
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

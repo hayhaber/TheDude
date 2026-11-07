@@ -1743,6 +1743,15 @@ no tools).
   audio session) — ask for a screenshot if it still fails. Fake-mic test:
   quiet hum (0.006) with a missing device + channel 2 -> meter lit, take
   saved at peak 0.48. NOT verified on the iPad.
+- SCORE TITLE IN HEBREW (v1.0.149; user: the song name in the Score view
+  was written backwards — WebKit draws Hebrew inside SVG <text>
+  letter-reversed, as on the lesson pictures): the screen MusicXML gets no
+  title (`title: ''`), ScoreView shows it as an HTML `.sw-score-title`
+  above the score; `fixHebrew(host)` (exported from ScoreView) marks every
+  Hebrew <text> alphaTab draws (lyric syllables) direction="rtl" +
+  unicode-bidi="embed" on postRenderFinished — also in GpSongPlayer (GP
+  files with Hebrew titles / lyrics). Title fix sure; the lyric marking NOT
+  verified on the iPad.
 - EMPTY SONGS + DELETE FROM THE LIST (v1.0.146; user's iPad: a list of
   "Untitled · 0 lines" songs that couldn't be deleted). "New" creates a
   song at once, so every New -> back left an empty one. `isEmptySong()`

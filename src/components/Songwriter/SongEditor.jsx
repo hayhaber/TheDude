@@ -288,7 +288,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   }, [activeLine]);
 
   const xml = useMemo(
-    () => (view === 'score' ? songToMusicXML(song, { screen: true, title: song.title || t('sw.untitled'), labels: Object.fromEntries(SECTION_KINDS.map((k) => [k, t('sw.kind.' + k)])) }) : ''),
+    () => (view === 'score' ? songToMusicXML(song, { screen: true, title: '', labels: Object.fromEntries(SECTION_KINDS.map((k) => [k, t('sw.kind.' + k)])) }) : ''),
     [view, song, t]
   );
 
@@ -484,7 +484,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
       )}
 
       {view === 'score' ? (
-        <ScoreView xml={xml} />
+        <ScoreView xml={xml} title={song.title || t('sw.untitled')} />
       ) : (
         <div className={'sw-sections' + (preview ? ' is-preview' : '')} inert={preview ? true : undefined}>
           {shown.sections.map((sec, si) => {

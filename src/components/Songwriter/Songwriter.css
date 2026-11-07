@@ -2314,3 +2314,11 @@
   color: var(--text-secondary);
   font-family: ui-monospace, monospace;
 }
+.sw-score-title {
+  margin: 8px 0 4px;
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: #000;
+}

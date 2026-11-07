@@ -9,6 +9,7 @@ import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave, ba
 import { buildChordChart, chordAt } from '../../music/chordChart';
 import { ChordChartView } from './ChordChartView';
 import { useChordPlayAlong } from './useChordPlayAlong';
+import { fixHebrew } from '../Songwriter/ScoreView';
 
 const TICKS_PER_BEAT = 960;
 
@@ -591,6 +592,8 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile, view = 'so
       api.render();
     };
     api.postRenderFinished.on(fitTwoLines);
+    // Hebrew titles / lyrics in the file: WebKit draws them letter-reversed in SVG
+    api.postRenderFinished.on(() => fixHebrew(hostRef.current));
     // Page-turn scrolling: whenever playback reaches a new line, that line
     // goes to the top of the score area, so the line being played and the
     // next one are always fully in view.

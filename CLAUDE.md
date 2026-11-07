@@ -1532,6 +1532,20 @@ no tools).
   roots, path L1 -> minor chords -> G C -> pentatonic. Playwright walked
   all three; fake-mic (KS) WAV of the 12 box notes -> the play step heard
   all 12. NOT verified with a real guitar.
+- LEVEL 3 begins (v1.0.158, 2026-11-07, user: "build another guitar
+  lesson"; the USER reviews): `g3-small-F` "On the way to F" in
+  JustinGuitar's order (Fmaj7 before any barre, then the small F
+  xx3211 = Fmaj7 with the index flat over strings 1–2, full barre later):
+  Fmaj7 shape + mic, C -> Fmaj7 (index = anchor, ring + middle one string
+  thinner), C–Fmaj7 checklist at 60, quiz the open E = major 7th, the
+  small F + "every string rings" checklist + mic (the missing-index rival
+  = Fmaj7 itself), one-minute changes C–F (30), C – Am – F – G
+  (I vi IV V) chart with the rock groove. SHAPES / FINGERS Fmaj7 + F,
+  skills chord-Fmaj7 / fmaj7-tones / chord-F / changes-CF / song-CAmFG,
+  TRY_IN. mastery `knownSkill`: intake 'open' now covers chord skills of
+  level <= 2 only (F isn't an open chord). Minute changes use F, not
+  Fmaj7 (the chroma detector has no maj7 template). Playwright walked it
+  HE + EN. NOT verified with a real guitar.
 - Plan doc (Docs artifact): https://claude.ai/artifact/CeJC6CVwAu6KmqVXyjPQ46 —
   user approved: Coach merged into the Teacher, guitar levels 0–3 first, no
   AI chat in phase 1, Claude writes lessons and the USER reviews level 1

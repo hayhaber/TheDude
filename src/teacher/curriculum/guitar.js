@@ -54,6 +54,8 @@ export const SHAPES = {
   Dm: { root: 2, type: 'minor', frets: [null, null, 0, 2, 3, 1] },
   G: { root: 7, type: 'major', frets: [3, 2, 0, 0, 0, 3] },
   C: { root: 0, type: 'major', frets: [null, 3, 2, 0, 1, 0] },
+  Fmaj7: { root: 5, type: 'maj7', frets: [null, null, 3, 2, 1, 0] },
+  F: { root: 5, type: 'major', frets: [null, null, 3, 2, 1, 1] }, // the small F (mini barre on 1–2)
 };
 // Fingers per string for the shapes above (low E first; 0 = open / none).
 export const FINGERS = {
@@ -65,6 +67,8 @@ export const FINGERS = {
   Dm: [0, 0, 0, 2, 3, 1],
   G: [2, 1, 0, 0, 0, 3],
   C: [0, 3, 2, 0, 1, 0],
+  Fmaj7: [0, 0, 3, 2, 1, 0],
+  F: [0, 0, 3, 2, 1, 1],
 };
 
 // ---------------------------------------------------------------------------
@@ -108,6 +112,11 @@ export const SKILLS = [
   { id: 'penta-shape', domain: 'lead', level: 2, title: L('A minor pentatonic, position 1', `פנטטוני ${H('A')} מינור, תנוחה 1`), check: { kind: 'play', arp: 'am-penta-1' } },
   { id: 'penta-roots', domain: 'fretboard', level: 2, title: L('The roots in the pentatonic box', 'היסודות בתיבה הפנטטונית'), check: { kind: 'quiz', id: 'penta-roots' } },
   { id: 'penta-improv', domain: 'lead', level: 2, after: ['penta-shape'], title: L('First improvisation over a blues', 'אלתור ראשון על בלוז'), check: { kind: 'self' } },
+  { id: 'chord-Fmaj7', domain: 'fretting', level: 3, after: ['chord-C'], title: L('Fmaj7 chord', `אקורד ${H('Fmaj7')}`), check: { kind: 'chord', chord: 'Fmaj7' } },
+  { id: 'fmaj7-tones', domain: 'fretboard', level: 3, title: L('Fmaj7 and F: what the 7th is', `${H('Fmaj7')} ו־${H('F')}: מהי הספטימה`), check: { kind: 'quiz', id: 'fmaj7-tones' } },
+  { id: 'chord-F', domain: 'fretting', level: 3, after: ['chord-Fmaj7'], title: L('The small F (first barre)', `${H('F')} הקטן (ברה ראשון)`), check: { kind: 'chord', chord: 'F' } },
+  { id: 'changes-CF', domain: 'fretting', level: 3, after: ['chord-C', 'chord-F'], title: L('C–F changes, 30 a minute', `החלפות ${H('C–F')}, 30 בדקה`), check: { kind: 'changes', pair: ['C', 'F'], min: 30 } },
+  { id: 'song-CAmFG', domain: 'repertoire', level: 3, after: ['changes-CF'], title: L('A song in C: C, Am, F, G', `שיר ב־${H('C')}: ${H('C, Am, F, G')}`), check: { kind: 'self' } },
   { id: 'arp-tones', domain: 'fretboard', level: 3, title: L('Chord tones: root, 3rd, 5th', 'צלילי האקורד: יסוד, טרצה, קווינטה'), check: { kind: 'quiz', id: 'arp-tones' } },
   { id: 'arp-C-open', domain: 'picking', level: 3, title: L('Open C arpeggio', `ארפג׳יו ${H('C')} פתוח`), check: { kind: 'play', arp: 'C-open' } },
   { id: 'arp-G-E', domain: 'lead', level: 3, title: L('Arpeggio, root on string 6', 'ארפג׳יו, יסוד על מיתר 6'), check: { kind: 'play', arp: 'G-E' } },
@@ -1538,6 +1547,115 @@ const lessonMinorPent = {
   ],
 };
 
+// Level 3 begins with F (JustinGuitar's order: Fmaj7 first, then the small
+// F with a two-string mini barre, the full barre comes later). The small F
+// = Fmaj7 with the index laid flat over strings 1 and 2.
+const lessonSmallF = {
+  id: 'g3-small-F',
+  level: 3,
+  title: L('On the way to F', `בדרך ל־${H('F')}`),
+  objective: L(
+    'Play Fmaj7 and the small F (your first barre), change C–F at 30 a minute, and play C – Am – F – G.',
+    `לנגן ${H('Fmaj7')} ואת ${H('F')} הקטן (הברה הראשון שלך), להחליף ${H('C–F')} ב־30 בדקה, ולנגן ${H('C – Am – F – G')}.`
+  ),
+  minutes: 25,
+  skills: ['chord-Fmaj7', 'fmaj7-tones', 'chord-F', 'changes-CF', 'song-CAmFG'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Why F is different', `למה ${H('F')} שונה`),
+      shape: 'Fmaj7',
+      text: L(
+        'F is the first chord where one finger presses two strings at once — a barre. We get there in two steps: first Fmaj7 (no barre), then the small F (a barre over two strings). Fmaj7: ring (3) on string 4 fret 3, middle (2) on string 3 fret 2, index (1) on string 2 fret 1, string 1 open. Strum strings 4 to 1 only.',
+        `${H('F')} הוא האקורד הראשון שבו אצבע אחת לוחצת שני מיתרים בבת אחת — ברה. נגיע לשם בשני צעדים: קודם ${H('Fmaj7')} (בלי ברה), ואז ${H('F')} הקטן (ברה על שני מיתרים). ${H('Fmaj7')}: קמיצה (3) על מיתר 4 שריג 3, אמה (2) על מיתר 3 שריג 2, מורה (1) על מיתר 2 שריג 1, מיתר 1 פתוח. פורטים רק את מיתרים 4 עד 1.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'Fmaj7',
+      title: L('Play Fmaj7', `נגן ${H('Fmaj7')}`),
+      text: L('Four strings only — start the strum on string 4. The open string 1 must ring.', 'ארבעה מיתרים בלבד — התחל את הפריטה ממיתר 4. מיתר 1 הפתוח חייב לצלצל.'),
+    },
+    {
+      kind: 'explain',
+      title: L('From C to Fmaj7', `מ־${H('C')} ל־${H('Fmaj7')}`),
+      shape: 'C',
+      text: L(
+        'Play C, then look: the index stays on string 2 fret 1 (an anchor). The ring and middle fingers keep their shape and both move one string thinner — ring from string 5 to 4 (fret 3), middle from string 4 to 3 (fret 2). The same hand shape, one string lower.',
+        `נגן ${H('C')} והסתכל: המורה נשארת על מיתר 2 שריג 1 (עוגן). הקמיצה והאמה שומרות על הצורה ושתיהן זזות מיתר אחד דק יותר — הקמיצה ממיתר 5 ל־4 (שריג 3), האמה ממיתר 4 ל־3 (שריג 2). אותה צורת יד, מיתר אחד למטה.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      metronome: 60,
+      title: L('C and Fmaj7 with the click', `${H('C')} ו־${H('Fmaj7')} עם הנקישה`),
+      text: L('Four down strums on C, four on Fmaj7, round and round. The index never leaves its string.', `ארבע פריטות למטה על ${H('C')}, ארבע על ${H('Fmaj7')}, שוב ושוב. המורה לא עוזבת את המיתר שלה.`),
+      items: [L('Eight rounds without stopping.', 'שמונה סיבובים בלי לעצור.'), L('Fmaj7 strummed from string 4, not 6.', `${H('Fmaj7')} נפרט ממיתר 4, לא ממיתר 6.`)],
+    },
+    {
+      kind: 'quiz',
+      id: 'fmaj7-tones',
+      skill: 'fmaj7-tones',
+      title: L('What the open string adds', 'מה המיתר הפתוח מוסיף'),
+      question: L('Fmaj7 = F, A, C and the open E on string 1. What is that E in the chord?', `${H('Fmaj7')} = ${H('F')}, ${H('A')}, ${H('C')} וה־${H('E')} הפתוח במיתר 1. מה ה־${H('E')} הזה באקורד?`),
+      options: [L('The major 7th', 'הספטימה הגדולה'), L('The root', 'היסוד'), L('The 5th', 'הקווינטה')],
+      answer: 0,
+      why: L(
+        'F (root), A (major 3rd), C (5th) make F major; E, a semitone under the next F, is the major 7th — the soft, dreamy colour of “maj7”. Press string 1 at fret 1 and the E becomes F: the 7th is gone and you have plain F major.',
+        `${H('F')} (יסוד), ${H('A')} (טרצה גדולה), ${H('C')} (קווינטה) יוצרים ${H('F')} מז׳ור; ${H('E')}, חצי טון מתחת ל־${H('F')} הבא, הוא הספטימה הגדולה — הצבע הרך והחולמני של ${H('maj7')}. לחץ את מיתר 1 בשריג 1 וה־${H('E')} הופך ל־${H('F')}: הספטימה נעלמת ויש לך ${H('F')} מז׳ור פשוט.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('The small F: your first barre', `${H('F')} הקטן: הברה הראשון שלך`),
+      shape: 'F',
+      text: L(
+        'Keep Fmaj7 and lay the index flat so it presses strings 2 AND 1 at fret 1. That is a barre. Now the chord is F (root), A (3rd), C (5th) and F again an octave up. Use the side of the index nearer the thumb, close to the fret wire; the thumb goes lower behind the neck. Squeeze lightly — position beats force.',
+        `השאר את ${H('Fmaj7')} והשכב את המורה כך שתלחץ את מיתר 2 וגם את מיתר 1 בשריג 1. זה ברה. עכשיו האקורד הוא ${H('F')} (יסוד), ${H('A')} (טרצה), ${H('C')} (קווינטה) ושוב ${H('F')} אוקטבה מעל. השתמש בצד של המורה הקרוב לאגודל, צמוד לשריג; האגודל יורד נמוך יותר מאחורי הצוואר. לחץ קלות — מיקום חשוב יותר מכוח.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      title: L('Make every string ring', 'כל מיתר מצלצל'),
+      text: L('Pick the four strings one at a time, 4 to 1. A string that buzzes or dies tells you what to fix.', 'פרוט את ארבעת המיתרים אחד אחד, מ־4 עד 1. מיתר שמזמזם או מת אומר לך מה לתקן.'),
+      items: [
+        L('Strings 1 and 2 both ring under the index (roll it slightly toward the thumb if one dies).', 'מיתרים 1 ו־2 מצלצלים שניהם מתחת למורה (גלגל אותה מעט לכיוון האגודל אם אחד מת).'),
+        L('String 3 rings: the middle finger stands on its tip.', 'מיתר 3 מצלצל: האמה עומדת על הקצה.'),
+        L('No pain: if it hurts, press less and move closer to the fret.', 'בלי כאב: אם כואב, לחץ פחות והתקרב לשריג.'),
+      ],
+    },
+    {
+      kind: 'chord',
+      chord: 'F',
+      title: L('Play the small F', `נגן את ${H('F')} הקטן`),
+      text: L('Strings 4 to 1. If the teacher hears Fmaj7, string 1 is not pressed yet.', `מיתרים 4 עד 1. אם המורה שומע ${H('Fmaj7')}, מיתר 1 עוד לא לחוץ.`),
+    },
+    {
+      kind: 'changes',
+      pair: ['C', 'F'],
+      title: L('One-minute changes: C and F', `החלפות בדקה: ${H('C')} ו־${H('F')}`),
+      text: L('The index stays on string 2; it only flattens for F. Goal: 30.', `המורה נשארת על מיתר 2; ב־${H('F')} היא רק משתטחת. היעד: 30.`),
+    },
+    {
+      kind: 'checklist',
+      skill: 'song-CAmFG',
+      metronome: 70,
+      groove: 'rock',
+      title: L('A song in C', `שיר ב־${H('C')}`),
+      text: L(
+        'C – Am – F – G: in the key of C these are I (tonic), vi (the relative minor), IV (subdominant) and V (dominant) — the “50s progression”. One bar each, the common pattern. Hear it first. Notice C, Am and F all keep the index on string 2 fret 1.',
+        `${H('C – Am – F – G')}: בסולם ${H('C')} אלה ${H('I')} (טוניקה), ${H('vi')} (המינור המקביל), ${H('IV')} (סובדומיננטה) ו־${H('V')} (דומיננטה) — "מהלך שנות ה־50". תיבה לכל אחד, הדפוס הנפוץ. קודם שמע. שים לב: ב־${H('C')}, ${H('Am')} ו־${H('F')} המורה נשארת על מיתר 2 שריג 1.`
+      ),
+      chart: { bars: ['C', 'Am', 'F', 'G'], pattern: 'D-DU-UDU' },
+      items: [L('Four rounds without stopping.', 'ארבעה סיבובים בלי לעצור.'), L('F rings on all four strings inside the song.', `${H('F')} מצלצל בכל ארבעת המיתרים גם בתוך השיר.`)],
+    },
+  ],
+  homework: [
+    { id: 'cf-hw', kind: 'changes', pair: ['C', 'F'], min: 30, perDay: 1, text: L('One-minute changes C–F, once a day. Goal: 30.', `החלפות בדקה ${H('C–F')}, פעם ביום. יעד: 30.`) },
+    { id: 'camfg-hw', kind: 'self', text: L('Once a day: C – Am – F – G, four rounds with the drums.', `פעם ביום: ${H('C – Am – F – G')}, ארבעה סיבובים עם התופים.`) },
+  ],
+};
+
 export const LESSONS = [
   lessonBasics,
   lessonFirstNote,
@@ -1550,6 +1668,7 @@ export const LESSONS = [
   lessonMinorChords,
   lessonGC,
   lessonMinorPent,
+  lessonSmallF,
   lessonArpeggios,
   lessonTapping,
 ];

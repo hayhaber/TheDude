@@ -26,6 +26,10 @@ export const TRY_IN = {
     { tool: 'chordChanges', chords: ['G', 'D', 'Em', 'C'], bpm: 70 },
   ],
   'g2-minor-pent': [{ tool: 'scale', scaleKey: 'minorPentatonic', root: 9, mode: 'position', positionIndex: 0, bpm: 60 }],
+  'g3-small-F': [
+    { tool: 'minuteChanges', chords: ['C', 'F'] },
+    { tool: 'chordChanges', chords: ['C', 'Am', 'F', 'G'], bpm: 70 },
+  ],
   'g3-arpeggios': [
     { tool: 'lick', lickId: 'arp-pop-1564', kind: 'arp' },
     { tool: 'chordLibrary', root: 0, type: 'major', name: 'C' },

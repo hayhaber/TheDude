@@ -66,7 +66,7 @@ const LEVEL_CAP = { none: 1, little: 2, some: 3, lot: 4 };
 function knownSkill(skill, state) {
   if ((state.passes[skill.id] ?? []).length > 0) return true;
   const can = state.intake?.can ?? [];
-  if (skill.check.kind === 'chord') return can.includes(skill.check.chord) || can.includes('open');
+  if (skill.check.kind === 'chord') return can.includes(skill.check.chord) || (can.includes('open') && skill.level <= 2);
   if (skill.id === 'strum-down') return can.includes('strum');
   return false;
 }

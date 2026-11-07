@@ -990,6 +990,12 @@ no tools).
   `licksShown` = lickOpen (neck only with an open lick); launchLick /
   import save / arpeggio build open the player. GuitarPro -> Practice
   (variant solos) uses the same Player under its section select.
+  v1.0.130 (user: the playhead didn't match the click; a new take didn't
+  scroll the tab back to the start): `startPlayhead()` reads the HEARD
+  clock (currentTime − outputLatency|baseLatency); TabTimeline scrolls
+  back to the start (or the highlighted section) as soon as a count-in
+  begins (playheadBeat < 0). Lag check NOT possible here (headless
+  outputLatency = 0) — verify on the iPad.
 - **Guitar Pro licks**: `music/lickTrainer/gpImport.js` converts an alphaTab
   Score to licks (exact rhythm/bends/slides/legato; chords reduced to the top
   note; the other notes of a double stop/chord are attached at runtime as

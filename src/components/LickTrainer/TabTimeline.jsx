@@ -48,7 +48,13 @@ export function TabTimeline({ lick, playheadBeat, result, resultOffset = 0, high
   // Keep the playhead in view on narrow screens.
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el || playheadBeat == null || playheadBeat < 0) return;
+    if (!el || playheadBeat == null) return;
+    // A new run (count-in): back to the start of what's played.
+    if (playheadBeat < 0) {
+      const home = highlight ? Math.max(0, xOf(highlight.fromBeat) - 40) : 0;
+      if (Math.abs(el.scrollLeft - home) > 2) el.scrollLeft = home;
+      return;
+    }
     const x = xOf(playheadBeat);
     if (x < el.scrollLeft + 40 || x > el.scrollLeft + el.clientWidth - 60) el.scrollLeft = Math.max(0, x - 60);
   }, [playheadBeat]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -714,8 +714,12 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   // Moving playhead + (while recording) input meter.
   function startPlayhead(startTime, spb, endTime, withLevel) {
     const ctx = getAudioContext();
+    // The HEARD clock: what plays now reaches the ears outputLatency later
+    // (large on iPad / Bluetooth) — without this the playhead ran ahead of
+    // the click and the notes (user, 2026-11-07).
+    const heardLag = () => ctx.outputLatency || ctx.baseLatency || 0;
     const frame = () => {
-      const now = ctx.currentTime;
+      const now = ctx.currentTime - heardLag();
       setPlayheadBeat((now - startTime) / spb);
       if (withLevel && inputRef.current) setInputLevel(inputRef.current.level());
       if (now < endTime) rafRef.current = requestAnimationFrame(frame);

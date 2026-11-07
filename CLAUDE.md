@@ -1637,6 +1637,15 @@ no tools).
   tones ascending, every step id / skill / quiz valid, fret triples in the
   text match the shapes. Fake-mic (KS) play step verified; NOT on a real
   guitar. The CAGED course's 3 inversion lessons stay as they were.
+  v1.0.134 review (user: "check the lessons against more certified
+  teachers' material — precise and easy"): cross-checked with Premier
+  Guitar's "Why triads are essential" (root on 3/2/1 per inversion, one
+  5-fret box), Applied Guitar Theory's spread triads (raise the 2nd note
+  an octave: R5 3 / 3 R5 / 5 3R), Ted Greene's inversion rows. Fixed wrong
+  voice-movement claims (unit 3 C->F / C->G, unit 8 F->G, unit 10 ->D,
+  final test C has only C in common with F), the 4th-up/down wording
+  (unit 5), B° resolution text, ska vs reggae skank, string-1 orientation,
+  clearer quiz explanation; a Hebrew bidi isolate with an unbalanced "(".
 
 ## Country style (v1.0.125, 2026-11-07)
 

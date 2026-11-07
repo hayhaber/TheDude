@@ -174,8 +174,8 @@ const unit2 = {
       compare: true,
       title: L('Shape 1 — root position (root on string 3)', 'צורה 1 — מצב יסודי (יסוד על מיתר 3)'),
       text: L(
-        'C major, frets 5-5-3: string 3 fret 5 = C (root), string 2 fret 5 = E (3rd), string 1 fret 3 = G (5th). Fingers: index on string 1 (fret 3), ring on string 3 and pinky on string 2 (fret 5) — or a small ring-finger barre over strings 3 and 2. The root is on the LOWEST string of the shape.',
-        `${H('C')} מז׳ור, שריגים ${H('5-5-3')}: מיתר 3 שריג 5 = ${H('C')} (יסוד), מיתר 2 שריג 5 = ${H('E')} (טרצה), מיתר 1 שריג 3 = ${H('G')} (קווינטה). אצבעות: אצבע 1 על מיתר 1 (שריג 3), אצבע 3 על מיתר 3 ואצבע 4 על מיתר 2 (שריג 5) — או ברה קטן באצבע 3 על מיתרים 3 ו־2. היסוד נמצא על המיתר הנמוך של הצורה.`
+        'C major, frets 5-5-3 (read from string 3 to string 1; string 1 = the thinnest): string 3 fret 5 = C (root), string 2 fret 5 = E (3rd), string 1 fret 3 = G (5th). Fingers: index on string 1 (fret 3), ring on string 3 and pinky on string 2 (fret 5) — or a small ring-finger barre over strings 3 and 2. The root is on the LOWEST string of the shape.',
+        `${H('C')} מז׳ור, שריגים ${H('5-5-3')} (קוראים ממיתר 3 עד מיתר 1; מיתר 1 = הדק ביותר): מיתר 3 שריג 5 = ${H('C')} (יסוד), מיתר 2 שריג 5 = ${H('E')} (טרצה), מיתר 1 שריג 3 = ${H('G')} (קווינטה). אצבעות: אצבע 1 על מיתר 1 (שריג 3), אצבע 3 על מיתר 3 ואצבע 4 על מיתר 2 (שריג 5) — או ברה קטן באצבע 3 על מיתרים 3 ו־2. היסוד נמצא על המיתר הנמוך של הצורה.`
       ),
     },
     {
@@ -257,8 +257,8 @@ const unit2 = {
       options: [L('2-2-0', H('2-2-0')), L('2-1-0', H('2-1-0')), L('2-3-2', H('2-3-2'))],
       answer: 0,
       why: L(
-        'Shape 1 is root-root-fret minus 2 (C was 5-5-3). With the root at 2: 2-2-0 = A C♯ E. (2-1-0 lowers the 3rd = A minor.)',
-        `צורה 1 היא יסוד, אותו שריג, ושני שריגים פחות (${H('C')} היה ${H('5-5-3')}). עם יסוד בשריג 2: ${H('2-2-0')} = ${H('A C♯ E')}. (${H('2-1-0')} מוריד את הטרצה = ${H('A')} מינור.)`
+        'Shape 1 = the root fret, the same fret, then two frets lower (C was 5-5-3). With the root at 2: 2-2-0 = A C♯ E. (2-1-0 lowers the 3rd = A minor.)',
+        `צורה 1 = שריג היסוד, אותו שריג, ואז שני שריגים נמוך יותר (${H('C')} היה ${H('5-5-3')}). עם יסוד בשריג 2: ${H('2-2-0')} = ${H('A C♯ E')}. (${H('2-1-0')} מוריד את הטרצה = ${H('A')} מינור.)`
       ),
     },
     {
@@ -270,7 +270,7 @@ const unit2 = {
         L('At 60 bpm: strum each C shape 4 times (one per click), then move to the next — up the ladder and back (1 2 3 8 3 2).', 'ב־60 BPM: פרוט כל צורת C ארבע פעמים (אחת בכל קליק), ואז עבור לבאה — למעלה בסולם ובחזרה (1 2 3 8 3 2).'),
         L('Change on beat 1 without stopping the click — if you are late, slow down rather than stop.', 'החלף בפעמה 1 בלי לעצור את הקליק — אם אתה מאחר, האט במקום לעצור.'),
         L('When it is clean 3 times in a row, add 5 bpm; the goal is 2 strums per click at 70.', 'כשזה נקי 3 פעמים ברצף, הוסף 5 BPM; המטרה היא 2 פריטות בכל קליק ב־70.'),
-        L('Do the same with G (frets 3 -> 7 -> 10/12).', `עשה אותו דבר עם ${H('G')} (שריגים 3 ← 7 ← ${H('10/12')}).`),
+        L('Do the same with G (shapes at frets 3-4, 7-8 and 10-12).', `עשה אותו דבר עם ${H('G')} (צורות בשריגים ${H('3-4')}, ${H('7-8')} ו־${H('10-12')}).`),
       ],
     },
   ],
@@ -297,8 +297,8 @@ const unit3 = {
       kind: 'explain',
       title: L('Don’t slide — choose', 'לא להחליק — לבחור'),
       text: L(
-        'In C major the three main chords are C (I, the tonic — home), F (IV, the subdominant — moving away) and G (V, the dominant — pulling back home). A beginner slides one shape up and down the neck for them. A player picks, for each chord, the shape that is closest to where the hand already is. With three shapes per chord there is always one within a fret or two — and the chords start to sound connected instead of jumping.',
-        `ב־${H('C')} מז׳ור שלושת האקורדים העיקריים הם ${H('C')} (${H('I')}, הטוניקה — הבית), ${H('F')} (${H('IV')}, הסובדומיננטה — יציאה מהבית) ו־${H('G')} (${H('V')}, הדומיננטה — שמושכת חזרה הביתה). מתחיל מחליק צורה אחת למעלה ולמטה בצוואר. נגן בוחר לכל אקורד את הצורה הקרובה ביותר למקום שבו היד כבר נמצאת. עם שלוש צורות לכל אקורד תמיד יש אחת במרחק שריג או שניים — והאקורדים מתחילים להישמע מחוברים במקום לקפוץ.`
+        'In C major the three main chords are C (I, the tonic — home), F (IV, the subdominant — moving away) and G (V, the dominant — pulling back home). A beginner slides one shape up and down the neck for them. A player picks, for each chord, the shape that is closest to where the hand already is. With three shapes per chord there is always one close by — and the chords start to sound connected instead of jumping.',
+        `ב־${H('C')} מז׳ור שלושת האקורדים העיקריים הם ${H('C')} (${H('I')}, הטוניקה — הבית), ${H('F')} (${H('IV')}, הסובדומיננטה — יציאה מהבית) ו־${H('G')} (${H('V')}, הדומיננטה — שמושכת חזרה הביתה). מתחיל מחליק צורה אחת למעלה ולמטה בצוואר. נגן בוחר לכל אקורד את הצורה הקרובה ביותר למקום שבו היד כבר נמצאת. עם שלוש צורות לכל אקורד תמיד יש אחת קרובה — והאקורדים מתחילים להישמע מחוברים במקום לקפוץ.`
       ),
     },
     {
@@ -307,8 +307,8 @@ const unit3 = {
       labels: 'note',
       title: L('Area 1: around fret 4', 'אזור 1: סביב שריג 4'),
       text: L(
-        'C root position (5-5-3: C E G), F 2nd inversion (5-6-5: C F A), G 1st inversion (4-3-3: B D G). Look at string 3: C and F share the note C — it does not move. From C to F only two fingers move one fret each. From C to G every note moves one step down. This is what “one area” means.',
-        `${H('C')} במצב יסודי (${H('5-5-3')}: ${H('C E G')}), ${H('F')} בהיפוך שני (${H('5-6-5')}: ${H('C F A')}), ${H('G')} בהיפוך ראשון (${H('4-3-3')}: ${H('B D G')}). הסתכל על מיתר 3: ל־${H('C')} ול־${H('F')} יש צליל משותף, ${H('C')} — הוא לא זז. מ־${H('C')} ל־${H('F')} רק שתי אצבעות זזות שריג אחד כל אחת. מ־${H('C')} ל־${H('G')} כל צליל יורד צעד אחד. זו המשמעות של "אזור אחד".`
+        'C root position (5-5-3: C E G), F 2nd inversion (5-6-5: C F A), G 1st inversion (4-3-3: B D G). Look at string 3: C and F share the note C — it does not move. From C to F the C stays, E moves up one fret to F and G two frets to A. From C to G the G stays (string 1, fret 3), C moves down one fret to B and E two frets to D. The hand stays between frets 3 and 6 — this is what “one area” means.',
+        `${H('C')} במצב יסודי (${H('5-5-3')}: ${H('C E G')}), ${H('F')} בהיפוך שני (${H('5-6-5')}: ${H('C F A')}), ${H('G')} בהיפוך ראשון (${H('4-3-3')}: ${H('B D G')}). הסתכל על מיתר 3: ל־${H('C')} ול־${H('F')} יש צליל משותף, ${H('C')} — הוא לא זז. מ־${H('C')} ל־${H('F')} ה־${H('C')} נשאר, ${H('E')} עולה שריג אחד ל־${H('F')} ו־${H('G')} עולה שני שריגים ל־${H('A')}. מ־${H('C')} ל־${H('G')} ה־${H('G')} נשאר (מיתר 1, שריג 3), ${H('C')} יורד שריג ל־${H('B')} ו־${H('E')} יורד שני שריגים ל־${H('D')}. היד נשארת בין שריג 3 לשריג 6 — זו המשמעות של "אזור אחד".`
       ),
     },
     {
@@ -333,8 +333,8 @@ const unit3 = {
       labels: 'note',
       title: L('Area 2: around fret 8', 'אזור 2: סביב שריג 8'),
       text: L(
-        'The same three chords higher up: C 1st inversion (9-8-8: E G C), F root position (10-10-8: F A C), G 2nd inversion (7-8-7: D G B). Again the common tones stay: C and F share C (string 1, fret 8). Two areas = the whole key covered from fret 3 to fret 10.',
-        `אותם שלושה אקורדים גבוה יותר: ${H('C')} בהיפוך ראשון (${H('9-8-8')}: ${H('E G C')}), ${H('F')} במצב יסודי (${H('10-10-8')}: ${H('F A C')}), ${H('G')} בהיפוך שני (${H('7-8-7')}: ${H('D G B')}). שוב הצלילים המשותפים נשארים: ל־${H('C')} ול־${H('F')} משותף ${H('C')} (מיתר 1, שריג 8). שני אזורים = כל המפתח מכוסה משריג 3 עד שריג 10.`
+        'The same three chords higher up: C 1st inversion (9-8-8: E G C), F root position (10-10-8: F A C), G 2nd inversion (7-8-7: D G B). Again the common tones stay: C and F share C (string 1, fret 8), C and G share G (string 2, fret 8). Two areas = the whole key covered from fret 3 to fret 10.',
+        `אותם שלושה אקורדים גבוה יותר: ${H('C')} בהיפוך ראשון (${H('9-8-8')}: ${H('E G C')}), ${H('F')} במצב יסודי (${H('10-10-8')}: ${H('F A C')}), ${H('G')} בהיפוך שני (${H('7-8-7')}: ${H('D G B')}). שוב הצלילים המשותפים נשארים: ל־${H('C')} ול־${H('F')} משותף ${H('C')} (מיתר 1, שריג 8), ול־${H('C')} ול־${H('G')} משותף ${H('G')} (מיתר 2, שריג 8). שני אזורים = כל המפתח מכוסה משריג 3 עד שריג 10.`
       ),
     },
     {
@@ -461,7 +461,7 @@ const unit5 = {
       kind: 'explain',
       title: L('No B string, no shift', `בלי מיתר ${H('B')}, בלי הזזה`),
       text: L(
-        'Strings 6-5-4 and 5-4-3 are all tuned in 4ths, so they share ONE set of three shapes: the same shape one string set higher is the chord a 4th higher (G on 5-4-3 -> the same frets on 6-5-4 = D). These low triads sound thick — use them for a bass-register part, riffs, or when a keyboard already covers the top. Together with 3-2-1 and 4-3-2 they complete the map: 4 sets x 3 shapes = 12 major shapes.',
+        'Strings 6-5-4 and 5-4-3 are all tuned in 4ths, so they share ONE set of three shapes: the same frets one string set LOWER give the chord a 4th lower (G on 5-4-3 -> the same frets on 6-5-4 = D), and one set higher a 4th higher. These low triads sound thick — use them for a bass-register part, riffs, or when a keyboard already covers the top. Together with 3-2-1 and 4-3-2 they complete the map: 4 sets x 3 shapes = 12 major shapes.',
         `מיתרים ${H('6-5-4')} ו־${H('5-4-3')} כולם מכוונים בקוורטות, ולכן יש להם סט אחד של שלוש צורות: אותה צורה בקבוצה אחת למטה היא אקורד קוורטה מתחת (${H('G')} על ${H('5-4-3')} ← אותם שריגים על ${H('6-5-4')} = ${H('D')}). הטריאדות הנמוכות נשמעות עבות — משתמשים בהן לקו נמוך, לריפים, או כשקלידים כבר מכסים את הגבוה. יחד עם ${H('3-2-1')} ו־${H('4-3-2')} הן משלימות את המפה: 4 קבוצות × 3 צורות = 12 צורות מז׳ור.`
       ),
     },
@@ -580,8 +580,8 @@ const unit6 = {
       hear: ['t-Bdim321', 't3-C'],
       title: L('Diminished: lower the 5th too', 'מוקטן: להוריד גם את הקווינטה'),
       text: L(
-        'From a minor triad, lower the 5th one fret: 1 ♭3 ♭5, two minor thirds. B diminished = B D F, root position at 4-3-1. In a major key it is the chord on the 7th degree, and it pulls hard to the tonic: hear B° resolve to C (B goes up to C, F goes down to E).',
-        `ממינור, הורד גם את הקווינטה שריג: ${H('1 ♭3 ♭5')}, שתי טרצות קטנות. ${H('B')} מוקטן = ${H('B D F')}, מצב יסודי ב־${H('4-3-1')}. במפתח מז׳ור זה האקורד של הדרגה השביעית, והוא מושך חזק לטוניקה: הקשב ל־${H('B°')} שנפתר ל־${H('C')} (${H('B')} עולה ל־${H('C')}, ${H('F')} יורד ל־${H('E')}).`
+        'From a minor triad, lower the 5th one fret: 1 ♭3 ♭5, two minor thirds. B diminished = B D F, root position at 4-3-1. In a major key it is the chord on the 7th degree, and it pulls hard to the tonic: hear B° move to C. Its root B is the leading tone — a half step under C — and wants to rise to it.',
+        `ממינור, הורד גם את הקווינטה שריג: ${H('1 ♭3 ♭5')}, שתי טרצות קטנות. ${H('B')} מוקטן = ${H('B D F')}, מצב יסודי ב־${H('4-3-1')}. במפתח מז׳ור זה האקורד של הדרגה השביעית, והוא מושך חזק לטוניקה: הקשב ל־${H('B°')} שעובר ל־${H('C')}. היסוד שלו, ${H('B')}, הוא הצליל המוביל: חצי טון מתחת ל־${H('C')}, והוא רוצה לעלות אליו.`
       ),
     },
     {
@@ -709,8 +709,8 @@ const unit8 = {
       kind: 'explain',
       title: L('Three voices, not three shapes', 'שלושה קולות, לא שלוש צורות'),
       text: L(
-        'Think of a triad as three singers: low, middle, high. Between two chords each singer moves to the NEAREST note of the new chord — a common tone stays where it is, the others move by a step (1-2 frets). The rules teachers give: 1) keep common tones, 2) move the other voices by the smallest step, 3) listen to the top voice — it becomes a melody of its own. The inversion you end up in is a result, not a choice.',
-        'חשוב על טריאדה כעל שלושה זמרים: נמוך, אמצעי, גבוה. בין שני אקורדים כל זמר עובר לצליל הקרוב ביותר באקורד החדש — צליל משותף נשאר במקום, האחרים זזים בצעד (1–2 שריגים). הכללים שמורים נותנים: 1) להשאיר צלילים משותפים, 2) להזיז את שאר הקולות בצעד הקטן ביותר, 3) להקשיב לקול העליון — הוא הופך למנגינה בפני עצמו. ההיפוך שאליו מגיעים הוא תוצאה, לא בחירה.'
+        'Think of a triad as three singers: low, middle, high. Between two chords each singer moves to the NEAREST note of the new chord — a common tone stays where it is, the others move as little as possible (usually 1-2 frets). The rules teachers give: 1) keep common tones, 2) move the other voices by the smallest step, 3) listen to the top voice — it becomes a melody of its own. The inversion you end up in is a result, not a choice.',
+        'חשוב על טריאדה כעל שלושה זמרים: נמוך, אמצעי, גבוה. בין שני אקורדים כל זמר עובר לצליל הקרוב ביותר באקורד החדש — צליל משותף נשאר במקום, האחרים זזים כמה שפחות (בדרך כלל 1–2 שריגים). הכללים שמורים נותנים: 1) להשאיר צלילים משותפים, 2) להזיז את שאר הקולות בצעד הקטן ביותר, 3) להקשיב לקול העליון — הוא הופך למנגינה בפני עצמו. ההיפוך שאליו מגיעים הוא תוצאה, לא בחירה.'
       ),
     },
     {
@@ -719,8 +719,8 @@ const unit8 = {
       labels: 'note',
       title: L('I - vi - IV - V: C Am F G', `${H('I - vi - IV - V')}: ${H('C Am F G')}`),
       text: L(
-        'On 3-2-1 from C (5-5-3: C E G): to Am only the top voice moves, G -> A (5-5-5: C E A — C and E are common). To F the middle voice steps E -> F (5-6-5: C F A). To G every voice steps down (4-3-3: B D G). Top voice melody: G A A G. Four chords, and the hand never leaves frets 3-6.',
-        `על ${H('3-2-1')} מ־${H('C')} (${H('5-5-3')}: ${H('C E G')}): ל־${H('Am')} רק הקול העליון זז, ${H('G → A')} (${H('5-5-5')}: ${H('C E A')} — ${H('C')} ו־${H('E')} משותפים). ל־${H('F')} הקול האמצעי עולה ${H('E → F')} (${H('5-6-5')}: ${H('C F A')}). ל־${H('G')} כל הקולות יורדים צעד (${H('4-3-3')}: ${H('B D G')}). מנגינת הקול העליון: ${H('G A A G')}. ארבעה אקורדים, והיד לא עוזבת את שריגים ${H('3-6')}.`
+        'On 3-2-1 from C (5-5-3: C E G): to Am only the top voice moves, G -> A (5-5-5: C E A — C and E are common). To F the middle voice steps E -> F (5-6-5: C F A). To G all three move down (4-3-3: B D G): C -> B one fret, F -> D three frets, A -> G two frets. Top voice melody: G A A G. Four chords, and the hand never leaves frets 3-6.',
+        `על ${H('3-2-1')} מ־${H('C')} (${H('5-5-3')}: ${H('C E G')}): ל־${H('Am')} רק הקול העליון זז, ${H('G → A')} (${H('5-5-5')}: ${H('C E A')} — ${H('C')} ו־${H('E')} משותפים). ל־${H('F')} הקול האמצעי עולה ${H('E → F')} (${H('5-6-5')}: ${H('C F A')}). ל־${H('G')} שלושת הקולות יורדים (${H('4-3-3')}: ${H('B D G')}): ${H('C → B')} שריג אחד, ${H('F → D')} שלושה שריגים, ${H('A → G')} שני שריגים. מנגינת הקול העליון: ${H('G A A G')}. ארבעה אקורדים, והיד לא עוזבת את שריגים ${H('3-6')}.`
       ),
     },
     {
@@ -820,8 +820,8 @@ const unit9 = {
       labels: 'degree',
       title: L('Root on 6, 5 and 4', 'יסוד על 6, 5 ו־4'),
       text: L(
-        'The spread root-position shape (1 5 3) on three string groups: G on 6-4-3 (3-0-4), C on 5-3-2 (3-0-5), F on 4-2-1 (3-1-5). Mute the skipped string with the underside of the finger on the string below it; pick or pluck with fingers (thumb + two fingers is the natural way).',
-        `הצורה הפתוחה במצב יסודי (${H('1 5 3')}) על שלוש קבוצות מיתרים: ${H('G')} על ${H('6-4-3')} (${H('3-0-4')}), ${H('C')} על ${H('5-3-2')} (${H('3-0-5')}), ${H('F')} על ${H('4-2-1')} (${H('3-1-5')}). השתק את המיתר המדולג בצד התחתון של האצבע שעל המיתר שמתחתיו; פרוט במפרט או באצבעות (אגודל ושתי אצבעות הוא הדרך הטבעית).`
+        'The spread root-position shape (1 5 3) on three string groups: G on 6-4-3 (3-0-4), C on 5-3-2 (3-0-5), F on 4-2-1 (3-1-5). Mute the skipped string by letting the finger on the string next to it lean lightly against it; pick or pluck with fingers (thumb + two fingers is the natural way).',
+        `הצורה הפתוחה במצב יסודי (${H('1 5 3')}) על שלוש קבוצות מיתרים: ${H('G')} על ${H('6-4-3')} (${H('3-0-4')}), ${H('C')} על ${H('5-3-2')} (${H('3-0-5')}), ${H('F')} על ${H('4-2-1')} (${H('3-1-5')}). השתק את המיתר המדולג: האצבע שלוחצת על המיתר הסמוך נשענת עליו קלות; פרוט במפרט או באצבעות (אגודל ושתי אצבעות הוא הדרך הטבעית).`
       ),
     },
     {
@@ -912,7 +912,7 @@ const unit10 = {
       title: L('Rhythm parts with triads', 'ליווי קצבי בטריאדות'),
       text: L('Three standard ways players use small triads (start the metronome below):', 'שלוש דרכים מקובלות שבהן נגנים משתמשים בטריאדות קטנות (הפעל את המטרונום כאן למטה):'),
       items: [
-        L('Reggae / ska “skank”: C - F - G on 3-2-1, a short down-strum ONLY on the off-beats (the “and”), choked by releasing the fingers.', `"סקאנק" של רגאיי / סקא: ${H('C - F - G')} על ${H('3-2-1')}, פריטה קצרה למטה רק על ההפסקים (ה"ו"), שנחנקת בשחרור האצבעות.`),
+        L('Ska / reggae “skank”: C - F - G on 3-2-1, a short chord ONLY off the beat, choked at once by easing the fingers off the strings — in ska on every “and”, in reggae on beats 2 and 4 of a slow bar.', `"סקאנק" של סקא / רגאיי: ${H('C - F - G')} על ${H('3-2-1')}, אקורד קצר רק מחוץ לפעמה, שנחנק מיד כשמרפים את האצבעות מהמיתרים — בסקא על כל "וְ" שבין הפעמות, ברגאיי על פעמות 2 ו־4 של תיבה איטית.`),
         L('Funk: 16th-note strumming with the hand always moving, the triad sounding only on a few accents, muted strokes between.', 'פאנק: פריטה בשש־עשריות כשהיד זזה כל הזמן, הטריאדה נשמעת רק בכמה הדגשות, ובאמצע פריטות מושתקות.'),
         L('Second guitar: while a friend (or a recording) plays full chords, play the same progression as triads high on the neck.', 'גיטרה שנייה: בזמן שחבר (או הקלטה) מנגן אקורדים מלאים, נגן את אותו מהלך כטריאדות גבוה בצוואר.'),
       ],
@@ -923,8 +923,8 @@ const unit10 = {
       labels: 'note',
       title: L('A song progression: G Em C D', `מהלך של שיר: ${H('G Em C D')}`),
       text: L(
-        'I - vi - IV - V in G, the progression of hundreds of songs, led on 3-2-1 around fret 10-13: G (12-12-10), Em (12-12-12), C (12-13-12), D (11-10-10). Two common tones from G to Em and from Em to C; one step down to D.',
-        `${H('I - vi - IV - V')} ב־${H('G')}, המהלך של מאות שירים, בהובלת קולות על ${H('3-2-1')} סביב שריגים ${H('10-13')}: ${H('G (12-12-10)')}, ${H('Em (12-12-12)')}, ${H('C (12-13-12)')}, ${H('D (11-10-10)')}. שני צלילים משותפים מ־${H('G')} ל־${H('Em')} ומ־${H('Em')} ל־${H('C')}; צעד אחד למטה ל־${H('D')}.`
+        'I - vi - IV - V in G, the progression of hundreds of songs, led on 3-2-1 around fret 10-13: G (12-12-10), Em (12-12-12), C (12-13-12), D (11-10-10). Two common tones from G to Em and from Em to C; to D all three move down (G -> F♯, C -> A, E -> D).',
+        `${H('I - vi - IV - V')} ב־${H('G')}, המהלך של מאות שירים, בהובלת קולות על ${H('3-2-1')} סביב שריגים ${H('10-13')}: ${H('G (12-12-10)')}, ${H('Em (12-12-12)')}, ${H('C (12-13-12)')}, ${H('D (11-10-10)')}. שני צלילים משותפים מ־${H('G')} ל־${H('Em')} ומ־${H('Em')} ל־${H('C')}; ל־${H('D')} שלושת הקולות יורדים (${H('G → F♯')}, ${H('C → A')}, ${H('E → D')}).`
       ),
     },
     {
@@ -959,8 +959,8 @@ const unit10 = {
       labels: 'note',
       title: L('Final test 3/3: Am F C G', `מבחן מסכם 3/3: ${H('Am F C G')}`),
       text: L(
-        'The last task, on strings 4-3-2: Am (10-9-10: C E A), F (10-10-10: C F A — C and A stay), C (10-9-8: C E G — C and E stay), G (9-7-8: B D G — G stays). Hear it, then play it on the next screen and feel which fingers stay down.',
-        `המשימה האחרונה, על ${H('4-3-2')}: ${H('Am (10-9-10: C E A)')}, ${H('F (10-10-10: C F A')} — ${H('C')} ו־${H('A')} נשארים), ${H('C (10-9-8: C E G')} — ${H('C')} ו־${H('E')} נשארים), ${H('G (9-7-8: B D G')} — ${H('G')} נשאר). הקשב, ואז נגן את זה במסך הבא והרגש אילו אצבעות נשארות לחוצות.`
+        'The last task, on strings 4-3-2: Am (10-9-10: C E A), F (10-10-10: C F A — C and A stay), C (10-9-8: C E G — C stays), G (9-7-8: B D G — G stays). Hear it, then play it on the next screen and feel which fingers stay down.',
+        `המשימה האחרונה, על ${H('4-3-2')}: ${H('Am')} (${H('10-9-10')}: ${H('C E A')}), ${H('F')} (${H('10-10-10')}: ${H('C F A')} — ${H('C')} ו־${H('A')} נשארים), ${H('C')} (${H('10-9-8')}: ${H('C E G')} — ${H('C')} נשאר), ${H('G')} (${H('9-7-8')}: ${H('B D G')} — ${H('G')} נשאר). הקשב, ואז נגן את זה במסך הבא והרגש אילו אצבעות נשארות לחוצות.`
       ),
     },
     {

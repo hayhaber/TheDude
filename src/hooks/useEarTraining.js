@@ -12,7 +12,7 @@ import {
   loadLifetimeStats,
   saveLifetimeStats,
 } from '../music/earTraining';
-import { playQuestionAudio, playAnswerFeedbackAudio } from '../audio/earTrainingPlayer';
+import { playQuestionAudio, playAnswerFeedbackAudio, setEarTrainingInstrument } from '../audio/earTrainingPlayer';
 import { useInstrument } from '../instruments/useInstrument';
 import { logPerf } from '../coach/perfLog';
 
@@ -62,6 +62,7 @@ const MIN_ANSWERS_TO_LOG = 5;
 // instance, entirely separate from the main chord-progression fretboard.
 export function useEarTraining() {
   const { instrument } = useInstrument();
+  setEarTrainingInstrument(instrument);
   const [open, setOpen] = useState(false);
   const [modeKey, setModeKey] = useState(EAR_TRAINING_MODES[0].key);
   const [difficultyKey, setDifficultyKey] = useState(EAR_TRAINING_DIFFICULTIES[0].key);

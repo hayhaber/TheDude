@@ -1,4 +1,12 @@
-import { playNote } from './chordPlayer';
+import { playNote as playGuitarNote } from './chordPlayer';
+import { playPianoNote } from './pianoPlayer';
+
+// The quiz sounds on the instrument the student is learning (piano ear
+// training used to play guitar notes).
+let playNote = playGuitarNote;
+export function setEarTrainingInstrument(instrument) {
+  playNote = instrument === 'piano' ? playPianoNote : playGuitarNote;
+}
 
 // Plays a quiz question's notes — pitch/triad are effectively simultaneous
 // (triad gets a light strum-like stagger), interval and call & response

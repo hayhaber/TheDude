@@ -818,6 +818,14 @@ no tools).
   each key it passes (`handleTouchMoveKey`: elementFromPoint ->
   `.piano-key[data-midi]`, releases the previous key per touch id). Free
   play only — quiz keys still need a deliberate tap.
+- **Ear training sound per instrument (v1.0.155; user: piano ear training
+  played GUITAR notes)**: `audio/earTrainingPlayer.js` always used
+  chordPlayer's guitar `playNote`; now `setEarTrainingInstrument()`
+  (called by useEarTraining each render with the context instrument) picks
+  `playPianoNote` on the piano, the guitar otherwise (ear training exists
+  only on guitar + piano). Checked: piano quiz notes go through the piano
+  path (fallback-oscillator note length 1.45 s = piano vs 1.65 s guitar
+  before; samples blocked here).
 - **Ear Training on piano**: a melodic answer (direction, melodic interval,
   scale id) is revealed one key at a time in play order, looping
   (`useSequentialReveal` in EarTrainingModal, 650 ms/note; useEarTraining

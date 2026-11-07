@@ -200,6 +200,9 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   // Practice -> Lick Trainer opens empty: licks appear only once the user
   // picks a Genre or Level (user's request). Reset on every visit.
   const [licksChosen, setLicksChosen] = useState(false);
+  // The player is open (2026-11-07 redesign: genres -> licks -> player, the
+  // neck only shows with an open lick).
+  const [lickOpen, setLickOpen] = useState(false);
   const chooseGenre = useCallback((g) => {
     setGenre(g);
     setLicksChosen(true);
@@ -217,6 +220,12 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       return;
     }
     setLicksChosen(false);
+    setLickOpen(false);
+  }, []);
+  /** Back from the licks list to the genres. */
+  const clearLickChoice = useCallback(() => {
+    setLicksChosen(false);
+    setLickOpen(false);
   }, []);
   const [lickId, setLickId] = useState(LICKS[0].id);
   const [tempoPct, setTempoState] = useState(70);
@@ -609,6 +618,17 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     },
     [stop]
   );
+  const openLick = useCallback(
+    (id) => {
+      selectLick(id);
+      setLickOpen(true);
+    },
+    [selectLick]
+  );
+  const closeLick = useCallback(() => {
+    stop();
+    setLickOpen(false);
+  }, [stop]);
 
   // Builds (or rebuilds) the player's arpeggio lick and selects it. Returns
   // { ok, bad: unreadable symbols, missing: chords with no playable place }.
@@ -627,6 +647,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       setArpBuilt(saved);
       writeJson(ARP_KEY, saved);
       setLickId(lick.id);
+      setLickOpen(true);
       setResult(null);
       setPhase('idle');
       return { ok: true, bad, missing };
@@ -1231,6 +1252,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       setGenre('all');
       setLevel('all');
       setLicksChosen(true);
+      setLickOpen(true);
       keepChoiceRef.current = expectMount;
       if (id) setLickId(id);
       if (Number.isFinite(pct)) {
@@ -1376,6 +1398,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
         setGenre('mine');
         setLevel('all');
         setLicksChosen(true);
+        setLickOpen(true);
         selectLick(derived[0].id);
       }
     },
@@ -1460,7 +1483,12 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     chooseLevel,
     resetLickChoice,
     // Anything to show? (the lick library waits for a Genre/Level choice)
-    licksShown: mode !== 'licks' || licksChosen,
+    allLicks,
+    licksShown: mode !== 'licks' || lickOpen,
+    lickOpen,
+    openLick,
+    closeLick,
+    clearLickChoice,
     licksChosen,
     visibleLicks,
     lick,

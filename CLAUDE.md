@@ -973,6 +973,23 @@ no tools).
   `audio/lickTrainerAudio.js`, state in `hooks/useLickTrainer.js`. Engine
   regression test on synthetic guitar audio: `scripts/lick-analysis-test.mjs`
   (bundle with esbuild, run with node) — run it after any analysis change.
+- **Lick Trainer redesign (v1.0.128, 2026-11-07; user: "everything is a
+  mess, all the licks at once, the demo hidden at the bottom")**: Practice
+  -> Lick trainer is a drill-down that draws its OWN header (PracticeView
+  skips its head for 'trainer', passes `onExit`): GENRES (iOS rows with
+  colour tiles + counts, All / each genre / My imports; Import capsule
+  next to the title) -> LICKS of the genre, grouped by level (`LickList`,
+  `.lt-row`, best score pill) -> PLAYER (`Player`: title / meta / about,
+  tab card, TRANSPORT = Listen round key · ONE big record key (red dot ->
+  stop square; blue in Wait mode) · Tempo + Mode chip selects; status,
+  results). Secondary options in the player's ••• (`OptSwitch` iOS
+  switches: click / hear cue, auto tempo + target, loop, neck labels,
+  latency + Calibrate, Delete import). >= 1024 px: SPLIT view — sticky
+  sidebar list (chosen row = accent fill) | player; practice-view widens to
+  1280. Hook: `lickOpen` + `openLick` / `closeLick` / `clearLickChoice`,
+  `licksShown` = lickOpen (neck only with an open lick); launchLick /
+  import save / arpeggio build open the player. GuitarPro -> Practice
+  (variant solos) uses the same Player under its section select.
 - **Guitar Pro licks**: `music/lickTrainer/gpImport.js` converts an alphaTab
   Score to licks (exact rhythm/bends/slides/legato; chords reduced to the top
   note; the other notes of a double stop/chord are attached at runtime as

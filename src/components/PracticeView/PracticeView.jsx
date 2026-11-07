@@ -89,6 +89,7 @@ export function PracticeView({
   return (
     <div className="practice-view is-detail" dir={dir}>
       {/* iOS: a back button to the library; tapping the Practice tab again does the same. */}
+      {activeTab !== 'trainer' && (
       <div className="practice-detail-head" dir={dir}>
         <BackButton label={t('ph.back')} onClick={() => onTabChange('home')} />
         {/* One header for every exercise (flow review 2026-11-06): the name
@@ -97,6 +98,7 @@ export function PracticeView({
         {item && <h1 className="ph-detail-title">{t(`ph.ex.${item.tab}.title`)}</h1>}
         {item && <p className="subtitle ph-detail-sub">{t(`ph.ex.${item.tab}.desc`)}</p>}
       </div>
+      )}
 
       {activeTab === 'drills' && (
         <div className="practice-drills">
@@ -107,7 +109,8 @@ export function PracticeView({
 
       {activeTab === 'ear-training' && <EarTrainingModal earTraining={earTraining} onClose={earTraining.exit} variant="inline" />}
 
-      {activeTab === 'trainer' && <LickTrainer trainer={lickTrainer} />}
+      {/* The Lick Trainer draws its own header (genres -> licks -> player). */}
+      {activeTab === 'trainer' && <LickTrainer trainer={lickTrainer} onExit={() => onTabChange('home')} />}
 
       {activeTab === 'rhythm' && <RhythmGamePanel rhythmGame={rhythmGame} metronome={metronome} />}
 

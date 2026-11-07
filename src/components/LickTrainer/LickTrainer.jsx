@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { LICK_GENRES, LICK_LEVELS } from '../../music/lickTrainer/library';
@@ -9,6 +9,8 @@ import { midiToNoteName } from '../../music/pitchUtils';
 import { BUILD_PASS, waitTarget } from '../../music/lickTrainer/practiceModes';
 import { TabTimeline } from './TabTimeline';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { MoreMenu } from '../MoreMenu/MoreMenu';
+import { BackButton, LibraryRow } from '../PracticeView/PracticeHome';
 import './LickTrainer.css';
 
 const STRING_NUM = (stringIndex) => 6 - stringIndex; // app index -> tab string number
@@ -605,212 +607,157 @@ export function ImportPanel({ trainer, t, lang, forceSaveAs = null }) {
 // variant 'licks' = Practice -> Lick Trainer (the lick library);
 // variant 'solos' = the practice part of the GuitarPro section, which
 // supplies the file choice, import and shared library itself.
-export function LickTrainer({ trainer, variant = 'licks' }) {
-  const fileRef = useRef(null);
-  const { setMode } = trainer;
-  useEffect(() => {
-    setMode(variant);
-  }, [variant, setMode]);
-  // Practice -> Lick Trainer: start empty on every visit.
-  const { resetLickChoice } = trainer;
-  useEffect(() => {
-    if (variant === 'licks') resetLickChoice();
-  }, [variant, resetLickChoice]);
-  const chosen = trainer.licksChosen;
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  // Start decoding the guitar samples as soon as the trainer is opened.
-  const { preloadSamples } = trainer;
-  useEffect(() => {
-    preloadSamples();
-  }, [preloadSamples]);
-  const { t, lang } = useLanguage();
-  const { lick, phase, history } = trainer;
-  const busy =
-    phase === 'preparing' || phase === 'countIn' || phase === 'recording' || phase === 'analyzing' || phase === 'calibrating' || phase === 'waiting';
-  const pm = trainer.practiceMode;
-  // The tempo list, plus the current tempo if a launch set one off the list.
-  const tempoOptions = TEMPO_OPTIONS.includes(trainer.tempoPct) ? TEMPO_OPTIONS : [...TEMPO_OPTIONS, trainer.tempoPct].sort((a, b) => a - b);
-  const looping = trainer.loopActive || trainer.loopNext;
-  const countdown =
-    phase === 'countIn' && trainer.playheadBeat != null ? Math.max(1, Math.ceil(-trainer.playheadBeat)) : null;
-  const dir = lang === 'he' ? 'rtl' : 'ltr';
+function useWide() {
+  return useSyncExternalStore(
+    (cb) => {
+      const m = window.matchMedia('(min-width: 1024px)');
+      m.addEventListener('change', cb);
+      return () => m.removeEventListener('change', cb);
+    },
+    () => window.matchMedia('(min-width: 1024px)').matches,
+    () => false
+  );
+}
 
+// Genre rows of the library (Apple system colours, the app's line icons).
+const GENRE_LOOK = {
+  all: { color: '#636366', icon: 'practice' },
+  blues: { color: '#0a84ff', icon: 'note' },
+  rock: { color: '#ff3b30', icon: 'bend' },
+  metal: { color: '#3a3a3c', icon: 'falling' },
+  country: { color: '#ff9500', icon: 'guitarpro' },
+  tapping: { color: '#af52de', icon: 'hand' },
+  arpeggio: { color: '#34c759', icon: 'changes' },
+  mine: { color: '#5856d6', icon: 'record' },
+};
+
+const SPEAKER = (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+    <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" />
+    <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+const STOP_ICON = (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor" />
+  </svg>
+);
+
+/** Option rows inside the player's ••• menu. */
+function OptSwitch({ checked, onChange, disabled, children }) {
   return (
-    <div className="lick-trainer" dir={dir}>
-      {variant === 'licks' && <p className="lt-intro">{t('lickTrainer.intro')}</p>}
+    <label className="lt-opt">
+      <span className="lt-opt-label">{children}</span>
+      <input type="checkbox" className="lt-switch" checked={checked} onChange={(e) => onChange(e.target.checked)} disabled={disabled} />
+    </label>
+  );
+}
 
-      <div className="lt-filters">
-        {trainer.mode === 'solos' ? (
-          <>
-            {trainer.activeSolo?.sections?.length > 0 && (
-              <label className="lt-field">
-                <span>{t('lickTrainer.section')}</span>
-                <select value={trainer.sectionIndex} onChange={(e) => trainer.setSectionIndex(Number(e.target.value))} disabled={busy}>
-                  <option value={-1}>{t('lickTrainer.wholeSolo')}</option>
-                  {trainer.activeSolo.sections.map((sec, k) => (
-                    <option key={k} value={k}>
-                      {t('lickTrainer.sectionOption', { n: k + 1, bars: localize(sec.label, lang) })}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </>
-        ) : (
-          <>
-        <label className="lt-field">
-          <span>{t('lickTrainer.genre')}</span>
-          <select value={chosen ? trainer.genre : ''} onChange={(e) => trainer.chooseGenre(e.target.value)}>
-            {!chosen && (
-              <option value="" disabled>
-                {t('lickTrainer.choose')}
-              </option>
-            )}
-            <option value="all">{t('lickTrainer.all')}</option>
-            <option value="mine">{t('lickTrainer.mine')}</option>
-            {LICK_GENRES.map((g) => (
-              <option key={g.key} value={g.key}>
-                {localize(g.label, lang)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="lt-field">
-          <span>{t('lickTrainer.level')}</span>
-          <select value={chosen ? trainer.level : ''} onChange={(e) => trainer.chooseLevel(e.target.value)}>
-            {!chosen && (
-              <option value="" disabled>
-                {t('lickTrainer.choose')}
-              </option>
-            )}
-            <option value="all">{t('lickTrainer.all')}</option>
-            {LICK_LEVELS.map((l) => (
-              <option key={l.key} value={l.key}>
-                {localize(l.label, lang)}
-              </option>
-            ))}
-          </select>
-        </label>
-          </>
-        )}
-        {variant === 'licks' && (
-        <>
-        <button type="button" className="lt-import-btn" onClick={() => fileRef.current?.click()} disabled={busy}>
-          {t('lickTrainer.import')}
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept={GP_ACCEPT}
-          hidden
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) trainer.readFile(file);
-            e.target.value = '';
-          }}
-        />
-        </>
-        )}
-      </div>
-
-
-      {trainer.mode === 'solos' && <MasteryMap trainer={trainer} t={t} busy={busy} />}
-
-      {variant === 'licks' && !chosen && !trainer.pendingImport && <p className="lt-muted lt-pick-hint">{t('lickTrainer.pickHint')}</p>}
-
-      {variant === 'licks' && chosen && <NeckLabelToggle trainer={trainer} t={t} />}
-
-      {variant === 'licks' && chosen && trainer.mode === 'licks' && trainer.genre === 'arpeggio' && !trainer.pendingImport && (
-        <ArpBuilder trainer={trainer} t={t} lang={lang} busy={busy} />
-      )}
-
-      {variant === 'licks' && trainer.pendingImport && (
-        <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="lick" />
-      )}
-
-
-      {trainer.mode === 'licks' && chosen && (
-      <div className="lt-list" role="list">
-        {trainer.visibleLicks.length === 0 && <p className="lt-muted">{t('lickTrainer.none')}</p>}
-        {trainer.visibleLicks.map((l) => {
-          const best = history[l.id]?.best;
-          return (
-            <button
-              key={l.id}
-              type="button"
-              role="listitem"
-              className={'lt-card' + (l.id === lick.id ? ' active' : '')}
-              onClick={() => trainer.selectLick(l.id)}
-              disabled={busy}
-            >
-              <span className="lt-card-title" dir="auto">
-                {localize(l.title, lang)}
-              </span>
-              <span className="lt-card-meta">
-                {labelOf(LICK_GENRES, l.genre, lang)} · {labelOf(LICK_LEVELS, l.level, lang)} · {l.key}
-              </span>
-              {best && (
-                <span className="lt-card-best">
-                  {t('lickTrainer.best', { score: best.score, tempo: best.tempoPct })}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      )}
-
-      {((trainer.mode === 'licks' && chosen) || (trainer.mode === 'solos' && trainer.activeSolo)) && (
-      <section className="lt-lick">
-        <div className="lt-lick-head">
-          <h3 dir="auto">
-            {localize(lick.title, lang)}
-            {lick.sectionLabel && <span className="lt-section-label"> · {localize(lick.sectionLabel, lang)}</span>}
-          </h3>
-          <span style={{ display: 'flex', alignItems: 'center', flex: 'none' }}>
+/** The player: lick header, tab, transport, results (licks and solos). */
+function Player({ trainer, t, lang, variant, busy, looping, pm, tempoOptions, countdown, showTitle, confirmDelete, setConfirmDelete }) {
+  const { lick, phase } = trainer;
+  const recording = phase === 'countIn' || phase === 'recording' || (looping && phase !== 'listening');
+  const waiting = phase === 'waiting';
+  const onPrimary =
+    pm === 'wait' ? (waiting ? trainer.stop : trainer.startWait) : recording ? trainer.stop : trainer.record;
+  const primaryOn = pm === 'wait' ? waiting : recording;
+  const primaryLabel = primaryOn ? t('lickTrainer.stop') : pm === 'wait' ? t('trainerx.start') : t('lickTrainer.record');
+  return (
+    <section className="lt-lick lt-player">
+      <div className="lt-player-head">
+        <div className="lt-player-titles">
+          {showTitle && (
+            <h2 className="lt-player-title" dir="auto">
+              {localize(lick.title, lang)}
+              {lick.sectionLabel && <span className="lt-section-label"> · {localize(lick.sectionLabel, lang)}</span>}
+            </h2>
+          )}
+          <p className="lt-meta">
+            <bdi dir="ltr">
+              {lick.scale ? `${lick.scale} · ` : ''}
+              {tempoLabel(lick, lick.bpm)}
+            </bdi>{' '}
+            · {labelOf(LICK_LEVELS, lick.level, lang)} ·{' '}
             <span className={'lt-badge' + (lick.source === 'user' || lick.source === 'import' ? ' verified' : '')}>
               {t(lick.source === 'import' ? 'lickTrainer.sourceImport' : lick.source === 'user' ? 'lickTrainer.sourceUser' : 'lickTrainer.sourceApp')}
             </span>
-            <InfoTooltip text={t('tip.practice.lickSource')} />
-          </span>
+          </p>
         </div>
-        <p className="lt-meta">
-          <bdi dir="ltr">
-            {lick.scale ? `${lick.scale} · ` : ''}
-            {tempoLabel(lick, lick.bpm)}
-          </bdi>{' '}
-          · {labelOf(LICK_LEVELS, lick.level, lang)}
-        </p>
+        <MoreMenu label={t('lickTrainer.options')}>
+          <div className="lt-opts">
+            {pm === 'wait' ? (
+              <OptSwitch checked={trainer.hearCue} onChange={trainer.setHearCue} disabled={busy}>
+                {t('trainerx.hear')}
+              </OptSwitch>
+            ) : (
+              <>
+                <OptSwitch checked={trainer.clickDuring} onChange={trainer.setClickDuring} disabled={busy}>
+                  {t('lickTrainer.click')}
+                </OptSwitch>
+                <OptSwitch checked={trainer.autoTempo.on} onChange={(v) => trainer.setAutoTempo({ on: v })} disabled={busy}>
+                  {t('trainerx.autoTempo')}
+                </OptSwitch>
+                {trainer.autoTempo.on && (
+                  <label className="lt-opt">
+                    <span className="lt-opt-label">{t('trainerx.target')}</span>
+                    <select dir="ltr" value={trainer.autoTempo.to} onChange={(e) => trainer.setAutoTempo({ to: Number(e.target.value) })} disabled={busy}>
+                      {TEMPO_OPTIONS.filter((v) => v >= 60).map((v) => (
+                        <option key={v} value={v}>
+                          {v}%
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <OptSwitch checked={trainer.loop} onChange={trainer.setLoop}>
+                  {t('trainerx.loop')}
+                </OptSwitch>
+              </>
+            )}
+            {variant === 'licks' && (
+              <div className="lt-opt is-stack">
+                <NeckLabelToggle trainer={trainer} t={t} />
+              </div>
+            )}
+            <div className="lt-opt is-stack">
+              <span className="lt-opt-label">
+                {trainer.latency != null
+                  ? t('lickTrainer.latency', { ms: Math.round(trainer.latency * 1000) })
+                  : t('lickTrainer.latencyUnknown')}
+              </span>
+              <span className="lt-opt-note">{t('lickTrainer.calibrateHow')}</span>
+              <button type="button" className="lt-opt-btn" onClick={trainer.calibrate} disabled={busy}>
+                {t('lickTrainer.calibrate')}
+              </button>
+            </div>
+            {lick.source === 'import' && variant === 'licks' && (
+              <button
+                type="button"
+                className="more-menu-item is-danger"
+                onClick={() => {
+                  if (confirmDelete === lick.id) {
+                    setConfirmDelete(null);
+                    trainer.deleteImport(trainer.mode === 'solos' ? trainer.activeSolo.id : lick.id);
+                  } else setConfirmDelete(lick.id);
+                }}
+                disabled={busy}
+              >
+                {t(confirmDelete === lick.id ? 'lickTrainer.deleteConfirm' : 'lickTrainer.delete')}
+              </button>
+            )}
+          </div>
+        </MoreMenu>
+      </div>
+
+      {lick.about && (
         <p className="lt-about" dir="auto">
           {localize(lick.about, lang)}
         </p>
-        {lick.rhythmApprox && <p className="lt-muted">{t('lickTrainer.rhythmApprox')}</p>}
-        {lick.simplified && <p className="lt-muted">{t('lickTrainer.simplified')}</p>}
-        {lick.source === 'import' && variant === 'licks' && (
-          <div className="lt-actions">
-            {/* Two taps to delete: the whole imported file goes, so ask once. */}
-            <button
-              type="button"
-              className={confirmDelete === lick.id ? 'danger' : ''}
-              onClick={() => {
-                if (confirmDelete === lick.id) {
-                  setConfirmDelete(null);
-                  trainer.deleteImport(trainer.mode === 'solos' ? trainer.activeSolo.id : lick.id);
-                } else setConfirmDelete(lick.id);
-              }}
-              disabled={busy}
-            >
-              {t(confirmDelete === lick.id ? 'lickTrainer.deleteConfirm' : 'lickTrainer.delete')}
-            </button>
-          </div>
-        )}
-        {lick.credit && (
-          <p className="lt-muted lt-small" dir="ltr">
-            {lick.credit}
-          </p>
-        )}
+      )}
+      {lick.rhythmApprox && <p className="lt-muted lt-small">{t('lickTrainer.rhythmApprox')}</p>}
+      {lick.simplified && <p className="lt-muted lt-small">{t('lickTrainer.simplified')}</p>}
 
+      <div className="lt-tab-card">
         {trainer.mode === 'solos' && trainer.activeSolo ? (
           // The whole solo stays on screen; the chosen section is
           // highlighted and the playhead/results are placed inside it.
@@ -835,10 +782,43 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
             highlight={trainer.build && trainer.build.end < trainer.build.total ? { fromBeat: 0, toBeat: trainer.build.endBeat } : null}
           />
         )}
+      </div>
 
-        <div className="lt-controls">
-          <label className="lt-field">
-            <span>
+      {/* Transport: Listen · the ONE primary (record / start) · tempo · mode. */}
+      <div className="lt-transport">
+        <button
+          type="button"
+          className={'lt-tbtn lt-listen' + (phase === 'listening' ? ' is-on' : '')}
+          onClick={phase === 'listening' ? trainer.stop : trainer.listen}
+          disabled={busy && phase !== 'listening'}
+          aria-label={phase === 'listening' ? t('lickTrainer.stop') : t('lickTrainer.listen')}
+        >
+          {phase === 'listening' ? STOP_ICON : SPEAKER}
+          <span className="lt-tbtn-label">{phase === 'listening' ? t('lickTrainer.stop') : t('lickTrainer.listen')}</span>
+        </button>
+        <button
+          type="button"
+          className={'lt-rec' + (primaryOn ? ' is-on' : '') + (pm === 'wait' ? ' is-wait' : '')}
+          onClick={onPrimary}
+          disabled={busy && !primaryOn}
+          aria-label={primaryLabel}
+        >
+          <span className="lt-rec-glyph" aria-hidden="true" />
+          <span className="lt-tbtn-label">{primaryLabel}</span>
+        </button>
+        <div className="lt-tchips">
+          <label className="lt-chip">
+            <span className="lt-chip-label">{t('lickTrainer.tempo')}</span>
+            <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))} disabled={busy || looping}>
+              {tempoOptions.map((v) => (
+                <option key={v} value={v}>
+                  {v}% · {tempoLabel(lick, Math.round((lick.bpm * v) / 100))}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="lt-chip">
+            <span className="lt-chip-label">
               {t('trainerx.mode')}
               <InfoTooltip text={t('trainerx.tip.mode')} />
             </span>
@@ -848,156 +828,279 @@ export function LickTrainer({ trainer, variant = 'licks' }) {
               <option value="build">{t('trainerx.mode.build')}</option>
             </select>
           </label>
-          <label className="lt-field">
-            <span>{t('lickTrainer.tempo')}</span>
-            <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))} disabled={busy || looping}>
-              {tempoOptions.map((v) => (
-                <option key={v} value={v}>
-                  {v}% · {tempoLabel(lick, Math.round((lick.bpm * v) / 100))}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {phase === 'listening' ? (
-            <button type="button" onClick={trainer.stop}>
-              {t('lickTrainer.stop')}
-            </button>
-          ) : (
-            <button type="button" onClick={trainer.listen} disabled={busy}>
-              {t('lickTrainer.listen')}
-            </button>
-          )}
-
-          {pm === 'wait' ? (
-            phase === 'waiting' ? (
-              <button type="button" className="record active" onClick={trainer.stop}>
-                {t('lickTrainer.stop')}
-              </button>
-            ) : (
-              <button type="button" className="record" onClick={trainer.startWait} disabled={busy}>
-                {t('trainerx.start')}
-              </button>
-            )
-          ) : phase === 'countIn' || phase === 'recording' || (looping && phase !== 'listening') ? (
-            <button type="button" className="record active" onClick={trainer.stop}>
-              {t('lickTrainer.stop')}
-            </button>
-          ) : (
-            <button type="button" className="record" onClick={trainer.record} disabled={busy}>
-              {t('lickTrainer.record')}
-            </button>
-          )}
-
-          {pm === 'wait' ? (
-            <label className="lt-check">
-              <input type="checkbox" checked={trainer.hearCue} onChange={(e) => trainer.setHearCue(e.target.checked)} disabled={busy} />
-              {t('trainerx.hear')}
-            </label>
-          ) : (
-            <label className="lt-check">
-              <input type="checkbox" checked={trainer.clickDuring} onChange={(e) => trainer.setClickDuring(e.target.checked)} disabled={busy} />
-              {t('lickTrainer.click')}
-              <InfoTooltip text={t('tip.practice.lickClick')} />
-            </label>
-          )}
         </div>
+      </div>
 
-        {pm !== 'wait' && (
-          <div className="lt-auto">
-            <label className="lt-check">
-              <input
-                type="checkbox"
-                checked={trainer.autoTempo.on}
-                onChange={(e) => trainer.setAutoTempo({ on: e.target.checked })}
-                disabled={busy}
-              />
-              {t('trainerx.autoTempo')}
-              <InfoTooltip text={t('trainerx.tip.autoTempo')} />
-            </label>
-            {trainer.autoTempo.on && (
-              <label className="lt-inline-field">
-                <span>{t('trainerx.target')}</span>
-                <select dir="ltr" value={trainer.autoTempo.to} onChange={(e) => trainer.setAutoTempo({ to: Number(e.target.value) })} disabled={busy}>
-                  {TEMPO_OPTIONS.filter((v) => v >= 60).map((v) => (
-                    <option key={v} value={v}>
-                      {v}%
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            <label className="lt-check">
-              <input type="checkbox" checked={trainer.loop} onChange={(e) => trainer.setLoop(e.target.checked)} />
-              {t('trainerx.loop')}
-              <InfoTooltip text={t('trainerx.tip.loop')} />
-            </label>
-          </div>
-        )}
-
-        {trainer.build && (
-          <div className="lt-build">
-            <span>
-              {t('trainerx.build.status', {
-                step: trainer.build.step + 1,
-                steps: trainer.build.steps,
-                end: trainer.build.end,
-                total: trainer.build.total,
-              })}
-            </span>
-            {trainer.build.step > 0 && (
-              <button type="button" onClick={trainer.restartBuild} disabled={busy || looping}>
-                {t('trainerx.restart')}
-              </button>
-            )}
-          </div>
-        )}
-
-        <WaitPanel trainer={trainer} t={t} />
-
-        <div className="lt-status" aria-live="polite">
-          {phase === 'preparing' && <span>{t('lickTrainer.preparing')}</span>}
-          {phase === 'countIn' && countdown != null && <span className="lt-countdown">{countdown}</span>}
-          {phase === 'countIn' && <span>{t('lickTrainer.getReady')}</span>}
-          {phase === 'recording' && <span className="lt-rec-dot" aria-hidden="true" />}
-          {phase === 'recording' && <span>{t('lickTrainer.recording')}</span>}
-          {phase === 'analyzing' && <span>{t('lickTrainer.analyzing')}</span>}
-          {phase === 'calibrating' && <span>{t('lickTrainer.calibrating')}</span>}
-          {trainer.loopNext && phase === 'results' && <span className="lt-loop-next">{t('trainerx.loopNext')}</span>}
-          {trainer.loopActive && !trainer.loopNext && phase !== 'results' && <span className="lt-muted">{t('trainerx.loopOn')}</span>}
-          {(phase === 'recording' || phase === 'calibrating' || phase === 'countIn' || phase === 'waiting') && (
-            <span className="lt-meter" aria-hidden="true">
-              <span style={{ width: `${Math.min(100, trainer.inputLevel * 140)}%` }} />
-            </span>
-          )}
-        </div>
-
-        {trainer.error && (
-          <p className="lt-warning">
-            {trainer.error.key === 'mic'
-              ? t('lickTrainer.error.mic', { message: trainer.error.message })
-              : trainer.error.key === 'import'
-              ? t('lickTrainer.error.import', { message: trainer.error.message })
-              : trainer.error.key === 'importEmpty'
-              ? t('lickTrainer.error.importEmpty')
-              : t('lickTrainer.error.calibration')}
-          </p>
-        )}
-
-        <Results trainer={trainer} t={t} lang={lang} />
-
-        <div className="lt-calibration">
-          <span className="lt-muted">
-            {trainer.latency != null
-              ? t('lickTrainer.latency', { ms: Math.round(trainer.latency * 1000) })
-              : t('lickTrainer.latencyUnknown')}
+      <div className="lt-status" aria-live="polite">
+        {phase === 'preparing' && <span>{t('lickTrainer.preparing')}</span>}
+        {phase === 'countIn' && countdown != null && <span className="lt-countdown">{countdown}</span>}
+        {phase === 'countIn' && <span>{t('lickTrainer.getReady')}</span>}
+        {phase === 'recording' && <span className="lt-rec-dot" aria-hidden="true" />}
+        {phase === 'recording' && <span>{t('lickTrainer.recording')}</span>}
+        {phase === 'analyzing' && <span>{t('lickTrainer.analyzing')}</span>}
+        {phase === 'calibrating' && <span>{t('lickTrainer.calibrating')}</span>}
+        {trainer.loopNext && phase === 'results' && <span className="lt-loop-next">{t('trainerx.loopNext')}</span>}
+        {trainer.loopActive && !trainer.loopNext && phase !== 'results' && <span className="lt-muted">{t('trainerx.loopOn')}</span>}
+        {trainer.autoTempo.on && pm !== 'wait' && phase === 'idle' && <span className="lt-muted">{t('trainerx.autoTempo')} · {trainer.autoTempo.to}%</span>}
+        {(phase === 'recording' || phase === 'calibrating' || phase === 'countIn' || phase === 'waiting') && (
+          <span className="lt-meter" aria-hidden="true">
+            <span style={{ width: `${Math.min(100, trainer.inputLevel * 140)}%` }} />
           </span>
-          <button type="button" onClick={trainer.calibrate} disabled={busy}>
-            {t('lickTrainer.calibrate')}
-          </button>
+        )}
+      </div>
+
+      {trainer.build && (
+        <div className="lt-build">
+          <span>
+            {t('trainerx.build.status', {
+              step: trainer.build.step + 1,
+              steps: trainer.build.steps,
+              end: trainer.build.end,
+              total: trainer.build.total,
+            })}
+          </span>
+          {trainer.build.step > 0 && (
+            <button type="button" onClick={trainer.restartBuild} disabled={busy || looping}>
+              {t('trainerx.restart')}
+            </button>
+          )}
         </div>
-        <p className="lt-muted lt-small">{t('lickTrainer.calibrateHow')}</p>
-      </section>
+      )}
+
+      <WaitPanel trainer={trainer} t={t} />
+
+      {trainer.error && (
+        <p className="lt-warning">
+          {trainer.error.key === 'mic'
+            ? t('lickTrainer.error.mic', { message: trainer.error.message })
+            : trainer.error.key === 'import'
+            ? t('lickTrainer.error.import', { message: trainer.error.message })
+            : trainer.error.key === 'importEmpty'
+            ? t('lickTrainer.error.importEmpty')
+            : t('lickTrainer.error.calibration')}
+        </p>
+      )}
+
+      <Results trainer={trainer} t={t} lang={lang} />
+      {lick.credit && (
+        <p className="lt-muted lt-small" dir="ltr">
+          {lick.credit}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** The licks of the chosen genre, grouped by level (iOS inset groups). */
+function LickList({ trainer, t, lang, busy, wide }) {
+  const { history, lick } = trainer;
+  const groups = LICK_LEVELS.map((lv) => ({ lv, items: trainer.visibleLicks.filter((l) => l.level === lv.key) })).filter((g) => g.items.length);
+  if (!trainer.visibleLicks.length) return <p className="lt-muted">{t('lickTrainer.none')}</p>;
+  return (
+    <div className="lt-lib">
+      {groups.map(({ lv, items }) => (
+        <div key={lv.key} className="lt-lib-sec">
+          <h3 className="lt-lib-head">{localize(lv.label, lang)}</h3>
+          <div className="ph-group">
+            {items.map((l) => {
+              const best = history[l.id]?.best;
+              const on = wide && trainer.lickOpen && l.id === lick.id;
+              return (
+                <button
+                  key={l.id}
+                  type="button"
+                  className={'lt-row' + (on ? ' is-on' : '')}
+                  aria-current={on ? 'true' : undefined}
+                  onClick={() => trainer.openLick(l.id)}
+                  disabled={busy}
+                >
+                  <span className="lt-row-text">
+                    <span className="lt-row-title" dir="auto">
+                      {localize(l.title, lang)}
+                    </span>
+                    <span className="lt-row-meta">
+                      <bdi dir="ltr">{l.key}</bdi>
+                      {trainer.genre === 'all' || trainer.genre === 'mine' ? ` · ${labelOf(LICK_GENRES, l.genre, lang)}` : ''}
+                    </span>
+                  </span>
+                  {best && <span className="lt-row-best">{best.score}</span>}
+                  {!wide && (
+                    <span className="ph-chev" aria-hidden="true">
+                      <svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1.5 1.5L6.5 7l-5 5.5" />
+                      </svg>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function LickTrainer({ trainer, variant = 'licks', onExit }) {
+  const fileRef = useRef(null);
+  const { setMode } = trainer;
+  useEffect(() => {
+    setMode(variant);
+  }, [variant, setMode]);
+  // Practice -> Lick Trainer: start on the genres on every visit.
+  const { resetLickChoice } = trainer;
+  useEffect(() => {
+    if (variant === 'licks') resetLickChoice();
+  }, [variant, resetLickChoice]);
+  const chosen = trainer.licksChosen;
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  // Start decoding the guitar samples as soon as the trainer is opened.
+  const { preloadSamples } = trainer;
+  useEffect(() => {
+    preloadSamples();
+  }, [preloadSamples]);
+  const { t, lang } = useLanguage();
+  const wide = useWide();
+  const { phase } = trainer;
+  const busy =
+    phase === 'preparing' || phase === 'countIn' || phase === 'recording' || phase === 'analyzing' || phase === 'calibrating' || phase === 'waiting';
+  const pm = trainer.practiceMode;
+  // The tempo list, plus the current tempo if a launch set one off the list.
+  const tempoOptions = TEMPO_OPTIONS.includes(trainer.tempoPct) ? TEMPO_OPTIONS : [...TEMPO_OPTIONS, trainer.tempoPct].sort((a, b) => a - b);
+  const looping = trainer.loopActive || trainer.loopNext;
+  const countdown =
+    phase === 'countIn' && trainer.playheadBeat != null ? Math.max(1, Math.ceil(-trainer.playheadBeat)) : null;
+  const dir = lang === 'he' ? 'rtl' : 'ltr';
+  const playerProps = { trainer, t, lang, variant, busy, looping, pm, tempoOptions, countdown, confirmDelete, setConfirmDelete };
+
+  // How many licks per genre (the genres screen).
+  const counts = useMemo(() => {
+    const c = { all: trainer.allLicks?.length ?? 0 };
+    for (const l of trainer.allLicks ?? []) {
+      const k = l.source === 'import' ? 'mine' : l.genre;
+      c[k] = (c[k] ?? 0) + 1;
+    }
+    return c;
+  }, [trainer.allLicks]);
+
+  // ---- GuitarPro -> Practice (solos): the player, under its section picker.
+  if (variant !== 'licks') {
+    return (
+      <div className="lick-trainer" dir={dir}>
+        {trainer.activeSolo?.sections?.length > 0 && (
+          <div className="lt-filters">
+            <label className="lt-field">
+              <span>{t('lickTrainer.section')}</span>
+              <select value={trainer.sectionIndex} onChange={(e) => trainer.setSectionIndex(Number(e.target.value))} disabled={busy}>
+                <option value={-1}>{t('lickTrainer.wholeSolo')}</option>
+                {trainer.activeSolo.sections.map((sec, k) => (
+                  <option key={k} value={k}>
+                    {t('lickTrainer.sectionOption', { n: k + 1, bars: localize(sec.label, lang) })}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+        {trainer.mode === 'solos' && <MasteryMap trainer={trainer} t={t} busy={busy} />}
+        {trainer.mode === 'solos' && trainer.activeSolo && <Player {...playerProps} showTitle />}
+      </div>
+    );
+  }
+
+  const genreName = (g) => (g === 'all' ? t('lickTrainer.allLicks') : g === 'mine' ? t('lickTrainer.mine') : labelOf(LICK_GENRES, g, lang));
+  const screen = !chosen ? 'genres' : trainer.lickOpen ? 'player' : 'list';
+  const importInput = (
+    <input
+      ref={fileRef}
+      type="file"
+      accept={GP_ACCEPT}
+      hidden
+      onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file) trainer.readFile(file);
+        e.target.value = '';
+      }}
+    />
+  );
+
+  // ---- Header: back · title · (Import on the genres screen)
+  let back;
+  let title;
+  let sub = null;
+  if (screen === 'genres') {
+    back = { label: t('ph.back'), go: onExit };
+    title = t('ph.ex.trainer.title');
+    sub = t('lickTrainer.intro');
+  } else if (screen === 'player' && !wide) {
+    back = { label: genreName(trainer.genre), go: trainer.closeLick };
+    title = localize(trainer.lick.title, lang);
+  } else {
+    back = { label: t('ph.ex.trainer.title'), go: trainer.clearLickChoice };
+    title = genreName(trainer.genre);
+  }
+
+  return (
+    <div className={'lick-trainer is-' + screen + (wide ? ' is-wide' : '')} dir={dir}>
+      <div className="lt-head">
+        {back.go && <BackButton label={back.label} onClick={busy ? undefined : back.go} />}
+        <div className="lt-head-row">
+          <h1 className="lt-h1" dir="auto">
+            {title}
+          </h1>
+          {screen === 'genres' && (
+            <button type="button" className="lt-capsule" onClick={() => fileRef.current?.click()} disabled={busy}>
+              {t('lickTrainer.import')}
+            </button>
+          )}
+        </div>
+        {sub && <p className="subtitle lt-sub">{sub}</p>}
+        {importInput}
+      </div>
+
+      {trainer.pendingImport && <ImportPanel key={trainer.pendingImport.fileName} trainer={trainer} t={t} lang={lang} forceSaveAs="lick" />}
+
+      {screen === 'genres' && !trainer.pendingImport && (
+        <div className="ph-group lt-genres">
+          {['all', ...LICK_GENRES.map((g) => g.key), ...(counts.mine ? ['mine'] : [])].map((g) => (
+            <LibraryRow
+              key={g}
+              color={GENRE_LOOK[g]?.color ?? '#8e8e93'}
+              icon={GENRE_LOOK[g]?.icon ?? 'note'}
+              title={genreName(g)}
+              desc={t('lickTrainer.count', { n: counts[g] ?? 0 })}
+              onClick={() => {
+                trainer.chooseGenre(g);
+                trainer.chooseLevel('all');
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {screen === 'list' && !wide && (
+        <>
+          {trainer.genre === 'arpeggio' && <ArpBuilder trainer={trainer} t={t} lang={lang} busy={busy} />}
+          <LickList trainer={trainer} t={t} lang={lang} busy={busy} wide={false} />
+        </>
+      )}
+
+      {screen === 'player' && !wide && <Player {...playerProps} showTitle={false} />}
+
+      {screen !== 'genres' && wide && (
+        <div className="lt-split">
+          <aside className="lt-side">
+            <LickList trainer={trainer} t={t} lang={lang} busy={busy} wide />
+          </aside>
+          <div className="lt-main">
+            {trainer.genre === 'arpeggio' && !trainer.lickOpen && <ArpBuilder trainer={trainer} t={t} lang={lang} busy={busy} />}
+            {trainer.lickOpen ? (
+              <Player {...playerProps} showTitle />
+            ) : (
+              trainer.genre !== 'arpeggio' && <p className="lt-empty">{t('lickTrainer.pickLick')}</p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

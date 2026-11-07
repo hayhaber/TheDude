@@ -1502,9 +1502,14 @@ no tools).
 - Home card `songwriter` (6th, before Tools; HomeMenu option `songwriter:
   'list'|'new'|'idea'` -> App `songwriter` state {view, n} ->
   `components/Songwriter/SongwriterScreen.jsx`, rendered instead of home /
-  AppShell, Home button -> back on this card). Art = drawn placeholder
-  `public/home/songwriter.svg` (notebook + pen; same img CSS group as vocal)
-  — the user may send a picture.
+  AppShell, Home button -> back on this card). Art = the USER'S picture
+  (2026-11-07: open notebook with lyrics / chords / staves + a gold pen)
+  `public/home/songwriter-notebook.webp` (1000x744, rotated 4°); it came
+  as a JPG with a BAKED checkerboard (fake transparency): keyed by the
+  scratchpad nb/scan.py + final.py (per column / row "first non-checker
+  run" bounds inside a hand-drawn polygon, the gold pen from saturation,
+  a soft floor shadow of our own — the checker's shadow can't be kept).
+  The old drawn `songwriter.svg` stays unused. Same img CSS group as vocal.
 - Pure `music/songwriter/`: `lyrics.js` (ChordPro-style chords in the line
   text `[Am]words`, parseLine/joinLine, setChordOnWord, replaceText keeps
   chords over their words while typing, splitRaw/joinRaw for Enter /

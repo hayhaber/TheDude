@@ -1824,6 +1824,27 @@ no tools).
   the preview's key / tempo); playback lights + scrolls to the sung line;
   a tempo change while playing restarts at the new tempo. Playwright 390
   HE + 1180 EN: tempo, try, lit line, tempo while playing, back, apply.
+  v1.0.162 (user: "the suggestions are banal — the same loop every line,
+  no change in the verse, no build-up to the chorus, never leaving the
+  key"): `developSection(tokens, slots, {role, minor, level, style,
+  next, seed, form})` turns a section's progression into its own chords
+  per line: lines pair into phrases; every 2nd statement swaps one chord
+  for a same-function one (`SUBS`: I->vi/iii, IV->ii/vi, minor iv->VI /
+  iiø7 …, never its neighbour); a middle phrase ends on V (half cadence)
+  or on the SECONDARY DOMINANT of the next phrase's first chord (V/vi =
+  III7, V/IV = I7, V/V = II7; never into ° / ø; "simple" once, "flowing"
+  / "rich" at every phrase); "rich" also borrows on the 3rd statement
+  (`BORROW`: iv, ♭VI, ♭VII in major, V / IV in minor); the last bar:
+  chorus V–I, pre-chorus IV–V (♭VI–♭VII rich; minor iv–V / VI–VII), bridge
+  IV / VI – V, a verse before a chorus Vsus4–V (V alone when simple; VII
+  for minor rock / reggae). `applyPlan(song, choice, time, {key, brief})`
+  (the wizard passes them; without = the old repeat) counts each line's
+  slots with chordLine and writes the developed chords. `plans()`: a
+  section avoids starting on the chorus's first chord when an equally
+  fitting progression exists (score within 2). Pure check printed whole
+  songs in Dm ballad rich / C pop simple / G pop flowing / Em rock / Am
+  pop: variations, A7 / E7 / G7 / Bb7 secondary dominants, Dorian G in Dm,
+  sus4 handovers; pw2.cjs (wizard try / tempo / apply) still passes.
 - IDEA RECORDING ON iPAD + LIVE METER (v1.0.144; user: "on the iPad Ideas
   doesn't record the hum; there must be a visible sign it records — a
   moving light bar like an equalizer"). songRecorder `openInput()`: after

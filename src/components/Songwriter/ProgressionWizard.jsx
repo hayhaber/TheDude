@@ -62,7 +62,7 @@ export function ProgressionWizard({ song, audio, onApply, onClose, onPreview }) 
 
   // The finished song (chords + key, and a band / tempo only where the writer set none).
   const built = () => {
-    const next = applyPlan(song, choice);
+    const next = applyPlan(song, choice, song.time, { key: theKey, brief });
     return {
       ...next,
       key: theKey,

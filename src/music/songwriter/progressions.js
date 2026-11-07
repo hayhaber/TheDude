@@ -177,7 +177,14 @@ export function plans(song, brief, key) {
       if (!list.length) continue;
       const start = r === main ? k : 0;
       let idx = start % list.length;
-      for (let tries = 0; tries < list.length && used.has(list[idx].id); tries += 1) idx = (idx + 1) % list.length;
+      // contrast: another progression than the other sections', and (when
+      // there is one) not starting on the chorus's first chord
+      const mainFirst = r !== main && picks[main] != null ? bare(byRole[main][picks[main]].tokens[0]) : null;
+      // (only among the well-fitting ones: never trade a fitting style for contrast)
+      const floor = list[start % list.length].score - 2;
+      const clash = (c) => used.has(c.id) || (mainFirst && bare(c.tokens[0]) === mainFirst && list.some((o) => o.score >= floor && !used.has(o.id) && bare(o.tokens[0]) !== mainFirst));
+      for (let tries = 0; tries < list.length && clash(list[idx]); tries += 1) idx = (idx + 1) % list.length;
+      if (clash(list[idx])) for (let tries = 0; tries < list.length && used.has(list[idx].id); tries += 1) idx = (idx + 1) % list.length;
       picks[r] = idx;
       if (!list[idx].form) used.add(list[idx].id); // a blues form may repeat
     }
@@ -232,24 +239,210 @@ export function chordLine(line, symbols, offset, time, perLine = 2) {
   return { raw: joinLine(text, chords), used };
 }
 
+// ---------------------------------------------------------------------------
+// Developing a section (v1.0.162; user: "the suggestions are banal — the same
+// loop on every line, no change inside the verse, no build-up into the
+// chorus, never leaving the key"). A progression is the section's idea, not
+// its whole text: the way songwriting teachers voice a section (Berklee
+// "Writing the Music", Pattison's phrase pairs, Hooktheory's data on what
+// real songs do at phrase ends):
+//   • lines pair into PHRASES; the 2nd statement varies the 1st (a chord of
+//     the same function swapped in: I->vi/iii, IV->ii, minor iv->VI …);
+//   • each phrase CADENCES: a middle phrase on V (half cadence — the
+//     question), the chorus's last on V–I (the answer);
+//   • the section's last bar points at what comes next: a verse into its
+//     chorus ends on V (or Vsus4–V), a pre-chorus climbs IV–V (♭VI–♭VII in
+//     an epic minor), a bridge stops on V;
+//   • "flowing" adds SECONDARY DOMINANTS (V/vi = III7, V/ii = VI7, V/V = II7,
+//     V/IV = I7) into the chord a phrase lands on; "rich" adds BORROWED chords
+//     (iv, ♭VI, ♭VII in major; the major V in minor) — leaving the key, then
+//     coming home.
+// Pure; tokens are the Roman numerals realize() reads.
+// ---------------------------------------------------------------------------
+
+const romanParts = (t) => /^(b|#)?([ivIV]+)(ø|°)?(.*)$/.exec(t) ?? null;
+const semisOf = (t, minor) => {
+  const m = romanParts(t);
+  if (!m) return null;
+  const steps = minor ? MINOR_STEPS : MAJOR_STEPS;
+  return (steps[NUM[m[2].toLowerCase()] - 1] + (m[1] === 'b' ? -1 : m[1] === '#' ? 1 : 0) + 12) % 12;
+};
+const ROMAN_UP = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+/** A major / dominant chord on `semis` above the tonic, as a Roman token. */
+function romanOn(semis, minor, ext = '') {
+  const steps = minor ? MINOR_STEPS : MAJOR_STEPS;
+  let i = steps.indexOf(semis);
+  if (i >= 0) return ROMAN_UP[i] + ext;
+  i = steps.indexOf((semis + 1) % 12);
+  if (i >= 0) return 'b' + ROMAN_UP[i] + ext;
+  i = steps.indexOf((semis + 11) % 12);
+  return '#' + ROMAN_UP[i] + ext;
+}
+const bare = (t) => {
+  const m = romanParts(t);
+  return m ? (m[1] ?? '') + m[2] + (m[3] ?? '') : t;
+};
+const sameChord = (a, b) => a && b && bare(a) === bare(b);
+/** Keep the progression's colour (7 / maj7 / add9) when swapping a chord in. */
+function colourLike(model, token, level) {
+  if (level < 3) return token;
+  const m = romanParts(model);
+  if (!m || !m[4] || /[0-9]/.test(token)) return token;
+  const lower = token.replace(/^[b#]/, '')[0] === token.replace(/^[b#]/, '')[0].toLowerCase();
+  if (/ø|°/.test(token)) return token;
+  return token + (lower ? '7' : /^b/.test(token) ? '' : 'maj7');
+}
+
+// Same-function substitutes (the 2nd statement of a phrase), per mode.
+const SUBS = {
+  major: { I: ['vi', 'iii'], IV: ['ii', 'vi'], vi: ['IV', 'iii'], ii: ['IV'], V: ['iii'], iii: ['vi'] },
+  minor: { i: ['VI', 'III'], iv: ['VI', 'iiø7'], VI: ['iv', 'III'], III: ['i', 'VI'], VII: ['v', 'V'], v: ['VII'] },
+};
+// Borrowed colour ("rich"): the parallel mode's chords.
+const BORROW = {
+  major: { IV: 'iv', ii: 'iv', V: 'bVII', vi: 'bVI' },
+  minor: { v: 'V', VII: 'V', iv: 'IV' },
+};
+
+/** The chords of one section: an array per line, `slots[i]` chords each. */
+export function developSection(tokens, slots, { role = 'verse', minor = false, level = 1, style = 'pop', next = null, seed = 0, form = false } = {}) {
+  const total = slots.reduce((a, b) => a + b, 0);
+  const flat = Array.from({ length: total }, (_, i) => tokens[i % tokens.length]);
+  const out = (seq) => {
+    const lines = [];
+    let k = 0;
+    for (const n of slots) {
+      lines.push(seq.slice(k, k + n));
+      k += n;
+    }
+    return lines;
+  };
+  if (form || total < 2 || tokens.length < 2) return out(flat);
+  const mode = minor ? 'minor' : 'major';
+  const tonic = minor ? 'i' : 'I';
+  const dominant = minor && /^(rock|reggae)$/.test(style) ? 'VII' : 'V';
+  // phrase boundaries: two lines a phrase (one when the section is short)
+  const perPhrase = slots.length >= 4 ? 2 : 1;
+  const ends = [];
+  let k = 0;
+  slots.forEach((n, li) => {
+    k += n;
+    if ((li + 1) % perPhrase === 0 || li === slots.length - 1) ends.push(k - 1);
+  });
+  const starts = [0, ...ends.slice(0, -1).map((e) => e + 1)];
+  const seq = [...flat];
+  const rot = (arr) => arr[seed % arr.length];
+  // 1) the 2nd, 4th … statement varies one chord (never the phrase's first)
+  starts.forEach((st, pi) => {
+    if (pi % 2 === 0) return;
+    const en = ends[pi];
+    for (let i = st + 1; i < en; i += 1) {
+      // a substitute that isn't its neighbour (it would just hold)
+      const subs = (SUBS[mode][bare(seq[i])] ?? []).filter((x) => !sameChord(x, seq[i - 1]) && !sameChord(x, seq[i + 1]));
+      if (subs.length) {
+        seq[i] = colourLike(seq[i], subs[(seed + pi) % subs.length], level);
+        break;
+      }
+    }
+  });
+  // 2) borrowed colour on the 3rd statement ("rich")
+  if (level >= 3) {
+    const pi = starts.length >= 3 ? 2 : starts.length - 1;
+    for (let i = starts[pi] + 1; i <= ends[pi] - 1; i += 1) {
+      const b = BORROW[mode][bare(seq[i])];
+      if (b) {
+        seq[i] = b;
+        break;
+      }
+    }
+  }
+  // 3) phrase ends: a middle phrase asks (V, or the dominant OF the next
+  //    phrase's first chord when "flowing"), the last answers / leads on
+  const lastEnd = ends[ends.length - 1];
+  const middle = ends.filter((e) => e !== lastEnd);
+  ends.forEach((e, pi) => {
+    if (e === lastEnd) return;
+    const nextFirst = seq[starts[pi + 1]];
+    const nf = semisOf(nextFirst, minor);
+    // only a major / minor chord is tonicized (never a diminished ii° / iiø)
+    const target = nf != null && !/[ø°]/.test(nextFirst) && !sameChord(nextFirst, tonic) && !sameChord(nextFirst, dominant);
+    // "simple" leaves the key once (the last middle phrase), "flowing" / "rich" at every phrase
+    if (target && (level >= 2 || e === middle[middle.length - 1])) {
+      seq[e] = romanOn((nf + 7) % 12, minor, '7'); // V/x into the next phrase
+    } else if (!sameChord(seq[e], dominant)) seq[e] = pi % 2 === 0 ? dominant : seq[e];
+  });
+  const twoSlot = slots[slots.length - 1] >= 2;
+  const setEnd = (a, b) => {
+    if (twoSlot && a) seq[lastEnd - 1] = a;
+    seq[lastEnd] = b;
+  };
+  if (role === 'chorus') {
+    // the answer: V–I (the tonic chord lands on the last word)
+    setEnd(sameChord(seq[lastEnd - 1], tonic) ? (minor ? 'iv' : 'IV') : dominant, tonic);
+  } else if (role === 'prechorus') {
+    // the climb into the chorus
+    if (minor) setEnd(level >= 2 ? 'VI' : 'iv', level >= 2 ? 'VII' : 'V');
+    else setEnd(level >= 3 ? 'bVI' : 'IV', level >= 3 ? 'bVII' : 'V');
+  } else if (role === 'bridge') {
+    setEnd(minor ? 'VI' : 'IV', minor ? 'V7' : 'V');
+  } else if (next === 'chorus' || next === 'prechorus' || next == null) {
+    // the verse hands over: end on the dominant (sus4 -> V when there's room)
+    if (level >= 2) setEnd(dominant + 'sus4', dominant);
+    else setEnd(null, dominant);
+  }
+  // never the same chord twice in a row inside a line (it would just hold)
+  return out(seq);
+}
+
+/** How many chords a line takes (chordLine's own count). */
+function slotsOf(line, time, perLine) {
+  return chordLine(line, ['X'], 0, time, perLine).used;
+}
+
 /**
  * The song with a plan's chords written over every section (old chords
- * replaced). choice = {role: candidate} (candidate.symbols / perLine).
+ * replaced). choice = {role: candidate} (candidate.symbols / tokens /
+ * perLine). With `opts.key` the sections are DEVELOPED (developSection);
+ * without it the progression just repeats (the old behaviour).
  */
-export function applyPlan(song, choice, time = song.time) {
+export function applyPlan(song, choice, time = song.time, opts = {}) {
+  const { key, brief = {} } = opts;
+  const level = LEVEL_OF[brief.color] ?? 1;
   return {
     ...song,
-    sections: song.sections.map((sec) => {
+    sections: song.sections.map((sec, si) => {
       const pick = choice[roleOf(sec.kind)];
       const symbols = pick?.symbols;
       if (!symbols?.length) return sec;
-      let offset = 0;
+      if (!key || !pick.tokens) {
+        let offset = 0;
+        return {
+          ...sec,
+          lines: sec.lines.map((l) => {
+            const { raw, used } = chordLine(l, symbols, offset, time, pick.perLine);
+            offset += used;
+            return { ...l, raw };
+          }),
+        };
+      }
+      const slots = sec.lines.map((l) => slotsOf(l, time, pick.perLine));
+      const nextSec = song.sections.slice(si + 1).find((x) => x.kind !== sec.kind);
+      const lines = developSection(pick.tokens, slots, {
+        role: roleOf(sec.kind),
+        minor: !!key.minor,
+        level,
+        style: brief.style,
+        next: nextSec ? roleOf(nextSec.kind) : null,
+        seed: si,
+        form: pick.form,
+      });
       return {
         ...sec,
-        lines: sec.lines.map((l) => {
-          const { raw, used } = chordLine(l, symbols, offset, time, pick.perLine);
-          offset += used;
-          return { ...l, raw };
+        lines: sec.lines.map((l, li) => {
+          const toks = lines[li];
+          if (!toks?.length) return l;
+          const syms = toks.map((t) => realize(t, key));
+          return { ...l, raw: chordLine(l, syms, 0, time, pick.perLine).raw };
         }),
       };
     }),

@@ -1619,6 +1619,8 @@ no tools).
   run" bounds inside a hand-drawn polygon, the gold pen from saturation,
   a soft floor shadow of our own — the checker's shadow can't be kept).
   The old drawn `songwriter.svg` stays unused. Same img CSS group as vocal.
+  v1.0.159: the picture is 5 % smaller at every size (user's request;
+  `.home-art-songwriter img { scale: 0.95 }` at the end of HomeMenu.css).
 - Pure `music/songwriter/`: `lyrics.js` (ChordPro-style chords in the line
   text `[Am]words`, parseLine/joinLine, setChordOnWord, replaceText keeps
   chords over their words while typing, splitRaw/joinRaw for Enter /

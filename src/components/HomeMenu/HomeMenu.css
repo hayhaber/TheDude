@@ -936,3 +936,8 @@ html.home-locked body {
     padding-bottom: 0;
   }
 }
+
+/* Songwriter picture 5 % smaller at every size (user's request v1.0.159). */
+.home-art-songwriter img {
+  scale: 0.95;
+}

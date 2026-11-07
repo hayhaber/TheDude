@@ -8,9 +8,10 @@
 // voice (an optional soft guide can play along — headphones recommended).
 
 import { keysForPattern, randomNoteIn, workingRange } from './voiceRange';
+import { buildAnswerReps, buildHarmonyReps, buildImproviseReps } from './creative';
 
 // Categories, in the order the library shows them.
-export const CATEGORIES = ['warmup', 'pitch', 'scales', 'agility', 'range', 'ear'];
+export const CATEGORIES = ['warmup', 'pitch', 'scales', 'agility', 'range', 'ear', 'create'];
 
 // kind:
 //   pattern  – notes in order (degrees = semitones above the key's root)
@@ -19,6 +20,10 @@ export const CATEGORIES = ['warmup', 'pitch', 'scales', 'agility', 'range', 'ear
 //   match    – random single notes: hear, then match and hold
 //   interval – random intervals: hear two notes, sing both
 //   echo     – sing-back: a short random melody in a key, sung back
+//   harmony  – hear a melody, sing the diatonic third above (below: `below`)
+//   answer   – the piano asks a one-bar question, the singer answers freely
+//   improv   – improvise over a I–vi–IV–V loop (scat)
+//   (the last three: see creative.js)
 // beats: one value for every note, or one per note. level: 1 = beginner
 // (both levels see it), 2 = advanced only.
 export const EXERCISES = [
@@ -44,6 +49,12 @@ export const EXERCISES = [
   // ---- Ear (the voice answers: hear a phrase, sing it back) ----
   { id: 'echo', category: 'ear', level: 1, kind: 'echo', syllable: 'ah', reps: 6, bpm: 80 },
 
+  // ---- Create (your own notes: harmony, answers, improvising) ----
+  { id: 'harmony', category: 'create', level: 1, kind: 'harmony', syllable: 'ah', reps: 5, bpm: 76 },
+  { id: 'answer', category: 'create', level: 1, kind: 'answer', syllable: 'free', reps: 4, bpm: 84 },
+  { id: 'harmonyLow', category: 'create', level: 2, kind: 'harmony', below: true, syllable: 'ah', reps: 5, bpm: 76 },
+  { id: 'scat', category: 'create', level: 2, kind: 'improv', syllable: 'scat', reps: 2, bpm: 92 },
+
   { id: 'extend', category: 'range', level: 2, kind: 'pattern', syllable: 'nay', degrees: [0, 4, 7, 4, 0], beats: [1, 1, 1.5, 1, 2], bpm: 96, maxKeys: 10, edge: true },
 ];
 
@@ -63,7 +74,7 @@ export function dailyWorkout(level, date = new Date()) {
   const day = Math.floor(date.getTime() / 86400000);
   const warm = level >= 2 ? ['lipTrill', 'siren'] : ['hum', 'lipTrill', 'siren'];
   const pool = exercisesForLevel(level)
-    .filter((e) => e.category !== 'warmup' && e.id !== 'steady')
+    .filter((e) => e.category !== 'warmup' && e.category !== 'create' && e.id !== 'steady')
     .map((e) => e.id);
   const count = level >= 2 ? 4 : 3;
   const picks = [];
@@ -79,7 +90,10 @@ export function dailyWorkout(level, date = new Date()) {
   }
   // Keep a sensible order: pitch → scales → agility → range.
   picks.sort((a, b) => CATEGORIES.indexOf(exerciseById(a).category) - CATEGORIES.indexOf(exerciseById(b).category));
-  return [...warm, ...picks, 'steady'];
+  // One creative exercise a day (rotating), before the calm last one.
+  const create = exercisesForLevel(level).filter((e) => e.category === 'create').map((e) => e.id);
+  const extra = create.length ? [create[((day % create.length) + create.length) % create.length]] : [];
+  return [...warm, ...picks, ...extra, 'steady'];
 }
 
 const ASCENDING_INTERVALS_EASY = [2, 4, 5, 7, 12];
@@ -199,6 +213,9 @@ export function buildReps(ex, range, { level = 1, tempo = 1, rand = Math.random 
     }
     return reps;
   }
+  if (ex.kind === 'harmony') return buildHarmonyReps(ex, work, { level, beat, rand, keysForPattern });
+  if (ex.kind === 'answer') return buildAnswerReps(ex, work, { level, beat, rand, keysForPattern });
+  if (ex.kind === 'improv') return buildImproviseReps(ex, work, { level, beat, rand, keysForPattern });
   if (ex.kind === 'echo') {
     // Beginner: 3 notes moving by step (1-2 scale steps). Advanced: 4-5
     // notes with leaps up to a 5th. Always inside the major scale of the
@@ -241,6 +258,7 @@ export function buildReps(ex, range, { level = 1, tempo = 1, rand = Math.random 
 
 /** The lowest/highest pitch an exercise's reps touch (for drawing). */
 export function repSpan(rep) {
+  if (rep.span) return rep.span;
   let lo = Infinity;
   let hi = -Infinity;
   for (const t of rep.targets) {

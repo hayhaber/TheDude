@@ -273,3 +273,14 @@
 .practice-view.is-detail :is(.guitar-chord-rhythm-panel, .scale-practice-panel, .bending-panel, .solo-opener-panel, .chord-rhythm-panel, .falling-notes-panel) > div:first-child > :is(h1, p.subtitle) {
   display: none;
 }
+
+/* A neutral tag (a best score, a count): grey, not the "Challenging" orange. */
+.ph-tag.is-neutral {
+  background: var(--fill-tertiary);
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .ph-tag.is-neutral {
+  background: var(--fill-tertiary);
+  color: var(--text-secondary);
+}

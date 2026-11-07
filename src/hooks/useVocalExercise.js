@@ -131,11 +131,18 @@ export function useVocalExercise({ ex, range, level, tempo, guide, mic, loud = L
     const stops = [schedulePianoNotes(notes, cueStart, { velocity, boost })];
     if (settings.current.guide) {
       // Soft guide while singing: the target notes (a slide: its turning points).
-      const guideNotes = rep.targets.flatMap((n) =>
-        n.glide ? n.glide.slice(0, -1).map(([t, m], i) => ({ midi: m, start: n.start + t, dur: n.glide[i + 1][0] - t })) : [{ midi: n.midi, start: n.start, dur: n.dur }]
-      );
+      // A creative rep brings its own guide: the melody under a harmony
+      // part, the tonic chord under an answer, the chord loop under scat.
+      const guideNotes =
+        rep.guide ??
+        rep.targets.flatMap((n) =>
+          n.glide ? n.glide.slice(0, -1).map(([t, m], i) => ({ midi: m, start: n.start + t, dur: n.glide[i + 1][0] - t })) : [{ midi: n.midi, start: n.start, dur: n.dur }]
+        );
       stops.push(schedulePianoNotes(guideNotes, singStart, { velocity: Math.round(velocity * 0.52), boost }));
     }
+    // Improvising: a soft tick on every beat while singing (above the mic's
+    // pitch range — never heard as a note), the bar's first beat higher.
+    if (rep.ticks) for (const k of rep.ticks) stops.push(countTick(ctx, singStart + k.t, k.high));
     if (settings.current.countClick) {
       for (let k = 0; k < COUNT_BEATS; k += 1) stops.push(countTick(ctx, countStart + k * countBeat, k === COUNT_BEATS - 1));
     }

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { getAudioContext } from '../../audio/audioContext';
 import { targetAt } from '../../music/vocal/exercises';
+import { chordAt, freeClass } from '../../music/vocal/creative';
 import { midiName } from '../../music/vocal/voiceRange';
 import { centsOff, tolerance } from '../../music/vocal/vocalAnalysis';
 
@@ -61,9 +62,9 @@ export function PitchRoll({ viewRef, framesRef, level }) {
       if (!rep) return;
 
       // Pitch window around the round's notes (at least 14 semitones).
-      let lo = Infinity;
-      let hi = -Infinity;
-      for (const n of rep.targets) {
+      let lo = rep.span ? rep.span.lo : Infinity;
+      let hi = rep.span ? rep.span.hi : -Infinity;
+      for (const n of [...rep.targets, ...(rep.melody ?? [])]) {
         for (const m of n.glide ? n.glide.map((p) => p[1]) : [n.midi]) {
           lo = Math.min(lo, m);
           hi = Math.max(hi, m);
@@ -99,6 +100,55 @@ export function PitchRoll({ viewRef, framesRef, level }) {
       }
 
       const singing = v.phase === 'sing';
+      const free = rep.free;
+      const tNow = singing ? getAudioContext().currentTime - v.singStart : 0;
+
+      // Free singing: the key's notes as lanes — the sounding chord's tones
+      // tinted green, the other notes of the key faint; bar lines and the
+      // chord names along the top.
+      if (free) {
+        const ch = chordAt(free, Math.max(0, tNow));
+        for (let m = pLo; m <= pHi; m += 1) {
+          const pc = (((m - free.root) % 12) + 12) % 12;
+          const isChord = ch.pcs.includes(pc);
+          if (!isChord && !free.scale.includes(pc)) continue;
+          ctx2.fillStyle = isChord ? COLORS.good : theme.barEdge;
+          ctx2.globalAlpha = isChord ? (pc === ch.pcs[0] ? 0.2 : 0.13) : 0.06;
+          ctx2.fillRect(left, y(m) - semi * 0.45, w - left - 4, semi * 0.9);
+        }
+        ctx2.globalAlpha = 1;
+        ctx2.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx2.textBaseline = 'top';
+        for (const c of free.chords) {
+          const xs = x(c.start);
+          if (free.chords.length > 1) {
+            ctx2.strokeStyle = theme.grid;
+            ctx2.lineWidth = 1.5;
+            ctx2.beginPath();
+            ctx2.moveTo(xs, 4);
+            ctx2.lineTo(xs, h - 4);
+            ctx2.stroke();
+          }
+          ctx2.fillStyle = c === ch && singing ? COLORS.good : theme.text;
+          ctx2.fillText(c.name, xs + 5, 6);
+        }
+        ctx2.textBaseline = 'middle';
+        ctx2.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      }
+
+      // Harmony: the melody (what the piano plays) as grey bars behind.
+      if (rep.melody?.length) {
+        ctx2.fillStyle = theme.text;
+        for (const n of rep.melody) {
+          const x0 = x(n.start) + 1;
+          const x1 = x(n.start + n.dur) - 1;
+          ctx2.globalAlpha = 0.18;
+          ctx2.beginPath();
+          ctx2.roundRect(x0, y(n.midi) - Math.max(3, semi * 0.3), Math.max(4, x1 - x0), Math.max(6, semi * 0.6), 3);
+          ctx2.fill();
+        }
+        ctx2.globalAlpha = 1;
+      }
       const showResult = v.last?.result && (v.phase === 'gap' || v.phase === 'done');
       const resultNotes = showResult ? v.last.result.notes : null;
 
@@ -165,12 +215,17 @@ export function PitchRoll({ viewRef, framesRef, level }) {
             prev = null;
             continue;
           }
-          let err = Infinity;
-          for (const lag of [0, 0.12, 0.25]) {
-            const tg = targetAt(rep, f.t - lag);
-            if (tg != null) err = Math.min(err, Math.abs(centsOff(f.midi, tg).cents));
+          if (free) {
+            const k = freeClass(free, f.t, f.midi);
+            ctx2.strokeStyle = k === 'chord' ? COLORS.good : k === 'scale' ? theme.accent : k === 'out' ? COLORS.off : theme.text;
+          } else {
+            let err = Infinity;
+            for (const lag of [0, 0.12, 0.25]) {
+              const tg = targetAt(rep, f.t - lag);
+              if (tg != null) err = Math.min(err, Math.abs(centsOff(f.midi, tg).cents));
+            }
+            ctx2.strokeStyle = err <= tol.good ? COLORS.good : err <= tol.ok * 1.4 ? COLORS.ok : err === Infinity ? theme.text : COLORS.off;
           }
-          ctx2.strokeStyle = err <= tol.good ? COLORS.good : err <= tol.ok * 1.4 ? COLORS.ok : err === Infinity ? theme.text : COLORS.off;
           const px = x(f.t);
           const py = y(f.midi);
           if (prev && f.t - prev.t < 0.08) {
@@ -190,7 +245,7 @@ export function PitchRoll({ viewRef, framesRef, level }) {
 
       // Playhead.
       if (singing) {
-        const t = getAudioContext().currentTime - v.singStart;
+        const t = tNow;
         ctx2.strokeStyle = theme.accent;
         ctx2.lineWidth = 2;
         ctx2.beginPath();

@@ -372,6 +372,49 @@ no tools).
   broken surfaces found. (5) Parity: piano / bass / singing already have
   the library lists, one header, no empty neck.
 
+## Vocal: Apple-style home + Create group (v1.0.136, 2026-11-07)
+
+- User: "go over singing again, upgrade the UI, add ideas for creativity".
+  HOME (VocalTrainingView `.vocal-home`): title + ••• (MoreMenu: level
+  Beginner | Advanced segmented + its note, "Test my range again"); ONE
+  hero "Today's workout" (`.vocal-hero`: pink mic tile, "N exercises ·
+  about M min", the names on 2 clamped lines, a tinted 44 pt capsule
+  `.vocal-capsule` Start / Again — play glyph never mirrors); "Your voice"
+  = a LibraryRow (voice type, comfortable range, Retest tag after 60 days)
+  + RangeBar under it; "Progress" (streak, week average, 7 mini bars) ONLY
+  once there are results; the library = iOS inset groups (LibraryRow with
+  Apple colour tiles per category `CATEGORY_LOOK`, icons `EXERCISE_ICON`,
+  best score = neutral grey tag — LibraryRow gained `tagTone` /
+  `.ph-tag.is-neutral`), order `CATEGORY_ORDER` warmup, pitch, scales,
+  create, ear, agility, range; grid columns minmax(min(320px,100%),1fr)
+  (the <=480 px `.ph-desc` nowrap made a plain 1fr track 518 px wide on a
+  phone). The section's scoped pill-button CSS skips `.ph-row` /
+  `.more-menu-*` (`:not(:where(...))`). Eyebrows no longer uppercase.
+- CREATE (pure `music/vocal/creative.js`, category 'create'): `harmony`
+  (L1; hear a stepwise melody, sing the diatonic 3rd above; cue = chord +
+  melody + the harmony's first note; melody drawn as grey bars
+  (`rep.melody`) and played under the singing with Guide (`rep.guide`);
+  scored like any pattern), `harmonyLow` (L2, `below`), `answer` (L1;
+  question & answer: the piano asks one bar ending on 2 or 5, the singer
+  answers one bar + 1 beat freely), `scat` (L2, kind `improv`: I–vi–IV–V,
+  cue = the loop at 2 beats a chord, then 4 bars with a soft tick per beat
+  (`rep.ticks`, 1.8/2.4 kHz = above the mic range), Guide = the chords).
+  Free reps carry `free {root, scale, chords[{start,end,pcs,name}], home}`
+  + `span`; `analyzeFree()` segments settled notes (>= 0.12 s) and scores
+  0.45 in key + 0.2 chord tones + 0.15 (answer: ends on the tonic chord /
+  scat: chord tones on the chord changes) + 0.1 settled pitch + 0.1
+  variety; `diagnoseFree()` tips `vocal.tip.free*`. PitchRoll: free = the
+  key as lanes (sounding chord's tones green, other key notes faint), bar
+  lines + chord names, the voice coloured chord / key / outside
+  (`freeClass`); legend + "In the key x% · chord tones y%" in the runner.
+  Daily workout: one creative exercise a day (rotating) before Steady
+  tone. Methods: Kodály / choir two-part thirds, Stoloff "Scat!" (Berklee),
+  Michele Weir "Vocal Improvisation" (text ours). Text
+  `i18n/tips/vocalcreate.js`. Synthetic checks: perfect harmony = 100,
+  in-key answer ending home 92, out-of-key 20, silence 0; fake-mic runs
+  of answer / scat end with scores + tips, no errors. NOT verified with a
+  real voice.
+
 ## Architecture essentials
 
 - **Home screen** (`components/HomeMenu/`): opens first (App `home` state;

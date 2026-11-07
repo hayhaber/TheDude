@@ -12,7 +12,7 @@ import './PracticeHome.css';
 // into one "N more basic exercises" row per group (never hidden for good);
 // a tool above the level carries a "Challenging" tag.
 // One row of the library (also used by the bass's own Practice list).
-export function LibraryRow({ color, icon, title, desc, tag, onClick }) {
+export function LibraryRow({ color, icon, title, desc, tag, tagTone, onClick }) {
   return (
     <button type="button" className="ph-row" onClick={onClick}>
       <span className="ph-tile" style={{ background: color }} aria-hidden="true">
@@ -22,7 +22,7 @@ export function LibraryRow({ color, icon, title, desc, tag, onClick }) {
         <span className="ph-title" dir="auto">{title}</span>
         {desc && <span className="ph-desc" dir="auto">{desc}</span>}
       </span>
-      {tag && <span className="ph-tag">{tag}</span>}
+      {tag && <span className={'ph-tag' + (tagTone ? ' is-' + tagTone : '')}>{tag}</span>}
       <span className="ph-chev" aria-hidden="true">
         <svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1.5 1.5L6.5 7l-5 5.5" />

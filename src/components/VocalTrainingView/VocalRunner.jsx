@@ -80,7 +80,17 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
   const tempo = TEMPOS.find((x) => x.key === tempoKey)?.value ?? 1;
   const run = useVocalExercise({ ex, range, level, tempo, guide, mic, loud: LOUDNESS[volumeKey], countClick });
   const running = run.phase === 'cue' || run.phase === 'sing';
-  const timed = ex.kind === 'pattern' || ex.kind === 'glide';
+  const timed = ex.kind === 'pattern' || ex.kind === 'glide' || ex.kind === 'harmony' || ex.kind === 'answer' || ex.kind === 'improv';
+  const isFree = ex.kind === 'answer' || ex.kind === 'improv';
+  // Free singing: what the takes had in common (shown above the tips).
+  const heardFree = run.results.map((r) => r.free).filter((f) => f?.heard);
+  const freeStats = isFree && heardFree.length
+    ? {
+        inKey: Math.round((100 * heardFree.reduce((a, f) => a + f.inKey, 0)) / heardFree.length),
+        chord: Math.round((100 * heardFree.reduce((a, f) => a + f.chordTones, 0)) / heardFree.length),
+        notes: Math.round(heardFree.reduce((a, f) => a + f.count, 0) / heardFree.length),
+      }
+    : null;
   const resultRef = useRef(null);
   const stageRef = useRef(null);
   const begin = () => {
@@ -186,6 +196,23 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
           )}
         </div>
 
+        {isFree && (
+          <p className="vocal-free-legend">
+            <span>
+              <i style={{ background: '#30c25a' }} />
+              {t('vocal.free.legend.chord')}
+            </span>
+            <span>
+              <i style={{ background: 'var(--accent)' }} />
+              {t('vocal.free.legend.scale')}
+            </span>
+            <span>
+              <i style={{ background: '#ff453a' }} />
+              {t('vocal.free.legend.out')}
+            </span>
+          </p>
+        )}
+        {ex.kind === 'harmony' && <p className="vocal-free-legend">{t('vocal.harmony.legend')}</p>}
         {mic.error && <p className="vocal-error">{t('vocal.micError', { message: mic.error })}</p>}
       {mic.listening && mic.deadInput && <p className="vocal-warning">{t('vocal.noSignal')}</p>}
       {/* iPhone / iPad: what the mic path is doing, while nothing is heard
@@ -242,7 +269,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
               </select>
             </label>
             <span className="vocal-with-tip">
-              <label className="vocal-switch" title={t('vocal.guideHint')}>
+              <label className="vocal-switch" title={t(isFree || ex.kind === 'harmony' ? `vocal.guideHint.${ex.kind}` : 'vocal.guideHint')}>
                 <input type="checkbox" checked={guide} onChange={(e) => setGuide(e.target.checked)} />
                 <span className="vocal-switch-track" aria-hidden="true" />
                 {t('vocal.guide')}
@@ -272,6 +299,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
             </div>
             <InfoTooltip text={t('tip.tools.vocalScore')} />
           </div>
+          {freeStats && <p className="vocal-free-stats">{t('vocal.free.stats', freeStats)}</p>}
           <ul className="vocal-tips">
             {run.summary.tips.map((tip) => (
               <li key={tip.key} className={tip.key === 'great' || tip.key === 'vibratoGood' ? 'is-good' : ''}>

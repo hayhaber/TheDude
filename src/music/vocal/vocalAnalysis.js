@@ -6,6 +6,7 @@
 // frames: [{ t (s from the start of singing), midi (float) | null }]
 
 import { targetAt } from './exercises';
+import { analyzeFree, diagnoseFree } from './creative';
 
 const LATE_GRACE = 0.18; // a singer answers a little after the beat
 const ATTACK = 0.14; // seconds counted as the note's attack
@@ -229,13 +230,14 @@ export function analyzeGlide(frames, note, level = 1) {
 
 /** Analyse a whole rep. */
 export function analyzeRep(frames, rep, ex, level = 1) {
+  if (rep.free) return analyzeFree(frames, rep);
   const lag = estimateLag(frames, rep);
   const shifted = lag ? frames.map((f) => ({ t: f.t - lag, midi: f.midi })) : frames;
   const notes = rep.targets.map((n, i) => {
     if (n.glide) return analyzeGlide(frames, n, level);
     if (ex.kind === 'sustain') return analyzeSustain(shifted, n, level, { vibrato: !!ex.vibrato });
     const prev = rep.targets[i - 1];
-    const onset = !prev || prev.start + prev.dur < n.start - 0.1 || ex.kind === 'interval' || ex.kind === 'echo';
+    const onset = !prev || prev.start + prev.dur < n.start - 0.1 || ex.kind === 'interval' || ex.kind === 'echo' || ex.kind === 'harmony';
     return analyzeNote(shifted, n, level, { onset });
   });
   const score = Math.round(notes.reduce((a, n) => a + n.score, 0) / Math.max(1, notes.length));
@@ -247,6 +249,7 @@ export function analyzeRep(frames, rep, ex, level = 1) {
  * as tip keys (texts live in i18n) with values to fill in.
  */
 export function diagnose(results, ex, level = 1) {
+  if (ex.kind === 'answer' || ex.kind === 'improv') return diagnoseFree(results, ex);
   const notes = results.flatMap((r) => r.notes);
   const sung = notes.filter((n) => n.sung);
   const tips = [];

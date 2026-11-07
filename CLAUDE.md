@@ -1121,6 +1121,15 @@ no tools).
   height). The swing sign (`EffectTripletFeel`) is hidden in the song view —
   it made the first line much taller; the feel is still played. Phones get extra bottom padding so the scroll
   can reach.
+  v1.0.129 (user: while playing, Play / Stop stayed up and couldn't be
+  tapped once the notes scrolled): `.gp-transport` is a STICKY Liquid
+  Glass bar in the section scroller — top -20px on desktop, `strip −
+  clear + 2` under 900 px (sticky offsets count from inside the
+  scroller's padding); `.gp-song` scroll-margin = the real top strip
+  (incl. the safe area — the fixed 60px put the transport UNDER the
+  iPad's strip = not tappable); the score box also subtracts the top
+  safe area; phones <= 560: one row, Play keeps its word, Stop / To solo
+  / Loop icon only, no "Tempo" label.
   Tracks are a rail on the LEFT of the score (`TrackRail` in
   GpSongPlayer.jsx, icon per kind, tap = mute/unmute; icons only on phones);
   the pill mixer is shown only in Practice.

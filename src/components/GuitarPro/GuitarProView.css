@@ -253,7 +253,7 @@
       260px,
       calc(
         100dvh - var(--stage-height, 160px) - var(--bottom-tabs-height, 64px) - var(--mobile-metronome-height, 56px) -
-          env(safe-area-inset-bottom, 0px) - var(--control-height, 36px) - 112px
+          env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px) - var(--control-height, 36px) - 112px
       )
     );
   }
@@ -262,7 +262,9 @@
 @media (max-width: 899px) {
   /* Clear the floating brand/settings buttons at the top of the phone screen. */
   .gp-song {
-    scroll-margin-top: 60px;
+    /* Under the fixed top strip, whatever the safe area (iPad portrait:
+       a fixed 60px left the transport under the strip = not tappable). */
+    scroll-margin-top: calc(var(--mobile-top-strip, 49px) + 4px);
     /* Room below the score so Play can scroll the player all the way up. */
     padding-bottom: 50vh;
   }
@@ -1370,5 +1372,44 @@
 
   .gp-modes .mode-toggle {
     flex: 1 1 auto;
+  }
+}
+
+/* The transport stays reachable while the page scrolls: a sticky Liquid
+   Glass bar at the top of the scroll area (under the phone / iPad top
+   strip). 2026-11-07, user: Play / Stop scrolled away with the notes. */
+.gp-transport {
+  position: sticky;
+  /* sticky offsets count from inside the scroller's padding (28px here) */
+  top: -20px;
+  z-index: 4;
+  margin-inline: -8px;
+  padding: 6px 8px;
+  border-radius: 16px;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.72));
+  -webkit-backdrop-filter: var(--glass-filter, blur(20px) saturate(180%));
+  backdrop-filter: var(--glass-filter, blur(20px) saturate(180%));
+}
+@media (max-width: 899px) {
+  .gp-transport {
+    /* the scroller's padding-top is --mobile-top-clear (strip + 10) */
+    top: calc(var(--mobile-top-strip, 49px) - var(--mobile-top-clear, 59px) + 2px);
+  }
+}
+/* Phones: one row — Play keeps its word, the other keys show their icon
+   (the word stays as the accessible name). */
+@media (max-width: 560px) {
+  .gp-transport {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .gp-transport > button:not(.primary) {
+    font-size: 0;
+    gap: 0;
+    padding: 0 12px;
+  }
+  .gp-transport .gp-inline-field > span,
+  .gp-transport .gp-solo-tip {
+    display: none;
   }
 }

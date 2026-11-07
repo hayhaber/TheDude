@@ -1,5 +1,6 @@
 import { getAudioContext } from './audioContext';
 import { playDrumHit } from './drumSounds';
+import { loadDrumKit } from './drumSamples';
 import { DRUM_STYLES } from '../music/drumPatterns';
 import { MIX_BUCKET } from '../music/drumKit';
 
@@ -20,6 +21,7 @@ const FILL_INTERVAL_BARS = 4;
 // Each instrument rides one of the mixer's group faders (drumKit.js:
 // kick / drums (snare, rim, clap, toms) / cymbals / percussion).
 export function startDrumEngine({ bpm, beatsPerMeasure, styleKey, getPattern, getMix, fillsEnabled, onStep }) {
+  loadDrumKit(); // the first beats are synthesized until the kit has loaded
   const ctx = getAudioContext();
   // `getPattern` (the step sequencer: a user pattern or a draft being
   // edited) is read on every step, so edits are heard at once; else the

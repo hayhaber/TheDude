@@ -17,6 +17,9 @@ import { headphonesConfirmed, loadCurrentSettings } from '../amp/ampSettings';
 import { createCapture } from '../recorder';
 import { getTakeAudio } from '../recorderStore';
 import { playDrumHit } from '../drumSounds';
+import { loadDrumKit } from '../drumSamples';
+
+loadDrumKit(); // the studio's drums use the chosen kit (lazy chunk = only when the studio opens)
 import { drumHits, clickTimes, playClick } from './drumTrack';
 import { audibleTracks, regionEnd, projectLength, MIN_REGION } from './project';
 import { createEqChain, EQ_BANDS } from './eq';

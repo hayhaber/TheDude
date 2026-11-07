@@ -12,6 +12,7 @@ import { schedulePianoNotes, preparePiano } from '../pianoPlayer';
 import { scheduleGuitarNotes, prepareGuitar } from '../chordPlayer';
 import { scheduleBassNotes, preloadBassSamples } from '../bassPlayer';
 import { playDrumHit } from '../drumSounds';
+import { loadDrumKit } from '../drumSamples';
 import { drumHits } from '../studio/drumTrack';
 import { accompaniment, shapeOf, pianoVoicing } from './harmonyPlayer';
 import { beatsPerBar, songTimeline } from '../../music/songwriter/song';
@@ -30,6 +31,7 @@ export const BAND_KEYS = Object.keys(BAND_STYLES);
 
 /** Start loading the band's sounds (call when a style is chosen / the editor opens). */
 export function prepareBand() {
+  loadDrumKit();
   preparePiano();
   prepareGuitar();
   preloadBassSamples();

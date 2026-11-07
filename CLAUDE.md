@@ -621,6 +621,30 @@ no tools).
   (`project.drums.pattern` {name, stepsPerBeat, cell}, style `user:<id>`), so
   the song keeps its groove if the pattern is later edited/deleted;
   `drumHits()` plays `drums.pattern` when present (role = beat % cell.length).
+- **Real drum kits (v1.0.148, user: "the drums sound artificial, make
+  them closer to reality")**: recorded samples instead of the synth —
+  GeneralUser GS's drum kits Standard 1 / Power / Jazz (bank 128 progs
+  0 / 16 / 32; its licence allows use, copy in public/drums) rendered with
+  fluidsynth (`scripts/drums/sf3to2.py` decodes our .sf3 back to .sf2 —
+  fluidsynth 2.3 crashes on sf3 — then `scripts/drums/render.py`: the 16
+  instruments x 2 velocity layers (64 / 112), onset-trimmed, -60 dB tail
+  cut, one normalisation per kit) into ONE FLAC per kit
+  (`public/drums/{studio,rock,jazz}.flac`, ~1 MB each; FLAC = no encoder
+  delay, hits stay on time) + the frame map `audio/drumKitMaps.js`.
+  `audio/drumSamples.js`: kit = device key `dudestar-drum-kit`
+  (`DRUM_KITS` studio / rock / jazz / electronic = the old synth, default
+  studio), `loadDrumKit()` (fetch + decode once, sliced into AudioBuffers
+  usable in any context — live, the studio's and offline renders),
+  `playSampledHit()` (soft layer under velocity 0.62, ±8 % gain / ±8 ¢ on
+  cymbals + shakers, closed / pedal hat CHOKES a ringing open hat);
+  `playDrumHit()` tries it first, else synthesizes (also until the kit has
+  loaded). Every drum user goes through playDrumHit: drum machine,
+  metronome drums, studio DR-7, songwriter band. Preloaded by
+  startDrumEngine / prepareBand / studioEngine / DrumMachine mount. Drum
+  machine: "Kit" LCD select (`drums.kitSound.*`). vercel.json caches
+  /drums/* 30 days (a re-render needs NEW file names). Playwright: studio
+  kit fetched + 20 sampled hits in 3 s, no oscillators; electronic = synth
+  again; jazz loads on choice. Sound itself not judged by ear here.
 - **Drums pill** (`MetronomeBar/DrumsBar.jsx`, user's request 2026-10-17):
   wherever the metronome pill is (App's `metronomeSlot` now = MetronomeBar +
   DrumsBar), a same-shape pill (snare icon + `drums.nav`) opens the same

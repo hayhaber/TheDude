@@ -21,6 +21,7 @@ import {
   upsertPattern,
   usedInstruments,
 } from '../../music/drumKit';
+import { DRUM_KITS, drumKit, loadDrumKit, onDrumKitChange, setDrumKit } from '../../audio/drumSamples';
 import './Metronome.css';
 import './WoodMetronome.css';
 
@@ -58,6 +59,12 @@ export function DrumMachine({
 }) {
   const { t } = useLanguage();
   const [showKit, setShowKit] = useState(false);
+  // the drum sound (a recorded kit or the synth one) — device setting
+  const [kit, setKit] = useState(drumKit);
+  useEffect(() => {
+    loadDrumKit();
+    return onDrumKitChange(setKit);
+  }, []);
   const [name, setName] = useState('');
   const [head, setHead] = useState(null); // { role, step } of the playhead
   // Row name tap = hear that drum (a short flash on the name).
@@ -187,6 +194,16 @@ export function DrumMachine({
                     ))}
                   </optgroup>
                 )}
+              </select>
+            </label>
+            <label className="dm-lcd dm-lcd-small">
+              <span className="dm-lbl">{t('drums.kitSound')}</span>
+              <select className="dm-select" value={kit} onChange={(e) => setDrumKit(e.target.value)}>
+                {DRUM_KITS.map((k) => (
+                  <option key={k} value={k}>
+                    {t('drums.kitSound.' + k)}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="dm-lcd dm-lcd-small">

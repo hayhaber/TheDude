@@ -1,3 +1,4 @@
+import { playSampledHit } from './drumSamples';
 // Synthesized drum hits (no sample files) — Web Audio oscillators/noise so
 // tempo changes never affect pitch, matching how audio/metronome.js does
 // its click. Each function schedules a fully self-contained, self-cleaning
@@ -266,6 +267,8 @@ function playTambourine(ctx, time, velocity, out) {
 // the speakers by default; the recorder routes it into its own mix.
 export function playDrumHit(ctx, instrument, time, velocity, out = ctx.destination) {
   if (!velocity || velocity <= 0) return;
+  // a real kit (recorded samples) when one is chosen and loaded
+  if (playSampledHit(ctx, instrument, time, velocity, out)) return;
   if (instrument === 'kick') playKick(ctx, time, velocity, out);
   else if (instrument === 'snare') playSnare(ctx, time, velocity, out);
   else if (instrument === 'hihatClosed') playHiHat(ctx, time, velocity, false, out);

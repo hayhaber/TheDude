@@ -1609,6 +1609,35 @@ no tools).
   -> tempo up; chords 180 ms late -> "late by ~191 ms", tempo down; silent
   runs 0 % -> down. Guitar chord rhythm (GuitarChordRhythmPanel) not yet.
 
+## Triads course (v1.0.133, 2026-11-07)
+
+- User: "a comprehensive, professional triads course, taught the way a
+  certified teacher would". Theory -> Triads (guitar only,
+  featureCapabilities `triads`, COURSES before CAGED). 10 units in
+  `teacher/curriculum/triads.js` (TRIAD_LESSONS, TRIAD_SKILLS — skillById
+  in guitar.js also looks there; NOT in the Teacher's LESSONS, so
+  nextLesson / the path are untouched): 1 what a triad is (roles, thirds,
+  4 qualities, inversions) · 2 major on 3-2-1 (3 shapes, the 1-2-3-8
+  ladder, moving by the root) · 3 I-IV-V in one area (common tones) · 4
+  4-3-2 (the B-string shift) · 5 5-4-3 + 6-5-4 (same shapes, = 12 major
+  shapes) · 6 minor (lower the 3rd) / dim / aug (symmetric) · 7 the chord
+  scale (2nd inversion on 3-2-1, degree qualities) · 8 voice leading (C Am
+  F G, ii-V-I, the cycle-of-4ths drill, tempo ladder) · 9 spread triads ·
+  10 upper structures, sus colours, rhythm uses, G Em C D, final test.
+  Method sources in the file header (JustinGuitar IM-151 / Grade 4, Ryan
+  Naylor "Triads Inside Out", Goldenberg Guitar Chord Theory, Berklee
+  Guitar Chords 201, Open Sauce tempo ladder); text our own. Runs in the
+  Teacher's LessonPlayer (arp / play with the mic / quiz / checklist +
+  metronome); progress in the teacher state per lesson id. Shapes are
+  COMPUTED (`teacher/triadShapes.js`: `tri(root, quality, set, order,
+  near)`, `leadPath()` = least-movement inversions) and merged into ARPS.
+  UI `components/TriadsCourse/` (Start/Continue row, unit rows with status
+  tag, method line) -> App `triadStage` (neck only inside a unit). Text
+  `i18n/tips/triads.js`. Pure check: every shape = exactly its chord's
+  tones ascending, every step id / skill / quiz valid, fret triples in the
+  text match the shapes. Fake-mic (KS) play step verified; NOT on a real
+  guitar. The CAGED course's 3 inversion lessons stay as they were.
+
 ## Country style (v1.0.125, 2026-11-07)
 
 - 'country' is a style everywhere a style is picked (onboarding, the

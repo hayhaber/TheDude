@@ -1,0 +1,14 @@
+/* Theory -> Triads: the unit list. Status tags are neutral (the orange
+   .ph-tag means "Challenging" in Practice); done = green. */
+.triads-course .ph-tag {
+  background: var(--fill-tertiary);
+  color: var(--text-secondary);
+}
+.triads-course .ph-tag.is-done,
+.triads-course .ph-row:has(.ph-tile svg path[d^="M5 12.5"]) .ph-tag {
+  background: color-mix(in srgb, #34c759 16%, transparent);
+  color: #1f8a3e;
+}
+.triads-course .tc-hint {
+  margin: 4px 4px 0;
+}

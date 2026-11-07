@@ -14,6 +14,8 @@ export const ICON_PATHS = {
       <circle cx="19.6" cy="16" r="1.7" fill="currentColor" stroke="none" />
     </>
   ),
+  // A check mark (done).
+  check: <path d="M5 12.5l4.6 4.6L19 7.5" strokeWidth="2.2" />,
   // A chord box: nut, strings, frets, three dots.
   chords: (
     <>

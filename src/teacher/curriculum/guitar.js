@@ -20,6 +20,8 @@
 // Text is inline {en, he}. Hebrew uses ⁦…⁩ around Latin chord names so
 // the bidi algorithm keeps them in place.
 
+import { TRIAD_SKILLS } from './triads';
+
 const L = (en, he) => ({ en, he });
 const H = (s) => `⁦${s}⁩`; // isolate a Latin token inside Hebrew
 
@@ -101,7 +103,7 @@ export const SKILLS = [
   { id: 'tap-solo', domain: 'lead', level: 4, after: ['tap-triplet'], title: L('Tapping in a pentatonic solo', 'טאפינג בסולו פנטטוני'), check: { kind: 'play', arp: 'tap-penta' } },
 ];
 
-export const skillById = (id) => SKILLS.find((s) => s.id === id);
+export const skillById = (id) => SKILLS.find((s) => s.id === id) ?? TRIAD_SKILLS.find((s) => s.id === id);
 
 // ---------------------------------------------------------------------------
 // Lessons

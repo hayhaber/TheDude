@@ -262,7 +262,7 @@ function App() {
     }
   }, [instrument, practiceTab]);
   useEffect(() => {
-    const studiesFeatureByCourse = { caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum', chordBuilder: 'chordBuilder' };
+    const studiesFeatureByCourse = { caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum', chordBuilder: 'chordBuilder', triads: 'triads' };
     const feature = studiesFeatureByCourse[studiesCourse];
     if (feature && !supportsInstrument(feature, instrument)) {
       setStudiesCourse('scales');
@@ -815,6 +815,7 @@ function App() {
   const [chordLibStage, setChordLibStage] = useState(null);
   // Studies -> Chord Structure: the shape it shows on the neck ({position, tuning, labelMode} | null)
   const [chordBuilderStage, setChordBuilderStage] = useState(null);
+  const [triadStage, setTriadStage] = useState(null); // Theory -> Triads: the open unit's neck
   // The teacher's neck: null = no neck (outside a lesson), {position} in a lesson.
   const [teacherStage, setTeacherStage] = useState(null);
   // Which teacher screen the home card opened: {screen, n} (n re-keys the view).
@@ -1736,6 +1737,12 @@ function App() {
             chordsByEarLesson.previewScaleContext,
             chordsByEarLesson.previewPosition
           )
+        : studiesCourse === 'triads'
+        ? triadStage?.position
+          ? { position: triadStage.position, labelMode: triadStage.labelMode ?? 'note', capoFret: 0 }
+          : triadStage?.scaleNotes
+          ? { position: null, scaleNotes: triadStage.scaleNotes, labelMode: triadStage.labelMode ?? 'degree', capoFret: 0 }
+          : { position: null }
         : studiesCourse === 'chordBuilder'
         ? chordBuilderStage
           ? { position: chordBuilderStage.position, labelMode: chordBuilderStage.labelMode, capoFret: 0 }
@@ -2329,6 +2336,7 @@ function App() {
         (activeSection === 'practice' && practiceTab === 'ear-training' && !earTraining.open) ||
         (activeSection === 'compose' && progression.length === 0) ||
         (activeSection === 'studies' && studiesBrowse) ||
+        (activeSection === 'studies' && studiesCourse === 'triads' && !triadStage) ||
         (activeSection === 'bassPractice' && !bassPractice.built) ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
@@ -2485,6 +2493,8 @@ function App() {
           browsing={studiesBrowse}
           onBrowse={setStudiesBrowse}
           onChordBuilderStage={setChordBuilderStage}
+          onTriadStage={setTriadStage}
+          triadMetro={teacherMetro}
           cagedLessonId={studiesLessonId}
           onSelectCagedLesson={setStudiesLessonId}
           cagedProgress={cagedProgress}

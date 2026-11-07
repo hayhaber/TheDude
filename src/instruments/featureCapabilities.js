@@ -28,6 +28,7 @@ export const FEATURE_CAPABILITIES = {
   chords: ['guitar', 'piano'], // Chord Library: guitar shapes / piano voicings, inversions, slash chords
   improvise: ['guitar'], // lick/phrase/solo-coach generation — guitar technique
   drills: ['guitar'], // picking/speed/position-switch drills
+  triads: ['guitar'], // Studies -> Triads (guitar string sets; piano has its own curriculum)
   chordBuilder: ['guitar'], // Studies -> Chord Structure (barre-shape chord building; piano later)
   caged: ['guitar'], // the CAGED system is guitar-specific by definition
   techniqueMasters: ['guitar'], // artist-specific guitar technique (bends/vibrato/muting/etc.)

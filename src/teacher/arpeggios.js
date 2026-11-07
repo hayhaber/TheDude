@@ -2,6 +2,7 @@
 // [stringNumber, fret] in PLAY ORDER (low to high), over one chord.
 // stringNumber: 6 = low E … 1 = high E (standard tuning).
 import { chordTones } from '../music/chordLibrary';
+import { TRIAD_ARPS } from './triadShapes';
 
 const OPEN_MIDI = { 6: 40, 5: 45, 4: 50, 3: 55, 2: 59, 1: 64 };
 
@@ -74,6 +75,9 @@ export const ARPS = {
     seq: [2, 1, 0, 2, 1, 0, 5, 4, 3, 5, 4, 3, 0],
   },
 };
+
+// the Triads course's shapes (computed from theory in triadShapes.js)
+Object.assign(ARPS, TRIAD_ARPS);
 
 const INTERVAL = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
 const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];

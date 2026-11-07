@@ -8,6 +8,7 @@ import { HarmonyView } from '../HarmonyView/HarmonyView';
 import { ChordsByEarView } from '../ChordsByEarView/ChordsByEarView';
 import { PianoView } from '../PianoView/PianoView';
 import { ChordBuilderView } from '../ChordBuilder/ChordBuilderView';
+import { TriadsCourse } from '../TriadsCourse/TriadsCourse';
 import { CAGED_LESSONS } from '../../music/cagedCurriculum';
 import { SCALES_LESSONS } from '../../music/scalesCurriculum';
 import { CIRCLE_LESSONS } from '../../music/circleOfFifthsCurriculum';
@@ -23,7 +24,7 @@ import './StudiesSection.css';
 // works on every instrument) — used to hide a course tab entirely on an
 // instrument it doesn't support, instead of showing it and then blocking its
 // content behind a "not available" message.
-const COURSE_FEATURE = { caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum', chordBuilder: 'chordBuilder' };
+const COURSE_FEATURE = { triads: 'triads', caged: 'caged', techniqueMasters: 'techniqueMasters', pianoCurriculum: 'pianoCurriculum', chordBuilder: 'chordBuilder' };
 
 // Studies now holds two independent courses. StudiesView (the CAGED system)
 // is completely untouched — this just wraps it as one tab alongside the new
@@ -32,6 +33,7 @@ const COURSE_FEATURE = { caged: 'caged', techniqueMasters: 'techniqueMasters', p
 // The courses in list order (colour tile + LineIcon, like the Practice library).
 const COURSES = [
   { key: 'chordBuilder', icon: 'chords', color: '#AF52DE' },
+  { key: 'triads', icon: 'chords', color: '#FF2D55' },
   { key: 'caged', icon: 'path', color: '#FF9500' },
   { key: 'scales', icon: 'note', color: '#007AFF' },
   { key: 'techniqueMasters', icon: 'hand', color: '#30B0C7' },
@@ -79,6 +81,8 @@ export function StudiesSection({
   pianoLesson,
   pianoCurriculumProgress,
   onChordBuilderStage,
+  onTriadStage,
+  triadMetro,
   browsing = false,
   onBrowse = () => {},
 }) {
@@ -135,6 +139,7 @@ export function StudiesSection({
       {!browsing && (
       <>
       {course === 'chordBuilder' && <ChordBuilderView onStage={onChordBuilderStage} />}
+      {course === 'triads' && <TriadsCourse onStage={onTriadStage} metro={triadMetro} />}
 
       {course === 'caged' && (
         <StudiesView

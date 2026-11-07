@@ -1883,6 +1883,13 @@ no tools).
   now CLOSES when a `.more-menu-item` button is chosen, except toggles
   (aria-pressed) and `data-keep` (the first tap of a two-tap delete in
   GuitarPro / Lick Trainer).
+- LINE TOOLS CLOSE (v1.0.161; user, iPhone: the selected line's Record /
+  Play / Melody / Takes row couldn't be closed): SongEditor closes the
+  selection on a pointerdown inside `.sw-editor` but outside any
+  `.sw-line` / picker / sheet / menu / dialog, and on Escape (not while a
+  take records, not with the chord picker open). Playwright 390: select
+  -> tap the section header -> closed; Escape -> closed; Melody sheet
+  still opens from the row.
 - EMPTY SONGS + DELETE FROM THE LIST (v1.0.146; user's iPad: a list of
   "Untitled · 0 lines" songs that couldn't be deleted). "New" creates a
   song at once, so every New -> back left an empty one. `isEmptySong()`

@@ -303,6 +303,34 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
 
   // ---- playback ----
   const tl = audio.playing?.handle.timeline;
+  // A tap outside the lines (or Escape) closes the selected line's tools —
+  // they had no way to close (user, iPhone, v1.0.161). Not while a take is
+  // recording, and not from the chord picker / sheets / menus.
+  useEffect(() => {
+    if (!selected) return undefined;
+    const close = () => {
+      setSelected(null);
+      setEditing(null);
+      setTakesFor(null);
+    };
+    const onDown = (e) => {
+      const el = e.target;
+      if (!(el instanceof Element) || audio.rec) return;
+      if (!el.closest('.sw-editor')) return;
+      if (el.closest('.sw-line, .sw-picker, .sw-sheet-back, .sw-sheet, .more-menu-pop, .more-menu, [role="dialog"]')) return;
+      close();
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape' && !audio.rec && !picker) close();
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [selected, audio.rec, picker]);
+
   const activeLine = tl && audio.pos != null ? tl.lines.find((l) => audio.pos >= l.start && audio.pos < l.end) : null;
   const spb = 60 / shown.bpm;
   const lastActive = useRef(null);

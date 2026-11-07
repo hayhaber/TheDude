@@ -1468,3 +1468,221 @@
     color: #000;
   }
 }
+
+/* ---- Apple-style pass (2026-11-07): one primary action per screen, quiet
+   secondary ones, iOS inset lists, the rest behind ••• ------------------ */
+.sw-btn.is-tint {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: none;
+}
+.sw-btn.is-quiet {
+  background: var(--fill-tertiary);
+  box-shadow: none;
+}
+.sw-btn.is-rec-tint {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--danger);
+  box-shadow: none;
+}
+.sw-btn.is-rec-tint .sw-rec-big-dot {
+  width: 10px;
+  height: 10px;
+}
+.sw-btn.is-small .sw-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.sw-list-head {
+  align-items: center;
+  margin: 8px 0 14px;
+}
+.sw-list .sw-subtitle {
+  margin: -4px 0 18px;
+}
+
+.sw-group-sec {
+  margin-bottom: 26px;
+}
+.sw-group-sec.is-focus .sw-group {
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+.sw-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-height: 36px;
+  padding: 0 4px 8px;
+}
+.sw-group-head h2 {
+  margin: 0;
+  font-size: var(--type-title3, 20px);
+  font-weight: 700;
+}
+.sw-group-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+.sw-group-empty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.sw-group {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.sw-group > li + li {
+  border-top: 0.5px solid var(--separator);
+}
+
+.sw-idea-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 6px 10px;
+}
+.sw-idea-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.sw-idea-title,
+.sw-idea-sub {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sw-idea-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.sw-idea-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.sw-idea-row .sw-peaks {
+  width: 72px;
+  flex: none;
+}
+.sw-idea .sw-idea-edit {
+  padding: 0 12px 12px;
+}
+.sw-idea.is-editing {
+  background: color-mix(in srgb, var(--accent-bg) 50%, transparent);
+}
+
+.sw-group .sw-song-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 0;
+}
+.sw-song-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sw-chev {
+  flex: none;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  display: inline-flex;
+}
+[dir='rtl'] .sw-chev {
+  transform: scaleX(-1);
+}
+
+/* the editor */
+.sw-editor-top .more-menu {
+  flex: none;
+}
+.sw-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.sw-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--fill-tertiary);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 590;
+  cursor: pointer;
+}
+.sw-meta-chip .sw-icon {
+  transition: transform var(--dur-fast, 0.15s) var(--ease-ios, ease);
+}
+.sw-meta-chip.is-open .sw-icon {
+  transform: rotate(180deg);
+}
+.sw-summary + .sw-meta {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.sw-menu-note {
+  margin: 0;
+  padding: 0 12px 4px;
+  max-width: 240px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+.sw-confirm-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 59, 48, 0.08);
+  font-size: 15px;
+}
+.sw-confirm-bar > span {
+  flex: 1;
+  min-width: 160px;
+}
+.sw-section-tools {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}

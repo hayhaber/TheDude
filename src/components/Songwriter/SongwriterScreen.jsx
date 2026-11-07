@@ -11,6 +11,7 @@ import { Icon } from './icons';
 import { Peaks } from './Takes';
 import { DictationBox } from './DictationBox';
 import { fmt } from './LyricLine';
+import { MoreMenu } from '../MoreMenu/MoreMenu';
 import './Songwriter.css';
 
 /**
@@ -216,16 +217,33 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
 
   const songs = [...store.songs].sort((a, b) => b.updatedAt - a.updatedAt);
 
+  const deleteIdea = (idea) => {
+    const key = audioKey(idea);
+    if (editingIdea === idea.id) setEditingIdea(null);
+    store.setIdeas((list) => list.filter((x) => x.id !== idea.id));
+    let undone = false;
+    toast({
+      text: t('sw.idea.deleted'),
+      action: t('sw.undo'),
+      onAction: () => {
+        undone = true;
+        store.setIdeas((list) => [idea, ...list].sort((a, b) => b.at - a.at));
+      },
+      onExpire: () => !undone && key && deleteAudio(key),
+    });
+  };
+
+  const empty = songs.length === 0 && store.ideas.length === 0;
+
   return (
     <div className="sw-list">
+      {/* One primary action (a new song), quiet idea actions, iOS lists
+          (Apple-style pass 2026-11-07). */}
       <div className="sw-list-head">
-        <div>
-          <h1>{t('sw.title')}</h1>
-          <p className="sw-subtitle">{t('sw.subtitle')}</p>
-        </div>
+        <h1>{t('sw.title')}</h1>
         <button
           type="button"
-          className="sw-btn is-primary is-big"
+          className="sw-btn is-tint"
           onClick={() => {
             const s = store.create();
             onOpen(s.id);
@@ -235,13 +253,11 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
           {t('sw.new')}
         </button>
       </div>
+      {empty && <p className="sw-subtitle">{t('sw.subtitle')}</p>}
 
-      <section className={'sw-ideas' + (focusIdeas ? ' is-focus' : '')} ref={ideasRef}>
-        <div className="sw-ideas-head">
-          <div>
-            <h2>{t('sw.ideas')}</h2>
-            <p className="sw-muted">{t('sw.ideas.hint')}</p>
-          </div>
+      <section className={'sw-group-sec' + (focusIdeas ? ' is-focus' : '')} ref={ideasRef}>
+        <div className="sw-group-head">
+          <h2>{t('sw.ideas')}</h2>
           {recIdea && recIdea.phase !== 'error' ? (
             <div className="sw-rec-strip" dir="ltr">
               {recIdea.phase === 'rec' ? (
@@ -256,102 +272,81 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
                 <span className="sw-muted">{recIdea.phase === 'saving' ? t('sw.rec.saving') : t('sw.rec.opening')}</span>
               )}
               {recIdea.phase !== 'saving' && (
-                <button type="button" className="sw-btn is-danger" onClick={stopIdea}>
+                <button type="button" className="sw-btn is-danger is-small" onClick={stopIdea}>
                   {t('sw.stop')}
                 </button>
               )}
             </div>
           ) : (
-            <div className="sw-ideas-actions">
-              <button type="button" className="sw-words-big" onClick={newWords}>
+            <span className="sw-group-actions">
+              <button type="button" className="sw-btn is-small is-quiet" onClick={newWords}>
                 <Icon name="words" />
                 {t('sw.idea.words')}
               </button>
-              <button type="button" className="sw-rec-big" onClick={() => audio.startRec({ idea: true }, { bpm: 90, beatsPerBar: 4, click: 'off' })}>
+              <button type="button" className="sw-btn is-small is-rec-tint" onClick={() => audio.startRec({ idea: true }, { bpm: 90, beatsPerBar: 4, click: 'off' })}>
                 <span className="sw-rec-big-dot" />
                 {t('sw.record')}
               </button>
-            </div>
+            </span>
           )}
         </div>
         {recIdea?.phase === 'error' && <p className="sw-error">{t(recIdea.error === 'denied' ? 'sw.rec.denied' : 'sw.rec.failed')}</p>}
-        {store.ideas.length > 0 && (
-          <ul className="sw-takes">
+        {store.ideas.length === 0 ? (
+          <p className="sw-group-empty">{t('sw.ideas.hint')}</p>
+        ) : (
+          <ul className="sw-group">
             {store.ideas.map((idea) => {
               const key = audioKey(idea);
               const playingThis = key && audio.playingTake === key;
               const editing = editingIdea === idea.id;
-              const firstLine = (idea.text ?? '').split('\n').find((x) => x.trim());
+              const lines = (idea.text ?? '').split('\n').map((x) => x.trim()).filter(Boolean);
+              const meta = [lines.length ? dateFmt(idea.at) : null, key ? fmt(idea.dur ?? 0) : null].filter(Boolean).join(' · ');
               return (
-                <li key={idea.id} className={'sw-take is-idea' + (editing ? ' is-editing' : '')}>
-                  {key ? (
-                    <button type="button" className={'sw-icon-btn' + (playingThis ? ' is-on' : '')} onClick={() => audio.playTake(key)} aria-label={t('sw.play')}>
-                      <Icon name={playingThis ? 'stop' : 'play'} />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="sw-icon-btn is-rec"
-                      disabled={!!recIdea}
-                      onClick={() => audio.startRec({ idea: true, ideaId: idea.id }, { bpm: 90, beatsPerBar: 4, click: 'off' })}
-                      aria-label={t('sw.record')}
-                      title={t('sw.idea.recWords')}
-                    >
-                      <Icon name="mic" />
-                    </button>
-                  )}
-                  <span className="sw-take-name">
-                    {firstLine ? <bdi>{firstLine}</bdi> : dateFmt(idea.at)}
-                    <span className="sw-muted" dir="ltr">
-                      {' '}
-                      {firstLine ? `· ${dateFmt(idea.at)}` : ''}
-                      {key ? ` · ${fmt(idea.dur ?? 0)}` : ''}
-                    </span>
-                  </span>
-                  {key ? <Peaks peaks={idea.peaks} /> : <span className="sw-take-blank" />}
-                  <button
-                    type="button"
-                    className={'sw-icon-btn' + (editing ? ' is-on' : '')}
-                    onClick={() => (editing ? null : setEditingIdea(idea.id))}
-                    aria-label={t('sw.idea.words')}
-                    title={t('sw.idea.words')}
-                  >
-                    <Icon name="pen" />
-                  </button>
-                  <button type="button" className="sw-btn is-small" onClick={() => songFromIdea(idea)}>
-                    {t('sw.idea.toSong')}
-                  </button>
-                  <button
-                    type="button"
-                    className="sw-icon-btn is-danger"
-                    onClick={() => {
-                      if (editing) setEditingIdea(null);
-                      store.setIdeas((list) => list.filter((x) => x.id !== idea.id));
-                      let undone = false;
-                      toast({
-                        text: t('sw.idea.deleted'),
-                        action: t('sw.undo'),
-                        onAction: () => {
-                          undone = true;
-                          store.setIdeas((list) => [idea, ...list].sort((a, b) => b.at - a.at));
-                        },
-                        onExpire: () => !undone && key && deleteAudio(key),
-                      });
-                    }}
-                    aria-label={t('sw.delete')}
-                    title={t('sw.delete')}
-                  >
-                    <Icon name="trash" />
-                  </button>
-                  {editing ? (
-                    <IdeaWords idea={idea} onSave={(text) => saveWords(idea, text)} />
-                  ) : (
-                    idea.text?.trim() && (
-                      <button type="button" className="sw-idea-text" dir="auto" onClick={() => setEditingIdea(idea.id)}>
-                        {idea.text}
+                <li key={idea.id} className={'sw-idea' + (editing ? ' is-editing' : '')}>
+                  <div className="sw-idea-row">
+                    {key ? (
+                      <button type="button" className={'sw-icon-btn' + (playingThis ? ' is-on' : '')} onClick={() => audio.playTake(key)} aria-label={t('sw.play')}>
+                        <Icon name={playingThis ? 'stop' : 'play'} />
                       </button>
-                    )
-                  )}
+                    ) : (
+                      <button
+                        type="button"
+                        className="sw-icon-btn is-rec"
+                        disabled={!!recIdea}
+                        onClick={() => audio.startRec({ idea: true, ideaId: idea.id }, { bpm: 90, beatsPerBar: 4, click: 'off' })}
+                        aria-label={t('sw.idea.recWords')}
+                        title={t('sw.idea.recWords')}
+                      >
+                        <Icon name="mic" />
+                      </button>
+                    )}
+                    <button type="button" className="sw-idea-body" onClick={() => setEditingIdea(editing ? null : idea.id)}>
+                      <span className="sw-idea-title" dir="auto">
+                        {lines[0] ?? dateFmt(idea.at)}
+                      </span>
+                      {(lines[1] || meta) && (
+                        <span className="sw-idea-sub" dir="auto">
+                          {lines[1] ? lines[1] + (meta ? ' · ' : '') : ''}
+                          <bdi>{meta}</bdi>
+                        </span>
+                      )}
+                    </button>
+                    {key && <Peaks peaks={idea.peaks} />}
+                    <button type="button" className="sw-btn is-small is-tint" onClick={() => songFromIdea(idea)}>
+                      {t('sw.idea.toSong')}
+                    </button>
+                    <MoreMenu label={t('sw.more')}>
+                      <button type="button" className="more-menu-item" onClick={() => setEditingIdea(idea.id)}>
+                        <Icon name="pen" />
+                        {t('sw.idea.edit')}
+                      </button>
+                      <button type="button" className="more-menu-item is-danger" onClick={() => deleteIdea(idea)}>
+                        <Icon name="trash" />
+                        {t('sw.delete')}
+                      </button>
+                    </MoreMenu>
+                  </div>
+                  {editing && <IdeaWords idea={idea} onSave={(text) => saveWords(idea, text)} />}
                 </li>
               );
             })}
@@ -359,25 +354,34 @@ function SongList({ store, audio, focusIdeas, onOpen, toast }) {
         )}
       </section>
 
-      <section className="sw-songs">
-        <h2>{t('sw.songs')}</h2>
+      <section className="sw-group-sec">
+        <div className="sw-group-head">
+          <h2>{t('sw.songs')}</h2>
+        </div>
         {songs.length === 0 ? (
-          <p className="sw-muted">{t('sw.songs.empty')}</p>
+          <p className="sw-group-empty">{t('sw.songs.empty')}</p>
         ) : (
-          <ul className="sw-song-list">
+          <ul className="sw-group">
             {songs.map((s) => {
               const lines = s.sections.reduce((n, sec) => n + sec.lines.filter((l) => parseLine(l.raw).text.trim()).length, 0);
               const first = s.sections.flatMap((sec) => sec.lines).map((l) => parseLine(l.raw).text.trim()).find(Boolean);
               return (
                 <li key={s.id}>
                   <button type="button" className="sw-song-row" onClick={() => onOpen(s.id)}>
-                    <span className="sw-song-title" dir="auto">
-                      {s.title || first || t('sw.untitled')}
+                    <span className="sw-song-text">
+                      <span className="sw-song-title" dir="auto">
+                        {s.title || first || t('sw.untitled')}
+                      </span>
+                      <span className="sw-song-sub">
+                        {[s.key ? keyName(s.key) : null, tempoShown(s) ? `${s.bpm} BPM` : null, t('sw.lines', { n: lines }), dateFmt(s.updatedAt)].filter(Boolean).map((x, k) => (
+                          <bdi key={k}>{x}</bdi>
+                        ))}
+                      </span>
                     </span>
-                    <span className="sw-song-sub">
-                      {[s.key ? keyName(s.key) : null, tempoShown(s) ? `${s.bpm} BPM` : null, t('sw.lines', { n: lines }), dateFmt(s.updatedAt)].filter(Boolean).map((x, k) => (
-                        <bdi key={k}>{x}</bdi>
-                      ))}
+                    <span className="sw-chev" aria-hidden="true">
+                      <svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1.5 1.5L6.5 7l-5 5.5" />
+                      </svg>
                     </span>
                   </button>
                 </li>

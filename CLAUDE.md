@@ -1453,6 +1453,24 @@ no tools).
   something (`bpmSet` = changed by the user, or a line has a melody) — the
   default 90 isn't shown (user asked why every song said 90 BPM). Store `useSongs` -> personal key
   `dudestar-p-songwriter` {songs, ideas}. Text `i18n/tips/songwriter.js`.
+- APPLE-STYLE PASS (v1.0.121, 2026-11-07; user: "go over the card, check
+  design + flow, improve, fit our principles"; rollback branch
+  `ui-pre-songwriter-v1.0.120`). List: title + ONE tinted "New" capsule
+  (`.sw-btn.is-tint`; was a filled blue pill), the subtitle only while the
+  page is empty; Ideas / My songs = iOS inset groups (`.sw-group-sec`,
+  `.sw-group-head` with quiet Words + red-tint Record capsules,
+  `.sw-group` rows, `.sw-group-empty` empty states). Idea row
+  (`.sw-idea-row`): play / record-onto icon, body = first line + (second
+  line · date · length) — tap = edit words below the row (the duplicated
+  full-text block is gone), peaks, tinted "Song", ••• (Edit words, Delete
+  with Undo). Song rows have a chevron (`.sw-chev`, mirrored in RTL).
+  Editor: top = back · Lyrics|Score · ••• (Print, Export + its note,
+  Delete song -> `.sw-confirm-bar` under the top bar); key / tempo / time /
+  click folded behind a summary chip (`.sw-meta-chip` "Am · 92 BPM · 4/4",
+  `showMeta`) with Play as the screen's one primary on the same row; each
+  section header = kind select + play + ••• (Duplicate, Move up / down —
+  only when possible —, Delete with Undo); the footer row (Print / Export /
+  Delete) and the export footnote are gone (both in •••). Logic untouched.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

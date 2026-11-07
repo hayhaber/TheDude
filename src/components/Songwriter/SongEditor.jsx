@@ -31,6 +31,7 @@ import { DictationBox } from './DictationBox';
 import { DICTATION_SUPPORTED } from './useDictation';
 import { gridFor, laneFor, scalePcs, validChord } from './swHelpers';
 import '../ModeToggle/ModeToggle.css';
+import { MoreMenu } from '../MoreMenu/MoreMenu';
 
 const CLICKS = ['count', 'all', 'off'];
 
@@ -44,6 +45,8 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const [melodyFor, setMelodyFor] = useState(null); // { sec, line }
   const [takesFor, setTakesFor] = useState(null); // line id
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Key / tempo / time / click are set once: folded behind a summary chip.
+  const [showMeta, setShowMeta] = useState(false);
   const [finding, setFinding] = useState(null); // line id while notes are being found
   const [dictating, setDictating] = useState(false);
 
@@ -289,7 +292,34 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
             </button>
           ))}
         </div>
+        <MoreMenu label={t('sw.more')}>
+          <button type="button" className="more-menu-item" onClick={() => window.print()}>
+            <Icon name="print" />
+            {t('sw.print')}
+          </button>
+          <button type="button" className="more-menu-item" onClick={exportXml}>
+            <Icon name="share" />
+            {t('sw.export')}
+          </button>
+          <p className="sw-menu-note">{t('sw.exportNote')}</p>
+          <button type="button" className="more-menu-item is-danger" onClick={() => setConfirmDelete(true)}>
+            <Icon name="trash" />
+            {t('sw.song.delete')}
+          </button>
+        </MoreMenu>
       </div>
+
+      {confirmDelete && (
+        <div className="sw-confirm-bar" role="alertdialog" aria-label={t('sw.song.deleteAsk')}>
+          <span>{t('sw.song.deleteAsk')}</span>
+          <button type="button" className="sw-btn is-small" onClick={() => setConfirmDelete(false)}>
+            {t('sw.cancel')}
+          </button>
+          <button type="button" className="sw-btn is-small is-danger" onClick={onDelete}>
+            {t('sw.delete')}
+          </button>
+        </div>
+      )}
 
       <input
         className="sw-title"
@@ -300,6 +330,22 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
         aria-label={t('sw.titleLabel')}
       />
 
+      <div className="sw-summary">
+        <button type="button" className={'sw-meta-chip' + (showMeta ? ' is-open' : '')} aria-expanded={showMeta} onClick={() => setShowMeta(!showMeta)}>
+          <bdi>{[song.key ? keyName(song.key) : t('sw.key.none'), `${song.bpm} BPM`, song.time].join(' · ')}</bdi>
+          <Icon name="down" size={14} />
+        </button>
+        <button
+          type="button"
+          className={'sw-btn is-primary' + (audio.playing?.scope === 'song' ? ' is-on' : '')}
+          onClick={() => audio.play(song, 'song')}
+        >
+          <Icon name={audio.playing?.scope === 'song' ? 'stop' : 'play'} />
+          {audio.playing?.scope === 'song' ? t('sw.stop') : t('sw.play')}
+        </button>
+      </div>
+
+      {showMeta && (
       <div className="sw-meta">
         <label className="sw-field">
           <span>{t('sw.key')}</span>
@@ -352,18 +398,8 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
             ))}
           </select>
         </label>
-        <div className="sw-field sw-transport">
-          <span>&nbsp;</span>
-          <button
-            type="button"
-            className={'sw-btn is-primary' + (audio.playing?.scope === 'song' ? ' is-on' : '')}
-            onClick={() => audio.play(song, 'song')}
-          >
-            <Icon name={audio.playing?.scope === 'song' ? 'stop' : 'play'} />
-            {audio.playing?.scope === 'song' ? t('sw.stop') : t('sw.play')}
-          </button>
-        </div>
       </div>
+      )}
 
       {view === 'score' ? (
         <ScoreView xml={xml} />
@@ -400,82 +436,82 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
                     >
                       <Icon name={audio.playing?.scope === 'sec:' + sec.id ? 'stop' : 'play'} />
                     </button>
-                    <button
-                      type="button"
-                      className="sw-icon-btn"
-                      onClick={() =>
-                        set((s) => {
-                          const i = s.sections.findIndex((x) => x.id === sec.id);
-                          const copy = { ...sec, id: uid('s'), lines: sec.lines.map((l) => ({ ...l, id: uid('l'), takes: [] })) };
-                          const sections = [...s.sections];
-                          sections.splice(i + 1, 0, copy);
-                          return { ...s, sections };
-                        })
-                      }
-                      aria-label={t('sw.section.copy')}
-                      title={t('sw.section.copy')}
-                    >
-                      <Icon name="copy" />
-                    </button>
-                    <button
-                      type="button"
-                      className="sw-icon-btn"
-                      disabled={si === 0}
-                      onClick={() =>
-                        set((s) => {
-                          const sections = [...s.sections];
-                          [sections[si - 1], sections[si]] = [sections[si], sections[si - 1]];
-                          return { ...s, sections };
-                        })
-                      }
-                      aria-label={t('sw.section.up')}
-                      title={t('sw.section.up')}
-                    >
-                      <Icon name="up" />
-                    </button>
-                    <button
-                      type="button"
-                      className="sw-icon-btn"
-                      disabled={si === song.sections.length - 1}
-                      onClick={() =>
-                        set((s) => {
-                          const sections = [...s.sections];
-                          [sections[si + 1], sections[si]] = [sections[si], sections[si + 1]];
-                          return { ...s, sections };
-                        })
-                      }
-                      aria-label={t('sw.section.down')}
-                      title={t('sw.section.down')}
-                    >
-                      <Icon name="down" />
-                    </button>
-                    <button
-                      type="button"
-                      className="sw-icon-btn is-danger"
-                      onClick={() => {
-                        const removed = sec;
-                        const idx = si;
-                        set((s) => ({ ...s, sections: s.sections.filter((x) => x.id !== sec.id) }));
-                        let undone = false;
-                        toast({
-                          text: t('sw.section.deleted'),
-                          action: t('sw.undo'),
-                          onAction: () => {
-                            undone = true;
+                    <MoreMenu label={t('sw.more')}>
+                      <button
+                        type="button"
+                        className="more-menu-item"
+                        onClick={() =>
+                          set((s) => {
+                            const i = s.sections.findIndex((x) => x.id === sec.id);
+                            const copy = { ...sec, id: uid('s'), lines: sec.lines.map((l) => ({ ...l, id: uid('l'), takes: [] })) };
+                            const sections = [...s.sections];
+                            sections.splice(i + 1, 0, copy);
+                            return { ...s, sections };
+                          })
+                        }
+                      >
+                        <Icon name="copy" />
+                        {t('sw.section.copy')}
+                      </button>
+                      {si > 0 && (
+                        <button
+                          type="button"
+                          className="more-menu-item"
+                          onClick={() =>
                             set((s) => {
                               const sections = [...s.sections];
-                              sections.splice(idx, 0, removed);
+                              [sections[si - 1], sections[si]] = [sections[si], sections[si - 1]];
                               return { ...s, sections };
-                            });
-                          },
-                          onExpire: () => !undone && removeLineAudio(removed.lines),
-                        });
-                      }}
-                      aria-label={t('sw.section.delete')}
-                      title={t('sw.section.delete')}
-                    >
-                      <Icon name="trash" />
-                    </button>
+                            })
+                          }
+                        >
+                          <Icon name="up" />
+                          {t('sw.section.up')}
+                        </button>
+                      )}
+                      {si < song.sections.length - 1 && (
+                        <button
+                          type="button"
+                          className="more-menu-item"
+                          onClick={() =>
+                            set((s) => {
+                              const sections = [...s.sections];
+                              [sections[si + 1], sections[si]] = [sections[si], sections[si + 1]];
+                              return { ...s, sections };
+                            })
+                          }
+                        >
+                          <Icon name="down" />
+                          {t('sw.section.down')}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="more-menu-item is-danger"
+                        onClick={() => {
+                          const removed = sec;
+                          const idx = si;
+                          set((s) => ({ ...s, sections: s.sections.filter((x) => x.id !== sec.id) }));
+                          let undone = false;
+                          toast({
+                            text: t('sw.section.deleted'),
+                            action: t('sw.undo'),
+                            onAction: () => {
+                              undone = true;
+                              set((s) => {
+                                const sections = [...s.sections];
+                                sections.splice(idx, 0, removed);
+                                return { ...s, sections };
+                              });
+                            },
+                            onExpire: () => !undone && removeLineAudio(removed.lines),
+                          });
+                        }}
+                      >
+                        <Icon name="trash" />
+                        {t('sw.section.delete')}
+                      </button>
+                    </MoreMenu>
                   </span>
                 </header>
 
@@ -594,34 +630,6 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
         </div>
       )}
 
-      <div className="sw-footer">
-        <button type="button" className="sw-btn" onClick={() => window.print()}>
-          <Icon name="print" />
-          {t('sw.print')}
-        </button>
-        <button type="button" className="sw-btn" onClick={exportXml}>
-          <Icon name="share" />
-          {t('sw.export')}
-        </button>
-        <span className="sw-footer-gap" />
-        {confirmDelete ? (
-          <span className="sw-confirm">
-            <span>{t('sw.song.deleteAsk')}</span>
-            <button type="button" className="sw-btn is-danger" onClick={onDelete}>
-              {t('sw.delete')}
-            </button>
-            <button type="button" className="sw-btn" onClick={() => setConfirmDelete(false)}>
-              {t('sw.cancel')}
-            </button>
-          </span>
-        ) : (
-          <button type="button" className="sw-btn is-quiet-danger" onClick={() => setConfirmDelete(true)}>
-            <Icon name="trash" />
-            {t('sw.delete')}
-          </button>
-        )}
-      </div>
-      <p className="sw-footnote">{t('sw.exportNote')}</p>
 
       <PrintSheet song={song} t={t} />
 

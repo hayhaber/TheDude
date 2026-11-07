@@ -57,6 +57,28 @@ function harmonyXml(symbol, flats) {
 }
 
 /**
+ * Where each line's downbeat sits in the score's beat line (the same layout
+ * songToMusicXML writes) — so a playback time can be shown in the score:
+ * {lineId: beat}.
+ */
+export function scoreLineStarts(song) {
+  const bpb = beatsPerBar(song.time);
+  const out = {};
+  let beat = 0;
+  for (const sec of song.sections) {
+    for (const l of sec.lines) {
+      const ns = l.melody?.notes ?? [];
+      if (!parseLine(l.raw).text.trim() && !ns.length) continue;
+      const pickup = Math.min(0, ...ns.map((n) => n.s));
+      if (beat === 0 && pickup < 0) beat = Math.ceil(-pickup / bpb) * bpb;
+      out[l.id] = beat;
+      beat += lineBeats(l, song.time);
+    }
+  }
+  return out;
+}
+
+/**
  * Song -> MusicXML string. Lines follow each other; a line's pickup notes
  * sound before its downbeat (inside the line before).
  */

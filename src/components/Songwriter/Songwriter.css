@@ -2322,3 +2322,35 @@
   font-weight: 400;
   color: #000;
 }
+/* the Score view's playhead: what sounds now */
+.sw-score-stage {
+  position: relative;
+}
+.sw-score-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sw-score-bar,
+.sw-score-note,
+.sw-score-cursor {
+  position: absolute;
+  display: block;
+}
+.sw-score-bar {
+  border-radius: 6px;
+  background: rgba(0, 107, 214, 0.06);
+}
+.sw-score-note {
+  border-radius: 8px;
+  background: rgba(0, 107, 214, 0.16);
+  box-shadow: 0 0 0 1.5px rgba(0, 107, 214, 0.55);
+  transition: left 80ms linear, top 80ms linear;
+}
+.sw-score-cursor {
+  width: 2px;
+  border-radius: 1px;
+  background: #006bd6;
+  opacity: 0.8;
+  transition: left 80ms linear;
+}

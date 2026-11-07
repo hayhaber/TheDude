@@ -22,7 +22,7 @@ import {
   uid,
 } from '../../music/songwriter/song';
 import { transcribe } from '../../music/songwriter/transcribe';
-import { songToMusicXML } from '../../music/songwriter/musicxml';
+import { songToMusicXML, scoreLineStarts } from '../../music/songwriter/musicxml';
 import { deleteAudio } from '../../audio/songwriter/songAudioStore';
 import { schedulePianoNotes } from '../../audio/pianoPlayer';
 import { LyricLine } from './LyricLine';
@@ -287,6 +287,11 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
     document.querySelector(`[data-line="${activeLine.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [activeLine]);
 
+  // where playback is, in the score's beats (for the Score view's playhead)
+  const lineStarts = useMemo(() => (view === 'score' ? scoreLineStarts(song) : null), [view, song]);
+  const scoreBeat =
+    view === 'score' && activeLine && lineStarts?.[activeLine.id] != null ? lineStarts[activeLine.id] + (audio.pos - activeLine.downbeat) / spb : null;
+
   const xml = useMemo(
     () => (view === 'score' ? songToMusicXML(song, { screen: true, title: '', labels: Object.fromEntries(SECTION_KINDS.map((k) => [k, t('sw.kind.' + k)])) }) : ''),
     [view, song, t]
@@ -484,7 +489,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
       )}
 
       {view === 'score' ? (
-        <ScoreView xml={xml} title={song.title || t('sw.untitled')} />
+        <ScoreView xml={xml} title={song.title || t('sw.untitled')} beat={scoreBeat} bpb={bpb} />
       ) : (
         <div className={'sw-sections' + (preview ? ' is-preview' : '')} inert={preview ? true : undefined}>
           {shown.sections.map((sec, si) => {

@@ -1752,6 +1752,17 @@ no tools).
   unicode-bidi="embed" on postRenderFinished — also in GpSongPlayer (GP
   files with Hebrew titles / lyrics). Title fix sure; the lyric marking NOT
   verified on the iPad.
+- SCORE PLAYHEAD (v1.0.150; user: "in the Score view, while playing,
+  show what sounds at that moment"): `scoreLineStarts(song)` (musicxml.js,
+  the same line layout songToMusicXML writes) -> SongEditor `scoreBeat` =
+  the active timeline line's score beat + (pos − downbeat) / spb; ScoreView
+  `beat` / `bpb` props find the bar (`boundsLookup.findMasterBarByIndex`)
+  and the beat whose playbackStart covers the tick (`calculateDuration()`)
+  and draw an overlay (`.sw-score-stage` / `.sw-score-marks`): the bar
+  tinted, the sounding note boxed (not for rests), a cursor line through
+  the staff system; re-measured after every render (`layoutN`), the line
+  kept in view. Playwright (seeded song, 100 BPM): the box moved note by
+  note (1.8 s = the 3rd note), no errors.
 - EMPTY SONGS + DELETE FROM THE LIST (v1.0.146; user's iPad: a list of
   "Untitled · 0 lines" songs that couldn't be deleted). "New" creates a
   song at once, so every New -> back left an empty one. `isEmptySong()`

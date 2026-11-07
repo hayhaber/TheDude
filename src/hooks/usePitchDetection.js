@@ -6,6 +6,7 @@ import { createMicTap } from '../audio/micTap';
 import { frequencyToNote, refineFundamental } from '../music/pitchUtils';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { activeCalibration, createGate, frameRms } from '../audio/noiseCalibration';
+import { channelConstraint, inputNode } from '../audio/inputChannel';
 
 // A resume() that iOS refuses can stay pending forever: wait at most 400 ms.
 const settle = (p) => Promise.race([p.catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
@@ -211,7 +212,7 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
           noiseSuppression: processingEnabled,
           autoGainControl: processingEnabled,
           // The Recorder's request (works on the iPhone): one channel.
-          ...(rangeRef.current.ownContext ? { channelCount: 1 } : {}),
+          ...(channelConstraint() ?? (rangeRef.current.ownContext ? { channelCount: 1 } : {})),
         },
       });
       // iOS: the permission prompt / the switch to play-and-record can leave
@@ -235,7 +236,7 @@ export function usePitchDetection(range = DEFAULT_RANGE) {
       // running the analyser gets no audio. Wake it again.
       if (!own) reviveAudioOutput();
       if (ctx.state !== 'running') await settle(ctx.resume());
-      const source = ctx.createMediaStreamSource(stream);
+      const source = inputNode(ctx, stream);
       const gainNode = ctx.createGain();
       gainNode.gain.value = getAudioInputSettings().gain;
       const analyser = ctx.createAnalyser();

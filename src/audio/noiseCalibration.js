@@ -1,5 +1,6 @@
 import { getAudioContext } from './audioContext';
 import { getAudioInputSettings, getCalibration } from './audioInputSettingsStore';
+import { channelConstraint, inputNode } from './inputChannel';
 
 // ROOM CALIBRATION — the #1 complaint about mic-based guitar apps is that
 // detection falls apart in a normal room (fan, AC, fridge hum, traffic,
@@ -49,11 +50,12 @@ async function openMic() {
       echoCancellation: processing,
       noiseSuppression: processing,
       autoGainControl: processing,
+      ...(channelConstraint() ?? {}),
     },
   });
   const ctx = getAudioContext();
   if (ctx.state !== 'running') await ctx.resume().catch(() => {});
-  const source = ctx.createMediaStreamSource(stream);
+  const source = inputNode(ctx, stream);
   const analyser = ctx.createAnalyser();
   analyser.fftSize = PROFILE_FFT;
   analyser.smoothingTimeConstant = 0.6; // as useMicChordDetector

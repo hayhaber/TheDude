@@ -10,6 +10,7 @@ export function useAudioInputSettings() {
   const [deviceId, setDeviceIdState] = useState(() => getAudioInputSettings().deviceId);
   const [gain, setGainState] = useState(() => getAudioInputSettings().gain);
   const [inputMode, setInputModeState] = useState(() => getAudioInputSettings().inputMode);
+  const [channel, setChannelState] = useState(() => getAudioInputSettings().channel ?? 'mix');
   const [devices, setDevices] = useState([]);
 
   // Device *labels* are only populated once the page has been granted mic
@@ -53,5 +54,11 @@ export function useAudioInputSettings() {
     setAudioInputSettings({ inputMode: next });
   }
 
-  return { deviceId, setDeviceId, gain, setGain, inputMode, setInputMode, devices, refreshDevices };
+  function setChannel(c) {
+    const next = c === 1 || c === 2 ? c : 'mix';
+    setChannelState(next);
+    setAudioInputSettings({ channel: next });
+  }
+
+  return { deviceId, setDeviceId, gain, setGain, inputMode, setInputMode, channel, setChannel, devices, refreshDevices };
 }

@@ -3,6 +3,7 @@ import { getAudioContext } from '../audio/audioContext';
 import { computeChroma, matchChordFromChroma } from '../music/chromaChordDetector';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { activeCalibration, createGate, frameRms, subtractNoiseProfile } from '../audio/noiseCalibration';
+import { channelConstraint, inputNode } from '../audio/inputChannel';
 
 const FFT_SIZE = 4096; // matches useTabAudioChordGuesser.js's own choice — chroma binning wants the finer resolution
 const GUESS_INTERVAL_MS = 250; // faster than the tab-audio guesser's 400ms — Chord Rhythm needs to catch a strum landing close to a beat, not just eventually notice a sustained chord
@@ -91,10 +92,11 @@ export function useMicChordDetector() {
           echoCancellation: processingEnabled,
           noiseSuppression: processingEnabled,
           autoGainControl: processingEnabled,
+          ...(channelConstraint() ?? {}),
         },
       });
       const ctx = getAudioContext();
-      const source = ctx.createMediaStreamSource(stream);
+      const source = inputNode(ctx, stream);
       const gainNode = ctx.createGain();
       gainNode.gain.value = gain;
       const analyser = ctx.createAnalyser();

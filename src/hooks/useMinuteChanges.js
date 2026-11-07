@@ -5,6 +5,7 @@ import { computeChroma, matchChordFromChroma } from '../music/chromaChordDetecto
 import { activeCalibration, createGate, subtractNoiseProfile } from '../audio/noiseCalibration';
 import { parseGuitarChordProgressionText } from '../music/guitarChordRhythmContent';
 import { logPerf } from '../coach/perfLog';
+import { channelConstraint, inputNode } from '../audio/inputChannel';
 
 // One-Minute Changes (the guitar-teacher benchmark, JustinGuitar style):
 // alternate between two chords for 60 s, one strum per chord, and count the
@@ -293,13 +294,14 @@ export function useMinuteChanges({ chords = [], duration = DEFAULT_DURATION_S, o
           echoCancellation: processing,
           noiseSuppression: processing,
           autoGainControl: processing,
+          ...(channelConstraint() ?? {}),
         },
       });
       if (phaseRef.current !== 'countdown') {
         stream.getTracks().forEach((tr) => tr.stop());
         return;
       }
-      const source = ctx.createMediaStreamSource(stream);
+      const source = inputNode(ctx, stream);
       const gainNode = ctx.createGain();
       gainNode.gain.value = gain;
       const analyser = ctx.createAnalyser();

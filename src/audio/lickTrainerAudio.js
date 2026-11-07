@@ -19,6 +19,7 @@ import { getAudioInputSettings } from './audioInputSettingsStore';
 import { STANDARD_TUNING } from '../music/notes';
 import { SOUNDFONT_TUNING } from './sampleTuning';
 import { PitchDetector } from 'pitchy';
+import { channelConstraint, inputNode } from './inputChannel';
 
 const SCHEDULE_AHEAD = 0.12;
 const TICK_MS = 25;
@@ -370,11 +371,11 @@ export async function openInput() {
       echoCancellation: processing,
       noiseSuppression: processing,
       autoGainControl: processing,
-      channelCount: 1,
+      ...(channelConstraint() ?? { channelCount: 1 }),
     },
   });
   await loadWorklet(ctx);
-  const source = ctx.createMediaStreamSource(stream);
+  const source = inputNode(ctx, stream);
   const gainNode = ctx.createGain();
   gainNode.gain.value = gain;
   const node = new AudioWorkletNode(ctx, 'lick-capture', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1 });

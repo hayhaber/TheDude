@@ -20,6 +20,7 @@ const STORAGE_KEY = 'audio-input-settings';
 const DEFAULTS = {
   deviceId: null, // null = browser default input device
   gain: 1.5, // linear multiplier applied to the raw signal before analysis; >1 boosts a quiet direct-line signal
+  channel: 'mix', // 'mix' | 1 | 2 — which input of a 2-input interface (inputChannel.js)
   inputMode: 'direct', // 'direct' (echo/noise/AGC processing off — clean instrument signal) | 'microphone' (processing on — better for a room mic picking up an acoustic guitar)
   // Room calibrations (noiseCalibration.js), one per mic AND input mode —
   // the browser's noise suppression changes the noise floor completely, so
@@ -35,6 +36,7 @@ function loadInitial() {
     return {
       deviceId: typeof stored.deviceId === 'string' ? stored.deviceId : DEFAULTS.deviceId,
       gain: Number.isFinite(stored.gain) ? stored.gain : DEFAULTS.gain,
+      channel: stored.channel === 1 || stored.channel === 2 ? stored.channel : 'mix',
       inputMode: stored.inputMode === 'microphone' ? 'microphone' : DEFAULTS.inputMode,
       calibrations: stored.calibrations && typeof stored.calibrations === 'object' ? stored.calibrations : {},
     };

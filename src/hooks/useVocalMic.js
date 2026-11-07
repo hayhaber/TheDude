@@ -6,6 +6,7 @@ import { hzToMidi } from '../music/vocal/voiceRange';
 import { activeCalibration, gateFor } from '../audio/noiseCalibration';
 import { createMicTap } from '../audio/micTap';
 import { createLiveContext } from '../audio/amp/liveInput';
+import { channelConstraint, inputNode } from '../audio/inputChannel';
 
 // iPhone / iPad: the mic is analysed on an AudioContext of its OWN (the
 // tuner's fix, the Recorder's pattern) — the shared one, which plays the
@@ -222,7 +223,7 @@ export function useVocalMic() {
           noiseSuppression: false,
           autoGainControl: false,
           // The Recorder's request (works on the iPhone): one channel.
-          channelCount: 1,
+          ...(channelConstraint() ?? { channelCount: 1 }),
         },
       });
       // Opening the mic can interrupt playback on iOS; wake it again.
@@ -245,7 +246,7 @@ export function useVocalMic() {
         stream.getTracks().forEach((tr) => tr.stop());
         return false;
       }
-      const source = ctx.createMediaStreamSource(stream);
+      const source = inputNode(ctx, stream);
       const gain = ctx.createGain();
       const analyser = ctx.createAnalyser();
       analyser.fftSize = FFT_SIZE;

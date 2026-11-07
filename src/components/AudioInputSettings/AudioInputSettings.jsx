@@ -17,7 +17,7 @@ import './AudioInputSettings.css';
 // enumerateDevices() (a browser privacy measure, not a bug here).
 export function AudioInputSettings() {
   const { t } = useLanguage();
-  const { deviceId, setDeviceId, gain, setGain, inputMode, setInputMode, devices, refreshDevices } = useAudioInputSettings();
+  const { deviceId, setDeviceId, gain, setGain, inputMode, setInputMode, channel, setChannel, devices, refreshDevices } = useAudioInputSettings();
   const { isListening, startListening, stopListening, inputLevel, error } = usePitchDetection();
 
   // Device labels only appear after permission is granted — re-check the
@@ -37,6 +37,7 @@ export function AudioInputSettings() {
 
   return (
     <div className="audio-input-settings">
+      <p className="settings-attribution audio-input-howto">{t('audioInput.howto')}</p>
       <label className="settings-field">
         {t('audioInput.device')}
         <select value={deviceId ?? ''} onChange={(e) => setDeviceId(e.target.value || null)}>
@@ -62,6 +63,25 @@ export function AudioInputSettings() {
         </div>
         <span className="settings-attribution">{t(inputMode === 'direct' ? 'audioInput.mode.directHint' : 'audioInput.mode.microphoneHint')}</span>
       </label>
+
+      {inputMode === 'direct' && (
+        <label className="settings-field">
+          {t('audioInput.channel')}
+          <select
+            value={String(channel)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setChannel(v === '1' ? 1 : v === '2' ? 2 : 'mix');
+              if (isListening) stopListening();
+            }}
+          >
+            <option value="mix">{t('audioInput.channel.mix')}</option>
+            <option value="1">{t('audioInput.channel.n', { n: 1 })}</option>
+            <option value="2">{t('audioInput.channel.n', { n: 2 })}</option>
+          </select>
+          <span className="settings-attribution">{t('audioInput.channelHint')}</span>
+        </label>
+      )}
 
       <label className="settings-field">
         <span>

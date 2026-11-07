@@ -226,3 +226,10 @@
   background: var(--accent-fill);
   filter: brightness(1.08);
 }
+
+.audio-input-howto {
+  margin: 0 0 14px;
+  font-size: var(--type-footnote, 13px);
+  line-height: 1.45;
+  color: var(--text-secondary);
+}

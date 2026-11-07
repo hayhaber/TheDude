@@ -82,6 +82,13 @@ primary action that doesn't shout, quiet secondary ones, system colours,
 SF-like type scale, 44 pt targets) and uses the Liquid Glass bubbles
 (rule 11) wherever a control floats over content. No need to ask him.
 
+**14. Real teaching method** (user's rule 2026-11-07): the learning path
+is structured the way a certified, expert music teacher teaches —
+progression follows a real, validated method / graded syllabus for the
+instrument (RSL / Trinity / ABRSM-style grades, established methods like
+JustinGuitar's), never ad-hoc content. New lessons and the order of
+skills must be justified by such a method.
+
 **12. Nothing jumps.** Shared chrome keeps its physical position across
 screens: the desktop top bar is a 3-column grid (`minmax(0,1fr) auto
 minmax(0,1fr)`) so the tabs stay centred on the bar whatever the side
@@ -1762,6 +1769,20 @@ no tools).
   name, drag, arrows) — user's choice after a dropdown and a bat toggle), stompbox pedals all one size (comp silver, drive yellow, chorus purple, delay blue, reverb red). A small
   wireless receiver (InputReceiver: graphite body turned left, LED lit when
   the amp is on) sits in the INPUT jack — the user rejected a drawn cable.
+- **Audio interface input** (v1.0.126, user asked where to set it):
+  Settings -> "Microphone / audio interface" (was "Microphone &
+  calibration") — a how-to line on top (computer: pick the device + Direct;
+  iPhone/iPad: plug in first, iOS uses it as the default input), device,
+  Input Type, and NEW "Interface input" (only in Direct): All inputs /
+  Input 1 / Input 2 (`channel` in audioInputSettingsStore). `audio/
+  inputChannel.js`: `channelConstraint()` (asks channelCount ideal 2 when a
+  channel is chosen) + `inputNode(ctx, stream)` (splitter -> mono gain of
+  that channel; a 1-channel stream is used as is). Used by EVERY listener:
+  usePitchDetection, useMicChordDetector, useMinuteChanges,
+  lickTrainerAudio, noiseCalibration, amp liveInput (amp / recorder /
+  studio / songwriter), useVocalMic. Fake stereo mic (tone on the right):
+  Input 1 = 0, Input 2 = full, All = half level. NOT verified with a real
+  interface / on iOS (iOS Safari may give mono -> All is used).
 - **Room calibration** (Settings -> Audio Input, `noiseCalibration.js`,
   RoomCalibration.jsx): 3 s room + 4 s playing -> gate + noise spectrum per
   mic/mode; detectors use max(own gate, calibrated) and subtract the noise

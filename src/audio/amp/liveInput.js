@@ -19,6 +19,7 @@
 // sustain, and echo cancellation alone adds latency.
 
 import { getAudioInputSettings } from '../audioInputSettingsStore';
+import { channelConstraint, inputNode } from '../inputChannel';
 
 export function createLiveContext() {
   const Ctor = window.AudioContext || window.webkitAudioContext;
@@ -37,11 +38,11 @@ export async function openLiveInput(ctx) {
       echoCancellation: false,
       noiseSuppression: false,
       autoGainControl: false,
-      channelCount: 1,
+      ...(channelConstraint() ?? { channelCount: 1 }),
       latency: 0,
     },
   });
-  const source = ctx.createMediaStreamSource(stream);
+  const source = inputNode(ctx, stream);
   const input = ctx.createGain();
   input.gain.value = Number.isFinite(gain) ? gain : 1;
   source.connect(input);

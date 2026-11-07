@@ -1647,6 +1647,36 @@ no tools).
   (`songwriter: 'idea'`) opens the list at Ideas AND starts recording a new
   idea immediately (SongwriterScreen `autoRecord`, once per visit — coming
   back from a song doesn't record again); Stop saves it as usual.
+- SUGGEST CHORDS FROM THE VISION (v1.0.141, 2026-11-07; user: "can it
+  suggest chords from the words alone?" -> yes, from a short brief of his
+  vision; rollback branch `ui-pre-progress-v1.0.140`). Pure
+  `music/songwriter/progressions.js`: LIB of standard progressions in Roman
+  numerals (major: axis I–V–vi–IV, vi–IV–I–V, 50s, I–IV–vi–V, I–♭VII–IV,
+  royal road IV–V–iii–vi, Canon, ii–V–I, maj7 / add9 colours, pre-chorus
+  IV–V climbs, bridges vi–V–IV–V / ♭VI–♭VII–I, 12-bar blues; minor:
+  i–VI–III–VII, Andalusian, i–iv–v, i–VI–iv–V, VI–VII–i, minor ii–V,
+  minor blues …), each tagged mode / roles (verse, prechorus, chorus,
+  bridge) / moods / styles / level 1-3; `realize(token, key)` (b/# steps,
+  ø, °, 7 / maj7 / add9 / m7), `candidates(role, brief, key)` scores mood
+  +3 · style +2.5 · level fit, the "rich" colour enriches plain ones
+  (I add9/maj7, IV maj7, minor chords m7); `plans()` = one progression per
+  section role in the song, contrasting (the verse never repeats the
+  chorus; blues `form` may repeat); `chordLine()` = a sung line: one chord
+  per bar on the word sung at the downbeat; no melody: `perLine` chords
+  (2, blues 4) spread by syllables; a repeated chord just holds;
+  `applyPlan()`; `suggestKey()` (guitar-friendly: sad / tense -> Am / Em /
+  Dm, else C / G / D / E / F / A by style), `suggestBpm()`, STYLE_BAND,
+  `needsChords()`. UI `components/Songwriter/ProgressionWizard.jsx` (sheet
+  `.sw-pw*`): 3 questions as iOS rows (feeling 6 · style 8 · chord colour
+  simple / flowing / rich), then per section kind: chord pills, Roman
+  numerals, a one-line role note, ‹ n/N › alternatives, ▶ hear it with the
+  style's band (temp song, scope `pw:<role>`), key select (+ notes), Hear
+  (whole song) + Apply -> chords written, key set, band style / tempo only
+  when the writer set none, answers kept in `song.vision` (next open = the
+  results), toast with Undo. Entry: editor ••• "Suggest chords" and a hint
+  row (`.sw-pw-hint`, "Suggest") while the song has words and no chord.
+  Text `sw.pw.*`. Playwright 390 HE + 1180 EN: questions -> results ->
+  cycle -> hear -> apply, no errors. Band sound not heard here.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

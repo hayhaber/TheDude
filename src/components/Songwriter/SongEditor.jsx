@@ -4,6 +4,8 @@ import { BpmField } from '../Metronome/BpmField';
 import { parseLine, splitRaw, joinRaw, replaceText, setChordOnWord, syllables, rhymeScheme, rhymeFamilies } from '../../music/songwriter/lyrics';
 import { BAND_KEYS, prepareBand } from '../../audio/songwriter/bandPlayer';
 import { PerformView } from './PerformView';
+import { ProgressionWizard } from './ProgressionWizard';
+import { needsChords } from '../../music/songwriter/progressions';
 import {
   SECTION_KINDS,
   TIMES,
@@ -61,6 +63,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const [finding, setFinding] = useState(null); // line id while notes are being found
   const [dictating, setDictating] = useState(false);
   const [performing, setPerforming] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [rhymesOn, setRhymesOn] = useState(loadRhymes);
   const toggleRhymes = () => {
     setRhymesOn((v) => {
@@ -322,6 +325,10 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           ))}
         </div>
         <MoreMenu label={t('sw.more')}>
+          <button type="button" className="more-menu-item" onClick={() => setSuggesting(true)}>
+            <Icon name="spark" />
+            {t('sw.pw.menu')}
+          </button>
           <button type="button" className="more-menu-item" onClick={toggleRhymes} aria-pressed={rhymesOn}>
             <Icon name={rhymesOn ? 'check' : 'rhyme'} />
             {t('sw.rhymeColors')}
@@ -381,6 +388,21 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           {t('sw.perform')}
         </button>
       </div>
+
+      {view === 'write' && needsChords(song) && (
+        <div className="sw-pw-hint">
+          <span className="sw-pw-hint-icon">
+            <Icon name="spark" />
+          </span>
+          <span className="sw-pw-hint-text">
+            <strong>{t('sw.pw.hintTitle')}</strong>
+            <span>{t('sw.pw.hintSub')}</span>
+          </span>
+          <button type="button" className="sw-btn is-tint" onClick={() => setSuggesting(true)}>
+            {t('sw.pw.go')}
+          </button>
+        </div>
+      )}
 
       {showMeta && (
       <div className="sw-meta">
@@ -700,6 +722,20 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           onPick={pick}
           onClose={() => setPicker(null)}
           isValid={validChord}
+        />
+      )}
+
+      {suggesting && (
+        <ProgressionWizard
+          song={song}
+          audio={audio}
+          onClose={() => setSuggesting(false)}
+          onApply={(next) => {
+            const before = song;
+            setSuggesting(false);
+            set(() => next);
+            toast({ text: t('sw.pw.applied'), action: t('sw.undo'), onAction: () => set(() => before) });
+          }}
         />
       )}
 

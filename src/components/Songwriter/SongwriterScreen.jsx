@@ -49,6 +49,8 @@ export function SongwriterScreen({ start = 'list', onBack }) {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
+    // empty songs left behind (New, then back without writing) go away
+    store.prune();
     if (start === 'new') {
       const s = store.create();
       setOpenId(s.id);
@@ -78,7 +80,7 @@ export function SongwriterScreen({ start = 'list', onBack }) {
 
   const leave = () => {
     audio.stopAll();
-    store.flush();
+    store.flush(); // (empty songs are dropped on the next visit)
     onBack();
   };
 
@@ -97,6 +99,7 @@ export function SongwriterScreen({ start = 'list', onBack }) {
             toast={toast}
             onBack={() => {
               audio.stopAll();
+              store.prune();
               setOpenId(null);
             }}
             onDelete={() => {
@@ -252,6 +255,24 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
     });
   };
 
+  // Delete a song from the list (Undo in the toast; its recordings go only
+  // when the toast is gone).
+  const deleteSong = (song) => {
+    const index = store.songs.findIndex((x) => x.id === song.id);
+    const ids = song.sections.flatMap((sec) => sec.lines.flatMap((l) => (l.takes ?? []).map((x) => x.id)));
+    store.remove(song.id);
+    let undone = false;
+    toast({
+      text: t('sw.song.deleted'),
+      action: t('sw.undo'),
+      onAction: () => {
+        undone = true;
+        store.add(song, index);
+      },
+      onExpire: () => !undone && ids.length && deleteAudio(ids),
+    });
+  };
+
   const empty = songs.length === 0 && store.ideas.length === 0;
 
   return (
@@ -384,7 +405,7 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
               const lines = s.sections.reduce((n, sec) => n + sec.lines.filter((l) => parseLine(l.raw).text.trim()).length, 0);
               const first = s.sections.flatMap((sec) => sec.lines).map((l) => parseLine(l.raw).text.trim()).find(Boolean);
               return (
-                <li key={s.id}>
+                <li key={s.id} className="sw-song-li">
                   <button type="button" className="sw-song-row" onClick={() => onOpen(s.id)}>
                     <span className="sw-song-text">
                       <span className="sw-song-title" dir="auto">
@@ -402,6 +423,12 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
                       </svg>
                     </span>
                   </button>
+                  <MoreMenu label={t('sw.more')}>
+                    <button type="button" className="more-menu-item is-danger" onClick={() => deleteSong(s)}>
+                      <Icon name="trash" />
+                      {t('sw.delete')}
+                    </button>
+                  </MoreMenu>
                 </li>
               );
             })}

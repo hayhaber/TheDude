@@ -1704,6 +1704,16 @@ no tools).
   tick = {…, bands (slow fall), silent (pure zeros for 2 s)} ->
   `sw.rec.silent` warning. Fake-mic hum: meter lit, idea saved (0:04).
   NOT verified on the iPad.
+- EMPTY SONGS + DELETE FROM THE LIST (v1.0.146; user's iPad: a list of
+  "Untitled · 0 lines" songs that couldn't be deleted). "New" creates a
+  song at once, so every New -> back left an empty one. `isEmptySong()`
+  (useSongs: no title, no words, no melody, no take) + `store.prune(keep)`:
+  run when the screen opens (before a card's New creates its song) and
+  when leaving a song's editor — the old empty ones vanish on the next
+  visit. Song rows got a ••• (MoreMenu, `.sw-song-li` = row + menu) with
+  Delete -> toast "Song deleted" + Undo (`store.add(song, index)` puts it
+  back in place); its recordings are deleted only when the toast expires.
+  Playwright (1180 HE): 3x New -> back = 0 rows; delete + undo + reload.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

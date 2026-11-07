@@ -15,6 +15,14 @@ function load() {
   }
 }
 
+/** A song nothing was ever written into (no title, words, melody or take). */
+export function isEmptySong(s) {
+  if (!s || (s.title ?? '').trim()) return false;
+  return s.sections.every((sec) =>
+    sec.lines.every((l) => !String(l.raw ?? '').replace(/\[[^\]]*\]/g, '').trim() && !(l.melody?.notes?.length) && !(l.takes?.length))
+  );
+}
+
 export function useSongs() {
   const [initial] = useState(load);
   const [songs, setSongs] = useState(initial.songs);
@@ -69,9 +77,18 @@ export function useSongs() {
     setSongs((list) => list.filter((s) => s.id !== id));
   }, []);
 
-  const add = useCallback((song) => {
-    setSongs((list) => [song, ...list]);
+  const add = useCallback((song, index = 0) => {
+    setSongs((list) => {
+      const next = list.filter((x) => x.id !== song.id);
+      next.splice(Math.max(0, Math.min(index, next.length)), 0, song);
+      return next;
+    });
   }, []);
 
-  return { songs, ideas, setIdeas, create, update, remove, add, flush };
+  /** Drops the songs nothing was written into ("New" then back), except `keep`. */
+  const prune = useCallback((keep = null) => {
+    setSongs((list) => (list.some((s) => s.id !== keep && isEmptySong(s)) ? list.filter((s) => s.id === keep || !isEmptySong(s)) : list));
+  }, []);
+
+  return { songs, ideas, setIdeas, create, update, remove, add, prune, flush };
 }

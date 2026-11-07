@@ -2283,3 +2283,17 @@
 .sw-rec-strip:has(.sw-rec-silent) {
   flex-wrap: wrap;
 }
+
+/* song rows: the row opens the song, ••• deletes it */
+.sw-group > li.sw-song-li {
+  display: flex;
+  align-items: center;
+  padding-inline-end: 8px;
+}
+.sw-song-li .sw-song-row {
+  flex: 1;
+  min-width: 0;
+}
+.sw-song-li > .more-menu {
+  flex: none;
+}

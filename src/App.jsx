@@ -815,6 +815,7 @@ function App() {
   const [chordLibStage, setChordLibStage] = useState(null);
   // Studies -> Chord Structure: the shape it shows on the neck ({position, tuning, labelMode} | null)
   const [chordBuilderStage, setChordBuilderStage] = useState(null);
+  const [gpSheetOpen, setGpSheetOpen] = useState(false);
   const [triadStage, setTriadStage] = useState(null); // Theory -> Triads: the open unit's neck
   // The teacher's neck: null = no neck (outside a lesson), {position} in a lesson.
   const [teacherStage, setTeacherStage] = useState(null);
@@ -2344,6 +2345,8 @@ function App() {
         (activeSection === 'compose' && progression.length === 0) ||
         (activeSection === 'studies' && studiesBrowse) ||
         (activeSection === 'studies' && studiesCourse === 'triads' && !triadStage) ||
+        // A PDF sheet open in GuitarPro / PianoPro: the page gets the room.
+        (activeSection === 'guitarpro' && gpSheetOpen) ||
         (activeSection === 'bassPractice' && !bassPractice.built) ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
@@ -2567,7 +2570,7 @@ function App() {
       )}
 
       {activeSection === 'guitarpro' && (
-        <GuitarProView trainer={lickTrainer} openPractice={gpPracticeN} pianoProfile={pianoProfile} bassProfile={bassProfile} onFindSongs={supportsInstrument('songs', instrument) ? () => setActiveSection('songs') : undefined} />
+        <GuitarProView trainer={lickTrainer} onSheetOpen={setGpSheetOpen} openPractice={gpPracticeN} pianoProfile={pianoProfile} bassProfile={bassProfile} onFindSongs={supportsInstrument('songs', instrument) ? () => setActiveSection('songs') : undefined} />
       )}
 
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}

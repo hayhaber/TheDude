@@ -22,7 +22,10 @@ pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker();
 // configures the worker and opens the file.
 export async function loadPdfDocument(file) {
   const buffer = await file.arrayBuffer();
-  return pdfjsLib.getDocument({ data: buffer }).promise;
+  // The 14 standard PDF fonts (Helvetica, Times…) when a file doesn't embed
+  // them — without these pdf.js draws substitutes with wrong spacing.
+  // Copied from pdfjs-dist/standard_fonts into public/ (fetched on demand).
+  return pdfjsLib.getDocument({ data: buffer, standardFontDataUrl: '/pdfjs/standard_fonts/' }).promise;
 }
 
 // A typical monospace character's width, in PDF points, at the font sizes

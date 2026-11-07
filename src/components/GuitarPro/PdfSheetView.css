@@ -1,0 +1,173 @@
+/* PDF sheet music (PianoPro / GuitarPro): pages one under the other, the
+   controls floating over them as Liquid Glass keys. */
+.sheet-view {
+  position: relative;
+}
+
+.sheet-scroll {
+  height: max(380px, calc(100svh - var(--stage-height, 0px) - 250px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px max(96px, 30%);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--fill-tertiary);
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet-page {
+  flex: none;
+  max-width: 100%;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 6px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.sheet-page canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sheet-loading {
+  margin: auto;
+  color: var(--text-secondary);
+}
+
+.sheet-bar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 14px;
+  width: max-content;
+  max-width: calc(100% - 20px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 30px;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow), 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.sheet-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sheet-key.is-round {
+  width: 44px;
+  padding: 0;
+}
+
+.sheet-key:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.sheet-key.is-primary {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.sheet-key.is-primary.is-on {
+  background: var(--accent-fill);
+  color: #fff;
+}
+
+.sheet-count {
+  min-width: 54px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.sheet-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--separator);
+  margin: 0 2px;
+}
+
+.sheet-speed select {
+  height: 44px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 22px;
+  background: var(--fill-tertiary);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.sheet-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Full screen: the sheet alone. */
+.sheet-view.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: #1c1c1e;
+  animation: sheet-in var(--dur-sheet, 0.35s) var(--ease-ios, ease);
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.sheet-view.is-full .sheet-scroll {
+  height: 100%;
+  border-radius: 0;
+  background: transparent;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 12px max(45vh, calc(100px + env(safe-area-inset-bottom, 0px)));
+}
+
+.sheet-view.is-full .sheet-bar {
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 480px) {
+  .sheet-key:not(.is-round) {
+    padding: 0 12px;
+  }
+  .sheet-key:not(.is-round) span {
+    display: none;
+  }
+  .sheet-count {
+    min-width: 44px;
+    font-size: 14px;
+  }
+  .sheet-speed select {
+    max-width: 112px;
+    font-size: 14px;
+  }
+}

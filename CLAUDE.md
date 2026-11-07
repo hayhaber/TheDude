@@ -1147,6 +1147,29 @@ no tools).
   `loadMidiForScore()` (no need to wait for playerReady: the worker
   processes messages in order; playerReady does NOT refire for a reload
   while playing).
+- **PDF sheet music** (v1.0.138, 2026-11-07; user: "can I upload a PDF
+  sheet in PianoPro?" -> a PDF is a picture, so it is SHOWN, not played;
+  for playback convert to MusicXML outside (MuseScore / PlayScore 2) and
+  Add that). GuitarPro / PianoPro (every instrument) Add + drop accept
+  `.pdf` -> `music/sheets/sheetStore.js` (IndexedDB `dudestar-sheets`,
+  this device; per-sheet place + speed in personal key
+  `dudestar-p-sheet-prefs`); the file select lists them in a "Sheet music
+  (PDF)" optgroup (value `pdf:<id>`), ••• Delete (two taps).
+  `PdfSheetView.jsx` (+ css): pdf.js (`loadPdfDocument`, now with
+  `standardFontDataUrl` = `public/pdfjs/standard_fonts/`, copied from
+  pdfjs-dist, fetched on demand, not precached) — pages stacked at the
+  scroller's width (max 1000 / 1400 full), drawn when near
+  (IntersectionObserver), `dir="ltr"` on the pages (a canvas inherits RTL
+  and Hebrew pages scrambled the PDF's text); inline height measured down
+  to the tab bar; glass bar ‹ n/N › · Scroll/Pause · speed select
+  (`SPEEDS` 15–240 s per page, the CURRENT page's height per `secs`, runs
+  on across page breaks, stops at the end; a touch / wheel pauses) · full
+  screen (portal, dark, 45vh bottom room so the last page reaches the top).
+  Keys: arrows / PageUp/Down = page turns (Bluetooth pedals), Space =
+  scroll, Escape leaves full screen. Wake Lock while scrolling / full.
+  App hides the Stage while a sheet is open (`gpSheetOpen` via
+  `onSheetOpen`). Playwright 390 + 1180 (3-page PDF): render, auto-scroll
+  moves, page turns, pedal keys, full screen, place restored after reload.
 - **Trainer neck**: lick markers with `lick.style === 'trainer'` are light
   blue, the sounding note green with a glow. Markers show note names or
   left-hand fingers (`trainer.neckLabel`): fingers come from the GP file

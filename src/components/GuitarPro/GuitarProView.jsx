@@ -7,10 +7,13 @@ import { GpSongPlayer } from './GpSongPlayer';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { onSoundFontProgress, prefetchGpSoundFont } from '../../audio/alphaTabSound';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
+import { PdfSheetView } from './PdfSheetView';
+import { deleteSheet, isPdf, listSheets, saveSheet } from '../../music/sheets/sheetStore';
 import './GuitarProView.css';
 
 // MusicXML too (e.g. sheet music converted from a PDF): alphaTab reads it the same way.
-const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.musicxml,.mxl,.xml';
+// …and sheet-music PDFs, shown as they are (PdfSheetView).
+const GP_ACCEPT = '.gp,.gp3,.gp4,.gp5,.gpx,.musicxml,.mxl,.xml,.pdf,application/pdf';
 
 // Which of the file's tracks sound. The practiced part is marked; drums,
 // bass and keys start on (the rhythm section), everything else is up to
@@ -46,12 +49,43 @@ function TrackMixer({ trainer, t, busy }) {
   );
 }
 
-export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs , openPractice }) {
+export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs, openPractice, onSheetOpen }) {
   const { t, lang } = useLanguage();
   const fileRef = useRef(null);
   const [view, setView] = useState('song'); // 'song' | 'practice' | 'chords'
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [dragging, setDragging] = useState(false);
+  // Sheet-music PDFs (this device): the list, and the one open (null = a
+  // Guitar Pro / MusicXML file is shown as before).
+  const [sheets, setSheets] = useState([]);
+  const [sheetId, setSheetId] = useState(null);
+  const [sheetBusy, setSheetBusy] = useState(false);
+  useEffect(() => {
+    listSheets().then(setSheets);
+  }, []);
+  const addFile = async (file) => {
+    if (!file) return;
+    if (!isPdf(file)) {
+      setSheetId(null);
+      trainer.readFile(file);
+      return;
+    }
+    setSheetBusy(true);
+    try {
+      const rec = await saveSheet(file);
+      setSheets(await listSheets());
+      trainer.stop();
+      setSheetId(rec.id);
+    } finally {
+      setSheetBusy(false);
+    }
+  };
+  const sheet = sheets.find((x) => x.id === sheetId) ?? null;
+  const sheetOpen = !!sheet;
+  useEffect(() => {
+    onSheetOpen?.(sheetOpen);
+  }, [sheetOpen, onSheetOpen]);
+  useEffect(() => () => onSheetOpen?.(false), [onSheetOpen]);
   // A chosen file opens its "add" form: bring it into view.
   const importRef = useRef(null);
   const pendingName = trainer.pendingImport?.fileName;
@@ -105,13 +139,13 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
         if (!e.dataTransfer?.files?.length) return;
         e.preventDefault();
         setDragging(false);
-        if (!busy) trainer.readFile(e.dataTransfer.files[0]);
+        if (!busy) addFile(e.dataTransfer.files[0]);
       }}
     >
       {/* With a file open the song itself is the title (flow review
           2026-11-06: the score gets the room) — the page title stays for
           screen readers only. */}
-      <div className={'gp-head' + (solo ? ' is-compact' : '')}>
+      <div className={'gp-head' + (solo || sheet ? ' is-compact' : '')}>
         <h1>{t(trainer.pianoMode ? 'nav.pianopro' : 'gp.title')}</h1>
         <p className="subtitle">{t(trainer.pianoMode ? 'gp.pianoSubtitle' : 'gp.subtitle')}</p>
       </div>
@@ -120,12 +154,19 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
         <label className="lt-field gp-file-field">
           <span>{t('gp.file')}</span>
           <select
-            value={trainer.activeSoloId ?? ''}
+            value={sheet ? 'pdf:' + sheet.id : trainer.activeSoloId ?? ''}
             onChange={(e) => {
               setConfirmDelete(null);
-              trainer.selectSolo(e.target.value);
+              const v = e.target.value;
+              if (v.startsWith('pdf:')) {
+                trainer.stop();
+                setSheetId(v.slice(4));
+              } else {
+                setSheetId(null);
+                trainer.selectSolo(v);
+              }
             }}
-            disabled={busy || trainer.solos.length === 0}
+            disabled={busy || (trainer.solos.length === 0 && sheets.length === 0)}
             dir="auto"
           >
             {trainer.solos.map((so) => (
@@ -134,6 +175,15 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
                 {so.artist ? ` — ${so.artist}` : ''}
               </option>
             ))}
+            {sheets.length > 0 && (
+              <optgroup label={t('sheet.group')}>
+                {sheets.map((x) => (
+                  <option key={x.id} value={'pdf:' + x.id}>
+                    {x.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </label>
         {/* Adding a file: one obvious target — click it, or drop a file on it
@@ -143,7 +193,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
           className={'gp-drop' + (dragging ? ' is-dragging' : '')}
           onClick={() => fileRef.current?.click()}
           title={t('gp.addHint')}
-          disabled={busy}
+          disabled={busy || sheetBusy}
         >
           <svg className="gp-drop-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
             <path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -154,8 +204,26 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
         </button>
         {/* Secondary: the neck's labels and deleting an import. */}
         <MoreMenu label={t('gp.more')}>
-            {showNeckLabels && <NeckLabelToggle trainer={trainer} t={t} />}
-            {solo?.source === 'import' && (
+            {showNeckLabels && !sheet && <NeckLabelToggle trainer={trainer} t={t} />}
+            {sheet && (
+              <button
+                type="button"
+                className="more-menu-item is-danger"
+                onClick={async () => {
+                  if (confirmDelete !== sheet.id) {
+                    setConfirmDelete(sheet.id);
+                    return;
+                  }
+                  setConfirmDelete(null);
+                  await deleteSheet(sheet.id);
+                  setSheetId(null);
+                  setSheets(await listSheets());
+                }}
+              >
+                {t(confirmDelete === sheet.id ? 'sheet.deleteConfirm' : 'sheet.delete')}
+              </button>
+            )}
+            {!sheet && solo?.source === 'import' && (
               // Two taps: the file goes from every device.
               <button
                 type="button"
@@ -179,7 +247,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
             )}
           </MoreMenu>
         {/* Song | Practice | Chords: on the file's row on wide screens. */}
-        {solo && !songOnly && (
+        {solo && !songOnly && !sheet && (
               <div className="gp-modes">
                 <div className="mode-toggle" role="group" aria-label={t('gp.viewLabel')} style={{ margin: 0 }}>
                   <button
@@ -219,14 +287,14 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
           hidden
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) trainer.readFile(file);
+            if (file) addFile(file);
             e.target.value = '';
           }}
         />
       </div>
 
 
-      {soundProgress === -1 && (
+      {!sheet && soundProgress === -1 && (
         <p className="lt-warning" role="alert">
           {t('gp.soundFailed')}{' '}
           <button type="button" className="gp-retry" onClick={() => window.location.reload()}>
@@ -234,7 +302,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
           </button>
         </p>
       )}
-      {soundProgress !== 1 && soundProgress !== -1 && (
+      {!sheet && soundProgress !== 1 && soundProgress !== -1 && (
         <p className="gp-sound-loading" role="status">
           <span className="gp-sound-bar" aria-hidden="true">
             <span style={{ width: `${Math.round((soundProgress ?? 0.5) * 100)}%` }} />
@@ -259,7 +327,9 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs 
         </div>
       )}
 
-      {!solo ? (
+      {sheet ? (
+        <PdfSheetView key={sheet.id} sheetId={sheet.id} t={t} />
+      ) : !solo ? (
         <p className="lt-muted">{t('lickTrainer.noSolos')}</p>
       ) : (
         <>

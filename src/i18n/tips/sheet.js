@@ -1,0 +1,33 @@
+// PDF sheet music in PianoPro / GuitarPro (components/GuitarPro/PdfSheetView).
+export const TIPS_SHEET = {
+  en: {
+    'sheet.group': 'Sheet music (PDF)',
+    'sheet.loading': 'Opening the sheet…',
+    'sheet.error': 'This PDF could not be opened. Try adding it again.',
+    'sheet.prev': 'Previous page',
+    'sheet.next': 'Next page',
+    'sheet.scroll': 'Scroll',
+    'sheet.pause': 'Pause',
+    'sheet.speed': 'Scroll speed',
+    'sheet.perPage': '{n} s/page',
+    'sheet.full': 'Full screen',
+    'sheet.exitFull': 'Exit full screen',
+    'sheet.delete': 'Delete this sheet',
+    'sheet.deleteConfirm': 'Tap again to delete',
+  },
+  he: {
+    'sheet.group': 'דפי תווים (PDF)',
+    'sheet.loading': 'פותח את דף התווים…',
+    'sheet.error': 'לא הצלחתי לפתוח את קובץ ה־PDF. נסו להוסיף אותו שוב.',
+    'sheet.prev': 'העמוד הקודם',
+    'sheet.next': 'העמוד הבא',
+    'sheet.scroll': 'גלילה',
+    'sheet.pause': 'עצירה',
+    'sheet.speed': 'מהירות גלילה',
+    'sheet.perPage': '{n} שנ׳/עמוד',
+    'sheet.full': 'מסך מלא',
+    'sheet.exitFull': 'יציאה ממסך מלא',
+    'sheet.delete': 'מחיקת דף התווים',
+    'sheet.deleteConfirm': 'הקישו שוב למחיקה',
+  },
+};

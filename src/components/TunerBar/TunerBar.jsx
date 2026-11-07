@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useFitDrawer } from '../../hooks/useFitDrawer';
 import { createPortal } from 'react-dom';
 import { GuitarTuner } from '../GuitarTuner/GuitarTuner';
 import { useInstrument } from '../../instruments/useInstrument';
@@ -32,32 +33,8 @@ export function TunerBar() {
   const drawerRef = useRef(null);
   const bodyRef = useRef(null);
 
-  // The whole tuner always shows, never a scrollbar: on a short window
-  // (small laptop, browser zoom) the device is scaled down to the room the
-  // drawer has (CSS zoom keeps taps where they're drawn).
-  useLayoutEffect(() => {
-    if (!open) return undefined;
-    const fit = () => {
-      const drawer = drawerRef.current;
-      const tuner = bodyRef.current?.firstElementChild;
-      if (!drawer || !tuner) return;
-      tuner.style.zoom = '';
-      const cs = getComputedStyle(drawer);
-      const maxH = parseFloat(cs.maxHeight) || window.innerHeight;
-      const chrome = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.rowGap || 0) + (drawer.firstElementChild?.offsetHeight ?? 0);
-      const natural = tuner.offsetHeight;
-      const z = natural ? Math.min(1, (maxH - chrome - 2) / natural) : 1;
-      if (z < 0.995) tuner.style.zoom = String(Math.max(0.5, z));
-    };
-    fit();
-    const timers = [requestAnimationFrame(fit), setTimeout(fit, 350)];
-    window.addEventListener('resize', fit);
-    return () => {
-      cancelAnimationFrame(timers[0]);
-      clearTimeout(timers[1]);
-      window.removeEventListener('resize', fit);
-    };
-  }, [open]);
+  // The whole tuner always shows, never a scrollbar (scaled down to fit).
+  useFitDrawer(open, drawerRef, bodyRef);
 
   // Same body-scroll-lock + Escape-to-close as AppShell's own nav drawer.
   useEffect(() => {

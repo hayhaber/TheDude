@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useFitDrawer } from '../../hooks/useFitDrawer';
 import { createPortal } from 'react-dom';
 import { DrumMachine } from '../Metronome/DrumMachine';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -11,6 +12,9 @@ import './MetronomeBar.css';
 // metronome's drawer does.
 export function DrumsBar({ metronome, drums }) {
   const [open, setOpen] = useState(false);
+  const drawerRef = useRef(null);
+  const bodyRef = useRef(null);
+  useFitDrawer(open, drawerRef, bodyRef);
   const { t } = useLanguage();
   const running = metronome.isRunning && drums.drumsActive;
 
@@ -53,6 +57,7 @@ export function DrumsBar({ metronome, drums }) {
         <>
           <div className={'metronome-drawer-scrim' + (open ? ' open' : '')} aria-hidden="true" onClick={() => setOpen(false)} />
           <div
+            ref={drawerRef}
             className={'metronome-drawer expanded drums-drawer' + (open ? ' open' : '')}
             role="dialog"
             aria-modal="true"
@@ -65,7 +70,7 @@ export function DrumsBar({ metronome, drums }) {
                 ×
               </button>
             </div>
-            <div className="metronome-drawer-body">{open && <DrumMachine {...metronome} drums={drums} />}</div>
+            <div className="metronome-drawer-body" ref={bodyRef}>{open && <DrumMachine {...metronome} drums={drums} />}</div>
           </div>
         </>,
         document.body

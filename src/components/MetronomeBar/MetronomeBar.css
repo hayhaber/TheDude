@@ -127,8 +127,12 @@
   transition: transform var(--dur-sheet) var(--ease-ios), max-height 0.2s ease;
 }
 
-.metronome-drawer.expanded {
-  max-height: calc(100svh - 64px);
+/* Never a scrollbar: the drawer may take the window's height, and when
+   even that is too short MetronomeBar / DrumsBar scale the device to fit
+   (useFitDrawer). Nothing may stick out sideways. */
+.metronome-drawer {
+  max-height: calc(100svh - 16px);
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -221,4 +225,15 @@
     box-shadow: none;
     transition: transform var(--dur-sheet) var(--ease-ios), box-shadow 0s linear var(--dur-sheet);
   }
+}
+
+/* In the drawer: its header already says "Metronome", and the wooden
+   metronome is drawn smaller so the drawer is the drum machine's size
+   (user's request, v1.0.154). */
+.metronome-drawer-body .metronome-title {
+  display: none;
+}
+
+.metronome-drawer-body .wood-metronome {
+  width: min(276px, 76%);
 }

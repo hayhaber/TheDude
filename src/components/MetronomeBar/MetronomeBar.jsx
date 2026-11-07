@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useFitDrawer } from '../../hooks/useFitDrawer';
 import { createPortal } from 'react-dom';
 import { Metronome } from '../Metronome/Metronome';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -18,6 +19,9 @@ import './MetronomeBar.css';
 // hijack this drawer's fixed positioning (see TunerBar.jsx's comment).
 export function MetronomeBar({ metronome, drums }) {
   const [open, setOpen] = useState(false);
+  const drawerRef = useRef(null);
+  const bodyRef = useRef(null);
+  useFitDrawer(open, drawerRef, bodyRef);
   const { bpm } = metronome;
   // Lit for the click only — the drum machine's pill lights for the drums.
   const isRunning = metronome.isRunning && drums?.soundSource !== 'drum';
@@ -68,6 +72,7 @@ export function MetronomeBar({ metronome, drums }) {
         <>
           <div className={'metronome-drawer-scrim' + (open ? ' open' : '')} aria-hidden="true" onClick={() => setOpen(false)} />
           <div
+            ref={drawerRef}
             className={'metronome-drawer' + (open ? ' open' : '') + ''}
             role="dialog"
             aria-modal="true"
@@ -80,7 +85,7 @@ export function MetronomeBar({ metronome, drums }) {
                 ×
               </button>
             </div>
-            <div className="metronome-drawer-body">{open && <Metronome {...metronome} drums={drums} />}</div>
+            <div className="metronome-drawer-body" ref={bodyRef}>{open && <Metronome {...metronome} drums={drums} />}</div>
           </div>
         </>,
         document.body

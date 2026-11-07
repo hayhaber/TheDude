@@ -207,8 +207,8 @@ export function DrumMachine({
               </select>
             </label>
             <label className="dm-lcd dm-lcd-small">
-              <span className="dm-lbl">{t('metronome.timeSignature')}</span>
-              <select className="dm-select" value={beatsPerMeasure} onChange={(e) => setBeatsPerMeasure(Number(e.target.value))}>
+              <span className="dm-lbl">{t('drums.meter')}</span>
+              <select className="dm-select" value={beatsPerMeasure} aria-label={t('metronome.timeSignature')} onChange={(e) => setBeatsPerMeasure(Number(e.target.value))}>
                 {TIME_SIGNATURES.map((ts) => (
                   <option key={ts.beats} value={ts.beats}>
                     {ts.label}

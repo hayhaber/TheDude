@@ -543,6 +543,17 @@ no tools).
   TunerBar.jsx scales the device with CSS `zoom` to the room left when even
   that is too short (min 0.5; refit on resize). Checked 1024x460 (zoom
   0.79), 960x600, 1280x650, 1440x900, 390, 820: no scroll.
+- **Tool drawers never scroll (v1.0.154; user's computer: the drum
+  machine drawer scrolled both ways, Kit (v1.0.148) made 3 LCDs beside the
+  BPM display overflow)**: `hooks/useFitDrawer.js` (tuner, metronome and
+  drums drawers) zooms the drawer BODY (not React's root — and the ref must
+  be on the drawer, not the scrim) to the room left, rechecking because a
+  zoomed body lays out wider; metronome drawers max-height 100svh − 16,
+  overflow-x hidden. Drum machine top = the BPM display as its own row
+  (− 120 + BPM inline), then Style · Kit · Time (`drums.meter`) in one row
+  (grid 1.35 / 1.1 / 0.8). Metronome drawer: no duplicate title, wood
+  `min(276px, 76%)` so it is the drums drawer's height (610 vs 625 px).
+  Checked 1440x900, 1280x720, 1024x600 (zoom ~0.92), 390.
 - **No page bounce (v1.0.116, iPad: "the Learn page drags up and down")**:
   html + body `overscroll-behavior: none` (body had `contain`, which still
   lets iOS rubber-band the page itself — the bars moved with the finger;

@@ -2239,3 +2239,47 @@
 [dir='rtl'] .sw-pw-bar > .sw-btn.is-quiet .sw-icon {
   transform: scaleX(-1);
 }
+
+/* live recording meter (RecMeter): an LED equalizer */
+.sw-eq {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 3px;
+  height: 30px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #1c1c1e;
+  flex: none;
+}
+.sw-eq-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 6px;
+}
+.sw-eq-led {
+  flex: 1;
+  border-radius: 1.5px;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background-color 60ms linear;
+}
+.sw-eq-led.is-green.is-on {
+  background: #30d158;
+}
+.sw-eq-led.is-amber.is-on {
+  background: #ffd60a;
+}
+.sw-eq-led.is-red.is-on {
+  background: #ff453a;
+}
+.sw-eq.is-silent {
+  opacity: 0.5;
+}
+.sw-rec-silent {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--danger);
+}
+.sw-rec-strip:has(.sw-rec-silent) {
+  flex-wrap: wrap;
+}

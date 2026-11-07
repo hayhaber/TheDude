@@ -6,6 +6,7 @@ import { schedulePianoNotes } from '../../audio/pianoPlayer';
 import { MelodyLane, fixOverlaps } from './MelodyLane';
 import { laneFor } from './swHelpers';
 import { Icon } from './icons';
+import { RecMeter } from './RecMeter';
 import { fmt } from './LyricLine';
 import { ChordSuggest } from './ChordSuggest';
 
@@ -115,9 +116,8 @@ export function MelodyEditor({ song, line, inKey, audio, finding, recTick, onCha
                 <>
                   <span className="sw-rec-dot" />
                   <span className="sw-rec-time">{fmt(recTick.elapsed)}</span>
-                  <span className="sw-level">
-                    <span style={{ width: `${Math.min(100, Math.round(Math.sqrt(recTick.level) * 100))}%` }} />
-                  </span>
+                  <RecMeter bands={recTick.bands} silent={recTick.silent} label={t('sw.rec.meter')} />
+                  {recTick.silent && <span className="sw-rec-silent">{t('sw.rec.silent')}</span>}
                 </>
               )}
               {rec.phase === 'opening' && <span className="sw-muted">{t('sw.rec.opening')}</span>}

@@ -43,20 +43,28 @@ export function createSongRecorder() {
   async function openInput() {
     if (rig) return;
     setAudioSession('auto');
-    const c = ensureContext();
-    rig = await openLiveInput(c);
-    if (c.state !== 'running') {
-      try {
-        await Promise.race([c.resume(), new Promise((r) => setTimeout(r, 400))]);
-      } catch {
-        /* keep going */
-      }
+    let c2 = ensureContext();
+    rig = await openLiveInput(c2);
+    const settle = (p) => Promise.race([p.catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
+    if (c2.state !== 'running') await settle(c2.resume());
+    // iOS: a context made outside a tap (e.g. the Idea shortcut recording at
+    // once) can stay suspended = a silent take. WebKit lets a page that is
+    // capturing start a NEW context without a gesture — the tuner's fix.
+    if (c2.state !== 'running') {
+      rig.close();
+      rig = null;
+      c2.close().catch(() => {});
+      ctx = createLiveContext();
+      c2 = ctx;
+      await settle(c2.resume());
+      rig = await openLiveInput(c2);
+      if (c2.state !== 'running') await settle(c2.resume());
     }
-    analyser = c.createAnalyser();
+    analyser = c2.createAnalyser();
     analyser.fftSize = 1024;
     levelBuf = new Float32Array(analyser.fftSize);
     rig.input.connect(analyser);
-    cap = await createCapture(c, rig.input);
+    cap = await createCapture(c2, rig.input);
   }
 
   function closeInput() {
@@ -114,13 +122,52 @@ export function createSongRecorder() {
   /** Context time (for the count-in / beat display). */
   const now = () => (ctx ? ctx.currentTime : 0);
 
+  /** The samples for the meter: the capture's own (works on iOS), else the analyser's. */
+  function frame() {
+    const r = cap?.recent(1024);
+    if (r) return r;
+    if (!analyser) return null;
+    analyser.getFloatTimeDomainData(levelBuf);
+    return levelBuf;
+  }
+
   /** Input level 0..1 (peak) for the meter. */
   function level() {
-    if (!analyser) return 0;
-    analyser.getFloatTimeDomainData(levelBuf);
+    const f = frame();
+    if (!f) return 0;
     let p = 0;
-    for (const v of levelBuf) p = Math.max(p, Math.abs(v));
+    for (const v of f) p = Math.max(p, Math.abs(v));
     return p;
+  }
+
+  /**
+   * Equalizer-style bands for the live meter: n values 0..1, the energy in
+   * log-spaced bands across the voice / guitar range (110 Hz – 4 kHz),
+   * Goertzel per band centre, shown on a -60..0 dB scale.
+   */
+  function bands(n = 12) {
+    const f = frame();
+    const out = new Array(n).fill(0);
+    if (!f || !ctx) return out;
+    const sr = ctx.sampleRate;
+    const N = f.length;
+    for (let b = 0; b < n; b += 1) {
+      const hz = 110 * Math.pow(4000 / 110, b / (n - 1));
+      const w = (2 * Math.PI * hz) / sr;
+      const coeff = 2 * Math.cos(w);
+      let s1 = 0;
+      let s2 = 0;
+      for (let i = 0; i < N; i += 1) {
+        const win = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1));
+        const s0 = f[i] * win + coeff * s1 - s2;
+        s2 = s1;
+        s1 = s0;
+      }
+      const mag = Math.sqrt(Math.max(0, s1 * s1 + s2 * s2 - coeff * s1 * s2)) / (N / 4);
+      const db = 20 * Math.log10(mag + 1e-9);
+      out[b] = Math.max(0, Math.min(1, (db + 60) / 60));
+    }
+    return out;
   }
 
   /**
@@ -184,5 +231,5 @@ export function createSongRecorder() {
     if (IS_IOS) setAudioSession('auto');
   }
 
-  return { start, stop, cancel, level, now, closeInput, dispose, isRecording: () => !!take };
+  return { start, stop, cancel, level, bands, now, closeInput, dispose, isRecording: () => !!take };
 }

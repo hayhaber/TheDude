@@ -1689,6 +1689,21 @@ no tools).
   the preview's key / tempo); playback lights + scrolls to the sung line;
   a tempo change while playing restarts at the new tempo. Playwright 390
   HE + 1180 EN: tempo, try, lit line, tempo while playing, back, apply.
+- IDEA RECORDING ON iPAD + LIVE METER (v1.0.144; user: "on the iPad Ideas
+  doesn't record the hum; there must be a visible sign it records — a
+  moving light bar like an equalizer"). songRecorder `openInput()`: after
+  the mic opens, a context that is still not running (the Idea shortcut
+  records with no tap; iOS) is REPLACED by a new one and the input
+  reopened on it (the tuner's iPhone fix; resume bounded 400 ms). The
+  meter no longer reads the AnalyserNode (iOS WebKit gave zeros): the
+  capture worklet keeps a 2048-sample ring (`createCapture().recent(n)`,
+  recorder.js), songRecorder `level()` / `bands(12)` (Goertzel, log bands
+  110 Hz – 4 kHz, −60..0 dB) read it. `RecMeter.jsx` = an LED equalizer
+  (12 columns x 7 LEDs green / amber / red on a black plate, `.sw-eq*`)
+  in every recording strip (Ideas, a line, the melody sheet); useSongAudio
+  tick = {…, bands (slow fall), silent (pure zeros for 2 s)} ->
+  `sw.rec.silent` warning. Fake-mic hum: meter lit, idea saved (0:04).
+  NOT verified on the iPad.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

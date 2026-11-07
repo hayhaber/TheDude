@@ -8,6 +8,7 @@ import { useSongs } from './useSongs';
 import { useSongAudio } from './useSongAudio';
 import { SongEditor } from './SongEditor';
 import { Icon } from './icons';
+import { RecMeter } from './RecMeter';
 import { Peaks } from './Takes';
 import { DictationBox } from './DictationBox';
 import { fmt } from './LyricLine';
@@ -282,9 +283,8 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
                 <>
                   <span className="sw-rec-dot" />
                   <span className="sw-rec-time">{fmt(audio.tick.elapsed)}</span>
-                  <span className="sw-level">
-                    <span style={{ width: `${Math.min(100, Math.round(Math.sqrt(audio.tick.level) * 100))}%` }} />
-                  </span>
+                  <RecMeter bands={audio.tick.bands} silent={audio.tick.silent} label={t('sw.rec.meter')} />
+                  {audio.tick.silent && <span className="sw-rec-silent">{t('sw.rec.silent')}</span>}
                 </>
               ) : (
                 <span className="sw-muted">{recIdea.phase === 'saving' ? t('sw.rec.saving') : t('sw.rec.opening')}</span>

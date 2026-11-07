@@ -12,7 +12,7 @@ import { uid } from '../../music/songwriter/song';
 export function useSongAudio() {
   const recRef = useRef(null);
   const [rec, setRec] = useState(null); // { target, phase: 'count'|'rec'|'saving', begin, spb, bpb, downbeatAt }
-  const [tick, setTick] = useState({ beat: -1, level: 0, elapsed: 0 });
+  const [tick, setTick] = useState({ beat: -1, level: 0, elapsed: 0, bands: null, silent: false });
   const [playingTake, setPlayingTake] = useState(null);
   const [playing, setPlaying] = useState(null); // { scope, handle }
   const [pos, setPos] = useState(null); // seconds into the playing timeline
@@ -64,10 +64,19 @@ export function useSongAudio() {
         const spb = 60 / bpm;
         const state = { target, phase: click === 'off' ? 'rec' : 'count', begin, spb, bpb: beatsPerBar, downbeatAt };
         setRec(state);
+        // the meter: bands with a slow fall (LED ladder), and "nothing is
+        // arriving" after 2 s of pure digital silence
+        let shown = null;
+        let peak = 0;
+        const t0 = r.now();
         const loop = () => {
           const now = r.now();
           const beat = Math.floor((now - begin) / spb);
-          setTick({ beat, level: r.level(), elapsed: Math.max(0, now - (downbeatAt ?? begin)) });
+          const lvl = r.level();
+          peak = Math.max(peak, lvl);
+          const fresh = r.bands(12);
+          shown = shown ? fresh.map((v, i) => Math.max(v, shown[i] - 0.035)) : fresh;
+          setTick({ beat, level: lvl, elapsed: Math.max(0, now - (downbeatAt ?? begin)), bands: shown, silent: now - t0 > 2 && peak < 1e-5 });
           if (downbeatAt != null && now >= downbeatAt) setRec((s) => (s && s.phase === 'count' ? { ...s, phase: 'rec' } : s));
           raf.current = requestAnimationFrame(loop);
         };

@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { parseLine, words, chordsByWord } from '../../music/songwriter/lyrics';
 import { MelodyLane } from './MelodyLane';
 import { Icon } from './icons';
+import { RecMeter } from './RecMeter';
 
 /**
  * One lyric line: chords over the words (tap the space above a word = chord),
@@ -180,9 +181,8 @@ export function LyricLine({
             <>
               <span className="sw-rec-dot" />
               <span className="sw-rec-time">{fmt(recTick.elapsed)}</span>
-              <span className="sw-level">
-                <span style={{ width: `${Math.min(100, Math.round(Math.sqrt(recTick.level) * 100))}%` }} />
-              </span>
+              <RecMeter bands={recTick.bands} silent={recTick.silent} label={t('sw.rec.meter')} />
+              {recTick.silent && <span className="sw-rec-silent">{t('sw.rec.silent')}</span>}
             </>
           )}
           {recPhase === 'saving' && <span className="sw-muted">{t('sw.rec.finding')}</span>}

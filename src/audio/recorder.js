@@ -83,6 +83,12 @@ export async function createCapture(ctx, node) {
   let count = 0;
   let resolveStop = null;
   let startFrame = null;
+  // the last samples heard (while capturing) — for a live meter that does
+  // not depend on an AnalyserNode (iOS WebKit's gave zeros)
+  const RING = 2048;
+  const ring = new Float32Array(RING);
+  let ringAt = 0;
+  let ringFill = 0;
   cap.port.onmessage = (e) => {
     if (e.data && e.data.startFrame != null) {
       startFrame = e.data.startFrame;
@@ -103,16 +109,31 @@ export async function createCapture(ctx, node) {
     }
     chunks.push(e.data);
     count += e.data.length;
+    const d = e.data;
+    for (let i = Math.max(0, d.length - RING); i < d.length; i += 1) {
+      ring[ringAt] = d[i];
+      ringAt = (ringAt + 1) % RING;
+    }
+    ringFill = Math.min(RING, ringFill + d.length);
   };
   return {
     start() {
       chunks = [];
       count = 0;
+      ringFill = 0;
       startFrame = null;
       cap.port.postMessage('start');
     },
     /** Seconds captured so far. */
     elapsed: () => count / ctx.sampleRate,
+    /** The last n samples captured (oldest first), or null before any. */
+    recent(n = 1024) {
+      const k = Math.min(n, ringFill);
+      if (!k) return null;
+      const out = new Float32Array(k);
+      for (let i = 0; i < k; i += 1) out[i] = ring[(ringAt - k + i + RING) % RING];
+      return out;
+    },
     stop() {
       return new Promise((resolve) => {
         resolveStop = resolve;

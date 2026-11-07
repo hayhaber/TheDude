@@ -64,6 +64,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
   const [dictating, setDictating] = useState(false);
   const [performing, setPerforming] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  const [showTakes, setShowTakes] = useState(false);
   // The chord suggestion's preview: shown in the lyrics, not saved.
   const [preview, setPreview] = useState(null);
   const shown = preview ?? song;
@@ -209,6 +210,30 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
     }, 30);
   };
 
+  // Delete a take (from a line's Takes or the Recordings sheet): Undo in the
+  // toast; the audio itself goes only when the toast is gone.
+  const deleteTake = (secId, lineId, take) => {
+    let index = -1;
+    mapLine(secId, lineId, (l) => {
+      index = (l.takes ?? []).findIndex((x) => x.id === take.id);
+      return { ...l, takes: (l.takes ?? []).filter((x) => x.id !== take.id) };
+    });
+    let undone = false;
+    toast({
+      text: t('sw.take.deleted'),
+      action: t('sw.undo'),
+      onAction: () => {
+        undone = true;
+        mapLine(secId, lineId, (l) => {
+          const list = [...(l.takes ?? [])];
+          list.splice(Math.max(0, index), 0, take);
+          return { ...l, takes: list };
+        });
+      },
+      onExpire: () => !undone && deleteAudio(take.id),
+    });
+  };
+
   const findNotes = (secId, lineId, take, a) => {
     let res;
     try {
@@ -336,6 +361,10 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           <button type="button" className="more-menu-item" onClick={() => setSuggesting(true)}>
             <Icon name="spark" />
             {t('sw.pw.menu')}
+          </button>
+          <button type="button" className="more-menu-item" onClick={() => setShowTakes(true)}>
+            <Icon name="mic" />
+            {t('sw.takes.all')}
           </button>
           <button type="button" className="more-menu-item" onClick={toggleRhymes} aria-pressed={rhymesOn}>
             <Icon name={rhymesOn ? 'check' : 'rhyme'} />
@@ -660,10 +689,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
                           melodyFrom={line.melody?.from}
                           audio={audio}
                           onNotes={(take) => notesFromTake(sec.id, line.id, take)}
-                          onDelete={(take) => {
-                            mapLine(sec.id, line.id, (l) => ({ ...l, takes: (l.takes ?? []).filter((x) => x.id !== take.id) }));
-                            deleteAudio(take.id);
-                          }}
+                          onDelete={(take) => deleteTake(sec.id, line.id, take)}
                         />
                       }
                     />
@@ -731,6 +757,45 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           onClose={() => setPicker(null)}
           isValid={validChord}
         />
+      )}
+
+      {showTakes && (
+        <div className="sw-sheet-back" onPointerDown={(e) => e.target === e.currentTarget && setShowTakes(false)}>
+          <div className="sw-sheet sw-takes-sheet" role="dialog" aria-label={t('sw.takes.all')} dir={dir}>
+            <header className="sw-sheet-head">
+              <div>
+                <h2>{t('sw.takes.all')}</h2>
+                <p className="sw-sheet-line">{t('sw.takes.allSub')}</p>
+              </div>
+              <button type="button" className="sw-btn" onClick={() => setShowTakes(false)}>
+                {t('sw.done')}
+              </button>
+            </header>
+            {song.sections.every((sec) => sec.lines.every((l) => !l.takes?.length)) ? (
+              <p className="sw-group-empty">{t('sw.takes.none')}</p>
+            ) : (
+              song.sections.flatMap((sec) =>
+                sec.lines
+                  .filter((l) => l.takes?.length)
+                  .map((l) => (
+                    <section key={l.id} className="sw-takes-line">
+                      <h3 dir="auto">{parseLine(l.raw).text.trim() || t('sw.line.empty')}</h3>
+                      <Takes
+                        takes={l.takes}
+                        melodyFrom={l.melody?.from}
+                        audio={audio}
+                        onNotes={(take) => {
+                          setShowTakes(false);
+                          notesFromTake(sec.id, l.id, take);
+                        }}
+                        onDelete={(take) => deleteTake(sec.id, l.id, take)}
+                      />
+                    </section>
+                  ))
+              )
+            )}
+          </div>
+        </div>
       )}
 
       {suggesting && (

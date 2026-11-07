@@ -44,7 +44,16 @@ export function MoreMenu({ label, children, align = 'end' }) {
         </svg>
       </button>
       {open && (
-        <div className="more-menu-pop" role="menu" ref={popRef}>
+        <div
+          className="more-menu-pop"
+          role="menu"
+          ref={popRef}
+          // an action row closes the menu (as on iOS); switches stay open
+          onClick={(e) => {
+            const item = e.target.closest?.('button.more-menu-item');
+            if (item && !item.hasAttribute('aria-pressed') && !item.dataset.keep) setOpen(false);
+          }}
+        >
           {typeof children === 'function' ? children(() => setOpen(false)) : children}
         </div>
       )}

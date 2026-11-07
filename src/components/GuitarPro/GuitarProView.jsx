@@ -209,6 +209,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
               <button
                 type="button"
                 className="more-menu-item is-danger"
+                data-keep={confirmDelete !== sheet.id ? '1' : undefined}
                 onClick={async () => {
                   if (confirmDelete !== sheet.id) {
                     setConfirmDelete(sheet.id);
@@ -228,6 +229,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
               <button
                 type="button"
                 className="more-menu-item is-danger"
+                data-keep={confirmDelete !== solo.id ? '1' : undefined}
                 onClick={() => {
                   if (confirmDelete === solo.id) {
                     setConfirmDelete(null);

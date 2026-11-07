@@ -734,6 +734,7 @@ function Player({ trainer, t, lang, variant, busy, looping, pm, tempoOptions, co
               <button
                 type="button"
                 className="more-menu-item is-danger"
+                data-keep={confirmDelete !== lick.id ? '1' : undefined}
                 onClick={() => {
                   if (confirmDelete === lick.id) {
                     setConfirmDelete(null);

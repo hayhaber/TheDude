@@ -1763,6 +1763,15 @@ no tools).
   the staff system; re-measured after every render (`layoutN`), the line
   kept in view. Playwright (seeded song, 100 BPM): the box moved note by
   note (1.8 s = the 3rd note), no errors.
+- TAKES (v1.0.151; user: "after recording a take there's no way to
+  delete it" — the trash icon existed but Takes only shows for the
+  SELECTED line, and his selected line had none): editor ••• "Recordings"
+  (`showTakes`, `.sw-takes-sheet`) lists every take of the song by line
+  (play / notes / delete); `deleteTake()` = toast "Take deleted" + Undo
+  (back at its index), the audio is deleted on the toast's expiry. MoreMenu
+  now CLOSES when a `.more-menu-item` button is chosen, except toggles
+  (aria-pressed) and `data-keep` (the first tap of a two-tap delete in
+  GuitarPro / Lick Trainer).
 - EMPTY SONGS + DELETE FROM THE LIST (v1.0.146; user's iPad: a list of
   "Untitled · 0 lines" songs that couldn't be deleted). "New" creates a
   song at once, so every New -> back left an empty one. `isEmptySong()`

@@ -23,6 +23,7 @@ import '../ChordLibrary/ChordLibraryView.css';
 import { TRY_IN } from '../../teacher/tryIn';
 import { TryIn } from './TryIn';
 import { BasicsVisual } from './BasicsVisual';
+import { ChordChart, StrumPattern } from './RhythmBits';
 
 const midisOf = (frets) => frets.map((f, s) => (f == null ? null : STD_TUNING[s] + f)).filter((m) => m != null);
 
@@ -81,6 +82,17 @@ function ExplainStep({ step, tx, leftHanded }) {
           <HearButton name={step.shape} />
         </div>
       )}
+      <RhythmPictures step={step} />
+    </>
+  );
+}
+
+/** A step's strum pattern and / or chord chart (level-1 rhythm lessons). */
+function RhythmPictures({ step }) {
+  return (
+    <>
+      {step.strum && <StrumPattern {...step.strum} bpm={step.strum.bpm ?? step.metronome ?? 70} />}
+      {step.chart && <ChordChart {...step.chart} bpm={step.chart.bpm ?? step.metronome ?? 70} />}
     </>
   );
 }
@@ -158,6 +170,7 @@ function ChecklistStep({ step, tx, ticks, setTicks, metro }) {
   return (
     <>
       {step.text && <p className="tc-text">{tx(step.text)}</p>}
+      <RhythmPictures step={step} />
       {step.metronome && <MetroBox bpm={step.metronome} metro={metro} groove={step.groove ?? null} />}
       <ul className="tc-checklist">
         {step.items.map((item, i) => (
@@ -537,11 +550,12 @@ export function LessonPlayer({ lesson, onClose, onStage, metro }) {
   }, [lesson.id, i]);
 
   // The neck below shows the chord this step is about (empty otherwise).
-  const shape = finished ? null : step.shape ?? step.chord ?? step.stage ?? null;
+  const shape = finished ? null : step.shape ?? step.chord ?? step.stage ?? step.strum?.chord ?? null;
   useEffect(() => {
     // tuner / one-minute changes have their own display: no neck under them
     // (a picture step shows the neck only when it is about a chord on it)
-    const noNeck = !finished && (step.kind === 'tune' || step.kind === 'changes' || (step.kind === 'visual' && !step.stage));
+    const noNeck = !finished && (step.kind === 'tune' || step.kind === 'changes' || (step.kind === 'visual' && !step.stage) || (!!step.chart && !shape));
+    // (a chord chart needs the room more than an empty neck)
     if (!finished && step.kind === 'play') return; // PlayStep draws its own (with the current note)
     if (!finished && step.kind === 'arp') {
       onStage?.(arpStage(step.arp, step.labels));

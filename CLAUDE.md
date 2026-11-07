@@ -1494,6 +1494,26 @@ no tools).
   fake mic -> the play step heard all 11 notes. The old D-A lesson still has
   its own tune / posture / strings steps (repeat for level-0 students).
 
+- LEVEL 1 written (v1.0.156, 2026-11-07, user: "start"; the USER reviews
+  them): method = JustinGuitar's beginner order (D, A, then E; one-minute
+  changes per new pair; strumming on a hand that never stops: quarters ->
+  down-up eighths -> the common pop pattern D-DU-UDU; change on the last
+  "and" with open strings) + RSL Debut rhythm in 4/4. `g1-chord-E` (E =
+  Em + index on string 3 fret 1, G -> G♯ = minor -> major 3rd; mic check;
+  quiz; D->E guide finger on string 3; changes A–E + D–E; I / IV / V in A),
+  `g1-strumming` (4 checklists with MetroBox, the common pattern with the
+  rock groove, A–D–A–E loop chart), `g1-first-song` (chart reading, our own
+  8-bar song A A D A | A E D A, the 12-bar blues in A with the blues
+  groove, quiz bar 9 = V). New skills strum-eighths / strum-pattern /
+  strum-change / song-chart / song-12bar (self). Step fields `strum
+  {pattern (8 slots D/U/-), chord}` and `chart {bars, pattern?}` drawn by
+  `components/Teacher/RhythmBits.jsx` (StrumPattern: 1 & 2 & … — Hebrew
+  "ו" — with the playing slot lit; ChordChart: 4 bars a row, the playing
+  bar lit; both have Hear at the step's tempo); a strum step shows its
+  chord on the neck, a chart step has no neck. TRY_IN rows for the three.
+  Pure check: every skill / shape / pattern valid, E = E B E G♯ B E, path
+  little: D-A -> E -> strumming -> first song. Playwright walked all three
+  (HE + EN), Hear lights slots / bars. NOT verified with a real guitar.
 - Plan doc (Docs artifact): https://claude.ai/artifact/CeJC6CVwAu6KmqVXyjPQ46 —
   user approved: Coach merged into the Teacher, guitar levels 0–3 first, no
   AI chat in phase 1, Claude writes lessons and the USER reviews level 1

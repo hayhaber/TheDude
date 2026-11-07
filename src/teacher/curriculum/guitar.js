@@ -86,6 +86,11 @@ export const SKILLS = [
   { id: 'changes-AE', domain: 'fretting', level: 1, after: ['chord-A', 'chord-E'], title: L('A–E changes, 30 a minute', `החלפות ${H('A–E')}, 30 בדקה`), check: { kind: 'changes', pair: ['A', 'E'], min: 30 } },
   { id: 'changes-DE', domain: 'fretting', level: 1, after: ['chord-D', 'chord-E'], title: L('D–E changes, 30 a minute', `החלפות ${H('D–E')}, 30 בדקה`), check: { kind: 'changes', pair: ['D', 'E'], min: 30 } },
   { id: 'strum-down', domain: 'rhythm', level: 0, title: L('Down strums in time', 'פריטה למטה בזמן'), check: { kind: 'self' } },
+  { id: 'strum-eighths', domain: 'rhythm', level: 1, after: ['strum-down'], title: L('Down-up eighth strums', 'פריטות שמיניות למטה־למעלה'), check: { kind: 'self' } },
+  { id: 'strum-pattern', domain: 'rhythm', level: 1, after: ['strum-eighths'], title: L('The common strum pattern', 'דפוס הפריטה הנפוץ'), check: { kind: 'self' } },
+  { id: 'strum-change', domain: 'rhythm', level: 1, after: ['strum-pattern', 'changes-AD'], title: L('Changing chords without stopping the strum', 'החלפת אקורד בלי לעצור את הפריטה'), check: { kind: 'self' } },
+  { id: 'song-chart', domain: 'repertoire', level: 1, title: L('Play a song from a chord chart', 'לנגן שיר מטבלת אקורדים'), check: { kind: 'self' } },
+  { id: 'song-12bar', domain: 'repertoire', level: 1, after: ['changes-AE', 'changes-AD'], title: L('12-bar blues in A', `בלוז 12 תיבות ב־${H('A')}`), check: { kind: 'self' } },
   { id: 'chord-Am', domain: 'fretting', level: 2, after: ['chord-A'], title: L('Am chord', `אקורד ${H('Am')}`), check: { kind: 'chord', chord: 'Am' } },
   { id: 'chord-Em', domain: 'fretting', level: 0, title: L('Em chord', `אקורד ${H('Em')}`), check: { kind: 'chord', chord: 'Em' } },
   { id: 'chord-Dm', domain: 'fretting', level: 2, after: ['chord-D'], title: L('Dm chord', `אקורד ${H('Dm')}`), check: { kind: 'chord', chord: 'Dm' } },
@@ -960,15 +965,296 @@ const lessonFirstChord = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// LEVEL 1 (RSL Debut), written 2026-11-07. Method: JustinGuitar's beginner
+// course order — D, A, then E; one-minute changes for each new pair; then
+// strumming built on a hand that never stops (down on the numbers, up on
+// "and"), quarter notes -> eighths -> the common pop pattern; then a first
+// song from a chord chart and the 12-bar blues (I–IV–V in A) — the Debut
+// grade's rhythm work in 4/4 with quarter and eighth strums. Text is our own.
+// ---------------------------------------------------------------------------
+
+const lessonChordE = {
+  id: 'g1-chord-E',
+  level: 1,
+  title: L('E chord and three-chord changes', `האקורד ${H('E')} ומעבר בין שלושה`),
+  objective: L(
+    'Play E with all six strings ringing and change between A, D and E.',
+    `לנגן ${H('E')} כשכל ששת המיתרים מצלצלים, ולעבור בין ${H('A')}, ${H('D')} ו־${H('E')}.`
+  ),
+  minutes: 20,
+  skills: ['chord-E', 'changes-AE', 'changes-DE'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Today’s lesson', 'השיעור של היום'),
+      text: L(
+        'One new chord, E — and with it you have A, D and E: the three main chords of the key of A. Hundreds of songs use only these three.',
+        `אקורד חדש אחד, ${H('E')} — ואיתו יש לך ${H('A')}, ${H('D')} ו־${H('E')}: שלושת האקורדים העיקריים של סולם ${H('A')}. מאות שירים משתמשים רק בשלושה האלה.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('E = Em plus one finger', `${H('E')} = ${H('Em')} ועוד אצבע אחת`),
+      shape: 'E',
+      text: L(
+        'You already know Em: middle finger (2) on string 5, ring finger (3) on string 4, both at fret 2. Keep them and add the index finger (1) on string 3, fret 1. That finger turns G into G♯ — the minor 3rd becomes the major 3rd. E major = E (the root), G♯ (the major 3rd) and B (the 5th). All six strings are played.',
+        `את ${H('Em')} אתה כבר מכיר: אמה (2) על מיתר 5, קמיצה (3) על מיתר 4, שתיהן בשריג 2. השאר אותן והוסף את האצבע המורה (1) על מיתר 3, שריג 1. האצבע הזו הופכת את ${H('G')} ל־${H('G♯')} — הטרצה הקטנה הופכת לטרצה גדולה. ${H('E')} מז׳ור = ${H('E')} (היסוד), ${H('G♯')} (הטרצה הגדולה) ו־${H('B')} (הקווינטה). מנגנים את כל ששת המיתרים.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'E',
+      title: L('Play E', `נגן ${H('E')}`),
+      text: L(
+        'Pick string by string from 6 to 1 — every string rings. If string 2 or 1 is dead, the index finger is leaning on it: arch it and press with its very tip. Then strum and let the teacher listen.',
+        'פרוט מיתר אחרי מיתר מ־6 עד 1 — כל מיתר מצלצל. אם מיתר 2 או 1 מת, האצבע המורה נשענת עליו: קשת אותה ולחץ עם הקצה ממש. אחר כך פרוט ותן למורה להקשיב.'
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'em-to-e',
+      title: L('Minor to major', 'ממינור למז׳ור'),
+      question: L('What makes E different from Em?', `מה מבדיל בין ${H('E')} ל־${H('Em')}?`),
+      options: [
+        L('The index finger on string 3, fret 1 — it raises the 3rd by a semitone', 'האצבע המורה על מיתר 3, שריג 1 — היא מעלה את הטרצה בחצי טון'),
+        L('E is played on five strings only', `את ${H('E')} מנגנים רק על חמישה מיתרים`),
+        L('The whole shape moves up one fret', 'כל הצורה זזה שריג אחד למעלה'),
+      ],
+      answer: 0,
+      why: L(
+        'Em has G, the minor 3rd. Pressing string 3 at fret 1 makes it G♯, the major 3rd — root and 5th stay the same. One semitone changes the whole colour of the chord.',
+        `ב־${H('Em')} יש ${H('G')}, הטרצה הקטנה. לחיצה על מיתר 3 בשריג 1 הופכת אותו ל־${H('G♯')}, הטרצה הגדולה — היסוד והקווינטה נשארים. חצי טון אחד משנה את כל הצבע של האקורד.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('Changing to E', `המעבר ל־${H('E')}`),
+      text: L(
+        'D to E: the index finger stays on string 3 — it just slides back from fret 2 to fret 1 while the other two fingers jump to strings 5 and 4. Keep it lightly touching the string: it is your guide finger. A to E: no finger stays, so move the shape as one — look at it in the air before you land, then press all three together.',
+        `מ־${H('D')} ל־${H('E')}: האצבע המורה נשארת על מיתר 3 — היא רק מחליקה אחורה משריג 2 לשריג 1, ושתי האצבעות האחרות קופצות למיתרים 5 ו־4. השאר אותה נוגעת קלות במיתר: היא אצבע המנחה שלך. מ־${H('A')} ל־${H('E')}: אף אצבע לא נשארת, אז הזז את הצורה כיחידה אחת — ראה אותה באוויר לפני הנחיתה, ולחץ את שלוש האצבעות יחד.`
+      ),
+    },
+    {
+      kind: 'changes',
+      pair: ['A', 'E'],
+      title: L('One-minute changes: A and E', `החלפות בדקה: ${H('A')} ו־${H('E')}`),
+      text: L(
+        'One strum on A, one on E, for 60 seconds. Clean first, fast later.',
+        `פריטה אחת על ${H('A')}, אחת על ${H('E')}, במשך 60 שניות. קודם נקי, מהר אחר כך.`
+      ),
+    },
+    {
+      kind: 'changes',
+      pair: ['D', 'E'],
+      title: L('One-minute changes: D and E', `החלפות בדקה: ${H('D')} ו־${H('E')}`),
+      text: L(
+        'Now D and E. Remember the guide finger on string 3.',
+        `עכשיו ${H('D')} ו־${H('E')}. זכור את אצבע המנחה על מיתר 3.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('Why these three?', 'למה דווקא שלושה אלה?'),
+      text: L(
+        'In the key of A, A is the I chord — the tonic, home. D is the IV — the subdominant, a step away. E is the V — the dominant: it leans back towards home, so a song often ends E → A. Next lesson: strumming, so these chords become music.',
+        `בסולם ${H('A')}, ${H('A')} הוא האקורד ${H('I')} — הטוניקה, הבית. ${H('D')} הוא ${H('IV')} — הסובדומיננטה, צעד החוצה. ${H('E')} הוא ${H('V')} — הדומיננטה: הוא נמשך בחזרה הביתה, ולכן שיר נגמר הרבה פעמים ב־${H('E → A')}. בשיעור הבא: פריטה, כדי שהאקורדים יהפכו למוזיקה.`
+      ),
+    },
+  ],
+  homework: [
+    { id: 'ae-changes', kind: 'changes', pair: ['A', 'E'], min: 30, perDay: 1, text: L('One-minute changes A–E, once a day. Goal: 30.', `החלפות בדקה ${H('A–E')}, פעם ביום. יעד: 30.`) },
+    { id: 'de-changes', kind: 'changes', pair: ['D', 'E'], min: 30, perDay: 1, text: L('One-minute changes D–E, once a day. Goal: 30.', `החלפות בדקה ${H('D–E')}, פעם ביום. יעד: 30.`) },
+    { id: 'e-check', kind: 'self', text: L('Every day: build E string by string until all six ring.', `כל יום: בנה ${H('E')} מיתר אחרי מיתר עד שכל השישה מצלצלים.`) },
+  ],
+};
+
+const lessonStrumming = {
+  id: 'g1-strumming',
+  level: 1,
+  title: L('Strumming in time', 'פריטה בזמן'),
+  objective: L(
+    'Keep the strumming hand moving down and up in time, play the common strum pattern and change chords without stopping.',
+    'להחזיק את יד הפריטה בתנועה למטה ולמעלה בזמן, לנגן את דפוס הפריטה הנפוץ ולהחליף אקורד בלי לעצור.'
+  ),
+  minutes: 20,
+  skills: ['strum-down', 'strum-eighths', 'strum-pattern', 'strum-change'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('The hand that never stops', 'היד שלא עוצרת'),
+      text: L(
+        'Good rhythm comes from one habit: the strumming hand swings like a pendulum — down on every number (1 2 3 4), up on every “and” between them — all the time, whether it hits the strings or not. The hand keeps the time; the pattern only decides which swings touch the strings.',
+        'קצב טוב בא מהרגל אחד: יד הפריטה מתנדנדת כמו מטוטלת — למטה על כל מספר (1 2 3 4), למעלה על כל "ו" ביניהם — כל הזמן, בין אם היא פוגעת במיתרים ובין אם לא. היד מחזיקה את הזמן; הדפוס רק קובע אילו תנועות נוגעות במיתרים.'
+      ),
+    },
+    {
+      kind: 'checklist',
+      skill: 'strum-down',
+      metronome: 70,
+      title: L('Quarter notes: down on the beat', 'רבעים: למטה על הפעמה'),
+      text: L('Hold A. Strum down on every click; let the hand come back up between clicks without touching the strings.', `החזק ${H('A')}. פרוט למטה על כל נקישה; תן ליד לחזור למעלה בין הנקישות בלי לגעת במיתרים.`),
+      strum: { pattern: 'D-D-D-D-', chord: 'A' },
+      items: [
+        L('Every down strum lands on a click.', 'כל פריטה למטה נוחתת על נקישה.'),
+        L('The hand moves the whole time — it doesn’t freeze between strums.', 'היד זזה כל הזמן — היא לא קופאת בין הפריטות.'),
+      ],
+    },
+    {
+      kind: 'checklist',
+      skill: 'strum-eighths',
+      metronome: 60,
+      title: L('Eighth notes: down and up', 'שמיניות: למטה ולמעלה'),
+      text: L(
+        'Same swing, now the up stroke touches the strings too: down on the number, up on “and”. Count out loud “1 and 2 and 3 and 4 and”. The up stroke catches only the thinner strings — that is right.',
+        'אותה תנועה, עכשיו גם התנועה למעלה נוגעת במיתרים: למטה על המספר, למעלה על "ו". ספור בקול "1 ו 2 ו 3 ו 4 ו". התנועה למעלה תופסת רק את המיתרים הדקים — זה נכון.'
+      ),
+      strum: { pattern: 'DUDUDUDU', chord: 'A' },
+      items: [
+        L('Eight even strums per bar, two per click.', 'שמונה פריטות שוות בתיבה, שתיים בכל נקישה.'),
+        L('The down strums on the numbers sound a little stronger.', 'הפריטות למטה על המספרים חזקות מעט יותר.'),
+      ],
+    },
+    {
+      kind: 'checklist',
+      skill: 'strum-pattern',
+      metronome: 60,
+      groove: 'rock',
+      title: L('The common strum pattern', 'דפוס הפריטה הנפוץ'),
+      text: L(
+        'Down, down-up, up-down-up: 1, 2 &, & 4 &. The hand still swings eight times a bar — it just misses the strings on the “and” after 1 and on 3. Hear it first, then play along. This one pattern fits a huge number of pop and rock songs.',
+        'למטה, למטה־למעלה, למעלה־למטה־למעלה: 1, 2 ו, ו 4 ו. היד עדיין מתנדנדת שמונה פעמים בתיבה — היא רק מחטיאה את המיתרים על ה"ו" שאחרי 1 ועל 3. קודם שמע, אחר כך נגן יחד. הדפוס האחד הזה מתאים למספר עצום של שירי פופ ורוק.'
+      ),
+      strum: { pattern: 'D-DU-UDU', chord: 'A' },
+      items: [
+        L('Four bars in a row without stopping.', 'ארבע תיבות ברצף בלי לעצור.'),
+        L('On beat 3 the hand passes down over the strings without touching them.', 'בפעמה 3 היד עוברת למטה מעל המיתרים בלי לגעת בהם.'),
+        L('It still feels like the click is in the right place.', 'עדיין מרגיש שהנקישה במקום הנכון.'),
+      ],
+    },
+    {
+      kind: 'explain',
+      title: L('Changing without stopping', 'להחליף בלי לעצור'),
+      text: L(
+        'The secret of changing in time: the very last up strum of the bar (the “and” of 4) is played on open strings while the fingers are already moving to the next chord. Nobody hears it — but the time never breaks. Land the new chord on the next “1”.',
+        'הסוד של החלפה בזמן: הפריטה האחרונה למעלה בתיבה (ה"ו" של 4) מנוגנת על מיתרים פתוחים בזמן שהאצבעות כבר זזות לאקורד הבא. אף אחד לא שומע את זה — אבל הזמן לא נשבר. נחת על האקורד החדש ב"1" הבא.'
+      ),
+    },
+    {
+      kind: 'checklist',
+      skill: 'strum-change',
+      metronome: 60,
+      title: L('A, D, A, E — one bar each', `${H('A, D, A, E')} — תיבה לכל אחד`),
+      text: L('The common pattern, one bar per chord, round and round. Hear it first.', 'הדפוס הנפוץ, תיבה לכל אקורד, שוב ושוב. קודם שמע.'),
+      chart: { bars: ['A', 'D', 'A', 'E'], pattern: 'D-DU-UDU' },
+      items: [
+        L('The strumming hand never stops, even during the change.', 'יד הפריטה לא עוצרת אף פעם, גם בזמן ההחלפה.'),
+        L('Each new chord rings on the “1”.', 'כל אקורד חדש מצלצל ב"1".'),
+        L('Three times round without a break.', 'שלושה סיבובים בלי הפסקה.'),
+      ],
+    },
+  ],
+  homework: [
+    { id: 'strum-hw', kind: 'self', text: L('3 minutes a day: the common pattern on A at 60, then on the A–D–A–E loop.', `3 דקות ביום: הדפוס הנפוץ על ${H('A')} ב־60, ואז על הלולאה ${H('A–D–A–E')}.`) },
+    { id: 'strum-speed', kind: 'self', text: L('When it is easy at 60, move the metronome up by 5 — never more.', 'כשזה קל ב־60, העלה את המטרונום ב־5 — לא יותר.') },
+  ],
+};
+
+const lessonFirstSong = {
+  id: 'g1-first-song',
+  level: 1,
+  title: L('Your first song', 'השיר הראשון שלך'),
+  objective: L(
+    'Read a chord chart and play two songs with A, D and E: an 8-bar song and the 12-bar blues.',
+    `לקרוא טבלת אקורדים ולנגן שני שירים עם ${H('A')}, ${H('D')} ו־${H('E')}: שיר של 8 תיבות והבלוז של 12 תיבות.`
+  ),
+  minutes: 25,
+  skills: ['song-chart', 'song-12bar'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Reading a chord chart', 'לקרוא טבלת אקורדים'),
+      text: L(
+        'A chord chart shows a song as boxes: each box is one bar — four beats — and the chord written in it is held for the whole bar. Read left to right, row by row, like text in English. This song is ours, written for this lesson: two lines of four bars.',
+        'טבלת אקורדים מציגה שיר כקופסאות: כל קופסה היא תיבה אחת — ארבע פעמות — והאקורד שכתוב בה מוחזק לאורך כל התיבה. קוראים משמאל לימין, שורה אחרי שורה, כמו טקסט באנגלית. השיר הזה שלנו, נכתב לשיעור הזה: שתי שורות של ארבע תיבות.'
+      ),
+      chart: { bars: ['A', 'A', 'D', 'A', 'A', 'E', 'D', 'A'], bpm: 70 },
+    },
+    {
+      kind: 'checklist',
+      skill: 'song-chart',
+      metronome: 70,
+      title: L('Play the 8-bar song', 'נגן את השיר של 8 התיבות'),
+      text: L('Down strums on every beat first. When it flows, use the common pattern at 60.', 'קודם פריטה למטה על כל פעמה. כשזה זורם, השתמש בדפוס הנפוץ ב־60.'),
+      chart: { bars: ['A', 'A', 'D', 'A', 'A', 'E', 'D', 'A'] },
+      items: [
+        L('All eight bars without stopping.', 'כל שמונה התיבות בלי לעצור.'),
+        L('Every change lands on the “1” of its bar.', 'כל החלפה נוחתת ב"1" של התיבה שלה.'),
+        L('Twice through in a row.', 'פעמיים ברצף.'),
+      ],
+    },
+    {
+      kind: 'explain',
+      title: L('The 12-bar blues', 'הבלוז של 12 תיבות'),
+      text: L(
+        'The most played song form there is — blues, rock ’n’ roll, a thousand hits. Twelve bars, three chords: four bars of A (I, home), two of D (IV), two of A, then E (V) – D (IV) – A (I), and the last bar is E: the dominant that pulls you back to the top. Hear it.',
+        `תבנית השיר הכי מנוגנת שיש — בלוז, רוקנרול, אלף להיטים. שתים־עשרה תיבות, שלושה אקורדים: ארבע תיבות של ${H('A')} (${H('I')}, הבית), שתיים של ${H('D')} (${H('IV')}), שתיים של ${H('A')}, ואז ${H('E')} (${H('V')}) – ${H('D')} (${H('IV')}) – ${H('A')} (${H('I')}), והתיבה האחרונה היא ${H('E')}: הדומיננטה שמושכת אותך חזרה להתחלה. שמע.`
+      ),
+      chart: { bars: ['A', 'A', 'A', 'A', 'D', 'D', 'A', 'A', 'E', 'D', 'A', 'E'], bpm: 80 },
+    },
+    {
+      kind: 'quiz',
+      id: 'blues-bar9',
+      title: L('Know the form', 'להכיר את התבנית'),
+      question: L('In the 12-bar blues in A, which chord is in bar 9?', `בבלוז של 12 תיבות ב־${H('A')}, איזה אקורד בתיבה 9?`),
+      options: [L('E — the V', `${H('E')} — ה־${H('V')}`), L('D — the IV', `${H('D')} — ה־${H('IV')}`), L('A — the I', `${H('A')} — ה־${H('I')}`)],
+      answer: 0,
+      why: L(
+        'Bars 9–12 are V – IV – I – V: the tension (E), a step back (D), home (A), and E again to start the next round.',
+        `תיבות 9–12 הן ${H('V – IV – I – V')}: המתח (${H('E')}), צעד אחורה (${H('D')}), הבית (${H('A')}), ושוב ${H('E')} כדי להתחיל סיבוב חדש.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      skill: 'song-12bar',
+      metronome: 80,
+      groove: 'blues',
+      title: L('Play the blues with the drums', 'נגן את הבלוז עם התופים'),
+      text: L(
+        'Down strums on every beat, with the drums (or the click). Say the bar numbers in your head — after a few rounds the form plays itself.',
+        'פריטה למטה על כל פעמה, עם התופים (או הנקישה). ספור את מספרי התיבות בראש — אחרי כמה סיבובים התבנית מתנגנת לבד.'
+      ),
+      chart: { bars: ['A', 'A', 'A', 'A', 'D', 'D', 'A', 'A', 'E', 'D', 'A', 'E'] },
+      items: [
+        L('Twelve bars without getting lost.', 'שתים־עשרה תיבות בלי ללכת לאיבוד.'),
+        L('Two rounds in a row.', 'שני סיבובים ברצף.'),
+        L('The changes to E and back are on time.', `ההחלפות ל־${H('E')} ובחזרה בזמן.`),
+      ],
+    },
+    {
+      kind: 'explain',
+      title: L('Level 1 done', 'רמה 1 הושלמה'),
+      text: L(
+        'Three chords, strumming in time, a song from a chart and the blues — that is the Debut grade. Next level: the minor chords Am, Em and Dm, then G and C, and with them most of the songs you know.',
+        `שלושה אקורדים, פריטה בזמן, שיר מטבלה והבלוז — זו רמת הפתיחה. ברמה הבאה: אקורדי המינור ${H('Am')}, ${H('Em')} ו־${H('Dm')}, אחר כך ${H('G')} ו־${H('C')}, ואיתם רוב השירים שאתה מכיר.`
+      ),
+    },
+  ],
+  homework: [
+    { id: 'blues-hw', kind: 'self', text: L('Once a day: the 12-bar blues twice through with the drums.', 'פעם ביום: הבלוז של 12 תיבות פעמיים ברצף עם התופים.') },
+    { id: 'song-hw', kind: 'self', text: L('Once a day: the 8-bar song with the common pattern.', 'פעם ביום: השיר של 8 התיבות עם הדפוס הנפוץ.') },
+  ],
+};
+
 export const LESSONS = [
   lessonBasics,
   lessonFirstNote,
   lessonCleanNotes,
   lessonFirstChord,
   lessonFirstChords,
-  { id: 'g1-chord-E', level: 1, title: L('E chord and three-chord changes', `האקורד ${H('E')} ומעבר בין שלושה`), skills: ['chord-E', 'changes-AE', 'changes-DE'] },
-  { id: 'g1-strumming', level: 1, title: L('Strumming in time', 'פריטה בזמן'), skills: ['strum-down'] },
-  { id: 'g1-first-song', level: 1, title: L('Your first song', 'השיר הראשון שלך'), skills: [] },
+  lessonChordE,
+  lessonStrumming,
+  lessonFirstSong,
   { id: 'g2-minor-chords', level: 2, title: L('Am, Em and Dm', `${H('Am')}, ${H('Em')} ו־${H('Dm')}`), skills: ['chord-Am', 'chord-Em', 'chord-Dm'] },
   { id: 'g2-G-C', level: 2, title: L('G and C', `${H('G')} ו־${H('C')}`), skills: ['chord-G', 'chord-C'] },
   lessonArpeggios,

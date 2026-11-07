@@ -11,6 +11,12 @@ export const TRY_IN = {
     { tool: 'chordChanges', chords: ['D', 'A'], bpm: 60 },
     { tool: 'chordLibrary', root: 2, type: 'major', name: 'D' },
   ],
+  'g1-chord-E': [
+    { tool: 'minuteChanges', chords: ['A', 'E'] },
+    { tool: 'chordLibrary', root: 4, type: 'major', name: 'E' },
+  ],
+  'g1-strumming': [{ tool: 'chordChanges', chords: ['A', 'D'], bpm: 60 }],
+  'g1-first-song': [{ tool: 'chordChanges', chords: ['A', 'D', 'E'], bpm: 70 }],
   'g3-arpeggios': [
     { tool: 'lick', lickId: 'arp-pop-1564', kind: 'arp' },
     { tool: 'chordLibrary', root: 0, type: 'major', name: 'C' },

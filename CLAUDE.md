@@ -1783,6 +1783,13 @@ no tools).
   studio / songwriter), useVocalMic. Fake stereo mic (tone on the right):
   Input 1 = 0, Input 2 = full, All = half level. NOT verified with a real
   interface / on iOS (iOS Safari may give mono -> All is used).
+  v1.0.127 (user's iPad + Positive Grid Riff: "Test opens the MIC" and no
+  live meter): the settings test now uses TUNER_PITCH_RANGE (own context +
+  worklet tap — the default shared-context analyser gave iOS zeros, so the
+  meter never moved); meter in dB (-60..0) + a "-N dB" readout; a line
+  explaining iOS asks for MICROPHONE permission for ANY audio input (an
+  interface too); `audioInput.noSignal` when the input is digital silence;
+  button "Test"/"בדיקה". NOT verified on the iPad.
 - **Room calibration** (Settings -> Audio Input, `noiseCalibration.js`,
   RoomCalibration.jsx): 3 s room + 4 s playing -> gate + noise spectrum per
   mic/mode; detectors use max(own gate, calibrated) and subtract the noise

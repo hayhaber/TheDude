@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAudioInputSettings } from '../../hooks/useAudioInputSettings';
-import { usePitchDetection } from '../../hooks/usePitchDetection';
+import { usePitchDetection, TUNER_PITCH_RANGE } from '../../hooks/usePitchDetection';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { RoomCalibration } from './RoomCalibration';
@@ -18,7 +18,9 @@ import './AudioInputSettings.css';
 export function AudioInputSettings() {
   const { t } = useLanguage();
   const { deviceId, setDeviceId, gain, setGain, inputMode, setInputMode, channel, setChannel, devices, refreshDevices } = useAudioInputSettings();
-  const { isListening, startListening, stopListening, inputLevel, error } = usePitchDetection();
+  // The tuner's pipeline (own context + worklet tap): on iPhone / iPad the
+  // shared context's analyser gave pure silence, so the meter never moved.
+  const { isListening, startListening, stopListening, inputLevel, error, deadInput } = usePitchDetection(TUNER_PITCH_RANGE);
 
   // Device labels only appear after permission is granted — re-check the
   // list right after a successful startListening() so a first-time "Test
@@ -32,7 +34,9 @@ export function AudioInputSettings() {
   useEffect(() => stopListening, [stopListening]);
 
   const hasLabels = devices.some((d) => d.label);
-  const levelPct = Math.round(inputLevel * 100);
+  // dB scale (-60 .. 0 dBFS), so a quiet interface still moves the bar.
+  const db = inputLevel > 0 ? 20 * Math.log10(inputLevel) : -Infinity;
+  const levelPct = Math.round(Math.max(0, Math.min(1, (db + 60) / 60)) * 100);
   const isClipping = inputLevel > 0.98;
 
   return (
@@ -104,10 +108,13 @@ export function AudioInputSettings() {
         <div className="audio-input-meter" role="meter" aria-valuenow={levelPct} aria-valuemin={0} aria-valuemax={100}>
           <div className={'audio-input-meter-fill' + (isClipping ? ' clipping' : '')} style={{ width: `${levelPct}%` }} />
         </div>
+        <span className="settings-attribution">{t('audioInput.permission')}</span>
         <button type="button" className="audio-input-test-btn" onClick={isListening ? stopListening : startListening}>
           {isListening ? t('trainer.stop') : t('audioInput.testMic')}
         </button>
         {error && <span className="settings-attribution audio-input-error">{t('trainer.micError', { message: error })}</span>}
+        {isListening && deadInput && <span className="settings-attribution audio-input-error">{t('audioInput.noSignal')}</span>}
+        {isListening && !deadInput && <span className="settings-attribution">{Number.isFinite(db) ? `${Math.round(db)} dB` : '—'}</span>}
         {isClipping && <span className="settings-attribution audio-input-error">{t('audioInput.clipping')}</span>}
       </div>
 

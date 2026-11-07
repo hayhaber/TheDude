@@ -102,9 +102,12 @@ function TuneStep({ step, tx, onDone, done }) {
 }
 
 /** The metronome right in the step (the shared one — the tools button shows it running too). */
-function MetroBox({ bpm, metro }) {
+function MetroBox({ bpm, metro, groove = null }) {
   const { t } = useLanguage();
   const on = !!metro?.running && metro.bpm === bpm;
+  // a step with a groove can play along with drums instead of the click
+  // (Tim Pierce's "pocket": lock in with a drummer, not a beep)
+  const [useDrums, setUseDrums] = useState(!!groove);
   const metroRef = useRef(metro);
   metroRef.current = metro;
   const mine = useRef(false);
@@ -121,7 +124,7 @@ function MetroBox({ bpm, metro }) {
             metro.stop();
             mine.current = false;
           } else {
-            metro.start(bpm);
+            metro.start(bpm, groove && useDrums ? { groove } : undefined);
             mine.current = true;
           }
         }}
@@ -136,6 +139,16 @@ function MetroBox({ bpm, metro }) {
       <span className="tc-metro-bpm" dir="ltr">
         {bpm} BPM
       </span>
+      {groove && (
+        <div className="mode-toggle tc-metro-src" role="group" aria-label={t('teacher.metro.source')}>
+          <button type="button" className={!useDrums ? 'active' : ''} disabled={on} onClick={() => setUseDrums(false)}>
+            {t('teacher.metro.click')}
+          </button>
+          <button type="button" className={useDrums ? 'active' : ''} disabled={on} onClick={() => setUseDrums(true)}>
+            {t('teacher.metro.drums')}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -145,7 +158,7 @@ function ChecklistStep({ step, tx, ticks, setTicks, metro }) {
   return (
     <>
       {step.text && <p className="tc-text">{tx(step.text)}</p>}
-      {step.metronome && <MetroBox bpm={step.metronome} metro={metro} />}
+      {step.metronome && <MetroBox bpm={step.metronome} metro={metro} groove={step.groove ?? null} />}
       <ul className="tc-checklist">
         {step.items.map((item, i) => (
           <li key={i}>
@@ -161,11 +174,24 @@ function ChecklistStep({ step, tx, ticks, setTicks, metro }) {
   );
 }
 
+// An ear question (`listen`: shape ids) plays them strummed one after the
+// other, so the answer is found by ear, not by reading.
+function playBlocks(ids) {
+  [].concat(ids).forEach((id, k) => setTimeout(() => playMidis(arpNotes(id).map((n) => n.midi)), k * 1300));
+}
+
 function QuizStep({ step, tx, picked, setPicked }) {
   const { t } = useLanguage();
   return (
     <>
       <p className="tc-question">{tx(step.question)}</p>
+      {step.listen && (
+        <span className="tc-actions">
+          <button type="button" className="tc-btn is-primary" onClick={() => playBlocks(step.listen)}>
+            {t('teacher.step.hear')}
+          </button>
+        </span>
+      )}
       <div className="tc-options">
         {step.options.map((o, i) => {
           const state = picked == null ? '' : i === step.answer ? ' is-right' : i === picked ? ' is-wrong' : ' is-dim';

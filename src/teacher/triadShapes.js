@@ -181,4 +181,36 @@ add('t10-Dsus2', { root: D, type: 'sus2', notes: [[3, 2], [2, 3], [1, 0]] }); //
 path('t10s', [[G, 'major'], [E, 'minor'], [C, 'major'], [D, 'major']], 321, { firstOrder: 'root', near: 12 }); // I vi IV V in G
 path('t10f', [[A, 'minor'], [F, 'major'], [C, 'major'], [G, 'major']], 432, { firstOrder: 'first', near: 6 });
 
+// ---- etudes (v1.0.135): a short piece at the end of a unit = its chords
+// picked in a pattern (indices into the shape's three notes, low = 0), each
+// copy keeps its own chord so the labels stay right. Our own.
+const etude = (name, ids, seq) => ids.map((src, k) => {
+  const id = `${name}-${k + 1}`;
+  S[id] = { ...S[src], seq };
+  return id;
+});
+export const ETUDES = {
+  // unit 2: the C ladder, low - high - middle - high on each shape, up and down
+  e2: etude('e2', ['t-C321-r', 't-C321-1', 't-C321-2', 't-C321-8', 't-C321-2', 't-C321-1', 't-C321-r'], [0, 2, 1, 2]),
+  // unit 3: C F C G rolled (low - middle - high - middle)
+  e3: etude('e3', ['t3-C', 't3-F', 't3-C', 't3-G', 't3-C'], [0, 1, 2, 1]),
+  // unit 4: C F C G on 4-3-2, high - low - middle - low
+  e4: etude('e4', ['t4-C', 't4-F', 't4-C', 't4-G', 't4-C'], [2, 0, 1, 0]),
+  // unit 5: G and D low riff, bass - top - middle - top
+  e5: etude('e5', ['t-G543-2', 't-D654-2', 't-G543-2', 't-D654-2', 't-G543-2'], [0, 2, 1, 2]),
+  // unit 6: A minor i - iv - V - i (Am Dm E Am), led on 3-2-1
+  e6: (() => {
+    path('t6e', [[A, 'minor'], [D, 'minor'], [E, 'major'], [A, 'minor']], 321, { firstOrder: 'first', near: 5 });
+    return etude('e6', ['t6e-1', 't6e-2', 't6e-3', 't6e-4'], [0, 1, 2, 1]);
+  })(),
+  // unit 7: the chord scale picked downwards on each chord (high - middle - low)
+  e7: etude('e7', ['t7-1', 't7-2', 't7-3', 't7-4', 't7-5', 't7-6', 't7-7', 't7-8'], [2, 1, 0]),
+  // unit 8: C Am F G, twice, the top voice carries the melody (top - middle - low - middle)
+  e8: etude('e8', ['t8a-1', 't8a-2', 't8a-3', 't8a-4', 't8a-1', 't8a-2', 't8a-3', 't8a-4'], [2, 1, 0, 1]),
+  // unit 9: fingerstyle G C D G, thumb - finger - finger - finger
+  e9: etude('e9', ['t9p-1', 't9p-2', 't9p-3', 't9p-4'], [0, 1, 2, 1]),
+  // unit 10: G Em C D, bass - top - middle - top
+  e10: etude('e10', ['t10s-1', 't10s-2', 't10s-3', 't10s-4', 't10s-1'], [0, 2, 1, 2]),
+};
+
 export const TRIAD_ARPS = S;

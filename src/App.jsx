@@ -2143,12 +2143,19 @@ function App() {
     running: metronome.isRunning,
     bpm: metronome.bpm,
     beat: metronome.currentBeat,
-    start: (bpm) => {
-      if (drums.soundSource !== 'standard') drums.setSoundSource('standard');
+    start: (bpm, opts) => {
+      // a lesson step with a groove plays drums (that style) instead of the click
+      if (opts?.groove) {
+        drums.setStyleKey(opts.groove);
+        drums.setSoundSource('drum');
+      } else if (drums.soundSource !== 'standard') drums.setSoundSource('standard');
       metronome.setBpm(bpm);
       metronome.start();
     },
-    stop: metronome.stop,
+    stop: () => {
+      metronome.stop();
+      if (drums.soundSource === 'drum') drums.setSoundSource('standard');
+    },
   };
   const closeToolScreen = useCallback(() => {
     stopMetronome();

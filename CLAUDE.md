@@ -1646,6 +1646,14 @@ no tools).
   final test C has only C in common with F), the 4th-up/down wording
   (unit 5), B° resolution text, ska vs reggae skank, string-1 orientation,
   clearer quiz explanation; a Hebrew bidi isolate with an unbalanced "(".
+  v1.0.135 (user: "build" after the Beato / Tim Pierce review — their
+  courses are paid + copyrighted, so IDEAS only, content ours): an ETUDE
+  play step closing units 2-10 (`ETUDES` in triadShapes.js = shapes with a
+  picking `seq`, each copy keeps its own chord), EAR quizzes with `listen`
+  (QuizStep plays the ids strummed: units 1, 6, 8), checklist `groove`
+  (MetroBox Click | Drums switch; App teacherMetro.start(bpm, {groove})
+  sets the drum style + source 'drum', stop() returns it to 'standard';
+  units 3 + 8 rock, 10 reggae), a song homework item per unit.
 
 ## Country style (v1.0.125, 2026-11-07)
 

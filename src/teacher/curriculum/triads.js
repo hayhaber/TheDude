@@ -29,6 +29,8 @@
 // in music -> homework. Accuracy first; tempo up only after clean repeats.
 // All text is our own.
 
+import { ETUDES } from '../triadShapes';
+
 const L = (en, he) => ({ en, he });
 const H = (s) => `⁦${s}⁩`; // isolate a Latin token inside Hebrew
 
@@ -975,6 +977,121 @@ const unit10 = {
     { id: 'tri10-songs', kind: 'self', text: L('Take three songs you know and play them only with triads, in one area of the neck.', 'קח שלושה שירים שאתה מכיר ונגן אותם רק בטריאדות, באזור אחד של הצוואר.') },
   ],
 };
+
+
+// ---------------------------------------------------------------------------
+// v1.0.135 additions (user: "build" — from the review of Rick Beato's and
+// Tim Pierce's published approach; ideas only, all content ours):
+//   • an ETUDE closing every unit (Beato's arpeggio course ends each topic
+//     with application in progressions / etudes): the unit's chords picked
+//     in a pattern, the mic follows it;
+//   • EAR questions (Beato: internalise the sound, not the fingering) — a
+//     quiz with `listen` plays the chords and the answer comes by ear;
+//   • GROOVE: rhythm checklists can play along with drums instead of the
+//     click (Tim Pierce: develop the pocket with a drummer) — `groove`;
+//   • SONG homework: play each unit's chords along with a real recording.
+const etudeStep = (key, title, text) => ({ kind: 'play', arp: ETUDES[key], title, text });
+const song = (id, text) => ({ id, kind: 'self', text });
+
+// unit 1 — ear: hear the quality
+unit1.steps.splice(3, 0,
+  {
+    kind: 'quiz',
+    id: 'tri-ear-1',
+    listen: ['t1-C-minor'],
+    title: L('Ear: major or minor?', 'שמיעה: מז׳ור או מינור?'),
+    question: L('Press Hear and listen to the chord. Is it major or minor?', 'לחץ "הקשב" והקשב לאקורד. הוא מז׳ור או מינור?'),
+    options: [L('Major', 'מז׳ור'), L('Minor', 'מינור')],
+    answer: 1,
+    why: L('C minor (C E♭ G): the lowered 3rd gives the darker colour.', `${H('C')} מינור (${H('C E♭ G')}): הטרצה המונמכת נותנת את הצבע הכהה.`),
+  },
+  {
+    kind: 'quiz',
+    id: 'tri-ear-2',
+    listen: ['t1-C-dim'],
+    title: L('Ear: which quality?', 'שמיעה: איזה סוג?'),
+    question: L('Press Hear. Which of the four qualities is it?', 'לחץ "הקשב". איזה מארבעת הסוגים זה?'),
+    options: [L('Major', 'מז׳ור'), L('Minor', 'מינור'), L('Diminished', 'מוקטן'), L('Augmented', 'מוגדל')],
+    answer: 2,
+    why: L('C diminished (C E♭ G♭): two minor thirds — tense, it wants to move on.', `${H('C')} מוקטן (${H('C E♭ G♭')}): שתי טרצות קטנות — מתוח, רוצה להמשיך.`),
+  }
+);
+
+// unit 2
+unit2.steps.push(etudeStep('e2',
+  L('Etude: the C ladder', 'אטיוד: הסולם של C'),
+  L('A short piece on the three shapes: on each one pick low, high, middle, high, then slide to the next — up the ladder and back down (28 notes). Let each note ring into the next, like a picked accompaniment.', 'קטע קצר על שלוש הצורות: בכל אחת פורטים נמוך, גבוה, אמצעי, גבוה, ומחליקים לבאה — למעלה בסולם ובחזרה למטה (28 צלילים). תן לכל צליל לצלצל לתוך הבא, כמו ליווי בפריטה.')));
+unit2.homework.push(song('tri2-song', L('Put on a song in C you know and play the C shapes along with it every time the chord is C.', `שים שיר ב־${H('C')} שאתה מכיר ונגן את צורות ה־${H('C')} איתו בכל פעם שהאקורד הוא ${H('C')}.`)));
+
+// unit 3
+unit3.steps.find((st) => st.kind === 'checklist' && st.metronome).groove = 'rock';
+unit3.steps.push(etudeStep('e3',
+  L('Etude: rolling I-IV-V', 'אטיוד: I-IV-V מתגלגל'),
+  L('C F C G C in area 1, each chord rolled low, middle, high, middle (20 notes). The common tones under your fingers make it flow — this is how a picked rhythm part sounds on a record.', `${H('C F C G C')} באזור 1, כל אקורד מתגלגל נמוך, אמצעי, גבוה, אמצעי (20 צלילים). הצלילים המשותפים מתחת לאצבעות גורמים לזה לזרום — כך נשמע ליווי בפריטה בהקלטה.`)));
+unit3.homework.push(song('tri3-song', L('Find a three-chord song (I-IV-V) and play it with triads in one area, along with the recording.', `מצא שיר של שלושה אקורדים (${H('I-IV-V')}) ונגן אותו בטריאדות באזור אחד, יחד עם ההקלטה.`)));
+
+// unit 4
+unit4.steps.push(etudeStep('e4',
+  L('Etude: the middle strings', 'אטיוד: המיתרים האמצעיים'),
+  L('C F C G C on 4-3-2, each chord high, low, middle, low (20 notes). Keep string 1 muted under the index finger.', `${H('C F C G C')} על ${H('4-3-2')}, כל אקורד גבוה, נמוך, אמצעי, נמוך (20 צלילים). השאר את מיתר 1 מושתק מתחת לאצבע 1.`)));
+unit4.homework.push(song('tri4-song', L('Play the same song as last unit, now on strings 4-3-2.', `נגן את אותו שיר מהיחידה הקודמת, הפעם על מיתרים ${H('4-3-2')}.`)));
+
+// unit 5
+unit5.steps.push(etudeStep('e5',
+  L('Etude: a low riff', 'אטיוד: ריף נמוך'),
+  L('G and D in their 2nd inversions on the two low sets, bass, top, middle, top (20 notes) — a riff in the bass register.', `${H('G')} ו־${H('D')} בהיפוך שני על שתי הקבוצות הנמוכות, בס, עליון, אמצעי, עליון (20 צלילים) — ריף באזור הבס.`)));
+unit5.homework.push(song('tri5-song', L('Play a rock song in G with the low triads, palm-muting lightly.', `נגן שיר רוק ב־${H('G')} עם הטריאדות הנמוכות, בהשתקה קלה בכף היד.`)));
+
+// unit 6 — ear (after the augmented step) + etude
+unit6.steps.splice(unit6.steps.findIndex((st) => st.arp?.[0] === 't-Caug-a') + 1, 0, {
+  kind: 'quiz',
+  id: 'tri-ear-3',
+  listen: ['t-Caug-a'],
+  title: L('Ear: which quality?', 'שמיעה: איזה סוג?'),
+  question: L('Press Hear. Which triad is it?', 'לחץ "הקשב". איזו טריאדה זו?'),
+  options: [L('Major', 'מז׳ור'), L('Minor', 'מינור'), L('Diminished', 'מוקטן'), L('Augmented', 'מוגדל')],
+  answer: 3,
+  why: L('C augmented (C E G♯): two major thirds — it floats and never settles.', `${H('C')} מוגדל (${H('C E G♯')}): שתי טרצות גדולות — מרחף ולא נח.`),
+});
+unit6.steps.push(etudeStep('e6',
+  L('Etude: A minor i - iv - V - i', `אטיוד: ${H('A')} מינור ${H('i - iv - V - i')}`),
+  L('Am Dm E Am on 3-2-1, each rolled low, middle, high, middle (16 notes). Listen to E major — its G♯ leads up to the A of A minor: the sound of a minor key.', `${H('Am Dm E Am')} על ${H('3-2-1')}, כל אחד מתגלגל נמוך, אמצעי, גבוה, אמצעי (16 צלילים). הקשב ל־${H('E')} מז׳ור — ה־${H('G♯')} שלו מוביל למעלה אל ה־${H('A')} של ${H('A')} מינור: הצליל של מפתח מינורי.`)));
+unit6.homework.push(song('tri6-song', L('Pick a song in A minor and play its chords as triads, minor ones by lowering the 3rd.', `בחר שיר ב־${H('A')} מינור ונגן את האקורדים שלו כטריאדות, את המינוריים בהורדת הטרצה.`)));
+
+// unit 7
+unit7.steps.push(etudeStep('e7',
+  L('Etude: the chord scale downward', 'אטיוד: סולם האקורדים בירידה'),
+  L('The eight triads of C, each picked high, middle, low (24 notes) — the same chords, a different melody on top.', `שמונה הטריאדות של ${H('C')}, כל אחת נפרטת גבוה, אמצעי, נמוך (24 צלילים) — אותם אקורדים, מנגינה אחרת למעלה.`)));
+unit7.homework.push(song('tri7-song', L('Take a song in C and find each of its chords in the chord scale (which degree is it?).', `קח שיר ב־${H('C')} ומצא כל אחד מהאקורדים שלו בסולם האקורדים (איזו דרגה הוא?).`)));
+
+// unit 8 — ear (hear the common tones) + groove + etude
+unit8.steps.splice(unit8.steps.findIndex((st) => st.id === 'tri-lead-q') + 1, 0, {
+  kind: 'quiz',
+  id: 'tri-ear-4',
+  listen: ['t8a-1', 't8a-2'],
+  title: L('Ear: what moved?', 'שמיעה: מה זז?'),
+  question: L('Press Hear: C, then A minor, voice-led. Which voice moved?', `לחץ "הקשב": ${H('C')} ואחריו ${H('A')} מינור, בהובלת קולות. איזה קול זז?`),
+  options: [L('The low voice', 'הקול הנמוך'), L('The middle voice', 'הקול האמצעי'), L('The top voice', 'הקול העליון')],
+  answer: 2,
+  why: L('Only the top note moved, G -> A; C and E stayed. Listening for the voice that moves is how you hear voice leading.', `רק הצליל העליון זז, ${H('G → A')}; ${H('C')} ו־${H('E')} נשארו. להקשיב לקול שזז — כך שומעים הובלת קולות.`),
+});
+unit8.steps.find((st) => st.kind === 'checklist' && st.metronome).groove = 'rock';
+unit8.steps.push(etudeStep('e8',
+  L('Etude: the melody on top', 'אטיוד: המנגינה למעלה'),
+  L('C Am F G twice, each chord picked top, middle, low, middle (32 notes). Lean on the first note of each chord — the top voice G A A G is the tune.', `${H('C Am F G')} פעמיים, כל אקורד נפרט עליון, אמצעי, נמוך, אמצעי (32 צלילים). הדגש את הצליל הראשון בכל אקורד — הקול העליון ${H('G A A G')} הוא המנגינה.`)));
+unit8.homework.push(song('tri8-song', L('Choose a song with I-vi-IV-V (or ii-V-I) and play it voice-led along with the recording.', `בחר שיר עם ${H('I-vi-IV-V')} (או ${H('ii-V-I')}) ונגן אותו בהובלת קולות יחד עם ההקלטה.`)));
+
+// unit 9
+unit9.steps.push(etudeStep('e9',
+  L('Etude: fingerstyle spread triads', 'אטיוד: טריאדות פתוחות באצבעות'),
+  L('G C D G spread on 6-4-3: thumb on the bass, then fingers on the upper notes — bass, middle, top, middle (16 notes). Let everything ring.', `${H('G C D G')} פתוחים על ${H('6-4-3')}: אגודל על הבס, ואצבעות על הצלילים העליונים — בס, אמצעי, עליון, אמצעי (16 צלילים). תן לכל הצלילים לצלצל.`)));
+unit9.homework.push(song('tri9-song', L('Play a slow song in G with spread triads, fingerstyle.', `נגן שיר איטי ב־${H('G')} בטריאדות פתוחות, באצבעות.`)));
+
+// unit 10 — groove + etude before the final test
+unit10.steps.find((st) => st.kind === 'checklist' && st.metronome).groove = 'reggae';
+unit10.steps.splice(unit10.steps.findIndex((st) => st.id === 'tri-final'), 0, etudeStep('e10',
+  L('Etude: the song progression', 'אטיוד: מהלך השיר'),
+  L('G Em C D G around fret 12, each chord bass, top, middle, top (20 notes). Play it once with the teacher listening, then along with a song of your own.', `${H('G Em C D G')} סביב שריג 12, כל אקורד בס, עליון, אמצעי, עליון (20 צלילים). נגן פעם אחת כשהמורה מקשיב, ואז יחד עם שיר שלך.`)));
 
 export const TRIAD_LESSONS = [unit1, unit2, unit3, unit4, unit5, unit6, unit7, unit8, unit9, unit10];
 export const triadLessonById = (id) => TRIAD_LESSONS.find((l) => l.id === id);

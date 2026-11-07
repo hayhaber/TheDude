@@ -572,3 +572,10 @@
     opacity: 1;
   }
 }
+
+/* Click | Drums for a step with a groove (Triads course) */
+.tc-metro-src {
+  margin-inline-start: auto;
+  min-width: 150px;
+}
+.tc-metro { flex-wrap: wrap; }

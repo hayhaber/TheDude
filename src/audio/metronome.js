@@ -82,8 +82,14 @@ export function startMetronome({ bpm, beatsPerMeasure, soundKey, onBeat, getVolu
       scheduleClick(ctx, nextBeatTime, isAccent, soundKey, volume);
       if (onBeat) {
         const beatToReport = beatIndex;
+        const at = nextBeatTime;
         const delayMs = Math.max(0, (nextBeatTime - ctx.currentTime) * 1000);
-        setTimeout(() => onBeat(beatToReport), delayMs);
+        // 2nd arg: when the click is HEARD, on the performance.now() clock
+        // (audio time + output latency), for judges that time the player.
+        setTimeout(() => {
+          const heard = performance.now() + (at - ctx.currentTime + (ctx.outputLatency || ctx.baseLatency || 0)) * 1000;
+          onBeat(beatToReport, heard);
+        }, delayMs);
       }
       beatIndex = (beatIndex + 1) % beatsPerMeasure;
       nextBeatTime += secondsPerBeat();

@@ -28,6 +28,7 @@ import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
 import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
 import { logPerf, loadPerf, onPerf } from '../coach/perfLog';
+import { fluentNps } from '../coach/skillLevel';
 
 // Practice -> Lick Trainer: pick a lick, hear it, play it back, get judged.
 //
@@ -76,10 +77,18 @@ function writeJson(key, value) {
 
 const TICKS_PER_BEAT = 960;
 
+/** Notes per second of a lick at a bpm (its density x the tempo). */
+function lickNps(l, bpm) {
+  const n = l?.notes?.length ?? 0;
+  const beats = l?.lengthBeats || (n ? Math.max(...l.notes.map((x) => x.start + x.duration)) : 0);
+  if (!n || !beats || !bpm) return null;
+  return n / ((beats * 60) / bpm);
+}
+
 const round3 = (v) => (Number.isFinite(v) ? Math.round(v * 1000) / 1000 : null);
 
 // One analysed take -> the performance log (coach/perfLog.js).
-function logTake(res, { item, bpm, tempoPct, solo, durationMs }) {
+function logTake(res, { item, bpm, tempoPct, solo, durationMs, nps }) {
   const sum = res.summary;
   const correct = res.notes.filter((n) => n.status !== 'missed' && n.pitch !== 'wrong');
   const bends = correct.filter((n) => n.bend).map((n) => (n.bend.reached - n.bend.target) * 100);
@@ -99,6 +108,7 @@ function logTake(res, { item, bpm, tempoPct, solo, durationMs }) {
       correct: sum.correct,
       total: sum.total,
       tempoPct,
+      ...(Number.isFinite(nps) ? { nps: round3(nps), passed: sum.score >= 85 } : {}),
       verdict: sum.verdict,
       ...(bends.length ? { bendCentsMean: Math.round(bends.reduce((a, b) => a + b, 0) / bends.length), bends: bends.length } : {}),
       ...(vibratos.length ? { vibratoOkRatio: round3(vibratos.filter((n) => n.vibrato.ok).length / vibratos.length) } : {}),
@@ -454,6 +464,16 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     }
     const v = tempoMem()[item];
     if (Number.isFinite(v)) setTempoState(v);
+    else {
+      // Never practised: start from the player's measured speed (any
+      // exercise), not from a beginner's tempo (user, 2026-11-07).
+      const f = fluentNps();
+      const own = lickNps(lick, lick.bpm);
+      if (f && own) {
+        const want = ((f * 0.85) / own) * 100;
+        setTempoState(TEMPO_OPTIONS.filter((p) => p <= Math.max(50, Math.min(100, want))).pop() ?? 70);
+      }
+    }
   }, [item]); // eslint-disable-line react-hooks/exhaustive-deps
   // Build mode: the part of the lick the current step covers.
   const buildEnds = useMemo(() => buildSteps(lick.notes), [lick]);
@@ -1036,6 +1056,7 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
               tempoPct,
               solo: isSolo,
               durationMs: (sched.endTime - startTime) * 1000,
+              nps: lickNps(takeLick, takeBpm),
             });
             setHistory((h) => {
               const prev = h[lick.id] ?? { attempts: 0, best: null };

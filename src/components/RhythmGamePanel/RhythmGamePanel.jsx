@@ -1,7 +1,7 @@
 import { ExerciseDrawer } from '../ExerciseDrawer/ExerciseDrawer';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { localize } from '../../i18n/localize';
+import { PlayAlong } from '../PlayAlong/PlayAlong';
 import './RhythmGamePanel.css';
 
 // "Guitar Hero"-style rhythm practice — pick an exercise (same catalog
@@ -26,8 +26,7 @@ export function RhythmGamePanel({ rhythmGame, metronome }) {
     );
   }
 
-  const { exercise, stepIndex, isPlaying, ended, score, combo, maxCombo, accuracyPct, micIsListening, micError } = rhythmGame;
-  const total = exercise.sequence.length;
+  const { exercise } = rhythmGame;
 
   return (
     <div className="rhythm-game-panel">
@@ -36,72 +35,13 @@ export function RhythmGamePanel({ rhythmGame, metronome }) {
           <h2 className="rhythm-game-title" dir="auto">
             {localize(exercise.title, lang)}
           </h2>
-          <p className="rhythm-game-meta">
-            {ended
-              ? t('rhythmGame.sessionComplete')
-              : t('rhythmGame.stepLabel', { index: Math.max(stepIndex + 1, isPlaying ? 1 : 0), total })}
-            {' · '}
-            {t('rhythmGame.bpm', { bpm: metronome.bpm })}
-          </p>
         </div>
         <button type="button" className="rhythm-game-exit" onClick={rhythmGame.exit}>
-          {t('rhythmGame.exit')}
+          {t('rhythmGame.pickAnother')}
         </button>
       </div>
 
-      <div className="rhythm-game-scoreboard">
-        <div className="rhythm-game-stat">
-          <span className="rhythm-game-stat-value">{score.hits}</span>
-          <span className="rhythm-game-stat-label">
-            {t('rhythmGame.hits')}
-            <InfoTooltip text={t('tip.practice.rhythmHits')} />
-          </span>
-        </div>
-        <div className="rhythm-game-stat">
-          <span className="rhythm-game-stat-value">{score.misses}</span>
-          <span className="rhythm-game-stat-label">{t('rhythmGame.misses')}</span>
-        </div>
-        <div className={'rhythm-game-stat' + (combo >= 5 ? ' hot' : '')}>
-          <span className="rhythm-game-stat-value">{combo}</span>
-          <span className="rhythm-game-stat-label">{t('rhythmGame.combo')}</span>
-        </div>
-        <div className="rhythm-game-stat">
-          <span className="rhythm-game-stat-value">{accuracyPct === null ? '—' : `${accuracyPct}%`}</span>
-          <span className="rhythm-game-stat-label">{t('rhythmGame.accuracy')}</span>
-        </div>
-      </div>
-
-      {ended ? (
-        <div className="rhythm-game-summary" dir="auto">
-          <p className="rhythm-game-summary-line">
-            {t('rhythmGame.finalScore', { hits: score.hits, total })}
-          </p>
-          <p className="rhythm-game-summary-line">{t('rhythmGame.bestCombo', { combo: maxCombo })}</p>
-          <div className="rhythm-game-actions">
-            <button type="button" className="play-button" onClick={rhythmGame.restart}>
-              {t('rhythmGame.tryAgain')}
-            </button>
-            <button type="button" className="rhythm-game-exit" onClick={rhythmGame.exit}>
-              {t('rhythmGame.pickAnother')}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="rhythm-game-actions">
-          <button
-            type="button"
-            className={'metronome-toggle' + (isPlaying ? ' running' : '')}
-            onClick={() => (isPlaying ? rhythmGame.stop() : rhythmGame.play())}
-          >
-            {isPlaying ? t('rhythmGame.pause') : t('rhythmGame.play')}
-          </button>
-          {isPlaying && (
-            <span className="rhythm-game-mic-status" dir="auto">
-              {micError ? t('trainer.micError', { message: micError }) : micIsListening ? t('rhythmGame.listening') : t('earTraining.mic.permission')}
-            </span>
-          )}
-        </div>
-      )}
+      <PlayAlong game={rhythmGame} metronome={metronome} />
 
       <p className="rhythm-game-hint" dir="auto">
         {t('rhythmGame.hint')}

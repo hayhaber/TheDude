@@ -1542,6 +1542,50 @@ no tools).
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.
 
+## Adaptive practice (v1.0.131, 2026-11-07)
+
+- User: "the practice is unclear — when do I play, when does it listen,
+  what is the feedback; with a metronome it must judge TIMING too; let me
+  speed up; find my top speed and adapt; a level the system knows must
+  carry across ALL exercises — dynamic and always learning". Phase 1 =
+  the beat-per-note engine (Practice -> Scales + Rhythm) + the skill level
+  + the Lick Trainer's start tempo / status. Phase 2 (NOT done yet): bass
+  practice, chord changes, teacher play steps, drills onto the same model.
+- `coach/skillLevel.js`: `passed(e)` (accuracy >= 90 & timing >= 70, or
+  lick score >= 85), `npsOf(e)` (metrics.nps, or bpm/60 for scale/rhythm),
+  `fluentNps()` (2nd best passing run of 60 days, else 90 % of the only
+  one), `lastPassedBpm`, `startBpm({tool, item, suggested, notesPerBeat})`
+  (item's last passed tempo > 85 % of the fluent speed > the suggestion;
+  why = item | level | default), `nextBpm()` (pass +8 % / >=4, struggle
+  (notes < 75 or timing < 45) −8 %, else same).
+- `useMetronome.onBeatTime(fn)` -> (beatIndex, HEARD perf-time: audio time
+  + outputLatency) — metronome.js passes it as onBeat's 2nd arg.
+- `useRhythmGame` rewritten (bass engine pattern): phases idle / demo /
+  countin (4 clicks) / run / done; notes judged by time against the heard
+  click (early min(200, .45 beat), late min(250, .5 beat), on time ±75 ms,
+  DETECT_LAG 40 ms, octave slips accepted, wrong note near a beat = red
+  flash + count); own onset detector (new pitch or re-pick by level jump);
+  demo plays the sequence (playNote) with the marker; result {notesPct,
+  timingPct, mean offset = tendency, wrong, passed, tempo change}; adaptive
+  tempo ON by default; Speed = find-my-speed loop (+8 % per clean pass,
+  stops at the first unclean one, settles on the best); loadExercise sets
+  the start tempo from startBpm; logs nps + passed + timingPct. Old fields
+  (score, combo, accuracyPct, stepIndex, feedbackCell…) kept.
+- `components/PlayAlong` (PlayAlong.jsx/css, text `pa.*` in
+  `i18n/tips/playalong.js`): status pill (idle hint / demo blue / count-in
+  orange with the number / your turn red with a pulsing mic + live count /
+  done), transport Demo · ONE big start key (red dot -> stop square) ·
+  BpmField + "Adaptive" switch · Speed capsule, "starting at N — from your
+  level / this item" note, result card (3 tiles + verdict + tendency +
+  next tempo). Used by ScalePracticePanel (its effect no longer depends on
+  isPlaying — a finished run used to reload the exercise and wipe the
+  result + adapted tempo) and RhythmGamePanel.
+- Lick Trainer: the same status pill above the transport (lt.idle /
+  lt.idleWait texts); a never-practised lick starts at the TEMPO_OPTIONS
+  step under 85 % of the fluent speed (`lickNps()`); takes log nps +
+  passed. Timing accuracy with a real guitar NOT verified (fake mic only:
+  silent run -> 0 %, tempo down, phases right).
+
 ## Country style (v1.0.125, 2026-11-07)
 
 - 'country' is a style everywhere a style is picked (onboarding, the

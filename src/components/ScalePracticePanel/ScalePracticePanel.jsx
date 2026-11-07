@@ -4,6 +4,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { ChevronIcon } from '../ChevronIcon/ChevronIcon';
 import { LabelModeToggle } from '../LabelModeToggle/LabelModeToggle';
+import { PlayAlong } from '../PlayAlong/PlayAlong';
 import './ScalePracticePanel.css';
 
 export const SCALE_PRACTICE_KEYS = ['minorPentatonic', 'majorPentatonic', 'major', 'naturalMinor'];
@@ -58,8 +59,9 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seed]);
 
-  const { exercise, stepIndex, isPlaying, ended, play, restart, stop, score, combo, maxCombo, accuracyPct, micIsListening, micError } =
-    scalePractice;
+  const { exercise, isPlaying } = scalePractice;
+  const playingRef = useRef(isPlaying);
+  playingRef.current = isPlaying;
 
   // 'transition' only has 4 valid starting positions (each bridges N into
   // N+1, so there's no position 5 to bridge from) — 'position' has all 5.
@@ -71,8 +73,10 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
     if (positionIndex > maxPositionIndex) setPositionIndex(maxPositionIndex);
   }, [maxPositionIndex, positionIndex]);
 
+  // Rebuild only when a setting changes (not when a run ends — that would
+  // wipe the result and the adapted tempo).
   useEffect(() => {
-    if (isPlaying) {
+    if (playingRef.current) {
       pendingBpmRef.current = null;
       return;
     }
@@ -89,7 +93,7 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
     scalePractice.loadExercise({ ...built, id });
     if (pendingBpmRef.current != null) metronome?.setBpm(pendingBpmRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scaleKey, root, mode, positionIndex, stringIndex, stringCount, includeBlueNote, isPlaying]);
+  }, [scaleKey, root, mode, positionIndex, stringIndex, stringCount, includeBlueNote]);
 
   const total = exercise?.sequence.length ?? 0;
 
@@ -232,34 +236,9 @@ export function ScalePracticePanel({ scalePractice, seed, onSeedConsumed, labelM
           </div>
         )}
 
-        <div className="scale-practice-field">
-          <span className="scale-practice-field-label" aria-hidden="true">
-            &nbsp;
-          </span>
-          <button type="button" className="play-button" onClick={isPlaying ? stop : ended ? restart : play}>
-            {isPlaying ? t('vocal.stop') : ended ? t('chordRhythm.tryAgain') : t('vocal.start')}
-          </button>
-        </div>
       </div>
 
-      {(isPlaying || ended) && (
-        <p className="scale-practice-score" dir="auto">
-          {t('rhythmGame.stepLabel', { index: Math.max(stepIndex + 1, isPlaying ? 1 : 0), total })}
-          {' · '}
-          {t('chordRhythm.score')}: {score.hits} / {score.hits + score.misses}
-          {accuracyPct != null && ` · ${accuracyPct}%`} · {t('chordRhythm.combo')}: {combo} ({t('chordRhythm.maxCombo')}: {maxCombo})
-          {' · '}
-          {t('rhythmGame.bpm', { bpm: metronome.bpm })}
-        </p>
-      )}
-
-      {isPlaying && (
-        <p className="scale-practice-mic-status" dir="auto">
-          {micError ? t('trainer.micError', { message: micError }) : micIsListening ? t('rhythmGame.listening') : t('earTraining.mic.permission')}
-        </p>
-      )}
-
-      {ended && <p className="scale-practice-complete">{t('vocal.complete')}</p>}
+      {exercise && <PlayAlong game={scalePractice} metronome={metronome} />}
 
       {mode === 'transition' && (
         <div className="scale-practice-transition-legend" dir="auto">

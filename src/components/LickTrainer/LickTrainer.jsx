@@ -784,6 +784,30 @@ function Player({ trainer, t, lang, variant, busy, looping, pm, tempoOptions, co
         )}
       </div>
 
+      {/* What's happening now — demo (listen only) or your turn (listening). */}
+      <div
+        className={
+          'pa-status is-' +
+          (phase === 'listening' ? 'demo' : phase === 'countIn' ? 'count' : phase === 'recording' || phase === 'waiting' ? 'run' : phase === 'results' ? 'done' : 'idle')
+        }
+        aria-live="polite"
+      >
+        {phase === 'countIn' && countdown != null && <span className="pa-count">{countdown}</span>}
+        <span className="pa-status-text">
+          {phase === 'listening'
+            ? t('pa.demo')
+            : phase === 'countIn'
+            ? t('pa.countPlay')
+            : phase === 'recording' || phase === 'waiting'
+            ? t('pa.run')
+            : phase === 'results'
+            ? t('pa.done')
+            : pm === 'wait'
+            ? t('lt.idleWait')
+            : t('lt.idle')}
+        </span>
+      </div>
+
       {/* Transport: Listen · the ONE primary (record / start) · tempo · mode. */}
       <div className="lt-transport">
         <button
@@ -833,10 +857,6 @@ function Player({ trainer, t, lang, variant, busy, looping, pm, tempoOptions, co
 
       <div className="lt-status" aria-live="polite">
         {phase === 'preparing' && <span>{t('lickTrainer.preparing')}</span>}
-        {phase === 'countIn' && countdown != null && <span className="lt-countdown">{countdown}</span>}
-        {phase === 'countIn' && <span>{t('lickTrainer.getReady')}</span>}
-        {phase === 'recording' && <span className="lt-rec-dot" aria-hidden="true" />}
-        {phase === 'recording' && <span>{t('lickTrainer.recording')}</span>}
         {phase === 'analyzing' && <span>{t('lickTrainer.analyzing')}</span>}
         {phase === 'calibrating' && <span>{t('lickTrainer.calibrating')}</span>}
         {trainer.loopNext && phase === 'results' && <span className="lt-loop-next">{t('trainerx.loopNext')}</span>}

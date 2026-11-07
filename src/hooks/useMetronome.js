@@ -26,6 +26,8 @@ export function useMetronome() {
   // slider (or toggling mute) while running doesn't need to restart the
   // engine — that would risk an audible glitch mid-beat.
   const volumeRef = useRef(0.7);
+  // Listeners told (beatIndex, heardAtMs) on every click — see onBeatTime.
+  const beatListenersRef = useRef(new Set());
 
   useEffect(() => {
     volumeRef.current = isMuted || silenced ? 0 : volume / 100;
@@ -41,7 +43,16 @@ export function useMetronome() {
       bpm,
       beatsPerMeasure,
       soundKey,
-      onBeat: setCurrentBeat,
+      onBeat: (b, heard) => {
+        setCurrentBeat(b);
+        beatListenersRef.current.forEach((fn) => {
+          try {
+            fn(b, heard);
+          } catch {
+            /* a listener never breaks the clock */
+          }
+        });
+      },
       getVolume: () => volumeRef.current,
     });
 
@@ -99,7 +110,14 @@ export function useMetronome() {
     setBpmClamped(60000 / avgMs);
   }
 
+  /** fn(beatIndex, heardAtMs) on every click; returns unsubscribe. */
+  function onBeatTime(fn) {
+    beatListenersRef.current.add(fn);
+    return () => beatListenersRef.current.delete(fn);
+  }
+
   return {
+    onBeatTime,
     bpm,
     setBpm: setBpmClamped,
     beatsPerMeasure,

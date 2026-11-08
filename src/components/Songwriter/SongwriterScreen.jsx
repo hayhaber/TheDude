@@ -11,6 +11,7 @@ import { Icon } from './icons';
 import { RecMeter } from './RecMeter';
 import { Peaks } from './Takes';
 import { DictationBox } from './DictationBox';
+import { FreeWrite } from './FreeWrite';
 import { fmt } from './LyricLine';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import './Songwriter.css';
@@ -188,6 +189,13 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
   // own id (recorded first) or `audioId` (recorded onto a words idea).
   const audioKey = (idea) => idea.audioId ?? (idea.dur != null ? idea.id : null);
   const [editingIdea, setEditingIdea] = useState(null);
+  const [freeOpen, setFreeOpen] = useState(false);
+  const saveFree = ({ text, free, prompt, minutes }) => {
+    const idea = { id: `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, at: Date.now(), text, free, prompt, minutes };
+    store.setIdeas((list) => [idea, ...list]);
+    setFreeOpen(false);
+    toast({ text: t('sw.fw.saved') });
+  };
 
   const stopIdea = async () => {
     if (audio.rec?.phase !== 'rec') {
@@ -323,6 +331,10 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
             </div>
           ) : (
             <span className="sw-group-actions">
+              <button type="button" className="sw-btn is-small is-quiet" onClick={() => setFreeOpen(true)}>
+                <Icon name="spark" />
+                {t('sw.fw.btn')}
+              </button>
               <button type="button" className="sw-btn is-small is-quiet" onClick={newWords}>
                 <Icon name="words" />
                 {t('sw.idea.words')}
@@ -440,6 +452,7 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
           </ul>
         )}
       </section>
+      {freeOpen && <FreeWrite onClose={() => setFreeOpen(false)} onSave={saveFree} />}
     </div>
   );
 }

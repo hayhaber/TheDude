@@ -1921,6 +1921,21 @@ no tools).
   Delete -> toast "Song deleted" + Undo (`store.add(song, index)` puts it
   back in place); its recordings are deleted only when the toast expires.
   Playwright (1180 HE): 3x New -> back = 0 rows; delete + undo + reload.
+- FREE WRITING (v1.0.163, 2026-11-08; user asked for a review of how
+  McCartney / Bowie / Taupin / Chris Martin / Prince / MJ write, then
+  approved stage 1 only — try it ~a week before stage 2 = word ladder +
+  Bowie cut-up mixer). Ideas group head: "Freewrite" / "זרימה" (spark
+  icon) -> `FreeWrite.jsx` (portal `.sw-fw`, full screen): setup = a
+  sensory prompt (pure `music/songwriter/freewrite.js` PROMPTS x30 EN/HE,
+  `nextPrompt`, "Another"), time select 3 / 5 / 10 min, Start; write = a
+  bare textarea + glass bar (prompt, mm:ss, Done; at 0 "Time's up" + "+2
+  min", writing goes on), word count; pick ("Find the diamonds") =
+  `pieces(text)` (lines, long ones split at sentence ends / commas) as
+  tappable rows, Save -> an Idea {text: the kept pieces (all when none
+  marked), free: the whole text, prompt, minutes} -> the usual Idea ->
+  Song -> Suggest chords flow; Discard = two taps. Method: Pattison object
+  writing, Tweedy, Taupin's freeform (text ours). Text `sw.fw.*`.
+  Playwright 390 HE + 1180 EN: start, type, done, mark 2, save -> idea.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

@@ -2574,3 +2574,22 @@
   color: var(--text-secondary);
   font-size: 13px;
 }
+.sw-fw-world {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+.sw-fw-world select {
+  min-height: 44px;
+  min-width: 0;
+  max-width: 62%;
+  padding: 0 12px;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
+  color: var(--text);
+  font-size: 15px;
+}

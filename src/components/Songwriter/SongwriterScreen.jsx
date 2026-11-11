@@ -190,8 +190,8 @@ function SongList({ store, audio, focusIdeas, autoRecord, onAutoRecorded, onOpen
   const audioKey = (idea) => idea.audioId ?? (idea.dur != null ? idea.id : null);
   const [editingIdea, setEditingIdea] = useState(null);
   const [freeOpen, setFreeOpen] = useState(false);
-  const saveFree = ({ text, free, prompt, minutes }) => {
-    const idea = { id: `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, at: Date.now(), text, free, prompt, minutes };
+  const saveFree = ({ text, free, prompt, world, minutes }) => {
+    const idea = { id: `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, at: Date.now(), text, free, prompt, world, minutes };
     store.setIdeas((list) => [idea, ...list]);
     setFreeOpen(false);
     toast({ text: t('sw.fw.saved') });

@@ -1936,6 +1936,16 @@ no tools).
   Song -> Suggest chords flow; Discard = two taps. Method: Pattison object
   writing, Tweedy, Taupin's freeform (text ours). Text `sw.fw.*`.
   Playwright 390 HE + 1180 EN: start, type, done, mark 2, save -> idea.
+  v1.0.164 (user: "expand the topics, from all kinds of worlds"): 132
+  prompts in 14 WORLDS (`WORLDS` in freewrite.js; `PROMPTS` = flat with
+  `world`): objects, places, moments, people (a character's POV), the
+  other side (reversed POV), nature, city, memory, love, roads, music,
+  start-with-a-line, what if, two worlds collide (metaphor collisions) —
+  the idea sources songwriting teachers name (Pattison object writing,
+  overheard speech / first line, reversed POV, metaphor collisions).
+  Setup: "Topics from" select (Every world + 14; device key
+  `dudestar-sw-fw-world`), the prompt card's eyebrow = its world,
+  `nextPrompt(current, rnd, world)`; the idea keeps `world`.
 - NOT verified with a real voice / on iPhone yet. Phase 2 ideas: prosody
   check, chords heard while recording (headphones), open in GuitarPro, Hebrew
   rhyme dictionary.

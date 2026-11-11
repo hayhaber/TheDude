@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { DURATIONS, PROMPTS, nextPrompt, pieces, wordCount } from '../../music/songwriter/freewrite';
+import { DURATIONS, PROMPTS, WORLDS, nextPrompt, pieces, wordCount, worldOf } from '../../music/songwriter/freewrite';
+
+const WORLD_KEY = 'dudestar-sw-fw-world'; // device: the world last chosen ('' = any)
+const readWorld = () => {
+  try {
+    const k = localStorage.getItem(WORLD_KEY) || '';
+    return worldOf(k) ? k : '';
+  } catch {
+    return '';
+  }
+};
 import { Icon } from './icons';
 
 // Timed free writing (v1.0.163; the songwriters' review: write without
@@ -17,7 +27,8 @@ export function FreeWrite({ onClose, onSave }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const [stage, setStage] = useState('setup');
-  const [promptIdx, setPromptIdx] = useState(() => nextPrompt());
+  const [world, setWorld] = useState(readWorld);
+  const [promptIdx, setPromptIdx] = useState(() => nextPrompt(-1, Math.random, readWorld() || null));
   const [minutes, setMinutes] = useState(5);
   const [text, setText] = useState('');
   const [endAt, setEndAt] = useState(0);
@@ -26,6 +37,16 @@ export function FreeWrite({ onClose, onSave }) {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const taRef = useRef(null);
   const prompt = PROMPTS[promptIdx][lang] ?? PROMPTS[promptIdx].en;
+  const promptWorld = worldOf(PROMPTS[promptIdx].world);
+  const chooseWorld = (k) => {
+    setWorld(k);
+    try {
+      localStorage.setItem(WORLD_KEY, k);
+    } catch {
+      /* private mode */
+    }
+    setPromptIdx((i) => nextPrompt(i, Math.random, k || null));
+  };
 
   // the clock (a quiet second tick while writing)
   useEffect(() => {
@@ -71,7 +92,7 @@ export function FreeWrite({ onClose, onSave }) {
     });
   const save = () => {
     const chosen = parts.filter((_, i) => picked.has(i)).map((p) => p.text);
-    onSave({ text: chosen.length ? chosen.join('\n') : text.trim(), free: text.trim(), prompt, minutes });
+    onSave({ text: chosen.length ? chosen.join('\n') : text.trim(), free: text.trim(), prompt, world: PROMPTS[promptIdx].world, minutes });
   };
 
   return createPortal(
@@ -86,15 +107,26 @@ export function FreeWrite({ onClose, onSave }) {
           <h1 className="sw-fw-title">{t('sw.fw.title')}</h1>
           <p className="sw-fw-how">{t('sw.fw.how')}</p>
           <section className="sw-fw-prompt">
-            <span className="sw-fw-eyebrow">{t('sw.fw.prompt')}</span>
+            <span className="sw-fw-eyebrow">{promptWorld ? promptWorld.label[lang] ?? promptWorld.label.en : t('sw.fw.prompt')}</span>
             <p className="sw-fw-prompt-text" dir="auto">
               {prompt}
             </p>
-            <button type="button" className="sw-btn is-small is-quiet" onClick={() => setPromptIdx((i) => nextPrompt(i))}>
+            <button type="button" className="sw-btn is-small is-quiet" onClick={() => setPromptIdx((i) => nextPrompt(i, Math.random, world || null))}>
               <Icon name="spark" />
               {t('sw.fw.another')}
             </button>
           </section>
+          <label className="sw-fw-world">
+            <span>{t('sw.fw.world')}</span>
+            <select value={world} onChange={(e) => chooseWorld(e.target.value)}>
+              <option value="">{t('sw.fw.worldAny')}</option>
+              {WORLDS.map((w) => (
+                <option key={w.key} value={w.key}>
+                  {w.label[lang] ?? w.label.en}
+                </option>
+              ))}
+            </select>
+          </label>
           <p className="sw-fw-senses">{t('sw.fw.senses')}</p>
           <div className="sw-fw-go">
             <label className="sw-fw-time">

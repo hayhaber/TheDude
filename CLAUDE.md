@@ -518,6 +518,9 @@ no tools).
   dim trail), a STROBE band moved by rAF at cents × 1.6 px/s (still when in
   tune), cents + Hz readouts, string lamps; on the face the TUNING LCD (the
   <select> sits invisibly over it) with ◀ ▶ step keys and the POWER key.
+  POWER key (v1.0.165, user): twice as wide (`.tn-power-wrap` flex-basis
+  min(226px, 46%), the key 100 % of it), taken from the tuning LCD; Start
+  and Stop the same size (was 113 / 77 px); narrow (<400) = full row.
   Bass = ice-blue palette via CSS vars on `.tn-body`. The tool screen shows
   it without a card (`.tool-screen-card.is-device`). Pitch logic unchanged.
   ACCURACY (2026-10-16, user saw a piano note read "needs tuning"): McLeod

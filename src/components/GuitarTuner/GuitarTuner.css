@@ -538,16 +538,25 @@
 }
 
 .tn-power-wrap {
+  /* v1.0.165 (user): the Start key twice as wide (was ~113 px), taken
+     from the tuning LCD; Start and Stop keep the same size. */
+  flex: 0 0 min(226px, 46%);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 5px;
+}
+
+.tn-power-wrap .tn-engrave {
+  align-self: center;
 }
 
 .tn-power {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  width: 100%;
   height: 46px;
   padding: 0 16px;
   font-size: 14px;
@@ -612,7 +621,7 @@
   }
 
   .tn-power-wrap {
-    flex: 1;
+    flex: 1 1 100%;
     align-items: stretch;
   }
 

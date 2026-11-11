@@ -485,6 +485,23 @@
   opacity: 0.8;
 }
 
+/* v1.0.167 (user): a non-standard tuning reads orange, standard green. */
+.tn-lcd.is-alt {
+  background: radial-gradient(120% 140% at 50% 0%, #2a1a0a 0%, #120b05 70%);
+  box-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(255, 159, 10, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.tn-lcd.is-alt .tn-lcd-name,
+.tn-lcd.is-alt .tn-lcd-notes {
+  color: #ffb340;
+  text-shadow: 0 0 5px rgba(255, 159, 10, 0.55);
+}
+.tn-lcd.is-alt:focus-within {
+  outline-color: rgba(255, 179, 64, 0.6);
+}
+
 .tn-lcd select {
   position: absolute;
   inset: 0;

@@ -307,7 +307,7 @@ export function GuitarTuner({ mode = 'guitar' }) {
               <button type="button" className="tn-key tn-step" onClick={() => stepTuning(-1)} aria-label={t('tuner.prev')} title={t('tuner.prev')}>
                 ◀
               </button>
-              <label className="tn-lcd">
+              <label className={'tn-lcd' + (tuning.id === 'standard' ? '' : ' is-alt')}>
                 <span className="tn-lcd-name" dir="auto">
                   {t(`tuning.${tuning.id}`)}
                 </span>

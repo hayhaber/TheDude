@@ -522,6 +522,8 @@ no tools).
   min(226px, 46%), the key 100 % of it), taken from the tuning LCD; Start
   and Stop the same size (was 113 / 77 px); narrow (<400) = full row.
   v1.0.166: the tuning LCD text and its TUNING label are centred.
+  v1.0.167: a non-standard tuning = orange LCD (`.tn-lcd.is-alt`, text
+  #ffb340 + warm glass), standard stays green.
   Bass = ice-blue palette via CSS vars on `.tn-body`. The tool screen shows
   it without a card (`.tool-screen-card.is-device`). Pitch logic unchanged.
   ACCURACY (2026-10-16, user saw a piano note read "needs tuning"): McLeod

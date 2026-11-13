@@ -2573,6 +2573,9 @@ no tools).
   checkerboard (`.profile-swatch.is-clear`) = `bg: 'clear'`; a colour
   swatch sets `bg: 'fill'`. Clear = no fill, 1 px neutral ring
   (`--separator`), letter in `--text`.
+  v1.0.172: the keyboard field's placeholder "Other" -> "More…" / "עוד…"
+  (user). Asked again to open the emoji keyboard directly: impossible on
+  iOS (no inputmode / API for it); iOS reopens the keyboard last used.
 - First link: account empty -> upload this device; this device has no real
   data ([] / {} defaults don't count) -> take the account's; both -> the
   CloudPrompt modal "Account | Device" (winner where both have a key;

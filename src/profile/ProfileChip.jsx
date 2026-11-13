@@ -5,7 +5,6 @@ import { useCloud } from '../cloud/useCloud';
 import { getLink } from '../cloud/cloudState';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useProfiles } from './profileStorage';
-import '../components/ModeToggle/ModeToggle.css';
 import './ProfileChip.css';
 
 // A soft colour per profile, from its id.
@@ -383,27 +382,28 @@ function AvatarEditor({ t, name, profile, value, onChange }) {
     <div className="profile-look">
       <Avatar profile={profile} name={name} size={56} avatar={value} />
       <div className="profile-look-body">
-        <div className="mode-toggle profile-look-bg" role="radiogroup" aria-label={t('profile.look.bg')}>
-          <button type="button" role="radio" aria-checked={!clear} className={!clear ? 'active' : ''} onClick={() => set({ bg: 'fill' })}>
-            {t('profile.look.fill')}
-          </button>
-          <button type="button" role="radio" aria-checked={clear} className={clear ? 'active' : ''} onClick={() => set({ bg: 'clear' })}>
-            {t('profile.look.clear')}
-          </button>
-        </div>
         <div className="profile-look-row" role="radiogroup" aria-label={t('profile.look.color')}>
           {AVATAR_HUES.map((h) => (
             <button
               key={h}
               type="button"
               role="radio"
-              aria-checked={value.hue === h}
+              aria-checked={!clear && value.hue === h}
               aria-label={t('profile.look.color')}
-              className={'profile-swatch' + (value.hue === h ? ' is-on' : '')}
+              className={'profile-swatch' + (!clear && value.hue === h ? ' is-on' : '')}
               style={{ '--hue': h }}
-              onClick={() => set({ hue: h })}
+              onClick={() => set({ hue: h, bg: 'fill' })}
             />
           ))}
+          <button
+            type="button"
+            role="radio"
+            aria-checked={clear}
+            aria-label={t('profile.look.clear')}
+            title={t('profile.look.clear')}
+            className={'profile-swatch is-clear' + (clear ? ' is-on' : '')}
+            onClick={() => set({ bg: 'clear' })}
+          />
         </div>
         <div className="profile-look-pick">
           <button

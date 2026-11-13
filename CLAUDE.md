@@ -2568,6 +2568,11 @@ no tools).
   chosen emoji's group); the "Other" field stays (any emoji) with a hint:
   a web page CANNOT open the iOS emoji pane itself — the field opens the
   keyboard, the 🙂 / 🌐 key shows every emoji. cleanAvatar keeps `bg`.
+  v1.0.171 (user: why a Filled | Clear button — just add a checkerboard
+  circle): the segmented control is gone; the LAST colour swatch is a
+  checkerboard (`.profile-swatch.is-clear`) = `bg: 'clear'`; a colour
+  swatch sets `bg: 'fill'`. Clear = no fill, 1 px neutral ring
+  (`--separator`), letter in `--text`.
 - First link: account empty -> upload this device; this device has no real
   data ([] / {} defaults don't count) -> take the account's; both -> the
   CloudPrompt modal "Account | Device" (winner where both have a key;

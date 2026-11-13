@@ -923,6 +923,33 @@ no tools).
   gain + limiter (threshold -2 dB) into the piano's smplr channel
   (`setBoost` in pianoPlayer.js); every other piano path resets it to 1.
   Measured peaks: Normal 0.18, Loud 0.45, Max 0.80 (no clipping).
+- **Range test -> the best KEY for a song (v1.0.168, 2026-11-13; user:
+  "can the test tell which key fits my singing? deepen it if needed")**.
+  Test = 5 steps now: speak · down · up · HOLD (the comfortable top
+  held like a phrase, `HOLD_LONG` 2.5 s within 6 s; fail -> highMargin
+  +1 and one retry a semitone lower, keeping >= a fifth) · SIREN (slide
+  on "oo" up and down, Start / Done / Skip, max 14 s; `findBreak()` in
+  rangeProbe.js: pitch jumps >= 2 st within 0.12 s or gaps 0.12–0.6 s
+  with >= 2 st, ignoring octave slips >= 10 st, inside low+4..high−2,
+  biggest 2-st cluster = the passaggio; none + coverage >= 60 % =
+  smooth). Saved with the range: `notes` (each held note's midi / sd /
+  retry, `heldNotes()`), `passaggio`, `smoothBreak`. Result card shows
+  the break line (`vocal.range.break*`). Pure `music/songwriter/
+  keyFit.js`: `sweetSpot(range)` (steadiest comfortable notes, weight
+  1/(1+sd/15), retries half, 70/30 with 45 % up the comfortable range),
+  `rankKeys(notes, range, key)` over shifts −24..+24: over / under the
+  comfortable edge 4 / 3 per st (+10 past the extremes), |time-weighted
+  melody mean − sweet| x 1.2, top note ON the comfortable edge +0.6, long
+  notes (>= 1 beat) within ±0.5 st of the passaggio +1.2 each (max 3.6),
+  open-chord guitar keys −0.4, |shift| x 0.03. Songwriter editor key /
+  tempo panel: `VoiceKey.jsx` (`.sw-vk`): comfortable range, "Now: C
+  (C5–A5)" + verdict, a select of the 6 best (+ the current) "E ·
+  E3–C#4 · best for you", Use -> transposeSong + toast; no melody / no
+  range = a one-line hint. Latin inside Hebrew wrapped LRI/PDI. Checked:
+  Playwright fake-mic singer (A2–A4, break 62->65): passaggio E4, notes
+  saved; a tiring singer -> highMargin 1 -> 3; Twinkle written at C5
+  for a baritone -> E (E3–C#4), applied, melody moved. NOT verified with
+  a real voice.
 - **Lip trill / low voices (v1.0.104, 2026-11-06)**: the user asked if the
   lip-trill exercise can really score 100. Checked: tempo (eighths at 92 =
   0.33 s/note, the usual 1-2-3-4-5-4-3-2-1 warm-up speed) and scoring are

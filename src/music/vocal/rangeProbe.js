@@ -130,3 +130,53 @@ export function summarize(down, up) {
   }
   return { low, high, lowMargin, highMargin };
 }
+
+// ---- v1.0.168: the extra checks a voice teacher uses to pick a song's key --
+
+export const HOLD_LONG = 2.5; // seconds held at the comfortable top (a sung phrase, not a touch)
+
+/**
+ * The register break (passaggio) from a siren — a slow slide up and down on
+ * "oo". Where the voice changes register the pitch track JUMPS (2+ semitones
+ * in a frame or two) or drops out briefly and comes back elsewhere. Octave
+ * slips of the tracker (~12 st) are ignored. Breaks found on the way up and
+ * down are clustered; the biggest cluster wins.
+ * Returns { midi, count } | { midi: null, smooth: true } (a full, clean
+ * slide) | { midi: null, smooth: false } (not enough of a slide to tell).
+ */
+export function findBreak(frames, low, high) {
+  const v = frames.filter((f) => f.midi != null).sort((a, b) => a.ct - b.ct);
+  if (v.length < 30) return { midi: null, smooth: false };
+  const ms = v.map((f) => f.midi);
+  const covered = Math.max(...ms) - Math.min(...ms);
+  const lo = low + 4;
+  const hi = high - 2;
+  const cands = [];
+  for (let i = 1; i < v.length; i += 1) {
+    const a = v[i - 1];
+    const b = v[i];
+    const dt = b.ct - a.ct;
+    const d = Math.abs(b.midi - a.midi);
+    if (d >= 10) continue; // octave slip of the tracker, not the voice
+    const jump = dt < 0.12 && d >= 2;
+    const gap = dt >= 0.12 && dt <= 0.6 && d >= 2;
+    if (!jump && !gap) continue;
+    const mid = (a.midi + b.midi) / 2;
+    if (mid >= lo && mid <= hi) cands.push(mid);
+  }
+  if (!cands.length) return { midi: null, smooth: covered >= (high - low) * 0.6 };
+  cands.sort((a, b) => a - b);
+  let best = [];
+  for (let i = 0; i < cands.length; i += 1) {
+    const group = cands.filter((c) => c >= cands[i] && c <= cands[i] + 2);
+    if (group.length > best.length) best = group;
+  }
+  return { midi: Math.round(best[best.length >> 1]), count: best.length };
+}
+
+/** The notes the probes held, with how steady each was (for the sweet spot). */
+export function heldNotes(down, up) {
+  return [...(down?.passed ?? []), ...(up?.passed ?? [])]
+    .map((n) => ({ midi: n.midi, sd: Math.round(n.sd ?? 0), retry: !!n.retry }))
+    .sort((a, b) => a.midi - b.midi);
+}

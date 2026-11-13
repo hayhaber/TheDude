@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { VoiceKey } from './VoiceKey';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { BpmField } from '../Metronome/BpmField';
 import { parseLine, splitRaw, joinRaw, replaceText, setChordOnWord, syllables, rhymeScheme, rhymeFamilies } from '../../music/songwriter/lyrics';
@@ -491,6 +492,13 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
             </optgroup>
           </select>
         </label>
+        <VoiceKey
+          song={song}
+          onApply={(r) => {
+            set((s) => transposeSong(s, r.shift, r.key ?? undefined));
+            toast({ text: r.key ? t('sw.transposed', { key: keyName(r.key) }) : t('sw.vk.moved', { n: r.shift }) });
+          }}
+        />
         <div className="sw-field">
           <span>{t('sw.tempo')}</span>
           <BpmField

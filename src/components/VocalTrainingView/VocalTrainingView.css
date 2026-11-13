@@ -189,6 +189,12 @@
   color: var(--text);
 }
 
+.vocal-range-break {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
 .vocal-range-notes {
   margin: 0;
   font-size: 15px;

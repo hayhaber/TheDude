@@ -3,7 +3,10 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { midiName, saveRange, voiceOf } from '../../music/vocal/voiceRange';
 import {
   createProbe,
+  findBreak,
   heldMatch,
+  heldNotes,
+  HOLD_LONG,
   probeExtreme,
   probeResult,
   speakingPitch,
@@ -27,10 +30,12 @@ const LISTEN_DELAY = 0.5; // after the cue, so the piano's tail isn't heard as y
 const LISTEN_FOR = 3.6; // seconds to find and hold the note
 const SPEAK_MIN = 3; // seconds of speaking before the pitch is taken
 const SPEAK_GIVE_UP = 9;
+const HOLD_LISTEN = 6; // seconds to hold the comfortable top for HOLD_LONG
+const SIREN_MAX = 14; // seconds of sliding before the siren ends by itself
 
 export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
   const { t } = useLanguage();
-  const [phase, setPhase] = useState('intro'); // intro | speak | down | up | result
+  const [phase, setPhase] = useState('intro'); // intro | speak | down | up | hold | siren | result
   const [status, setStatus] = useState('cue'); // cue | listen | pass | miss
   const [target, setTarget] = useState(null);
   const [speakFail, setSpeakFail] = useState(false);
@@ -39,6 +44,9 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
   const [high, setHigh] = useState(null);
   const [margins, setMargins] = useState({ lowMargin: 2, highMargin: 2 });
   const [reach, setReach] = useState({ low: null, high: null }); // live, during the test
+  const [passaggio, setPassaggio] = useState(null); // { midi } | { midi: null, smooth }
+  const [sirenOn, setSirenOn] = useState(false);
+  const [holdLeft, setHoldLeft] = useState(null);
   const run = useRef({ alive: false, raf: null, timer: null, probe: null, down: null, speaking: null });
 
   const stopLoop = useCallback(() => {
@@ -65,10 +73,99 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
       setLow(s.low);
       setHigh(s.high);
       setMargins({ lowMargin: s.lowMargin, highMargin: s.highMargin });
-      setPhase('result');
+      run.current.notes = heldNotes(down, up);
+      run.current.alive = true;
+      // v1.0.168: a phrase-length hold at the comfortable top, then a siren
+      // for the register break — what a teacher checks before picking a key.
+      holdTop(s, 0);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [stopLoop]
   );
+
+  // The comfortable top, held like a sung phrase (HOLD_LONG s). Can't hold
+  // it -> the comfortable top comes down a semitone and is tried once more.
+  const holdTop = (s, attempt) => {
+    const r = run.current;
+    if (!r.alive) return;
+    const top = s.high - s.highMargin;
+    setPhase('hold');
+    setHoldLeft(null);
+    const ctx = getAudioContext();
+    const loud = LOUDNESS[loadLoudnessKey()];
+    const t0 = ctx.currentTime + 0.4;
+    const listenFrom = t0 + CUE_DUR + LISTEN_DELAY + (CYCLE_MIC ? 0.4 : 0);
+    const deadline = listenFrom + HOLD_LISTEN;
+    setTarget(top);
+    setStatus('cue');
+    if (CYCLE_MIC) {
+      mic.stop();
+      r.timer = setTimeout(() => {
+        if (r.alive) mic.start().then(() => reviveAudioOutput());
+      }, (CUE_DUR + 0.4) * 1000);
+    }
+    schedulePianoNotes([{ midi: top, start: 0, dur: CUE_DUR }], t0, loud);
+    if (loadCountClick()) r.stopTick = countTick(ctx, listenFrom, true);
+    const tick = () => {
+      if (!r.alive) return;
+      const now = ctx.currentTime;
+      if (now < listenFrom) {
+        r.raf = requestAnimationFrame(tick);
+        return;
+      }
+      setStatus('listen');
+      const m = heldMatch(mic.framesRef.current, top, listenFrom);
+      setHoldLeft(Math.max(0, HOLD_LONG - m.held));
+      if (m.held >= HOLD_LONG || now > deadline) {
+        const ok = m.held >= HOLD_LONG;
+        setStatus(ok ? 'pass' : 'miss');
+        let next = s;
+        if (!ok) {
+          const room = s.high - (s.highMargin + 1) - (s.low + s.lowMargin);
+          if (room >= 7) next = { ...s, highMargin: s.highMargin + 1 };
+          setMargins({ lowMargin: next.lowMargin, highMargin: next.highMargin });
+        }
+        r.timer = setTimeout(() => {
+          if (!ok && attempt < 1 && next !== s) holdTop(next, attempt + 1);
+          else startSiren();
+        }, 800);
+        return;
+      }
+      r.raf = requestAnimationFrame(tick);
+    };
+    r.raf = requestAnimationFrame(tick);
+  };
+
+  // The siren: slide up and down on "oo"; where the pitch jumps = the break.
+  const startSiren = () => {
+    const r = run.current;
+    if (!r.alive) return;
+    setPhase('siren');
+    setSirenOn(false);
+    setPassaggio(null);
+  };
+  const sirenGo = () => {
+    const r = run.current;
+    const ctx = getAudioContext();
+    r.sirenFrom = ctx.currentTime;
+    setSirenOn(true);
+    r.timer = setTimeout(() => sirenStop(), SIREN_MAX * 1000);
+  };
+  const sirenStop = () => {
+    const r = run.current;
+    clearTimeout(r.timer);
+    setSirenOn(false);
+    const frames = mic.framesRef.current.filter((f) => f.ct >= (r.sirenFrom ?? 0));
+    setPassaggio(findBreak(frames, low ?? 0, high ?? 127));
+    setPhase('result');
+    stopLoop();
+  };
+  const sirenSkip = () => {
+    clearTimeout(run.current.timer);
+    setPassaggio(null);
+    setPhase('result');
+    stopLoop();
+  };
 
   // One note: piano cue, then listen until it is held or time runs out.
   const trial = useCallback(
@@ -195,7 +292,8 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
     prepareAudioOutput();
     preparePiano();
     stopLoop();
-    run.current = { alive: true, raf: null, timer: null, probe: null, down: null, speaking: null };
+    run.current = { alive: true, raf: null, timer: null, probe: null, down: null, speaking: null, notes: null };
+    setPassaggio(null);
     setNoVoice(false);
     setReach({ low: null, high: null });
     const ok = await mic.start();
@@ -246,6 +344,7 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
             <li>{t('vocal.range.step1')}</li>
             <li>{t('vocal.range.step2')}</li>
             <li>{t('vocal.range.step3')}</li>
+            <li>{t('vocal.range.step4')}</li>
           </ol>
           <p className="vocal-muted">{t('vocal.range.rules')}</p>
           {noVoice && <p className="vocal-warning">{t('vocal.range.noVoice')}</p>}
@@ -319,6 +418,59 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
         </div>
       )}
 
+      {phase === 'hold' && (
+        <div className="vocal-card vocal-range-step">
+          <span className="vocal-eyebrow">{t('vocal.range.stepOf', { n: 4 })}</span>
+          <p className="vocal-range-instruction">{t('vocal.range.hold')}</p>
+          <div className="vocal-range-live">
+            <div>
+              <span className="vocal-eyebrow">{t('vocal.range.target')}</span>
+              <strong className={'vocal-big-note is-target is-' + status}>{target != null ? midiName(target) : '–'}</strong>
+              <span className="vocal-muted" dir="auto">
+                {status === 'listen' && holdLeft != null ? t('vocal.range.holdLeft', { n: holdLeft.toFixed(1) }) : t(`vocal.range.status.${status}`)}
+              </span>
+            </div>
+            <div>
+              <span className="vocal-eyebrow">{t('vocal.range.now')}</span>
+              <strong className="vocal-big-note">{liveMidi != null ? midiName(liveMidi) : '–'}</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {phase === 'siren' && (
+        <div className="vocal-card vocal-range-step">
+          <span className="vocal-eyebrow">{t('vocal.range.stepOf', { n: 5 })}</span>
+          <p className="vocal-range-instruction">{t('vocal.range.siren')}</p>
+          <p className="vocal-muted">{t('vocal.range.sirenWhy')}</p>
+          <div className="vocal-range-live">
+            <div>
+              <span className="vocal-eyebrow">{t('vocal.range.now')}</span>
+              <strong className="vocal-big-note">{sirenOn && liveMidi != null ? midiName(liveMidi) : '–'}</strong>
+              <span className="vocal-level">
+                <span style={{ width: `${Math.round((sirenOn ? mic.live.level : 0) * 100)}%` }} />
+              </span>
+            </div>
+          </div>
+          <div className="vocal-actions">
+            {sirenOn ? (
+              <button type="button" className="primary" onClick={sirenStop}>
+                {t('vocal.range.done')}
+              </button>
+            ) : (
+              <>
+                <button type="button" className="primary" onClick={sirenGo}>
+                  {t('vocal.start')}
+                </button>
+                <button type="button" onClick={sirenSkip}>
+                  {t('vocal.skip')}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {phase === 'result' && low != null && high != null && (
         <div className="vocal-card vocal-range-result">
           <span className="vocal-eyebrow">{t('vocal.range.type')}</span>
@@ -343,6 +495,15 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
             </div>
           </dl>
           <RangeBar low={low} high={high} comfortLow={comfortLow} comfortHigh={comfortHigh} />
+          {passaggio && (
+            <p className="vocal-range-break" dir="auto">
+              {passaggio.midi != null
+                ? t('vocal.range.breakAt', { note: midiName(passaggio.midi) })
+                : passaggio.smooth
+                  ? t('vocal.range.breakNone')
+                  : t('vocal.range.breakUnclear')}
+            </p>
+          )}
           <p className="vocal-muted">{t('vocal.range.explain')}</p>
           <p className="vocal-muted">{t('vocal.range.adjust')}</p>
           <div className="vocal-adjust">
@@ -369,7 +530,13 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
               type="button"
               className="primary"
               onClick={() => {
-                const r = saveRange(low, high, { ...margins, speaking: run.current.speaking });
+                const r = saveRange(low, high, {
+                  ...margins,
+                  speaking: run.current.speaking,
+                  notes: run.current.notes ?? undefined,
+                  passaggio: passaggio?.midi ?? undefined,
+                  smoothBreak: passaggio && passaggio.midi == null ? !!passaggio.smooth : undefined,
+                });
                 onDone(r);
               }}
             >

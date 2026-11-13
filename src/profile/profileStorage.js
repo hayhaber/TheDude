@@ -304,6 +304,38 @@ export function renameProfile(id, name) {
   }
 }
 
+// The avatar (v1.0.169): { hue?: number, emoji?: string } — a colour for the
+// monogram and, optionally, one emoji instead of the letter. In the registry
+// AND in a personal key, so it syncs like the name.
+export const AVATAR_KEY = 'dudestar-p-profile-avatar';
+
+function cleanAvatar(av) {
+  if (!av || typeof av !== 'object') return null;
+  const out = {};
+  if (Number.isFinite(av.hue)) out.hue = Math.round(av.hue) % 360;
+  if (typeof av.emoji === 'string' && av.emoji.trim()) out.emoji = av.emoji.trim().slice(0, 16);
+  return Object.keys(out).length ? out : null;
+}
+
+export function setProfileAvatar(id, avatar) {
+  if (!installed) return;
+  const clean = cleanAvatar(avatar);
+  const reg = fresh();
+  const profiles = reg.profiles.map((p) => {
+    if (p.id !== id) return p;
+    const { avatar: _old, ...rest } = p;
+    return clean ? { ...rest, avatar: clean } : rest;
+  });
+  writeRegistry({ ...reg, profiles });
+  const value = clean ? JSON.stringify(clean) : '';
+  try {
+    if (id === activeId) window.localStorage.setItem(AVATAR_KEY, value); // reported -> synced
+    else rawSet(nsKey(id, AVATAR_KEY), value);
+  } catch {
+    /* quota */
+  }
+}
+
 /**
  * Start-up, after the cloud rows were applied: a name that came from another
  * device renames this profile here; a name given here before names were
@@ -321,6 +353,30 @@ export function reconcileProfileName() {
       if (clean !== me.name) writeRegistry({ ...reg, profiles: reg.profiles.map((p) => (p.id === activeId ? { ...p, name: clean } : p)) });
     } else if (me.name) {
       window.localStorage.setItem(NAME_KEY, me.name);
+    }
+    // The avatar, the same way.
+    const now = fresh();
+    const me2 = now.profiles.find((p) => p.id === activeId);
+    const storedAv = window.localStorage.getItem(AVATAR_KEY);
+    if (storedAv != null) {
+      let av = null;
+      try {
+        av = cleanAvatar(storedAv ? JSON.parse(storedAv) : null);
+      } catch {
+        av = null;
+      }
+      if (JSON.stringify(av) !== JSON.stringify(me2.avatar ?? null)) {
+        writeRegistry({
+          ...now,
+          profiles: now.profiles.map((p) => {
+            if (p.id !== activeId) return p;
+            const { avatar: _old, ...rest } = p;
+            return av ? { ...rest, avatar: av } : rest;
+          }),
+        });
+      }
+    } else if (me2?.avatar) {
+      window.localStorage.setItem(AVATAR_KEY, JSON.stringify(me2.avatar));
     }
   } catch {
     /* never block start-up */
@@ -382,6 +438,7 @@ export function useProfiles() {
     active: profiles.find((p) => p.id === activeId) ?? null,
     create: createProfile,
     rename: renameProfile,
+    setAvatar: setProfileAvatar,
     remove: deleteProfile,
     switchTo: switchProfile,
   };

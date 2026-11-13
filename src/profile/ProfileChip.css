@@ -457,3 +457,91 @@
     transform: scale(0.94);
   }
 }
+
+/* ---- Avatar look (v1.0.169): colour + letter or emoji ---- */
+.profile-avatar.is-emoji {
+  /* an emoji on a soft tint of the colour, like Apple's contact emoji */
+  background: hsl(var(--hue) 70% 88%);
+  font-size: calc(var(--size) * 0.58);
+  font-weight: 400;
+}
+:root[data-theme='dark'] .profile-avatar.is-emoji {
+  background: hsl(var(--hue) 35% 30%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .profile-avatar.is-emoji {
+    background: hsl(var(--hue) 35% 30%);
+  }
+}
+.profile-look {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+.profile-look-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.profile-look-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.profile-swatch {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(160deg, hsl(var(--hue) 70% 62%), hsl(var(--hue) 62% 46%));
+  cursor: pointer;
+}
+.profile-swatch.is-on {
+  box-shadow: 0 0 0 2px var(--surface, #fff), 0 0 0 4px hsl(var(--hue) 62% 46%);
+}
+.profile-emoji {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: var(--fill-tertiary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  justify-content: center;
+}
+.profile-emoji.is-letter {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text);
+}
+.profile-emoji.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.profile-emoji-own {
+  width: 64px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--fill-tertiary);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+}
+.profile-item.is-editing {
+  flex-direction: column;
+  align-items: stretch;
+  padding-bottom: 6px;
+}
+.profile-item.is-editing .profile-look {
+  padding: 0 4px;
+}

@@ -15,11 +15,36 @@ function hueOf(id = '') {
   return HUES[h % HUES.length];
 }
 
-export function Avatar({ profile, name, size }) {
+// The colours a monogram can take (Apple's system hues: blue, green, orange,
+// purple, pink, teal, yellow, indigo, red, grey-blue).
+export const AVATAR_HUES = [211, 145, 28, 280, 330, 185, 46, 245, 4, 215];
+// Suggested emoji — music first, then a few faces / animals.
+export const AVATAR_EMOJI = ['🎸', '🎹', '🎤', '🥁', '🎷', '🎻', '🎧', '🎵', '⭐️', '🔥', '🦊', '😎'];
+
+/** The first emoji in a text (one grapheme), or ''. */
+export function firstEmoji(text) {
+  const s = String(text ?? '').trim();
+  if (!s) return '';
+  let first;
+  try {
+    first = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s)][0]?.segment;
+  } catch {
+    first = Array.from(s)[0];
+  }
+  return first && /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(first) ? first : '';
+}
+
+export function Avatar({ profile, name, size, avatar }) {
+  const av = avatar !== undefined ? avatar : profile?.avatar;
+  const hue = Number.isFinite(av?.hue) ? av.hue : hueOf(profile?.id);
   const initial = Array.from(name.trim())[0]?.toUpperCase() ?? '?';
   return (
-    <span className="profile-avatar" style={{ '--hue': hueOf(profile?.id), '--size': size ? `${size}px` : undefined }} aria-hidden="true">
-      {initial}
+    <span
+      className={'profile-avatar' + (av?.emoji ? ' is-emoji' : '')}
+      style={{ '--hue': hue, '--size': size ? `${size}px` : undefined }}
+      aria-hidden="true"
+    >
+      {av?.emoji || initial}
     </span>
   );
 }
@@ -30,11 +55,12 @@ export function Avatar({ profile, name, size }) {
  */
 export function ProfileChip({ onSettings, compact = false }) {
   const { t, lang } = useLanguage();
-  const { ready, profiles, active, activeId, create, rename, remove, switchTo } = useProfiles();
+  const { ready, profiles, active, activeId, create, rename, setAvatar, remove, switchTo } = useProfiles();
   const [open, setOpen] = useState(false);
   // null | { kind: 'new' } | { kind: 'rename', id } | { kind: 'delete', id }
   const [edit, setEdit] = useState(null);
   const [draft, setDraft] = useState('');
+  const [draftAv, setDraftAv] = useState(null); // { hue, emoji } while editing a profile
   const boxRef = useRef(null);
   const inputRef = useRef(null);
   const popRef = useRef(null);
@@ -98,14 +124,23 @@ export function ProfileChip({ onSettings, compact = false }) {
 
   const startEdit = (next, value = '') => {
     setDraft(value);
+    if (next.kind === 'rename') {
+      const p = profiles.find((x) => x.id === next.id);
+      setDraftAv({ hue: Number.isFinite(p?.avatar?.hue) ? p.avatar.hue : hueOf(next.id), emoji: p?.avatar?.emoji ?? '' });
+    }
     setEdit(next);
   };
 
   const save = () => {
     const name = draft.trim();
-    if (!name) return;
+    // A new profile needs a name; editing may keep the default one (the
+    // look can change on a profile that was never named).
+    if (!name && edit.kind === 'new') return;
     if (edit.kind === 'new') create(name);
-    else if (edit.kind === 'rename') rename(edit.id, name);
+    else if (edit.kind === 'rename') {
+      rename(edit.id, name);
+      if (draftAv) setAvatar(edit.id, { hue: draftAv.hue, emoji: draftAv.emoji || undefined });
+    }
     setEdit(null);
   };
 
@@ -128,7 +163,7 @@ export function ProfileChip({ onSettings, compact = false }) {
         dir="auto"
         autoComplete="off"
       />
-      <button type="submit" className="profile-btn is-primary" disabled={!draft.trim()}>
+      <button type="submit" className="profile-btn is-primary" disabled={edit?.kind === 'new' && !draft.trim()}>
         {t('profile.save')}
       </button>
       <button type="button" className="profile-btn" onClick={() => setEdit(null)}>
@@ -217,6 +252,13 @@ export function ProfileChip({ onSettings, compact = false }) {
                 return (
                   <li key={p.id} className="profile-item is-editing">
                     {nameForm}
+                    <AvatarEditor
+                      t={t}
+                      name={draft.trim() || nameOf(p)}
+                      profile={p}
+                      value={draftAv}
+                      onChange={setDraftAv}
+                    />
                   </li>
                 );
               }
@@ -262,7 +304,7 @@ export function ProfileChip({ onSettings, compact = false }) {
                   </button>
                   <div className="profile-row-actions">
                     <button type="button" className="profile-btn is-quiet" onClick={() => startEdit({ kind: 'rename', id: p.id }, p.name)}>
-                      {t('profile.rename')}
+                      {t('profile.edit')}
                     </button>
                     {profiles.length > 1 && (
                       <button type="button" className="profile-btn is-quiet is-danger-text" onClick={() => startEdit({ kind: 'delete', id: p.id })}>
@@ -304,6 +346,76 @@ export function ProfileChip({ onSettings, compact = false }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The look of a profile (v1.0.169): a preview, the colour, and a letter or
+ * one emoji — suggestions, or any emoji from the keyboard (the field takes
+ * the first one typed).
+ */
+function AvatarEditor({ t, name, profile, value, onChange }) {
+  const [own, setOwn] = useState('');
+  if (!value) return null;
+  const set = (patch) => onChange({ ...value, ...patch });
+  return (
+    <div className="profile-look">
+      <Avatar profile={profile} name={name} size={56} avatar={value} />
+      <div className="profile-look-body">
+        <div className="profile-look-row" role="radiogroup" aria-label={t('profile.look.color')}>
+          {AVATAR_HUES.map((h) => (
+            <button
+              key={h}
+              type="button"
+              role="radio"
+              aria-checked={value.hue === h}
+              aria-label={t('profile.look.color')}
+              className={'profile-swatch' + (value.hue === h ? ' is-on' : '')}
+              style={{ '--hue': h }}
+              onClick={() => set({ hue: h })}
+            />
+          ))}
+        </div>
+        <div className="profile-look-row is-emoji" role="radiogroup" aria-label={t('profile.look.emoji')}>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!value.emoji}
+            className={'profile-emoji is-letter' + (!value.emoji ? ' is-on' : '')}
+            onClick={() => set({ emoji: '' })}
+            title={t('profile.look.letter')}
+          >
+            {Array.from(name.trim())[0]?.toUpperCase() ?? '?'}
+          </button>
+          {AVATAR_EMOJI.map((e) => (
+            <button
+              key={e}
+              type="button"
+              role="radio"
+              aria-checked={value.emoji === e}
+              className={'profile-emoji' + (value.emoji === e ? ' is-on' : '')}
+              onClick={() => set({ emoji: e })}
+            >
+              {e}
+            </button>
+          ))}
+          <input
+            className="profile-emoji-own"
+            type="text"
+            inputMode="text"
+            value={own}
+            placeholder={t('profile.look.other')}
+            aria-label={t('profile.look.otherHint')}
+            title={t('profile.look.otherHint')}
+            onChange={(e) => {
+              const em = firstEmoji(e.target.value);
+              setOwn(em);
+              if (em) set({ emoji: em });
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

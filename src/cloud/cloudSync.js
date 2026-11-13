@@ -2,7 +2,7 @@
 // Sign in with Google (Supabase Auth, PKCE redirect), link the active
 // profile to the account, push dirty keys, pull newer rows.
 import { createClient } from '@supabase/supabase-js';
-import { NAME_KEY, personalLogicalKeys, reconcileProfileName } from '../profile/profileStorage';
+import { AVATAR_KEY, NAME_KEY, personalLogicalKeys, reconcileProfileName } from '../profile/profileStorage';
 import {
   SUPABASE_KEY,
   SUPABASE_URL,
@@ -130,7 +130,7 @@ async function syncNow({ reloadIfFresh = false } = {}) {
           }
         } else {
           // The name is only shown, never held by a screen: apply it now.
-          const name = rows.filter((r) => r.key === NAME_KEY);
+          const name = rows.filter((r) => r.key === NAME_KEY || r.key === AVATAR_KEY);
           if (name.length && applyRows(name)) reconcileProfileName();
           // keep for the next start (newest row per key wins)
           const byKey = new Map(getPending().map((r) => [r.key, r]));

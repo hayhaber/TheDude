@@ -2544,6 +2544,21 @@ no tools).
   trackChanges): key present -> the registry takes it; no key but a name
   here -> written once (= uploaded). A pulled name row is applied at once
   (cloudSync, not left pending) — it's only displayed.
+- PROFILE AVATAR (v1.0.169, user's OK after "would Apple do it?" — yes:
+  Contacts / Apple ID offer monogram, emoji, Memoji, photo; monogram stays
+  the default): `profile.avatar = {hue?, emoji?}` in the registry AND the
+  personal key `dudestar-p-profile-avatar` (JSON; `setProfileAvatar()`,
+  reconciled at boot like the name; cloudSync applies a pulled avatar row
+  at once with the name row). `Avatar` (ProfileChip.jsx) = the emoji on a
+  soft tint of the hue (`.is-emoji`, darker tint in dark mode) or the
+  initial on the gradient. The profile popover's "Edit" (`profile.edit`)
+  = name field + `AvatarEditor`: preview, 10 colour swatches
+  (`AVATAR_HUES`), letter / 12 suggested emoji (`AVATAR_EMOJI`, music
+  first) / "Other" field taking the first emoji typed (`firstEmoji`,
+  Intl.Segmenter + Extended_Pictographic). A never-named profile can now
+  save its look (Save disabled only for a new profile). No photo (yet).
+  Playwright 390 HE + 1180 EN: colour + 🎸, typed 🦄abc -> 🦄, saved,
+  survives reload, back to the letter.
 - First link: account empty -> upload this device; this device has no real
   data ([] / {} defaults don't count) -> take the account's; both -> the
   CloudPrompt modal "Account | Device" (winner where both have a key;

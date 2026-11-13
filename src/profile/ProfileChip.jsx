@@ -5,6 +5,7 @@ import { useCloud } from '../cloud/useCloud';
 import { getLink } from '../cloud/cloudState';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useProfiles } from './profileStorage';
+import '../components/ModeToggle/ModeToggle.css';
 import './ProfileChip.css';
 
 // A soft colour per profile, from its id.
@@ -18,8 +19,21 @@ function hueOf(id = '') {
 // The colours a monogram can take (Apple's system hues: blue, green, orange,
 // purple, pink, teal, yellow, indigo, red, grey-blue).
 export const AVATAR_HUES = [211, 145, 28, 280, 330, 185, 46, 245, 4, 215];
-// Suggested emoji — music first, then a few faces / animals.
-export const AVATAR_EMOJI = ['🎸', '🎹', '🎤', '🥁', '🎷', '🎻', '🎧', '🎵', '⭐️', '🔥', '🦊', '😎'];
+// Suggested emoji by group (v1.0.170) — music first. The keyboard field
+// ("Other") still takes ANY emoji: a web page can't open the emoji pane
+// itself, the 🙂 / 🌐 key on the iPhone / iPad keyboard does.
+export const EMOJI_SETS = [
+  { key: 'music', emoji: ['🎸', '🎹', '🎤', '🥁', '🎷', '🎺', '🎻', '🪕', '🪗', '🎧', '🎵', '🎶', '🎼', '🎙️', '📻', '🪘', '🪇', '🪈', '💿', '🎚️'] },
+  { key: 'faces', emoji: ['😎', '😀', '😄', '😊', '🙂', '😉', '😍', '🥳', '🤩', '😇', '🤓', '🧐', '😌', '🤠', '🥸', '😺', '👻', '🤖', '👽', '🫠'] },
+  { key: 'people', emoji: ['🧑‍🎤', '👩‍🎤', '👨‍🎤', '🧑‍🎨', '🧑‍🏫', '🧑‍🚀', '🧙', '🧚', '🦸', '🥷', '🧑‍💻', '🧑‍🍳', '👑', '🤘', '✌️', '👍', '👏', '🙌', '💪', '🫶'] },
+  { key: 'animals', emoji: ['🦊', '🐱', '🐶', '🐼', '🐨', '🦁', '🐯', '🐸', '🐵', '🦉', '🐧', '🦄', '🐝', '🦋', '🐢', '🐙', '🐬', '🐳', '🦜', '🐺'] },
+  { key: 'nature', emoji: ['🌸', '🌻', '🌹', '🌵', '🌴', '🍀', '🍁', '🌊', '🔥', '⚡️', '🌈', '☀️', '🌙', '⭐️', '🌟', '❄️', '🌍', '🪐', '☁️', '🌋'] },
+  { key: 'food', emoji: ['🍕', '🍔', '🌮', '🍣', '🍩', '🍪', '🍰', '🧁', '🍫', '🍓', '🍉', '🍒', '🍋', '🥑', '🍿', '☕️', '🧋', '🍦', '🥨', '🍎'] },
+  { key: 'sport', emoji: ['⚽️', '🏀', '🏈', '⚾️', '🎾', '🏐', '🏓', '🎱', '🏆', '🥇', '🛹', '🏄', '🚴', '🏊', '🧗', '⛷️', '🥊', '🎯', '🎳', '🏋️'] },
+  { key: 'objects', emoji: ['🚀', '🎮', '🎲', '🧩', '📚', '✏️', '🎨', '📷', '🎬', '💡', '🔮', '🎁', '🛸', '🚗', '🏍️', '⛵️', '🗝️', '⌛️', '🧭', '🪄'] },
+  { key: 'symbols', emoji: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💖', '✨', '💫', '☮️', '☯️', '♾️', '🔆', '💥', '💯', '🎉', '🏳️‍🌈', '🔱'] },
+];
+export const AVATAR_EMOJI = EMOJI_SETS[0].emoji;
 
 /** The first emoji in a text (one grapheme), or ''. */
 export function firstEmoji(text) {
@@ -40,7 +54,7 @@ export function Avatar({ profile, name, size, avatar }) {
   const initial = Array.from(name.trim())[0]?.toUpperCase() ?? '?';
   return (
     <span
-      className={'profile-avatar' + (av?.emoji ? ' is-emoji' : '')}
+      className={'profile-avatar' + (av?.emoji ? ' is-emoji' : '') + (av?.bg === 'clear' ? ' is-clear' : '')}
       style={{ '--hue': hue, '--size': size ? `${size}px` : undefined }}
       aria-hidden="true"
     >
@@ -126,7 +140,7 @@ export function ProfileChip({ onSettings, compact = false }) {
     setDraft(value);
     if (next.kind === 'rename') {
       const p = profiles.find((x) => x.id === next.id);
-      setDraftAv({ hue: Number.isFinite(p?.avatar?.hue) ? p.avatar.hue : hueOf(next.id), emoji: p?.avatar?.emoji ?? '' });
+      setDraftAv({ hue: Number.isFinite(p?.avatar?.hue) ? p.avatar.hue : hueOf(next.id), emoji: p?.avatar?.emoji ?? '', bg: p?.avatar?.bg === 'clear' ? 'clear' : 'fill' });
     }
     setEdit(next);
   };
@@ -139,7 +153,7 @@ export function ProfileChip({ onSettings, compact = false }) {
     if (edit.kind === 'new') create(name);
     else if (edit.kind === 'rename') {
       rename(edit.id, name);
-      if (draftAv) setAvatar(edit.id, { hue: draftAv.hue, emoji: draftAv.emoji || undefined });
+      if (draftAv) setAvatar(edit.id, { hue: draftAv.hue, emoji: draftAv.emoji || undefined, bg: draftAv.bg === 'clear' ? 'clear' : undefined });
     }
     setEdit(null);
   };
@@ -357,12 +371,26 @@ export function ProfileChip({ onSettings, compact = false }) {
  */
 function AvatarEditor({ t, name, profile, value, onChange }) {
   const [own, setOwn] = useState('');
+  const [group, setGroup] = useState(() => {
+    const g = EMOJI_SETS.find((x) => x.emoji.includes(value?.emoji));
+    return g ? g.key : 'music';
+  });
   if (!value) return null;
   const set = (patch) => onChange({ ...value, ...patch });
+  const set0 = EMOJI_SETS.find((x) => x.key === group) ?? EMOJI_SETS[0];
+  const clear = value.bg === 'clear';
   return (
     <div className="profile-look">
       <Avatar profile={profile} name={name} size={56} avatar={value} />
       <div className="profile-look-body">
+        <div className="mode-toggle profile-look-bg" role="radiogroup" aria-label={t('profile.look.bg')}>
+          <button type="button" role="radio" aria-checked={!clear} className={!clear ? 'active' : ''} onClick={() => set({ bg: 'fill' })}>
+            {t('profile.look.fill')}
+          </button>
+          <button type="button" role="radio" aria-checked={clear} className={clear ? 'active' : ''} onClick={() => set({ bg: 'clear' })}>
+            {t('profile.look.clear')}
+          </button>
+        </div>
         <div className="profile-look-row" role="radiogroup" aria-label={t('profile.look.color')}>
           {AVATAR_HUES.map((h) => (
             <button
@@ -377,18 +405,26 @@ function AvatarEditor({ t, name, profile, value, onChange }) {
             />
           ))}
         </div>
-        <div className="profile-look-row is-emoji" role="radiogroup" aria-label={t('profile.look.emoji')}>
+        <div className="profile-look-pick">
           <button
             type="button"
-            role="radio"
-            aria-checked={!value.emoji}
+            aria-pressed={!value.emoji}
             className={'profile-emoji is-letter' + (!value.emoji ? ' is-on' : '')}
             onClick={() => set({ emoji: '' })}
             title={t('profile.look.letter')}
           >
             {Array.from(name.trim())[0]?.toUpperCase() ?? '?'}
           </button>
-          {AVATAR_EMOJI.map((e) => (
+          <select className="profile-look-group" value={group} onChange={(e) => setGroup(e.target.value)} aria-label={t('profile.look.emoji')}>
+            {EMOJI_SETS.map((g) => (
+              <option key={g.key} value={g.key}>
+                {g.emoji[0]} {t('profile.look.set.' + g.key)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="profile-emoji-grid" role="radiogroup" aria-label={t('profile.look.emoji')}>
+          {set0.emoji.map((e) => (
             <button
               key={e}
               type="button"
@@ -400,21 +436,26 @@ function AvatarEditor({ t, name, profile, value, onChange }) {
               {e}
             </button>
           ))}
+        </div>
+        <label className="profile-emoji-own-row">
           <input
             className="profile-emoji-own"
             type="text"
             inputMode="text"
+            enterKeyHint="done"
+            autoComplete="off"
+            autoCorrect="off"
             value={own}
             placeholder={t('profile.look.other')}
             aria-label={t('profile.look.otherHint')}
-            title={t('profile.look.otherHint')}
             onChange={(e) => {
               const em = firstEmoji(e.target.value);
               setOwn(em);
               if (em) set({ emoji: em });
             }}
           />
-        </div>
+          <span className="profile-emoji-hint">{t('profile.look.otherHint')}</span>
+        </label>
       </div>
     </div>
   );

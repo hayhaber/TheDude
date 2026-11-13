@@ -314,6 +314,7 @@ function cleanAvatar(av) {
   const out = {};
   if (Number.isFinite(av.hue)) out.hue = Math.round(av.hue) % 360;
   if (typeof av.emoji === 'string' && av.emoji.trim()) out.emoji = av.emoji.trim().slice(0, 16);
+  if (av.bg === 'clear') out.bg = 'clear';
   return Object.keys(out).length ? out : null;
 }
 

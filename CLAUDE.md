@@ -2559,6 +2559,15 @@ no tools).
   save its look (Save disabled only for a new profile). No photo (yet).
   Playwright 390 HE + 1180 EN: colour + 🎸, typed 🦄abc -> 🦄, saved,
   survives reload, back to the letter.
+  v1.0.170 (user: a clear background with a thin ring, more emoji, why
+  not the keyboard's emoji pane): `avatar.bg: 'clear'` (`.is-clear`: no
+  fill, 1.5 px ring + letter in the hue; dark variant), Filled | Clear
+  segmented in the editor; `EMOJI_SETS` = 9 groups x 20 (music, faces,
+  people, animals, nature, food, sport, objects, symbols) — a group
+  <select> beside the letter button + a scrolling grid (opens on the
+  chosen emoji's group); the "Other" field stays (any emoji) with a hint:
+  a web page CANNOT open the iOS emoji pane itself — the field opens the
+  keyboard, the 🙂 / 🌐 key shows every emoji. cleanAvatar keeps `bg`.
 - First link: account empty -> upload this device; this device has no real
   data ([] / {} defaults don't count) -> take the account's; both -> the
   CloudPrompt modal "Account | Device" (winner where both have a key;

@@ -545,3 +545,62 @@
 .profile-item.is-editing .profile-look {
   padding: 0 4px;
 }
+
+/* v1.0.170: clear style = no fill, a thin ring in the colour */
+.profile-avatar.is-clear,
+.profile-avatar.is-emoji.is-clear {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px hsl(var(--hue) 62% 50%);
+  color: hsl(var(--hue) 62% 42%);
+}
+:root[data-theme='dark'] .profile-avatar.is-clear {
+  box-shadow: inset 0 0 0 1.5px hsl(var(--hue) 70% 62%);
+  color: hsl(var(--hue) 75% 70%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .profile-avatar.is-clear {
+    box-shadow: inset 0 0 0 1.5px hsl(var(--hue) 70% 62%);
+    color: hsl(var(--hue) 75% 70%);
+  }
+}
+.profile-look-bg {
+  max-width: 220px;
+}
+.profile-look-pick {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.profile-look-group {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  height: 34px;
+  font: inherit;
+  font-size: 15px;
+}
+.profile-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+  gap: 4px;
+  max-height: 152px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.profile-emoji-grid .profile-emoji {
+  justify-self: center;
+}
+.profile-emoji-own-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.profile-emoji-own-row .profile-emoji-own {
+  width: 100%;
+  box-sizing: border-box;
+}
+.profile-emoji-hint {
+  font-size: var(--type-caption1, 12px);
+  color: var(--text-secondary);
+  line-height: 1.35;
+}

@@ -591,7 +591,9 @@
   gap: 4px;
 }
 .profile-emoji-own-row .profile-emoji-own {
-  width: 100%;
+  /* as wide as its "More…" label (v1.0.173) */
+  width: 76px;
+  align-self: flex-start;
   box-sizing: border-box;
 }
 .profile-emoji-hint {

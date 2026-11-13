@@ -2576,6 +2576,7 @@ no tools).
   v1.0.172: the keyboard field's placeholder "Other" -> "More…" / "עוד…"
   (user). Asked again to open the emoji keyboard directly: impossible on
   iOS (no inputmode / API for it); iOS reopens the keyboard last used.
+  v1.0.173: the field is 76 px wide (its label), not the full row.
 - First link: account empty -> upload this device; this device has no real
   data ([] / {} defaults don't count) -> take the account's; both -> the
   CloudPrompt modal "Account | Device" (winner where both have a key;

@@ -245,7 +245,6 @@ export function Performer({ songs, startAt = 0, onClose }) {
         oy: scroller.scrollTop + cy - box.offsetTop,
       };
       pinchedRef.current = true;
-      setPlaying(false);
       box.style.transformOrigin = `${pinch.ox}px ${pinch.oy}px`;
     };
     const move = (e) => {
@@ -323,6 +322,42 @@ export function Performer({ songs, startAt = 0, onClose }) {
     [songs.length]
   );
 
+  // A finger / wheel on the sheet while it scrolls = the reader moves it by
+  // hand: the auto-scroll HOLDS (doesn't stop) while the finger is down and
+  // the page still glides, then goes on from wherever the reader left it.
+  const holdRef = useRef({ touching: false, until: 0 });
+  useEffect(() => {
+    if (!scroller) return undefined;
+    const h = holdRef.current;
+    const down = () => {
+      h.touching = true;
+    };
+    const up = (e) => {
+      if (e.touches?.length) return;
+      h.touching = false;
+      h.until = performance.now() + 220;
+    };
+    const glide = () => {
+      // only while held: the auto-scroll's own moves don't count
+      if (h.touching || performance.now() < h.until) h.until = Math.max(h.until, performance.now() + 160);
+    };
+    const wheel = (e) => {
+      if (!e.ctrlKey) h.until = performance.now() + 350;
+    };
+    scroller.addEventListener('touchstart', down, { passive: true });
+    scroller.addEventListener('touchend', up, { passive: true });
+    scroller.addEventListener('touchcancel', up, { passive: true });
+    scroller.addEventListener('scroll', glide, { passive: true });
+    scroller.addEventListener('wheel', wheel, { passive: true });
+    return () => {
+      scroller.removeEventListener('touchstart', down);
+      scroller.removeEventListener('touchend', up);
+      scroller.removeEventListener('touchcancel', up);
+      scroller.removeEventListener('scroll', glide);
+      scroller.removeEventListener('wheel', wheel);
+    };
+  }, [scroller]);
+
   // Auto-scroll: the whole chart in the song's length.
   useEffect(() => {
     if (!playing || !scroller) return undefined;
@@ -332,6 +367,12 @@ export function Performer({ songs, startAt = 0, onClose }) {
     const step = (now) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
+      const h = holdRef.current;
+      if (h.touching || now < h.until) {
+        carry = 0;
+        raf = requestAnimationFrame(step);
+        return;
+      }
       const span = scroller.scrollHeight - scroller.clientHeight;
       carry += (span / Math.max(20, dur)) * dt;
       const move = Math.floor(carry);
@@ -403,7 +444,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [turn, onClose, zoomTo]);
 
-  // Touch: a finger stops the scroll; a sideways swipe changes the song;
+  // Touch: a sideways swipe changes the song;
   // a tap (no move) shows / hides the controls.
   useEffect(() => {
     if (!scroller) return undefined;
@@ -432,22 +473,16 @@ export function Performer({ songs, startAt = 0, onClose }) {
         return;
       }
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 400) setChrome((v) => !v);
-      else setPlaying(false);
-    };
-    const wheel = (e) => {
-      if (!e.ctrlKey) setPlaying(false);
     };
     scroller.addEventListener('touchstart', down, { passive: true });
     scroller.addEventListener('touchend', up, { passive: true });
     scroller.addEventListener('mousedown', down);
     scroller.addEventListener('mouseup', up);
-    scroller.addEventListener('wheel', wheel, { passive: true });
     return () => {
       scroller.removeEventListener('touchstart', down);
       scroller.removeEventListener('touchend', up);
       scroller.removeEventListener('mousedown', down);
       scroller.removeEventListener('mouseup', up);
-      scroller.removeEventListener('wheel', wheel);
     };
   }, [scroller, goSong]);
 

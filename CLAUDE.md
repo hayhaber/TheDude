@@ -2779,6 +2779,16 @@ no tools).
   scope; the Files app already reaches Drive). Real links NOT tested here
   (container can't reach Dropbox / Drive).
 
+- v1.0.180 (user: "while auto-scroll runs and I drag the chart up / down,
+  go on scrolling from where I stopped"): a finger / wheel no longer
+  STOPS the auto-scroll — Performer `holdRef {touching, until}`: held
+  while a finger is down, while the page still glides (scroll events
+  during a hold extend it 160 ms; 220 ms after the lift; wheel 350 ms),
+  then the rAF goes on from the new scrollTop. Pinch no longer pauses
+  either. A tap still shows / hides the controls; Pause stops. Playwright
+  390 (CDP touch drag): 31 -> dragged 317, held 1.2 s at 317, released ->
+  344, still playing.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

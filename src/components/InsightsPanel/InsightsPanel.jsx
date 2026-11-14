@@ -20,6 +20,8 @@ export function InsightsPanel({
   nextChordText,
   voiceLeadingMessage,
   activeChordText,
+  roadmapShapes,
+  onRoadmapPick,
 }) {
   const { t } = useLanguage();
 
@@ -28,7 +30,7 @@ export function InsightsPanel({
       <h2 className="insights-panel-title">{t('insightsPanel.title')}</h2>
 
       <ScaleAnalysisPanel analysis={scaleAnalysis} emphasizeMood={emphasizeMood} progression={progression} />
-      <PositionRoadmapPanel roadmap={roadmap} />
+      <PositionRoadmapPanel roadmap={roadmap} shapesFor={roadmapShapes} onPick={onRoadmapPick} />
       {/* the chord now playing sits in the meter's own row (v1.0.174 — it
           used to be an absolutely-positioned label laid over the meter) */}
       <TensionMeter tension={tension} chord={activeChordText} />

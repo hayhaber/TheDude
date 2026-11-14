@@ -60,6 +60,8 @@ export function ComposeView({
   bassNotInTriad,
   landingNotes,
   roadmap,
+  roadmapShapes,
+  onRoadmapPick,
   scaleAnalysis,
   emphasizeMood,
   tension,
@@ -318,6 +320,8 @@ export function ComposeView({
         emphasizeMood={emphasizeMood}
         progression={progression}
         roadmap={roadmap}
+        roadmapShapes={isGuitar ? roadmapShapes : undefined}
+        onRoadmapPick={isGuitar ? onRoadmapPick : undefined}
         tension={tension}
         clickedNote={clickedNote}
         landingNotes={landingNotes}

@@ -29,7 +29,7 @@ import { parseGuitarChordProgressionText } from './music/guitarChordRhythmConten
 import { findClosestPositionIndex } from './music/matchPosition';
 import { developMotif } from './music/motifDevelopment';
 import { buildPhrase, flattenPhrase, buildCallAndResponse } from './music/phraseBuilder';
-import { buildPositionRoadmap } from './music/positionRoadmap';
+import { buildPositionRoadmap, nearbyShapes } from './music/positionRoadmap';
 import { analyzeSolo } from './music/soloCoach';
 import { computeLandingNotes, voiceLeadingHint } from './music/voiceLeading';
 import { computeVoiceLeadingSequence } from './music/triadVoiceLeading';
@@ -1041,6 +1041,24 @@ function App() {
     () => buildPositionRoadmap({ progression, chordPositionsList, positionIndexByChord }),
     [progression, chordPositionsList, positionIndexByChord]
   );
+
+  // Roadmap picker (v1.0.175): a chord's other shapes near its neighbours;
+  // choosing one changes ONLY that chord (selectPosition would re-arrange
+  // every other chord) and makes it the active chord, so the neck shows it.
+  const roadmapShapes = useCallback(
+    (i) =>
+      nearbyShapes({
+        steps: roadmap?.steps,
+        index: i,
+        positions: chordPositionsList[i]?.positions,
+        current: positionIndexByChord[i] ?? 0,
+      }),
+    [roadmap, chordPositionsList, positionIndexByChord]
+  );
+  const pickRoadmapShape = useCallback((chordIndex, positionIndex) => {
+    setPositionIndexByChord((prev) => prev.map((v, i) => (i === chordIndex ? positionIndex : v)));
+    setActiveIndex(chordIndex);
+  }, []);
 
   // Keep activeIndex in range when the progression shrinks (e.g. deleting chords).
   useEffect(() => {
@@ -2511,6 +2529,8 @@ function App() {
           bassNotInTriad={bassNotInTriad}
           landingNotes={landingNotes}
           roadmap={roadmap}
+          roadmapShapes={roadmapShapes}
+          onRoadmapPick={pickRoadmapShape}
           scaleAnalysis={scaleAnalysis}
           emphasizeMood={emotionKey ? emotionProfile(emotionKey)?.scaleMood ?? null : null}
           tension={tension}

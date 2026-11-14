@@ -54,3 +54,58 @@ export function buildPositionRoadmap({ progression, chordPositionsList, position
 
   return { steps, transitions };
 }
+
+// Roadmap picker (v1.0.175): the other shapes of ONE progression chord that
+// stay near the chords around it, so swapping a hard shape for an easier one
+// keeps the hand's journey sensible. Pure. `steps` = the roadmap's steps
+// (their baseFret = where the neighbours sit now), `positions` = that
+// chord's positions (computeChordPositions), `current` = its chosen index.
+// Returns up to `max` entries {index, position, baseFret, frets, difficulty,
+// current, easiest}, the current shape first, then by distance to the
+// neighbours and ease.
+const NEAR_FRETS = 4;
+
+export function shapeDifficulty(position) {
+  const frets = position.strings.map((s) => s.fret);
+  const fretted = frets.filter((f) => f != null && f > 0);
+  if (fretted.length === 0) return 0;
+  const lo = Math.min(...fretted);
+  const hi = Math.max(...fretted);
+  const atLo = fretted.filter((f) => f === lo).length;
+  // more than 4 fretted notes = a barre (the index lies flat)
+  const barre = fretted.length > 4 && atLo >= 2;
+  const fingers = barre ? fretted.length - atLo + 1 : fretted.length;
+  return fingers + (barre ? 2.5 : 0) + Math.max(0, hi - lo - 2) * 1.5 + (lo >= 7 ? 0.5 : 0);
+}
+
+export function nearbyShapes({ steps, index, positions, current = 0, max = 4 }) {
+  if (!positions?.length || !steps?.[index]) return [];
+  const around = [steps[index - 1], steps[index + 1]].filter(Boolean).map((s) => s.baseFret);
+  const distance = (bf) => (around.length ? Math.min(...around.map((a) => Math.abs(a - bf))) : 0);
+  const seen = new Set();
+  const all = positions
+    .map((position, i) => {
+      const frets = position.strings.map((s) => s.fret);
+      const baseFret = position.baseFret ?? 0;
+      return { index: i, position, baseFret, frets, difficulty: shapeDifficulty(position), dist: distance(baseFret), current: i === current };
+    })
+    .filter((c) => {
+      const key = c.frets.join(',');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return c.current || c.dist <= NEAR_FRETS;
+    });
+  const cur = all.find((c) => c.current);
+  const others = all
+    .filter((c) => !c.current)
+    .sort((a, b) => a.dist + a.difficulty * 0.6 - (b.dist + b.difficulty * 0.6) || a.baseFret - b.baseFret)
+    .slice(0, Math.max(0, max - (cur ? 1 : 0)));
+  const list = (cur ? [cur, ...others] : others).sort((a, b) => a.baseFret - b.baseFret);
+  if (list.length > 1) {
+    const min = Math.min(...list.map((c) => c.difficulty));
+    const easiest = list.find((c) => c.difficulty === min);
+    // only worth saying when it is really easier than the current shape
+    if (!cur || easiest.difficulty < cur.difficulty - 0.5) easiest.easiest = true;
+  }
+  return list;
+}

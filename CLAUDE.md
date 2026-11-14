@@ -2622,6 +2622,20 @@ no tools).
   visible one-line explanation (`tensionMeter.desc`, `positionRoadmap.desc`;
   the ⓘ tips are off by default). Roadmap arrows point left in RTL
   (`:dir(rtl)` mirror). Playwright 390 HE + 1180 EN, F Fsus2 Dm.
+- ROADMAP PICKER (v1.0.175, user's idea + Claude's version: a choice, not
+  a blind cycle). Compose (guitar): each roadmap chord is a button
+  (`.position-roadmap-step.is-button`) opening `.position-roadmap-shapes`
+  under the chain: that chord's other shapes within 4 frets of its
+  neighbours (pure `nearbyShapes()` + `shapeDifficulty()` in
+  positionRoadmap.js — from the SAME computeChordPositions list the neck
+  uses; max 4, by fret), drawn with the Chord Library's `ChordBox`
+  (`boxProps()`), tags Now / Easiest (only when clearly easier), "only
+  shape nearby" text otherwise, Done. Choosing = App `pickRoadmapShape`:
+  ONLY that chord's positionIndexByChord changes (selectPosition would
+  re-arrange the others) + it becomes the active chord. Studies' roadmap
+  stays read-only (no props). The engine has NO open Fsus2 (xx3011) —
+  its Fsus2 shapes are 3 / 8 / 15 / 20. Playwright 390 HE (F Fsus2 Dm) +
+  1180 EN (C G Am F: G Open -> Position 3 changes the chain), no errors.
 
 ## ⓘ explanations (info switch)
 

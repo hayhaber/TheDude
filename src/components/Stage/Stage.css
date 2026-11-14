@@ -550,7 +550,8 @@
   position: relative;
   z-index: 1;
 }
-/* the share of the song played fills the title bubble (from the reading side) */
+/* the share of the song played fills the title bubble — always left to
+   right (time runs left to right, as in Apple's players), in every language */
 .stage-top-fill {
   position: absolute;
   inset: 0;
@@ -562,9 +563,6 @@
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
-}
-.stage-perf-top[dir='rtl'] .stage-top-fill {
-  transform-origin: right;
 }
 .stage-top-fill.is-on {
   opacity: 1;

@@ -2835,6 +2835,11 @@ no tools).
   edge + soft inner glow, text-shadow for legibility over white pages.
   Playwright 390 HE + 1180 EN screenshots checked.
 
+- v1.0.186 (user): the title-bubble fill runs LEFT TO RIGHT in every
+  language (the RTL origin rule is gone — time runs left to right); the
+  Scroll key (full bar + folded bubble) shows a filled PLAY triangle
+  (never mirrored) instead of the down arrow; pause stays two bars.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

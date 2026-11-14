@@ -629,7 +629,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
       {mini ? (
         <div className="stage-perf-bar is-mini glass" dir="ltr">
           <button type="button" className={'stage-key is-round is-primary' + (playing ? ' is-on' : '')} onClick={toggleScroll} aria-label={playing ? t('stage.pause') : t('stage.scroll')} title={playing ? t('stage.pause') : t('stage.scroll')}>
-            {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M12 4v13M7 12l5 5 5-5M6 20h12" size={16} />}
+            {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M7 4.5v15l13-7.5z" size={16} fill />}
           </button>
           {started && (
             <span className="stage-left" aria-label={t('stage.left')}>
@@ -650,7 +650,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
           <Icon d="M15 5l-7 7 7 7" />
         </button>
         <button type="button" className={'stage-key is-primary' + (playing ? ' is-on' : '')} onClick={toggleScroll}>
-          {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M12 4v13M7 12l5 5 5-5M6 20h12" size={16} />}
+          {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M7 4.5v15l13-7.5z" size={16} fill />}
           <span>{playing ? t('stage.pause') : t('stage.scroll')}</span>
         </button>
         {started && (

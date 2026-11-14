@@ -532,27 +532,31 @@
   background: color-mix(in srgb, #ff9f0a 75%, transparent);
   box-shadow: 0 0 10px rgba(255, 159, 10, 0.5);
 }
-.stage-progress {
+.stage-perf-top {
+  overflow: hidden;
+  isolation: isolate;
+}
+.stage-perf-top > :not(.stage-top-fill) {
+  position: relative;
+  z-index: 1;
+}
+/* the share of the song played fills the title bubble (from the reading side) */
+.stage-top-fill {
   position: absolute;
-  top: env(safe-area-inset-top);
-  inset-inline: 0;
-  height: 3px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  z-index: 3;
-}
-.stage-progress.is-on {
-  opacity: 1;
-}
-.stage-progress-fill {
-  height: 100%;
-  background: #0a84ff;
+  inset: 0;
+  z-index: 0;
+  background: rgba(255, 255, 255, 0.16);
   transform: scaleX(0);
   transform-origin: left;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
 }
-.stage-perf:dir(rtl) .stage-progress-fill {
+.stage-perf-top[dir='rtl'] .stage-top-fill {
   transform-origin: right;
+}
+.stage-top-fill.is-on {
+  opacity: 1;
 }
 .stage-left {
   min-width: 48px;

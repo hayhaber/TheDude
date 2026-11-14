@@ -2818,6 +2818,15 @@ no tools).
   (30 s) + 1180 EN (folded): line / bar move, time counts down, guide
   hides on Pause.
 
+- v1.0.184 (user's idea, Claude agreed): the progress hairline along the
+  top is GONE — the song's title bubble itself fills (Apple Music's mini
+  player idea): `.stage-top-fill` = an absolutely placed white 16 % layer
+  inside `.stage-perf-top` (overflow hidden + isolation; its other
+  children raised), scaleX(p) from the reading side (`[dir=rtl]` ->
+  origin right), shown once the song has started. When the top bar is
+  hidden (a tap), the time left stays in the bottom bubble. Playwright
+  390 HE + 1180 EN: fill grows, no errors.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

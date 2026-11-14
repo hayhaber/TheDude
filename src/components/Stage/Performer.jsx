@@ -312,7 +312,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
   // pace — the point of the chart at the share of the song played. A thin
   // line marks it (gliding from the chart's top down to ~60 % of the screen
   // over the song), the part already played above it is dimmed a little,
-  // a thin bar along the top shows the share played, and the bubble shows
+  // the song's title bubble fills with the share played (v1.0.184), and the bubble shows
   // the time left. Drawn straight in the DOM on every scroll (no renders).
   const lineRef = useRef(null);
   const dimRef = useRef(null);
@@ -602,9 +602,6 @@ export function Performer({ songs, startAt = 0, onClose }) {
         <div className="stage-guide-dim" ref={dimRef} />
         <div className="stage-guide-line" ref={lineRef} />
       </div>
-      <div className={'stage-progress' + (started ? ' is-on' : '')} aria-hidden="true">
-        <div className="stage-progress-fill" ref={progRef} />
-      </div>
 
       {zoomShown && (
         <div className="stage-zoom-badge glass" aria-live="polite">
@@ -613,6 +610,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
       )}
 
       <header className="stage-perf-top glass" dir={dir}>
+        <div className={'stage-top-fill' + (started ? ' is-on' : '')} ref={progRef} aria-hidden="true" />
         <button type="button" className="stage-key is-round" onClick={onClose} aria-label={t('stage.close')} title={t('stage.close')}>
           <Icon d="M6 6l12 12M18 6L6 18" size={18} />
         </button>

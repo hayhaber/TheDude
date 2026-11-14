@@ -108,6 +108,28 @@
   cursor: default;
   opacity: 0.55;
 }
+.stg .ph-row .ph-text {
+  justify-content: center;
+}
+/* a Latin name in a Hebrew list (and the reverse) keeps the list's side */
+.stg .ph-row .ph-title {
+  text-align: match-parent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* iOS "right detail": the value at the row's end, centred with the title */
+.stg-detail {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--type-subhead, 15px);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.stg-row.is-missing .stg-detail,
 .stg-row.is-missing .ph-desc {
   color: var(--danger);
 }

@@ -2789,6 +2789,14 @@ no tools).
   390 (CDP touch drag): 31 -> dragged 317, held 1.2 s at 317, released ->
   344, still playing.
 
+- v1.0.181 (user, iPad screenshot: "centre the song name vertically in
+  the row"): Stage rows (setlists, a setlist's songs, all charts) =
+  iOS "right detail" — the title alone, vertically centred; the detail
+  (song count / length / "not uploaded yet" / missing) is `.stg-detail`
+  at the row's end. `.stg .ph-row .ph-title` text-align match-parent:
+  a Latin name in a Hebrew list stays on the list's side (it sat on the
+  far side because of dir="auto"). Playwright 1180 HE + 390 EN.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

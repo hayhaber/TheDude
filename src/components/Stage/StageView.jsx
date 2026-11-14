@@ -522,8 +522,8 @@ export function StageView({ onAccount }) {
                   <span className="ph-title" dir="auto">
                     {s.name}
                   </span>
-                  {(s.missing || durOf(s.id)) && <span className="ph-desc">{s.missing ? t('stage.missing') : durOf(s.id)}</span>}
                 </span>
+                {(s.missing || durOf(s.id)) && <span className="stg-detail">{s.missing ? t('stage.missing') : durOf(s.id)}</span>}
               </button>
               <MoreMenu label={t('stage.more')}>
                 {i > 0 && (
@@ -694,8 +694,8 @@ export function StageView({ onAccount }) {
                   <span className="ph-title" dir="auto">
                     {l.name}
                   </span>
-                  <span className="ph-desc">{l.items.length === 1 ? t('stage.song1') : l.items.length ? t('stage.songs', { n: l.items.length }) : t('stage.noSongs')}</span>
                 </span>
+                <span className="stg-detail">{l.items.length === 1 ? t('stage.song1') : l.items.length ? t('stage.songs', { n: l.items.length }) : t('stage.noSongs')}</span>
                 <Chevron />
               </button>
             ))}
@@ -736,10 +736,10 @@ export function StageView({ onAccount }) {
                       <span className="ph-title" dir="auto">
                         {s.name}
                       </span>
-                      {(durOf(s.id) || (isIn && !s.cloud)) && (
-                        <span className="ph-desc">{[durOf(s.id), isIn && !s.cloud ? t('stage.cloud.notYet') : null].filter(Boolean).join(' · ')}</span>
-                      )}
                     </span>
+                    {(durOf(s.id) || (isIn && !s.cloud)) && (
+                      <span className="stg-detail">{[durOf(s.id), isIn && !s.cloud ? t('stage.cloud.notYet') : null].filter(Boolean).join(' · ')}</span>
+                    )}
                   </button>
                 )}
                 <MoreMenu label={t('stage.more')}>

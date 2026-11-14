@@ -2797,6 +2797,12 @@ no tools).
   a Latin name in a Hebrew list stays on the list's side (it sat on the
   far side because of dir="auto"). Playwright 1180 HE + 390 EN.
 
+- v1.0.182 (user: with the bubble folded, a few taps on the chart made
+  it disappear): a tap on the sheet toggles `.is-bare`, which hid the
+  folded bubble too. `.stage-perf.is-bare .stage-perf-bar.is-mini` stays
+  visible — only the top bar comes and goes. Playwright 390: 3 taps ->
+  bubble opacity 1 throughout, top bar 0 / 1 / 0.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

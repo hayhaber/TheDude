@@ -460,6 +460,13 @@
   gap: 4px;
   padding: 5px;
 }
+/* the folded bubble is already out of the way: a tap on the sheet never
+   hides it (only the top bar comes and goes) */
+.stage-perf.is-bare .stage-perf-bar.is-mini {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
 .stage-key.is-quiet {
   background: transparent;
   color: rgba(255, 255, 255, 0.85);

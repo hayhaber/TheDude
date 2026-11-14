@@ -556,8 +556,9 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  /* Apple Music's accent red, as its players fill progress */
-  background: linear-gradient(180deg, rgba(250, 45, 72, 0.62), rgba(250, 45, 72, 0.48));
+  /* as Apple's Now Playing scrubber: a bright white wash over the glass
+     (the app's own colours stay on the keys — no extra hue up here) */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.24));
   transform: scaleX(0);
   transform-origin: left;
   opacity: 0;

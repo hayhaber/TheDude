@@ -2840,6 +2840,11 @@ no tools).
   Scroll key (full bar + folded bubble) shows a filled PLAY triangle
   (never mirrored) instead of the down arrow; pause stays two bars.
 
+- v1.0.187 (user: "whatever fits the system's design language best"):
+  the title-bubble fill = a white wash (34→24 %) like Apple's Now
+  Playing scrubber, not Apple Music red (it clashed with the orange
+  Pause key and added a hue the app doesn't use).
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

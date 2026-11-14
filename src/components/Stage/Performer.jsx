@@ -18,6 +18,25 @@ import { Page, useWakeLock } from '../GuitarPro/PdfSheetView';
 const GAP = 12;
 const DEFAULT_DUR = 210; // 3:30
 const NIGHT_KEY = 'dudestar-stage-night'; // device
+const MINI_KEY = 'dudestar-stage-bar-mini'; // device: the control bubble folded
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 3;
+const clampZoom = (z) => Math.round(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)) * 20) / 20;
+
+function readFlag(key) {
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
+  }
+}
+function writeFlag(key, on) {
+  try {
+    localStorage.setItem(key, on ? '1' : '0');
+  } catch {
+    /* private mode */
+  }
+}
 
 function readNight() {
   try {
@@ -82,6 +101,14 @@ export function Performer({ songs, startAt = 0, onClose }) {
   const [atEnd, setAtEnd] = useState(false);
   const [chrome, setChrome] = useState(true);
   const [night, setNight] = useState(readNight);
+  const [mini, setMini] = useState(() => readFlag(MINI_KEY));
+  const [zoom, setZoom] = useState(1); // the pages only, per chart
+  const [zoomShown, setZoomShown] = useState(false); // the % badge
+  const zoomRef = useRef(1);
+  zoomRef.current = zoom;
+  const pagesRef = useRef(null);
+  const anchorRef = useRef(null); // keep this spot under the fingers after a zoom
+  const pinchedRef = useRef(false);
   const [dur, setDur] = useState(DEFAULT_DUR);
   const [tr, setTr] = useState(0);
   const [width, setWidth] = useState(0);
@@ -96,6 +123,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
     const prefs = sheetPrefs(song.id);
     setDur(prefs.dur ?? DEFAULT_DUR);
     setTr(prefs.tr ?? 0);
+    setZoom(clampZoom(prefs.zoom ?? 1));
     setDoc(null);
     setSizes([]);
     setChords(null);
@@ -133,14 +161,143 @@ export function Performer({ songs, startAt = 0, onClose }) {
     if (scroller && doc) scroller.scrollTop = 0;
   }, [scroller, doc]);
 
+  const [baseWidth, setBaseWidth] = useState(0);
   useLayoutEffect(() => {
     if (!scroller) return undefined;
-    const fit = () => setWidth(Math.max(240, Math.min(scroller.clientWidth - 16, 1200)));
+    const fit = () => setBaseWidth(Math.max(240, Math.min(scroller.clientWidth - 16, 1200)));
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(scroller);
     return () => ro.disconnect();
   }, [scroller]);
+  // the pages grow with the zoom; the controls never do
+  useLayoutEffect(() => {
+    setWidth(Math.round(baseWidth * zoom));
+  }, [baseWidth, zoom]);
+
+  // After a zoom: the spot that was under the fingers / the screen's centre
+  // stays there.
+  useLayoutEffect(() => {
+    const a = anchorRef.current;
+    const box = pagesRef.current;
+    if (!a || !scroller || !box || !width) return;
+    anchorRef.current = null;
+    const r = a.to / a.from;
+    scroller.scrollLeft = box.offsetLeft + a.x * r - a.cx;
+    scroller.scrollTop = box.offsetTop + a.y * r - a.cy;
+  }, [width, scroller]);
+
+  const flashZoom = useRef(0);
+  const showZoom = useCallback(() => {
+    setZoomShown(true);
+    clearTimeout(flashZoom.current);
+    flashZoom.current = setTimeout(() => setZoomShown(false), 900);
+  }, []);
+  useEffect(() => () => clearTimeout(flashZoom.current), []);
+
+  /** Zoom to z keeping the point (cx, cy) of the scroller's box in place. */
+  const zoomTo = useCallback(
+    (z, cx, cy) => {
+      const box = pagesRef.current;
+      const from = zoomRef.current;
+      const to = clampZoom(z);
+      if (!scroller || !box || to === from) return;
+      const px = cx ?? scroller.clientWidth / 2;
+      const py = cy ?? scroller.clientHeight / 2;
+      anchorRef.current = {
+        from,
+        to,
+        cx: px,
+        cy: py,
+        x: scroller.scrollLeft + px - box.offsetLeft,
+        y: scroller.scrollTop + py - box.offsetTop,
+      };
+      setZoom(to);
+      showZoom();
+      if (song) setSheetPrefs(song.id, { zoom: to });
+    },
+    [scroller, song, showZoom]
+  );
+
+  // Pinch on the sheet = zoom the pages (never the whole app): the browser's
+  // own page zoom is off here (touch-action + Safari's gesture events); while
+  // the fingers move the pages are scaled by CSS, the new size is drawn when
+  // they lift. Ctrl + wheel (a trackpad pinch on a computer) zooms too.
+  useEffect(() => {
+    if (!scroller) return undefined;
+    let pinch = null;
+    const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const start = (e) => {
+      if (e.touches.length !== 2) return;
+      const box = pagesRef.current;
+      if (!box) return;
+      const [a, b] = e.touches;
+      const rect = scroller.getBoundingClientRect();
+      const cx = (a.clientX + b.clientX) / 2 - rect.left;
+      const cy = (a.clientY + b.clientY) / 2 - rect.top;
+      pinch = {
+        d0: dist(a, b),
+        z0: zoomRef.current,
+        f: 1,
+        cx,
+        cy,
+        ox: scroller.scrollLeft + cx - box.offsetLeft,
+        oy: scroller.scrollTop + cy - box.offsetTop,
+      };
+      pinchedRef.current = true;
+      setPlaying(false);
+      box.style.transformOrigin = `${pinch.ox}px ${pinch.oy}px`;
+    };
+    const move = (e) => {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();
+      const [a, b] = e.touches;
+      const z = clampZoom((pinch.z0 * dist(a, b)) / pinch.d0);
+      pinch.f = z / pinch.z0;
+      const box = pagesRef.current;
+      if (box) box.style.transform = `scale(${pinch.f})`;
+    };
+    const end = (e) => {
+      if (!pinch || e.touches.length >= 2) return;
+      const p = pinch;
+      pinch = null;
+      const box = pagesRef.current;
+      if (box) {
+        box.style.transform = '';
+        box.style.transformOrigin = '';
+      }
+      const to = clampZoom(p.z0 * p.f);
+      if (to !== p.z0) {
+        anchorRef.current = { from: p.z0, to, cx: p.cx, cy: p.cy, x: p.ox, y: p.oy };
+        setZoom(to);
+        showZoom();
+        if (song) setSheetPrefs(song.id, { zoom: to });
+      }
+    };
+    const noGesture = (e) => e.preventDefault(); // iOS Safari's page zoom
+    const wheel = (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      const rect = scroller.getBoundingClientRect();
+      zoomTo(zoomRef.current * Math.exp(-e.deltaY * 0.004), e.clientX - rect.left, e.clientY - rect.top);
+    };
+    scroller.addEventListener('touchstart', start, { passive: true });
+    scroller.addEventListener('touchmove', move, { passive: false });
+    scroller.addEventListener('touchend', end, { passive: true });
+    scroller.addEventListener('touchcancel', end, { passive: true });
+    scroller.addEventListener('wheel', wheel, { passive: false });
+    document.addEventListener('gesturestart', noGesture);
+    document.addEventListener('gesturechange', noGesture);
+    return () => {
+      scroller.removeEventListener('touchstart', start);
+      scroller.removeEventListener('touchmove', move);
+      scroller.removeEventListener('touchend', end);
+      scroller.removeEventListener('touchcancel', end);
+      scroller.removeEventListener('wheel', wheel);
+      document.removeEventListener('gesturestart', noGesture);
+      document.removeEventListener('gesturechange', noGesture);
+    };
+  }, [scroller, song, zoomTo, showZoom]);
 
   // The whole page stays put under the sheet (no document scroll behind).
   useEffect(() => {
@@ -234,11 +391,17 @@ export function Performer({ songs, startAt = 0, onClose }) {
       } else if (e.key === ' ') {
         e.preventDefault();
         setPlaying((v) => !v);
+      } else if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        zoomTo(zoomRef.current + 0.25);
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        zoomTo(zoomRef.current - 0.25);
       } else if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [turn, onClose]);
+  }, [turn, onClose, zoomTo]);
 
   // Touch: a finger stops the scroll; a sideways swipe changes the song;
   // a tap (no move) shows / hides the controls.
@@ -246,24 +409,34 @@ export function Performer({ songs, startAt = 0, onClose }) {
     if (!scroller) return undefined;
     let start = null;
     const down = (e) => {
+      if (e.touches && e.touches.length > 1) return;
+      if (e.touches) pinchedRef.current = false;
       const p = e.touches?.[0] ?? e;
       start = { x: p.clientX, y: p.clientY, t: performance.now() };
     };
     const up = (e) => {
       if (!start) return;
+      if (e.touches?.length) return; // a finger is still down
+      if (pinchedRef.current) {
+        start = null;
+        return;
+      }
       const p = e.changedTouches?.[0] ?? e;
       const dx = p.clientX - start.x;
       const dy = p.clientY - start.y;
       const dt = performance.now() - start.t;
       start = null;
-      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6 && dt < 700) {
+      const wide = scroller.scrollWidth > scroller.clientWidth + 2; // zoomed: sideways = pan
+      if (!wide && Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6 && dt < 700) {
         goSong(dx < 0 ? 1 : -1);
         return;
       }
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 400) setChrome((v) => !v);
       else setPlaying(false);
     };
-    const wheel = () => setPlaying(false);
+    const wheel = (e) => {
+      if (!e.ctrlKey) setPlaying(false);
+    };
     scroller.addEventListener('touchstart', down, { passive: true });
     scroller.addEventListener('touchend', up, { passive: true });
     scroller.addEventListener('mousedown', down);
@@ -298,14 +471,17 @@ export function Performer({ songs, startAt = 0, onClose }) {
   };
   const toggleNight = () => {
     setNight((v) => {
-      try {
-        localStorage.setItem(NIGHT_KEY, v ? '0' : '1');
-      } catch {
-        /* private mode */
-      }
+      writeFlag(NIGHT_KEY, !v);
       return !v;
     });
   };
+  const toggleMini = () => {
+    setMini((v) => {
+      writeFlag(MINI_KEY, !v);
+      return !v;
+    });
+  };
+  const zoomPct = Math.round(zoom * 100);
 
   const next = songs[idx + 1];
   const keyName = hasChords ? keyOf(firstChord, tr) : null;
@@ -315,11 +491,12 @@ export function Performer({ songs, startAt = 0, onClose }) {
 
   return createPortal(
     <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare')} role="dialog" aria-label={song.name}>
-      <div className="stage-perf-scroll" ref={setScroller}>
+      <div className="stage-perf-scroll" ref={setScroller} dir="ltr">
         {error && <p className="stage-perf-msg">{t(song.missing ? 'stage.missing' : 'stage.error')}</p>}
         {!error && !doc && <p className="stage-perf-msg">{t('stage.loading')}</p>}
-        {doc &&
-          sizes.map((s, i) => (
+        {doc && (
+          <div className="stage-perf-pages" ref={pagesRef}>
+          {sizes.map((s, i) => (
             <Page key={song.id + ':' + i} doc={doc} index={i} size={s} width={width} root={scroller}>
               {tr !== 0 && chords?.[i]?.length > 0 && (
                 <div className="stage-chords" aria-hidden="true">
@@ -342,7 +519,15 @@ export function Performer({ songs, startAt = 0, onClose }) {
               )}
             </Page>
           ))}
+          </div>
+        )}
       </div>
+
+      {zoomShown && (
+        <div className="stage-zoom-badge glass" aria-live="polite">
+          {zoomPct}%
+        </div>
+      )}
 
       <header className="stage-perf-top glass" dir={dir}>
         <button type="button" className="stage-key is-round" onClick={onClose} aria-label={t('stage.close')} title={t('stage.close')}>
@@ -360,8 +545,21 @@ export function Performer({ songs, startAt = 0, onClose }) {
         </button>
       </header>
 
+      {mini ? (
+        <div className="stage-perf-bar is-mini glass" dir="ltr">
+          <button type="button" className={'stage-key is-round is-primary' + (playing ? ' is-on' : '')} onClick={toggleScroll} aria-label={playing ? t('stage.pause') : t('stage.scroll')} title={playing ? t('stage.pause') : t('stage.scroll')}>
+            {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M12 4v13M7 12l5 5 5-5M6 20h12" size={16} />}
+          </button>
+          <button type="button" className="stage-key is-round is-quiet" onClick={toggleMini} aria-label={t('stage.expand')} title={t('stage.expand')}>
+            <Icon d="M6 15l6-6 6 6" size={18} />
+          </button>
+        </div>
+      ) : (
       <div className="stage-perf-bar glass" dir="ltr">
         <div className="stage-group">
+        <button type="button" className="stage-key is-round is-quiet" onClick={toggleMini} aria-label={t('stage.collapse')} title={t('stage.collapse')}>
+          <Icon d="M6 9l6 6 6-6" size={18} />
+        </button>
         <button type="button" className="stage-key is-round" onClick={() => goSong(-1)} disabled={idx <= 0} aria-label={t('stage.prevSong')} title={t('stage.prevSong')}>
           <Icon d="M15 5l-7 7 7 7" />
         </button>
@@ -405,8 +603,21 @@ export function Performer({ songs, startAt = 0, onClose }) {
             +
           </button>
         </span>
+        <span className="stage-stepper" title={t('stage.zoomHint')}>
+          <button type="button" className="stage-key is-small" onClick={() => zoomTo(zoom - 0.25)} disabled={zoom <= ZOOM_MIN} aria-label={t('stage.zoomOut')}>
+            −
+          </button>
+          <span className="stage-stepper-val">
+            <small>{t('stage.zoom')}</small>
+            {zoomPct}%
+          </span>
+          <button type="button" className="stage-key is-small" onClick={() => zoomTo(zoom + 0.25)} disabled={zoom >= ZOOM_MAX} aria-label={t('stage.zoomIn')}>
+            +
+          </button>
+        </span>
         </div>
       </div>
+      )}
     </div>,
     document.body
   );

@@ -57,8 +57,10 @@ export function Page({ doc, index, size, width, root, children }) {
     (async () => {
       const page = await doc.getPage(index + 1);
       if (cancelled) return;
-      const dpr = Math.min(2.5, window.devicePixelRatio || 1);
       const base = page.getViewport({ scale: 1 });
+      // iOS draws nothing on a canvas over ~16.7 M pixels (a zoomed page)
+      const cssH = (width * base.height) / base.width;
+      const dpr = Math.min(2.5, window.devicePixelRatio || 1, Math.sqrt(16e6 / Math.max(1, width * cssH)));
       const viewport = page.getViewport({ scale: (width / base.width) * dpr });
       const canvas = canvasRef.current;
       if (!canvas) return;

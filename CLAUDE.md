@@ -2739,6 +2739,22 @@ no tools).
   of the v1.0.176 test unchanged. NOT verified against the real Supabase
   (the SQL isn't run yet) or on the iPad.
 
+- v1.0.178 (user: "let me fold the controls bubble down; a PDF's font
+  is sometimes small — enlarge it without the whole app growing"):
+  Performer bar gets a fold key (chevron, first in the bar) -> `.is-mini`
+  = Scroll / Pause + expand, bottom corner (device key
+  `dudestar-stage-bar-mini`). ZOOM of the pages only: 100–300 %, per
+  chart in sheet prefs `zoom` (not pushed to the cloud row): Size −/+
+  stepper (±25 %), + / − keys, Ctrl+wheel (trackpad pinch), and a
+  two-finger PINCH on the sheet — `.stage-perf-scroll` has
+  `touch-action: pan-x pan-y` + gesturestart/change prevented (no iOS
+  page zoom), the pages wrapper `.stage-perf-pages` is CSS-scaled while
+  the fingers move, redrawn at the new width on lift, the spot under the
+  fingers kept (anchorRef). Zoomed wider than the screen = sideways pan,
+  swipe-to-change-song off. Shared PdfSheetView `Page` caps the canvas at
+  16 M px (iOS draws nothing above that). Playwright 390 HE (CDP pinch
+  155 -> 300 %) + 1180 EN, fold persists. NOT verified on the iPad.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

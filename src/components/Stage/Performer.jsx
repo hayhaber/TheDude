@@ -308,6 +308,46 @@ export function Performer({ songs, startAt = 0, onClose }) {
     };
   }, []);
 
+  // Reading guide (v1.0.183): where the song is NOW if it moves at an even
+  // pace — the point of the chart at the share of the song played. A thin
+  // line marks it (gliding from the chart's top down to ~60 % of the screen
+  // over the song), the part already played above it is dimmed a little,
+  // a thin bar along the top shows the share played, and the bubble shows
+  // the time left. Drawn straight in the DOM on every scroll (no renders).
+  const lineRef = useRef(null);
+  const dimRef = useRef(null);
+  const progRef = useRef(null);
+  const [left, setLeft] = useState(null); // seconds left, whole
+  const leftRef = useRef(null);
+  const paintGuide = useCallback(() => {
+    const box = pagesRef.current;
+    if (!scroller || !box) return;
+    const span = scroller.scrollHeight - scroller.clientHeight;
+    const p = span > 0 ? Math.min(1, Math.max(0, scroller.scrollTop / span)) : 0;
+    const contentH = box.offsetHeight;
+    const y = Math.max(0, box.offsetTop + p * contentH - scroller.scrollTop);
+    if (lineRef.current) lineRef.current.style.transform = `translateY(${y}px)`;
+    if (dimRef.current) dimRef.current.style.height = `${y}px`;
+    if (progRef.current) progRef.current.style.transform = `scaleX(${p})`;
+    const l = Math.max(0, Math.round(dur * (1 - p)));
+    if (l !== leftRef.current) {
+      leftRef.current = l;
+      setLeft(l);
+    }
+  }, [scroller, dur]);
+  useEffect(() => {
+    if (!scroller) return undefined;
+    paintGuide();
+    scroller.addEventListener('scroll', paintGuide, { passive: true });
+    window.addEventListener('resize', paintGuide);
+    return () => {
+      scroller.removeEventListener('scroll', paintGuide);
+      window.removeEventListener('resize', paintGuide);
+    };
+  }, [scroller, paintGuide, doc, width]);
+  const started = playing || (left != null && left < dur - 1 && !atEnd);
+  const leftText = left != null ? '−' + fmtDur(left) : '';
+
   const firstChord = useMemo(() => chords?.flat()[0]?.text ?? null, [chords]);
   const hasChords = !!firstChord;
   const flats = useMemo(() => (firstChord ? flatsFor(firstChord, tr) : false), [firstChord, tr]);
@@ -525,7 +565,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
   if (!song) return null;
 
   return createPortal(
-    <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare')} role="dialog" aria-label={song.name}>
+    <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare')} role="dialog" aria-label={song.name} dir={dir}>
       <div className="stage-perf-scroll" ref={setScroller} dir="ltr">
         {error && <p className="stage-perf-msg">{t(song.missing ? 'stage.missing' : 'stage.error')}</p>}
         {!error && !doc && <p className="stage-perf-msg">{t('stage.loading')}</p>}
@@ -558,6 +598,14 @@ export function Performer({ songs, startAt = 0, onClose }) {
         )}
       </div>
 
+      <div className={'stage-guide' + (playing ? ' is-on' : '')} aria-hidden="true">
+        <div className="stage-guide-dim" ref={dimRef} />
+        <div className="stage-guide-line" ref={lineRef} />
+      </div>
+      <div className={'stage-progress' + (started ? ' is-on' : '')} aria-hidden="true">
+        <div className="stage-progress-fill" ref={progRef} />
+      </div>
+
       {zoomShown && (
         <div className="stage-zoom-badge glass" aria-live="polite">
           {zoomPct}%
@@ -585,6 +633,11 @@ export function Performer({ songs, startAt = 0, onClose }) {
           <button type="button" className={'stage-key is-round is-primary' + (playing ? ' is-on' : '')} onClick={toggleScroll} aria-label={playing ? t('stage.pause') : t('stage.scroll')} title={playing ? t('stage.pause') : t('stage.scroll')}>
             {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M12 4v13M7 12l5 5 5-5M6 20h12" size={16} />}
           </button>
+          {started && (
+            <span className="stage-left" aria-label={t('stage.left')}>
+              {leftText}
+            </span>
+          )}
           <button type="button" className="stage-key is-round is-quiet" onClick={toggleMini} aria-label={t('stage.expand')} title={t('stage.expand')}>
             <Icon d="M6 15l6-6 6 6" size={18} />
           </button>
@@ -602,6 +655,11 @@ export function Performer({ songs, startAt = 0, onClose }) {
           {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M12 4v13M7 12l5 5 5-5M6 20h12" size={16} />}
           <span>{playing ? t('stage.pause') : t('stage.scroll')}</span>
         </button>
+        {started && (
+          <span className="stage-left" aria-label={t('stage.left')}>
+            {leftText}
+          </span>
+        )}
         <button type="button" className={'stage-key is-round' + (atEnd && next ? ' is-ready' : '')} onClick={() => goSong(1)} disabled={!next} aria-label={t('stage.nextSong')} title={t('stage.nextSong')}>
           <Icon d="M9 5l7 7-7 7" />
         </button>

@@ -500,6 +500,70 @@
   }
 }
 
+/* v1.0.183 — reading guide: the "now" line, the played part dimmed, a
+   progress hairline along the top, the time left in the bubble */
+.stage-guide {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.stage-guide.is-on {
+  opacity: 1;
+}
+.stage-guide-dim {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 0;
+  background: rgba(0, 0, 0, 0.16);
+}
+.stage-guide-line {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 2px;
+  margin-top: -1px;
+  background: color-mix(in srgb, #0a84ff 70%, transparent);
+  box-shadow: 0 0 10px rgba(10, 132, 255, 0.55);
+}
+.stage-perf.is-night .stage-guide-line {
+  background: color-mix(in srgb, #ff9f0a 75%, transparent);
+  box-shadow: 0 0 10px rgba(255, 159, 10, 0.5);
+}
+.stage-progress {
+  position: absolute;
+  top: env(safe-area-inset-top);
+  inset-inline: 0;
+  height: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 3;
+}
+.stage-progress.is-on {
+  opacity: 1;
+}
+.stage-progress-fill {
+  height: 100%;
+  background: #0a84ff;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.stage-perf:dir(rtl) .stage-progress-fill {
+  transform-origin: right;
+}
+.stage-left {
+  min-width: 48px;
+  padding: 0 4px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* the transposed chords, drawn over the old ones */
 .stage-chords {
   position: absolute;

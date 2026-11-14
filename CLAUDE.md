@@ -2803,6 +2803,21 @@ no tools).
   visible — only the top bar comes and goes. Playwright 390: 3 taps ->
   bubble opacity 1 throughout, top bar 0 / 1 / 0.
 
+- v1.0.183 (user asked whether the scroll speed is kept per chart — yes:
+  `dur` per chart, synced + band-shared; zoom per chart, this device —
+  and approved a reading guide). Performer `paintGuide()` (DOM, on every
+  scroll / resize): p = scrollTop / span; the "now" point = the chart at
+  p x its height -> `.stage-guide-line` (2 px accent line + glow; orange
+  in Night) glides from the chart's top to ~60 % of the screen over the
+  song, `.stage-guide-dim` greys what is above it (played); both only
+  while scrolling (fade). `.stage-progress` = 3 px bar at the top
+  (scaleX(p), grows from the reading side; root got dir). `.stage-left`
+  "−m:ss" (dur x (1 − p)) next to Scroll in the full bar and in the
+  folded bubble, once the song has started. Even pace assumed — repeats /
+  uneven density make it lead or lag (told the user). Playwright 390 HE
+  (30 s) + 1180 EN (folded): line / bar move, time counts down, guide
+  hides on Pause.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

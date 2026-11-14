@@ -264,7 +264,7 @@
   z-index: 200;
   background: #111;
   color: #fff;
-  --glass-bg: rgba(40, 40, 44, 0.72);
+  --glass-bg: rgba(30, 30, 34, 0.58);
 }
 .stage-perf-scroll {
   position: absolute;
@@ -312,11 +312,21 @@
   gap: 6px;
   padding: 6px;
   border-radius: 28px;
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  backdrop-filter: blur(20px) saturate(1.6);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  /* Liquid Glass (v1.0.185): a clearer, brighter material with a lit rim —
+     strong blur + saturation, a specular top edge, a soft inner glow */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 55%),
+    var(--glass-bg);
+  -webkit-backdrop-filter: blur(28px) saturate(1.9) brightness(1.04);
+  backdrop-filter: blur(28px) saturate(1.9) brightness(1.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.08),
+    inset 0 0 18px rgba(255, 255, 255, 0.05),
+    0 10px 30px rgba(0, 0, 0, 0.32);
   color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   transition: opacity var(--dur-fast, 0.18s) ease, transform var(--dur-fast, 0.18s) ease;
 }
 .stage-perf-top {
@@ -545,7 +555,8 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: rgba(255, 255, 255, 0.16);
+  /* Apple Music's accent red, as its players fill progress */
+  background: linear-gradient(180deg, rgba(250, 45, 72, 0.62), rgba(250, 45, 72, 0.48));
   transform: scaleX(0);
   transform-origin: left;
   opacity: 0;

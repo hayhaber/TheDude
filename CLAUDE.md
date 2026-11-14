@@ -2827,6 +2827,14 @@ no tools).
   hidden (a tap), the time left stays in the bottom bubble. Playwright
   390 HE + 1180 EN: fill grows, no errors.
 
+- v1.0.185 (user: the fill is grey — use Apple's music-player colour; make
+  the bubbles real glass like Apple): `.stage-top-fill` = Apple Music's
+  red (#FA2D48) at 62→48 %; Performer bars (top + bottom) = Liquid Glass:
+  `--glass-bg` rgba(30,30,34,.58) under a white top-down sheen, blur 28 +
+  saturate 1.9 + brightness 1.04, 0.5 px light rim, inset specular top
+  edge + soft inner glow, text-shadow for legibility over white pages.
+  Playwright 390 HE + 1180 EN screenshots checked.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

@@ -2704,7 +2704,7 @@ function App() {
         <GuitarProView trainer={lickTrainer} onSheetOpen={setGpSheetOpen} openPractice={gpPracticeN} pianoProfile={pianoProfile} bassProfile={bassProfile} onFindSongs={supportsInstrument('songs', instrument) ? () => setActiveSection('songs') : undefined} />
       )}
 
-      {activeSection === 'stage' && <StageView />}
+      {activeSection === 'stage' && <StageView onAccount={() => setSettingsSheet(true)} />}
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
       {activeSection === 'chords' && instrument === 'piano' && (
         <PianoChordLibraryView onStage={setPianoChordKeys} onAddToCompose={addToCompose} noteEventRef={pianoChordNoteRef} />

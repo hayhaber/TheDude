@@ -46,6 +46,9 @@ function sb() {
   return client;
 }
 
+/** The signed-in Supabase client (the Stage's charts use it too). */
+export const cloudClient = () => sb();
+
 // The user hasn't touched the app yet since it opened: a pull can be applied
 // with a quick reload instead of waiting for the next start.
 let interacted = false;

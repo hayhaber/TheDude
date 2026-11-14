@@ -33,7 +33,8 @@ function run(mode, fn) {
 export async function listSheets() {
   try {
     const all = (await run('readonly', (s) => s.getAll())) ?? [];
-    return all.map(({ id, name, size, at }) => ({ id, name, size, at })).sort((a, b) => a.at - b.at);
+    // band = the band it belongs to (null = mine); cloud = in the cloud too
+    return all.map(({ id, name, size, at, band, cloud, path }) => ({ id, name, size, at, band: band ?? null, cloud: !!cloud, path: path ?? null })).sort((a, b) => a.at - b.at);
   } catch {
     return [];
   }
@@ -47,7 +48,7 @@ export async function getSheet(id) {
   }
 }
 
-export async function saveSheet(file) {
+export async function saveSheet(file, { band = null } = {}) {
   try {
     navigator.storage?.persist?.().catch(() => {});
   } catch {
@@ -56,8 +57,9 @@ export async function saveSheet(file) {
   const id = 'sheet-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const name = (file.name || 'Sheet').replace(/\.pdf$/i, '');
   const blob = new Blob([await file.arrayBuffer()], { type: 'application/pdf' });
-  await run('readwrite', (s) => s.put({ id, name, size: blob.size, at: Date.now(), blob }));
-  return { id, name, size: blob.size, at: Date.now() };
+  await run('readwrite', (s) => s.put({ id, name, size: blob.size, at: Date.now(), blob, band }));
+  notify();
+  return { id, name, size: blob.size, at: Date.now(), band };
 }
 
 /** Rename a sheet (the Stage's charts). */
@@ -65,11 +67,43 @@ export async function renameSheet(id, name) {
   const rec = await getSheet(id);
   if (!rec || !name?.trim()) return;
   await run('readwrite', (s) => s.put({ ...rec, name: name.trim() }));
+  notify();
 }
 
-export function deleteSheet(id) {
-  setSheetPrefs(id, null);
-  return run('readwrite', (s) => s.delete(id));
+/** Change a stored sheet's fields (the cloud sync: cloud / path / band / name). */
+export async function patchSheet(id, patch) {
+  const rec = await getSheet(id);
+  if (!rec) return;
+  await run('readwrite', (s) => s.put({ ...rec, ...patch }));
+  notify();
+}
+
+/** Store a whole record (a chart downloaded from the cloud). */
+export async function putSheet(rec) {
+  await run('readwrite', (s) => s.put(rec));
+  notify();
+}
+
+// Listeners: the sheet list changed / a sheet's prefs changed (the cloud
+// sync pushes a chart's song length + key to its band).
+const listeners = new Set();
+const prefListeners = new Set();
+function notify() {
+  for (const fn of listeners) fn();
+}
+export function onSheetsChange(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+export function onSheetPrefs(fn) {
+  prefListeners.add(fn);
+  return () => prefListeners.delete(fn);
+}
+
+export async function deleteSheet(id) {
+  setSheetPrefs(id, null, { quiet: true });
+  await run('readwrite', (s) => s.delete(id));
+  notify();
 }
 
 export function isPdf(file) {
@@ -89,7 +123,7 @@ export function sheetPrefs(id) {
   return readPrefs()[id] ?? {};
 }
 
-export function setSheetPrefs(id, patch) {
+export function setSheetPrefs(id, patch, { quiet = false } = {}) {
   const all = readPrefs();
   if (patch === null) delete all[id];
   else all[id] = { ...(all[id] ?? {}), ...patch };
@@ -98,4 +132,5 @@ export function setSheetPrefs(id, patch) {
   } catch {
     /* storage full / private mode */
   }
+  if (!quiet && patch) for (const fn of prefListeners) fn(id, patch);
 }

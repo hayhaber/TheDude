@@ -8,7 +8,8 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { onSoundFontProgress, prefetchGpSoundFont } from '../../audio/alphaTabSound';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { PdfSheetView } from './PdfSheetView';
-import { deleteSheet, isPdf, listSheets, saveSheet } from '../../music/sheets/sheetStore';
+import { isPdf, listSheets, saveSheet } from '../../music/sheets/sheetStore';
+import { removeChart, signedIn, syncCharts } from '../../music/sheets/chartCloud';
 import './GuitarProView.css';
 
 // MusicXML too (e.g. sheet music converted from a PDF): alphaTab reads it the same way.
@@ -73,6 +74,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
     setSheetBusy(true);
     try {
       const rec = await saveSheet(file);
+      if (signedIn()) syncCharts();
       setSheets(await listSheets());
       trainer.stop();
       setSheetId(rec.id);
@@ -216,7 +218,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
                     return;
                   }
                   setConfirmDelete(null);
-                  await deleteSheet(sheet.id);
+                  await removeChart(sheet.id).catch(() => {});
                   setSheetId(null);
                   setSheets(await listSheets());
                 }}

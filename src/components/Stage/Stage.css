@@ -424,3 +424,125 @@
     animation: none;
   }
 }
+
+/* v1.0.177 — cloud: library select, status, band sheets */
+.stg-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+.stg-scope-select select {
+  min-height: 40px;
+  max-width: min(320px, 70vw);
+  padding-block: 0;
+  padding-inline: 14px 34px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--fill-tertiary);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+.stg-status {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.stg-status.is-error {
+  color: var(--danger);
+}
+.stg-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.stg-invite {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  font-size: 14px;
+  line-height: 1.4;
+}
+.stg-invite span {
+  flex: 1;
+}
+.stg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.stg-field input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+}
+.stg-err {
+  margin: 0;
+  font-size: 14px;
+  color: var(--danger);
+}
+.stg-code {
+  align-self: center;
+  padding: 10px 22px;
+  border-radius: 14px;
+  background: var(--surface);
+  font: 700 30px/1.1 ui-monospace, 'SF Mono', Menlo, monospace;
+  letter-spacing: 0.18em;
+  user-select: all;
+  -webkit-user-select: all;
+}
+.stg-sheet-foot {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.stg-avatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--fill-secondary);
+  font-weight: 650;
+}
+.stg-remove {
+  flex: none;
+  min-height: 36px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stg-toast {
+  position: fixed;
+  inset-inline: 16px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  z-index: 70;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  margin: 0 auto;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(30, 30, 32, 0.92);
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+}

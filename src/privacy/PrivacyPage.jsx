@@ -15,7 +15,7 @@ const Mail = () => (
 
 const HE = {
   title: 'מדיניות פרטיות',
-  updated: 'עודכן לאחרונה: 25 באוקטובר 2026',
+  updated: 'עודכן לאחרונה: 14 בנובמבר 2026',
   back: 'חזרה',
   sections: [
     ['1. מי אנחנו', <>DudeStar (״האפליקציה״) היא אפליקציית אינטרנט ללימוד ולתרגול נגינה ושירה, בכתובת <bdi className="privacy-ltr">the-dude.vercel.app</bdi>. בכל נושא אפשר לפנות אלינו בכתובת <Mail />.</>],
@@ -31,6 +31,9 @@ const HE = {
           </li>
           <li>
             <b>נתוני התרגול שמסונכרנים:</b> הגדרות (כמו יד מנגנת וצלילים), התקדמות בתרגילים ובקורסים, תוצאות והיסטוריית תרגול, טווח קולי, ומהלכים ותבניות ששמרת.
+          </li>
+          <li>
+            <b>צ׳ארטים (קובצי ⁦PDF⁩) שתוסיף במסך ״במה״ כשאתה מחובר</b> נשמרים בענן כדי שיגיעו לכל המכשירים שלך. צ׳ארט ורשימת שירים שתוסיף ללהקה גלויים לחברי אותה להקה בלבד (מי שהצטרף עם קוד ההזמנה שלה), יחד עם השם שבחרת בפרופיל. מי שמנהל להקה יכול להסיר ממנה חברים ולמחוק אותה, וכל חבר יכול לצאת ממנה.
           </li>
           <li>
             <b>הקלטות אינן מסונכרנות</b> ונשארות במכשיר.
@@ -69,7 +72,7 @@ const HE = {
 
 const EN = {
   title: 'Privacy Policy',
-  updated: 'Last updated: 25 October 2026',
+  updated: 'Last updated: 14 November 2026',
   back: 'Back',
   sections: [
     ['1. Who we are', <>DudeStar (“the app”) is a web app for learning and practising music, at the-dude.vercel.app. For any matter, contact us at <Mail />.</>],
@@ -85,6 +88,9 @@ const EN = {
           </li>
           <li>
             <b>Practice data you sync:</b> settings (such as playing hand and sounds), progress in exercises and courses, results and practice history, vocal range, and saved progressions and patterns.
+          </li>
+          <li>
+            <b>Charts (PDF files) you add to Stage while signed in</b> are stored in the cloud so they reach all your devices. A chart or setlist you add to a band is visible only to that band’s members (people who joined with its invite code), together with the name you chose for your profile. A band’s manager can remove members and delete the band; any member can leave it.
           </li>
           <li>
             <b>Recordings are not synced</b> and stay on your device.

@@ -2683,6 +2683,62 @@ no tools).
 - Not built yet: OCR for scanned charts, syncing the PDFs themselves
   between devices, pinch zoom on a phone.
 
+## Stage in the cloud + bands (v1.0.177, 2026-11-14)
+
+- User: "why not Google Drive — I want the charts on all my devices, and
+  a GROUP (band) where everything is shared with its members". Claude's
+  call (user's OK): the existing Supabase (accounts Google + email, RLS),
+  not Drive. Schema `supabase/migrations/002_stage_charts.sql` — the USER
+  runs it once in the SQL Editor: tables bands (owner, unique 8-char
+  invite_code) / band_members (display_name) / charts (id = the client's
+  sheet id, band_id null = personal, path, dur, tr, deleted tombstone) /
+  band_setlists (items jsonb); helpers is_band_member / band_owner /
+  can_use_chart_path (security definer); RPCs create_band, join_band
+  (P0002 'no band' on a wrong code), leave_band (not the owner),
+  new_invite_code (owner); RLS on all four + Storage bucket `charts`
+  (private, 20 MB, PDF only; paths u/<uid>/<id>.pdf | b/<band>/<id>.pdf).
+  Checked on a local Postgres 16 with stub auth / storage schemas: an
+  outsider sees / adds nothing, upsert over another's id is refused, a
+  member sees only band rows + files, the owner can't leave, removing a
+  member cuts their access, deleting a band cascades, anon = denied;
+  the script re-runs cleanly.
+- Client `music/sheets/chartCloud.js` (store via useSyncExternalStore,
+  cached per user in device key `dudestar-stage-cloud:<uid>`):
+  `syncWith(sb, uid, local)` = upload local charts not yet in the cloud
+  (storage + row, mark `cloud`/`path` on the IndexedDB record) -> read
+  every visible chart row: download new ones, apply name / band /
+  dur / tr, drop tombstoned ones and cloud charts no longer visible ->
+  bands + members + band setlists. Triggers: Stage opens, sign-in
+  finishes, app back to the front, after adds / band actions; GuitarPro
+  PDF adds sync too and its Delete = `removeChart` (tombstone + file).
+  dur / tr changes (Performer) are pushed to the row (sheetStore
+  `onSheetPrefs`, 1.5 s debounce) — a band shares song length + key.
+  Actions: addCharts(files, band), removeChart, renameChart, shareChart
+  (a COPY for the band), createBand / joinBand / leaveBand / deleteBand
+  (removes the band's files first) / renameBand / removeMember /
+  newInviteCode, bandSetlistApi(band) (optimistic, same shape as
+  useSetlists). Signed out = everything local as before.
+  `cloudSync.cloudClient()` exported. sheetStore: records carry `band`,
+  `cloud`, `path`; `patchSheet`, `putSheet`, `onSheetsChange`.
+- UI (StageView): signed out = a tinted row "sign in…" + Account
+  (App `onAccount` -> the Settings sheet); signed in = Library <select>
+  (My charts / each band, device key `dudestar-stage-scope`) + ••• (Invite
+  members — code + Share / Change; Members (n) — remove for the owner;
+  Rename band; New band; Join a band; Leave / Delete band two-tap) +
+  status line (Synced just now / Syncing… / offline / error). Setlists
+  and charts follow the chosen library; a personal chart's ••• has
+  "Share with <band>"; rows say "not uploaded yet" until synced. Sheets
+  `Sheet` / `AskSheet` (`.stg-sheet`), toast `.stg-toast`. Privacy policy
+  updated (charts in the cloud, band visibility; 14 Nov 2026).
+- Checked with Playwright + a fake Supabase (route handler: PostgREST,
+  RPC, Storage): device A1 uploads 2 -> A2 (same user) gets both; A1
+  creates a band, shares a chart, makes a setlist; B with a wrong code =
+  the message, with the code = the band's chart + setlist; B's key +2
+  reaches the server row; A1 removes B -> B back to My charts with 0
+  rows; A1 deletes a chart -> gone on A2; no page errors; signed-out run
+  of the v1.0.176 test unchanged. NOT verified against the real Supabase
+  (the SQL isn't run yet) or on the iPad.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

@@ -1,6 +1,6 @@
 .tension-meter {
   margin: 0 0 20px;
-  max-width: 320px;
+  max-width: 420px;
 }
 
 .tension-meter-header {
@@ -41,26 +41,42 @@
   transition: width 0.25s ease, background 0.25s ease;
 }
 
-.tension-meter-label.resolution,
-.tension-meter-fill.resolution {
-  color: #34c759;
-  background: #34c759;
+.tension-meter-fill.resolution { background: #34c759; }
+.tension-meter-fill.relaxed { background: #30b0c7; }
+.tension-meter-fill.medium { background: #ff9500; }
+.tension-meter-fill.high { background: #ff3b30; }
+
+/* label = text only (v1.0.174: the shared selector also painted its
+   background, so the word vanished into a coloured block). Text tones a
+   step darker than the fills for contrast. */
+.tension-meter-label.resolution { color: #248a3d; }
+.tension-meter-label.relaxed { color: #0e7a8f; }
+.tension-meter-label.medium { color: #c26a00; }
+.tension-meter-label.high { color: var(--danger); }
+:root[data-theme='dark'] .tension-meter-label.resolution { color: #30d158; }
+:root[data-theme='dark'] .tension-meter-label.relaxed { color: #40c8e0; }
+:root[data-theme='dark'] .tension-meter-label.medium { color: #ff9f0a; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .tension-meter-label.resolution { color: #30d158; }
+  :root:not([data-theme='light']) .tension-meter-label.relaxed { color: #40c8e0; }
+  :root:not([data-theme='light']) .tension-meter-label.medium { color: #ff9f0a; }
 }
 
-.tension-meter-label.relaxed,
-.tension-meter-fill.relaxed {
-  color: #30b0c7;
-  background: #30b0c7;
+/* the chord now playing, in the meter's own row (was a big label laid
+   OVER the meter and hiding it) */
+.tension-meter-now {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
 }
-
-.tension-meter-label.medium,
-.tension-meter-fill.medium {
-  color: #ff9500;
-  background: #ff9500;
+.tension-meter-chord {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent);
 }
-
-.tension-meter-label.high,
-.tension-meter-fill.high {
-  color: #ff3b30;
-  background: #ff3b30;
+.tension-meter-desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-secondary);
 }

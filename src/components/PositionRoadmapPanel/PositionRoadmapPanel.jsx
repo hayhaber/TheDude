@@ -19,6 +19,7 @@ export function PositionRoadmapPanel({ roadmap }) {
         {t('positionRoadmap.title')}
         <InfoTooltip text={t('tip.compose.positionRoadmap')} />
       </p>
+      <p className="position-roadmap-desc">{t('positionRoadmap.desc')}</p>
       <div className="position-roadmap-chain">
         {roadmap.steps.map((step, i) => (
           <span key={i} className="position-roadmap-step-group">

@@ -1206,6 +1206,7 @@ export const STRINGS = {
     'scaleAnalysis.borrowedChords': 'Borrowed (non-diatonic) chords:',
 
     'tensionMeter.title': 'Tension',
+    'tensionMeter.desc': 'How strongly the chord now playing pulls back to the key’s home chord.',
     'tensionMeter.tooltipLabel': 'Tension help',
     'tensionMeter.tooltip': 'How strongly the current chord pulls toward resolving back to the key\'s home chord, based on its harmonic function (and the last note you played). Green "Resolution" = home, already resolved. Teal "Relaxed" = stable, little pull. Orange "Medium" = some pull. Red "High Tension" = pulls hard toward resolving — typically the V (dominant) chord.',
     'tensionMeter.resolution': 'Resolution',
@@ -1518,6 +1519,7 @@ export const STRINGS = {
     'practiceDrillPanel.noteOrder': 'Play Order',
 
     'positionRoadmap.title': 'Position Roadmap',
+    'positionRoadmap.desc': 'Where your hand sits for each chord, and how it moves to the next: Shift = 1–2 frets, Slide = 3 frets or more.',
     'positionRoadmap.open': 'Open',
     'positionRoadmap.position': 'Position {fret}',
     'positionRoadmap.stay': 'Stay',
@@ -2727,6 +2729,7 @@ export const STRINGS = {
     'scaleAnalysis.borrowedChords': 'אקורדים שאולים (לא דיאטוניים):',
 
     'tensionMeter.title': 'מתח',
+    'tensionMeter.desc': 'עד כמה האקורד שמתנגן עכשיו מושך חזרה לאקורד הבית של הסולם.',
     'tensionMeter.tooltipLabel': 'עזרה לגבי מתח',
     'tensionMeter.tooltip': 'עד כמה האקורד הנוכחי נמשך חזק בחזרה לפתרון באקורד הבית של הסולם, בהתבסס על הפונקציה ההרמונית שלו (והתו האחרון שניגנתם). ירוק "פתרון" = בית, כבר פתור. טורקיז "רגוע" = יציב, משיכה מועטה. כתום "בינוני" = משיכה מסוימת. אדום "מתח גבוה" = נמשך חזק לפתרון — לרוב אקורד ה-V (דומיננטה).',
     'tensionMeter.resolution': 'התרה',
@@ -3037,6 +3040,7 @@ export const STRINGS = {
     'practiceDrillPanel.noteOrder': 'סדר ניגון',
 
     'positionRoadmap.title': 'מפת פוזיציות',
+    'positionRoadmap.desc': 'איפה היד נמצאת בכל אקורד ואיך היא זזה לאקורד הבא: הזזה = 1–2 שריגים, סליידה = 3 שריגים ומעלה.',
     'positionRoadmap.open': 'פתוח',
     'positionRoadmap.position': 'פוזיציה {fret}',
     'positionRoadmap.stay': 'הישאר',

@@ -18,7 +18,7 @@ const LABEL_KEY = {
 
 // Live Relaxed -> Medium -> High Tension -> Resolution meter — see
 // music/tensionMeter.js for how the score is derived.
-export function TensionMeter({ tension }) {
+export function TensionMeter({ tension, chord }) {
   const { t } = useLanguage();
   if (!tension) return null;
 
@@ -29,8 +29,15 @@ export function TensionMeter({ tension }) {
           <span className="tension-meter-title">{t('tensionMeter.title')}</span>
           <InfoTooltip text={t('tensionMeter.tooltip')} label={t('tensionMeter.tooltipLabel')} />
         </span>
-        <span className={`tension-meter-label ${LABEL_CLASS[tension.label] ?? ''}`}>
-          {LABEL_KEY[tension.label] ? t(LABEL_KEY[tension.label]) : tension.label}
+        <span className="tension-meter-now">
+          {chord && (
+            <span className="tension-meter-chord" dir="ltr">
+              {chord}
+            </span>
+          )}
+          <span className={`tension-meter-label ${LABEL_CLASS[tension.label] ?? ''}`}>
+            {LABEL_KEY[tension.label] ? t(LABEL_KEY[tension.label]) : tension.label}
+          </span>
         </span>
       </div>
       <div className="tension-meter-track">
@@ -39,6 +46,7 @@ export function TensionMeter({ tension }) {
           style={{ width: `${tension.score}%` }}
         />
       </div>
+      <p className="tension-meter-desc">{t('tensionMeter.desc')}</p>
     </div>
   );
 }

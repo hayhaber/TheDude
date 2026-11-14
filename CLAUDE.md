@@ -2611,6 +2611,18 @@ no tools).
   OTP length 6 (was 8), expiry 3600 s. Gmail SMTP limit ~500 mails/day. Real delivery NOT yet
   confirmed by a test sign-up (the user does it — no account creation by Claude).
 
+## Compose insights: tension + roadmap (v1.0.174, 2026-11-14)
+
+- User (iPhone): the big "now playing" chord hid the Tension bar, and he
+  didn't understand Position Roadmap / Tension. `.compose-now-playing`
+  (absolutely laid over the meter) is gone: TensionMeter takes `chord`
+  and shows it in its own header row (chord · label); the label was an
+  unreadable coloured block (one selector set `background` on label AND
+  fill) — now text only, darker tones + dark-mode values. Each panel has a
+  visible one-line explanation (`tensionMeter.desc`, `positionRoadmap.desc`;
+  the ⓘ tips are off by default). Roadmap arrows point left in RTL
+  (`:dir(rtl)` mirror). Playwright 390 HE + 1180 EN, F Fsus2 Dm.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

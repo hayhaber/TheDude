@@ -17,6 +17,13 @@
   letter-spacing: 0.04em;
 }
 
+.position-roadmap-desc {
+  margin: -10px 0 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
 .position-roadmap-chain {
   display: flex;
   flex-wrap: wrap;
@@ -87,6 +94,12 @@
   content: '→';
   font-size: 15px;
   line-height: 1;
+}
+
+.position-roadmap-transition:dir(rtl)::before {
+  /* the chain reads right-to-left in Hebrew: the arrow points that way */
+  display: inline-block;
+  transform: scaleX(-1);
 }
 
 .position-roadmap-transition.slide {

@@ -2755,6 +2755,30 @@ no tools).
   16 M px (iOS draws nothing above that). Playwright 390 HE (CDP pinch
   155 -> 300 %) + 1180 EN, fold persists. NOT verified on the iPad.
 
+- v1.0.179 (user: "I can only add files from Apple's places — what are my
+  options?" -> "build all your suggestions"). (1) Files app: Drive /
+  Dropbox / OneDrive show there once their apps are on (Files -> Browse
+  -> ••• -> Edit) — told the user, no code. (2) PHOTOS: Add accepts
+  `image/*` (iOS offers Photo Library / Take Photo / Choose File);
+  `music/sheets/imageToPdf.js` turns images into ONE PDF (JPEG pages,
+  DCTDecode, max 2400 px, hand-written PDF) so store / viewer / cloud
+  bucket (PDF only) / band sharing stay as they are; several photos -> a
+  sheet "Together | Separate"; camera names (image / IMG_1234 / photo)
+  -> "Chart <d.m>". No key change on photos (no text). (3) LINK: quiet
+  "Link" capsule (icon only <= 430 px) -> AskSheet (`errorOf`,
+  `inputMode` props added) -> `api/chart-link.js` (Vercel function):
+  Dropbox -> raw=1, Drive file -> drive.usercontent download, Google Doc
+  -> export PDF, OneDrive -> download=1; https only, private / local IPs
+  refused (DNS checked, every redirect hop re-checked), 20 MB, only PDF /
+  JPEG / PNG / WebP / HEIC by magic bytes, name in `x-chart-name`; an
+  image link is converted like a photo. Errors `stage.link.err.*`.
+  Privacy page updated. Playwright (route-mocked API) 390 HE + 1180 EN:
+  1 photo, 2 photos together = 2 pages, bad link message, PDF + photo
+  links; api unit: URL rewrites + blocked http / localhost / 127 / 169.254.
+  Google Drive Picker NOT built (needs the user's Google Cloud API key +
+  scope; the Files app already reaches Drive). Real links NOT tested here
+  (container can't reach Dropbox / Drive).
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

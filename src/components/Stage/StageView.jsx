@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { useLanguage } from '../../i18n/LanguageContext';
 import { isPdf, listSheets, onSheetsChange, sheetPrefs } from '../../music/sheets/sheetStore';
 import { fmtDur, moveItem, useSetlists } from '../../music/sheets/setlists';
+import { imagesToPdf, isImage } from '../../music/sheets/imageToPdf';
 import {
   addCharts,
   bandSetlistApi,
@@ -105,7 +106,7 @@ function Sheet({ title, onClose, children, dir, t }) {
 }
 
 /** One text field + one action (new band / join band). */
-function AskSheet({ title, label, placeholder, action, onSubmit, onClose, dir, t, upper = false }) {
+function AskSheet({ title, label, placeholder, action, onSubmit, onClose, dir, t, upper = false, errorOf = null, inputMode }) {
   const [v, setV] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
@@ -117,7 +118,7 @@ function AskSheet({ title, label, placeholder, action, onSubmit, onClose, dir, t
       await onSubmit(v.trim());
       onClose();
     } catch (e) {
-      setErr(e?.code === 'P0002' || /no band/i.test(e?.message || '') ? t('stage.band.badCode') : navigator.onLine === false ? t('stage.cloud.offline') : t('stage.cloud.failed'));
+      setErr(errorOf?.(e) || (e?.code === 'P0002' || /no band/i.test(e?.message || '') ? t('stage.band.badCode') : navigator.onLine === false ? t('stage.cloud.offline') : t('stage.cloud.failed')));
       setBusy(false);
     }
   };
@@ -132,6 +133,7 @@ function AskSheet({ title, label, placeholder, action, onSubmit, onClose, dir, t
           placeholder={placeholder}
           autoCapitalize={upper ? 'characters' : 'sentences'}
           autoCorrect="off"
+          inputMode={inputMode}
           onChange={(e) => setV(upper ? e.target.value.toUpperCase() : e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && go()}
         />
@@ -179,6 +181,7 @@ export function StageView({ onAccount }) {
   const [picking, setPicking] = useState(false);
   const [dialog, setDialog] = useState(null); // 'newBand' | 'join' | 'invite' | 'members'
   const [msg, setMsg] = useState(null);
+  const [photos, setPhotos] = useState(null); // several images: one chart or one each?
   const fileRef = useRef(null);
 
   const chooseScope = (s) => {
@@ -229,8 +232,7 @@ export function StageView({ onAccount }) {
 
   const songsOf = (ids) => ids.map((id) => ({ id, name: byId.get(id)?.name ?? t('stage.missing'), missing: !byId.has(id) }));
 
-  const addFiles = async (files) => {
-    const pdfs = [...files].filter(isPdf);
+  const addPdfs = async (pdfs) => {
     if (!pdfs.length) return;
     setBusy(true);
     const added = await addCharts(pdfs, bandId);
@@ -238,6 +240,45 @@ export function StageView({ onAccount }) {
     if (set && added.length) sets.setItems(set.id, [...set.items, ...added]);
     setBusy(false);
   };
+  // a camera photo is called "image.jpg" — give it a name the list can show
+  const photoName = (f) => {
+    const n = (f?.name || '').replace(/\.[a-z0-9]+$/i, '');
+    return !n || /^(image|img[_-]?\d*|photo|screenshot|\d+)$/i.test(n) ? t('stage.photoName', { d: new Date().toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric' }) }) : n;
+  };
+  const addPhotos = async (images, together) => {
+    setPhotos(null);
+    setBusy(true);
+    try {
+      const pdfs = together ? [await imagesToPdf(images, photoName(images[0]))] : await Promise.all(images.map((f) => imagesToPdf([f], photoName(f))));
+      await addPdfs(pdfs);
+    } catch {
+      setMsg(t('stage.photoFailed'));
+    }
+    setBusy(false);
+  };
+  const addFiles = async (files) => {
+    const list = [...files];
+    const images = list.filter((f) => !isPdf(f) && isImage(f));
+    await addPdfs(list.filter(isPdf));
+    if (images.length === 1) await addPhotos(images, true);
+    else if (images.length > 1) setPhotos(images);
+  };
+  // a shared link (Dropbox / Drive / OneDrive / any PDF or image address)
+  const addLink = async (url) => {
+    const r = await fetch('/api/chart-link?url=' + encodeURIComponent(url));
+    if (!r.ok) {
+      const e = new Error('link');
+      e.linkError = (await r.json().catch(() => ({}))).error || 'fetch';
+      throw e;
+    }
+    const type = r.headers.get('content-type') || '';
+    const name = decodeURIComponent(r.headers.get('x-chart-name') || '').replace(/\.[a-z0-9]+$/i, '') || t('stage.linkName');
+    const blob = await r.blob();
+    const file = new File([blob], name + (type.includes('pdf') ? '.pdf' : '.jpg'), { type });
+    if (type.includes('pdf')) await addPdfs([file]);
+    else await addPdfs([await imagesToPdf([file], name)]);
+  };
+  const linkError = (e) => (e?.linkError ? t('stage.link.err.' + (['bad-url', 'not-a-chart', 'too-big'].includes(e.linkError) ? e.linkError : 'fetch')) : null);
 
   const removeSheet = async (id) => {
     setSureDelete(null);
@@ -268,10 +309,16 @@ export function StageView({ onAccount }) {
         </svg>
         {busy ? t('stage.adding') : t('stage.add')}
       </button>
+      <button type="button" className="stg-capsule is-quiet" onClick={() => setDialog('link')} disabled={busy} aria-label={t('stage.link.title')} title={t('stage.link.title')}>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+        </svg>
+        <span className="stg-cap-label">{t('stage.link')}</span>
+      </button>
       <input
         ref={fileRef}
         type="file"
-        accept="application/pdf,.pdf"
+        accept="application/pdf,.pdf,image/*"
         multiple
         hidden
         onChange={(e) => {
@@ -304,6 +351,33 @@ export function StageView({ onAccount }) {
   };
   const dialogs = (
     <>
+      {dialog === 'link' && (
+        <AskSheet
+          title={t('stage.link.title')}
+          label={t('stage.link.label')}
+          placeholder="https://"
+          action={t('stage.add')}
+          inputMode="url"
+          errorOf={linkError}
+          onSubmit={addLink}
+          onClose={() => setDialog(null)}
+          dir={dir}
+          t={t}
+        />
+      )}
+      {photos && (
+        <Sheet title={t('stage.photos.title', { n: photos.length })} onClose={() => setPhotos(null)} dir={dir} t={t}>
+          <p className="stg-sheet-text">{t('stage.photos.text')}</p>
+          <div className="stg-sheet-foot">
+            <button type="button" className="stg-capsule" onClick={() => addPhotos(photos, false)}>
+              {t('stage.photos.apart')}
+            </button>
+            <button type="button" className="stg-capsule is-primary" onClick={() => addPhotos(photos, true)}>
+              {t('stage.photos.together')}
+            </button>
+          </div>
+        </Sheet>
+      )}
       {dialog === 'newBand' && (
         <AskSheet
           title={t('stage.band.new')}

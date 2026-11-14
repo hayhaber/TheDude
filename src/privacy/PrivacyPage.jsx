@@ -33,7 +33,7 @@ const HE = {
             <b>נתוני התרגול שמסונכרנים:</b> הגדרות (כמו יד מנגנת וצלילים), התקדמות בתרגילים ובקורסים, תוצאות והיסטוריית תרגול, טווח קולי, ומהלכים ותבניות ששמרת.
           </li>
           <li>
-            <b>צ׳ארטים (קובצי ⁦PDF⁩) שתוסיף במסך ״במה״ כשאתה מחובר</b> נשמרים בענן כדי שיגיעו לכל המכשירים שלך. צ׳ארט ורשימת שירים שתוסיף ללהקה גלויים לחברי אותה להקה בלבד (מי שהצטרף עם קוד ההזמנה שלה), יחד עם השם שבחרת בפרופיל. מי שמנהל להקה יכול להסיר ממנה חברים ולמחוק אותה, וכל חבר יכול לצאת ממנה.
+            <b>צ׳ארטים (קובצי ⁦PDF⁩) שתוסיף במסך ״במה״ כשאתה מחובר</b> נשמרים בענן כדי שיגיעו לכל המכשירים שלך. צ׳ארט ורשימת שירים שתוסיף ללהקה גלויים לחברי אותה להקה בלבד (מי שהצטרף עם קוד ההזמנה שלה), יחד עם השם שבחרת בפרופיל. מי שמנהל להקה יכול להסיר ממנה חברים ולמחוק אותה, וכל חבר יכול לצאת ממנה. תמונה של צ׳ארט הופכת לקובץ ⁦PDF⁩ במכשיר עצמו. צ׳ארט שמוסיפים מקישור עובר דרך השרת של האפליקציה רק כדי להוריד אותו — הקישור והקובץ לא נשמרים שם.
           </li>
           <li>
             <b>הקלטות אינן מסונכרנות</b> ונשארות במכשיר.
@@ -90,7 +90,7 @@ const EN = {
             <b>Practice data you sync:</b> settings (such as playing hand and sounds), progress in exercises and courses, results and practice history, vocal range, and saved progressions and patterns.
           </li>
           <li>
-            <b>Charts (PDF files) you add to Stage while signed in</b> are stored in the cloud so they reach all your devices. A chart or setlist you add to a band is visible only to that band’s members (people who joined with its invite code), together with the name you chose for your profile. A band’s manager can remove members and delete the band; any member can leave it.
+            <b>Charts (PDF files) you add to Stage while signed in</b> are stored in the cloud so they reach all your devices. A chart or setlist you add to a band is visible only to that band’s members (people who joined with its invite code), together with the name you chose for your profile. A band’s manager can remove members and delete the band; any member can leave it. A photo of a chart is turned into a PDF on the device itself. A chart added from a link passes through the app’s server only to be downloaded — neither the link nor the file is kept there.
           </li>
           <li>
             <b>Recordings are not synced</b> and stay on your device.

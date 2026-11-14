@@ -54,6 +54,29 @@
   background: var(--accent-fill);
   color: #fff;
 }
+.stg-capsule.is-quiet {
+  background: var(--fill-tertiary);
+  color: var(--text);
+}
+@media (max-width: 430px) {
+  .stg-head .stg-capsule.is-quiet {
+    padding: 0;
+    width: 44px;
+    justify-content: center;
+  }
+  .stg-head .stg-capsule.is-quiet .stg-cap-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+.stg-sheet-text {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
 .stg-play {
   flex: none;
 }

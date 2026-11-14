@@ -14,7 +14,7 @@ import './PdfSheetView.css';
 export const SPEEDS = [15, 20, 30, 40, 50, 60, 75, 90, 120, 150, 180, 240];
 const GAP = 12; // px between pages
 
-function useWakeLock(on) {
+export function useWakeLock(on) {
   useEffect(() => {
     if (!on) return undefined;
     let lock = null;
@@ -37,8 +37,9 @@ function useWakeLock(on) {
   }, [on]);
 }
 
-/** One page: a placeholder of the right shape; drawn when it comes near. */
-function Page({ doc, index, size, width, root }) {
+/** One page: a placeholder of the right shape; drawn when it comes near.
+ *  `children` = an overlay over the page (the Stage's transposed chords). */
+export function Page({ doc, index, size, width, root, children }) {
   const ref = useRef(null);
   const canvasRef = useRef(null);
   const [near, setNear] = useState(false);
@@ -75,6 +76,7 @@ function Page({ doc, index, size, width, root }) {
   return (
     <div className="sheet-page" ref={ref} style={{ width, height: h }} data-page={index} dir="ltr">
       <canvas ref={canvasRef} aria-hidden="true" />
+      {children}
     </div>
   );
 }

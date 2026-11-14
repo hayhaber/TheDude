@@ -13,6 +13,7 @@ import { StudiesSection } from './components/StudiesSection/StudiesSection';
 import { SongsView } from './components/SongsView/SongsView';
 import { GuitarProView } from './components/GuitarPro/GuitarProView';
 import { FreePlayView } from './components/FreePlayView/FreePlayView';
+import { StageView } from './components/Stage/StageView';
 import { ChordLibraryView } from './components/ChordLibrary/ChordLibraryView';
 import { PianoChordLibraryView } from './components/ChordLibrary/PianoChordLibraryView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
@@ -2473,6 +2474,7 @@ function App() {
         (activeSection === 'studies' && studiesCourse === 'triads' && !triadStage) ||
         // A PDF sheet open in GuitarPro / PianoPro: the page gets the room.
         (activeSection === 'guitarpro' && gpSheetOpen) ||
+        activeSection === 'stage' ||
         (activeSection === 'bassPractice' && !bassPractice.built) ? null : (
           <Stage
             fretboardProps={stageCompact ? { ...stageFretboardProps, compact: true } : stageFretboardProps}
@@ -2702,6 +2704,7 @@ function App() {
         <GuitarProView trainer={lickTrainer} onSheetOpen={setGpSheetOpen} openPractice={gpPracticeN} pianoProfile={pianoProfile} bassProfile={bassProfile} onFindSongs={supportsInstrument('songs', instrument) ? () => setActiveSection('songs') : undefined} />
       )}
 
+      {activeSection === 'stage' && <StageView />}
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
       {activeSection === 'chords' && instrument === 'piano' && (
         <PianoChordLibraryView onStage={setPianoChordKeys} onAddToCompose={addToCompose} noteEventRef={pianoChordNoteRef} />

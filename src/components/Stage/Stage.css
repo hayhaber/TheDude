@@ -1,15 +1,426 @@
-/* .stage is a plain wrapper around the Fretboard now — the metronome
-   toolbar that used to sit above it moved to AppShell's metronomeSlot
-   (sidebar / mobile bar next to nav), so there's nothing left to style
-   here beyond the Fretboard's own rules. */
+/* Stage — the band's charts + setlists (v1.0.176). The list screens use
+   the Practice library's inset groups (.ph-*); the performance screen is
+   black with Liquid Glass controls over the chart. */
+.stg {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
 
-/* Always exactly tall enough for NoteColorLegend's one row, whether it's
-   actually showing or empty right now — see Stage.jsx's own comment for
-   why this can't just grow/shrink with the legend itself (.app-stage-anchor
-   is pinned to the bottom of a fixed-height viewport, so any height change
-   here pushes the Fretboard/PianoKeyboard above it up or down on screen). */
-.stage-legend-reserve {
-  min-height: 20px;
+.stg-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.stg-head-title {
+  min-width: 0;
+}
+.stg-head-title h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.stg-head-title .subtitle {
+  margin: 4px 0 0;
+}
+.stg-head-actions {
+  flex: none;
   display: flex;
   align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.stg-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stg-capsule:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.stg-capsule.is-primary {
+  background: var(--accent-fill);
+  color: #fff;
+}
+.stg-play {
+  flex: none;
+}
+
+.stg-group .ph-row {
+  min-height: 56px;
+}
+.stg-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-inline-end: 8px;
+}
+.stg-row + .stg-row::before,
+.stg-row + .stg-add-row::before,
+.ph-row + .stg-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline-start: 58px;
+  inset-inline-end: 0;
+  border-top: 0.5px solid var(--separator);
+}
+.stg-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.stg-row-main:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.stg-row.is-missing .ph-desc {
+  color: var(--danger);
+}
+.stg-num {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.stg-tile {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #ff9500;
+  color: #fff;
+}
+.stg-tile.is-doc {
+  background: #5856d6;
+}
+.stg-plus {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--accent);
+}
+.stg-add-row .ph-title {
+  color: var(--accent);
+}
+.stg-name-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+}
+.stg-head .stg-name-input {
+  font-size: var(--type-title1, 28px);
+  font-weight: 700;
+}
+
+.stg-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 28px 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  text-align: center;
+}
+.stg-empty strong {
+  font-size: 17px;
+}
+.stg-empty-text {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* "Add songs" sheet */
+.stg-sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.32);
+  animation: stg-fade var(--dur-pop, 0.22s) ease;
+}
+.stg-sheet {
+  width: min(560px, 100%);
+  max-height: min(80svh, 640px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  overflow-y: auto;
+  animation: stg-up var(--dur-sheet, 0.34s) var(--ease-ios, ease);
+}
+@media (min-width: 700px) {
+  .stg-sheet-scrim {
+    align-items: center;
+  }
+  .stg-sheet {
+    border-radius: 20px;
+  }
+}
+.stg-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 17px;
+}
+.stg-done {
+  min-height: 44px;
+  padding: 0 8px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stg-sheet-foot {
+  display: flex;
+  justify-content: center;
+}
+@keyframes stg-fade {
+  from { opacity: 0; }
+}
+@keyframes stg-up {
+  from { transform: translateY(24px); opacity: 0; }
+}
+
+/* ---- performance ---- */
+.stage-perf {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #111;
+  color: #fff;
+  --glass-bg: rgba(40, 40, 44, 0.72);
+}
+.stage-perf-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: calc(72px + env(safe-area-inset-top)) 8px calc(40vh);
+  -webkit-overflow-scrolling: touch;
+}
+.stage-perf.is-bare .stage-perf-scroll {
+  padding-top: calc(12px + env(safe-area-inset-top));
+}
+.stage-perf .sheet-page {
+  border-radius: 3px;
+  box-shadow: none;
+}
+.stage-perf.is-night .sheet-page {
+  filter: invert(1) hue-rotate(180deg);
+}
+.stage-perf-msg {
+  margin: auto;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.stage-perf-top,
+.stage-perf-bar {
+  position: absolute;
+  inset-inline: 10px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 28px;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  transition: opacity var(--dur-fast, 0.18s) ease, transform var(--dur-fast, 0.18s) ease;
+}
+.stage-perf-top {
+  top: calc(10px + env(safe-area-inset-top));
+  max-width: 720px;
+}
+.stage-perf-bar {
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: max-content;
+  max-width: calc(100% - 20px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.stage-perf.is-bare .stage-perf-top {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+.stage-perf.is-bare .stage-perf-bar {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+.stage-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stage-perf-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  line-height: 1.2;
+}
+.stage-perf-title strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+}
+.stage-perf-title span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.stage-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stage-key.is-round {
+  width: 44px;
+  padding: 0;
+}
+.stage-key:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.stage-key.is-on {
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
+}
+.stage-key.is-primary {
+  background: #0a84ff;
+  min-width: 108px;
+}
+.stage-key.is-primary.is-on {
+  background: #ff9f0a;
+  color: #111;
+}
+.stage-key.is-ready {
+  background: #0a84ff;
+  animation: stg-pulse 1.4s ease-in-out infinite;
+}
+@keyframes stg-pulse {
+  50% { box-shadow: 0 0 0 6px rgba(10, 132, 255, 0.35); }
+}
+.stage-key.is-small {
+  min-width: 36px;
+  width: 36px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  font-size: 22px;
+  font-weight: 400;
+}
+.stage-stepper {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.stage-stepper.is-off {
+  opacity: 0.55;
+}
+.stage-stepper-val {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  font-size: 15px;
+  line-height: 1.05;
+}
+.stage-stepper-val small {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+.stage-stepper-val em {
+  font-style: normal;
+  font-size: 11px;
+  color: #ff9f0a;
+  margin-inline-start: 3px;
+}
+
+/* the transposed chords, drawn over the old ones */
+.stage-chords {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.stage-chord {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding-inline-end: 0.15em;
+  background: #fff;
+  color: #0a3ea8;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-key.is-ready {
+    animation: none;
+  }
 }

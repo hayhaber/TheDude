@@ -60,6 +60,13 @@ export async function saveSheet(file) {
   return { id, name, size: blob.size, at: Date.now() };
 }
 
+/** Rename a sheet (the Stage's charts). */
+export async function renameSheet(id, name) {
+  const rec = await getSheet(id);
+  if (!rec || !name?.trim()) return;
+  await run('readwrite', (s) => s.put({ ...rec, name: name.trim() }));
+}
+
 export function deleteSheet(id) {
   setSheetPrefs(id, null);
   return run('readwrite', (s) => s.delete(id));

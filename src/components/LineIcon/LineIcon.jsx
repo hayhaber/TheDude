@@ -234,6 +234,14 @@ export const ICON_PATHS = {
       <path d="M9 15v6M15 15v6" opacity=".55" />
     </>
   ),
+  // Stage: a music stand holding a chart.
+  stage: (
+    <>
+      <rect x="5" y="3.5" width="14" height="10.5" rx="1.2" />
+      <path d="M8 7h8M8 10.2h5.5" opacity=".6" />
+      <path d="M12 14v6.5M8.5 20.5h7" />
+    </>
+  ),
   ear: (
     <>
       <path d="M7 9a5 5 0 1 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0" />

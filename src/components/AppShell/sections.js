@@ -16,6 +16,8 @@ export const SECTIONS = [
   { key: 'songs', labelKey: 'nav.songs', icon: 'songs' },
   // Guitar Pro files: play the song with its band, practice its solo.
   { key: 'guitarpro', labelKey: 'nav.guitarpro', icon: 'guitarpro' },
+  // The band's PDF charts + setlists, full screen with auto-scroll (v1.0.176).
+  { key: 'stage', labelKey: 'nav.stage', icon: 'stage' },
   // Piano only: a big keyboard to play freely (pedal, live chord, recording).
   { key: 'freeplay', labelKey: 'nav.freeplay', icon: 'freeplay' },
   { key: 'vocal', labelKey: 'nav.vocal', icon: 'vocal' },
@@ -35,7 +37,7 @@ export const NAV_GROUPS = [
   // Songs (finding chords / tabs / files on the web) is reached from
   // GuitarPro's ••• menu, not a segmented control of its own (flow review
   // 2026-11-06); it still lights the Play tab.
-  { key: 'play', labelKey: 'nav.group.play', icon: 'play', members: ['guitarpro'], also: ['songs'] },
+  { key: 'play', labelKey: 'nav.group.play', icon: 'play', members: ['guitarpro', 'stage'], also: ['songs'] },
   { key: 'create', labelKey: 'nav.group.create', icon: 'create', members: ['compose', 'improvise', 'freeplay'] },
 ];
 

@@ -2637,6 +2637,52 @@ no tools).
   its Fsus2 shapes are 3 / 8 / 15 / 20. Playwright 390 HE (F Fsus2 Dm) +
   1180 EN (C G Am F: G Open -> Position 3 changes the chain), no errors.
 
+## Stage — band charts + setlists (v1.0.176, 2026-11-14)
+
+- User: "upload the PDF charts of all the songs I play with the band,
+  full screen, auto-scroll, move from chart to chart; can it find the
+  chords and change the key?". Section `stage` ("Stage" / "במה", LineIcon
+  `stage` = a music stand) in the Play group: NAV_GROUPS play members
+  ['guitarpro', 'stage'] (segmented control), every instrument, no neck.
+  Charts = the SAME store as GuitarPro's PDFs (sheetStore, IndexedDB, this
+  device; `renameSheet` added); per-chart prefs in `dudestar-p-sheet-prefs`
+  gain `dur` (song length, s) and `tr` (semitones).
+- `components/Stage/StageView.jsx` (+ Stage.css, `.stg-*`, reuses the
+  Practice `.ph-*` inset groups / BackButton / MoreMenu): home = title +
+  Add capsule (multiple PDFs) · Setlists rows + "New setlist" · All
+  charts rows (tap = play from there through all charts; ••• Rename /
+  Delete two-tap) · empty state. Setlist screen = back, name (••• Rename /
+  Delete), ONE primary Start, numbered rows (tap = start there; ••• Up /
+  Down / Remove), "Add songs" sheet (`.stg-sheet`, tap rows to append, Add
+  capsule inside). Setlists = personal key `dudestar-p-setlists`
+  (`music/sheets/setlists.js` useSetlists, same-tab event) — they sync;
+  charts don't (a missing one = "Not on this device").
+- `components/Stage/Performer.jsx` (portal `.stage-perf`, black): pages at
+  the screen's width (PdfSheetView's now-exported `Page` + `useWakeLock`;
+  Page takes `children` = an overlay), top glass bar (close, name, "n of
+  N · Next: …", Night = invert filter, device key `dudestar-stage-night`),
+  bottom glass bar in two groups (‹ Scroll › | Song length −/+ 10 s ·
+  Key −/+). Auto-scroll = the WHOLE chart in the song's length (default
+  3:30); at the end it stops and › pulses. Pedals / arrows / PageDown turn
+  ~a screen; past the end = next song, before the top = previous; Space =
+  scroll; a sideways swipe = next / previous; a tap = hide / show the
+  controls; a finger / wheel pauses. Every song starts at the top.
+- KEY CHANGE (pure `music/sheets/chartChords.js`): pdf.js text items ->
+  lines by baseline -> a CHORD LINE when >= 75 % of its words are chord
+  symbols (`isChord` regex incl. 7 / maj7 / sus / add / b5 / (#9) / slash;
+  bars, x2, N.C. neutral) -> each chord's box (canvas measureText scaled
+  to the run's own width); `transposeChord` (root + slash bass),
+  `flatsFor` / `keyOf` from the first chord (flat keys F Bb Eb Ab Db Gb /
+  Dm Gm Cm Fm Bbm Ebm). Overlay `.stage-chord`: white box over the old
+  chord, the new one bold blue. No text chords (a scan) = Key shows "—"
+  and is disabled (OCR not built). Checked: G song +3 -> Bb F Gm Eb …
+  Am7b5 Dsus4 D7; Am song +2 -> Bm G D A … F#7; the scan -> "—". Playwright
+  390 HE + 1180 EN: upload 3, setlist, reorder, start, transpose, length
+  40 s -> scroll speed matched, pedal past the end -> next song, Escape,
+  prefs saved; no errors. NOT verified on the iPad / with a real pedal.
+- Not built yet: OCR for scanned charts, syncing the PDFs themselves
+  between devices, pinch zoom on a phone.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

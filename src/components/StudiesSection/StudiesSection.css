@@ -49,3 +49,16 @@
   background: var(--accent-fill);
   color: #fff;
 }
+
+/* v1.0.200: the course page already has its title (h1) — the Chord
+   Structure view's own h2 repeated it word for word */
+.studies-section .cb-head h2 {
+  display: none;
+}
+/* …so its one-line description sits right under the page title */
+.studies-section .cb-head {
+  align-items: flex-start;
+}
+.studies-section .cb-head .cb-sub {
+  margin-top: 0;
+}

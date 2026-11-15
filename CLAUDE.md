@@ -3085,6 +3085,18 @@ no tools).
   / Stage checked: already on the library's look (tinted Add, gray
   transport keys, segmented modes). Playwright 390 HE + 1180 EN.
 
+- CONTROLS LIBRARY, step 5 = THE REST (v1.0.200): went over Chords,
+  Compose / Improvise, Theory, Singing, Settings, bass and piano
+  practice. Chords / Singing / Settings / piano were already on the look.
+  Retrofits in ui.css (one list): Compose's white shadowed pills —
+  chord ‹ Prev / Next ›, position ‹ Back / Next ›, Display, Save, Smart —
+  and the bass Loop latch = gray buttons with accent labels (on = accent
+  tint); the position chips 1–9 = gray like the chord chips (the chosen
+  keeps its colour); Training lost its outline. Theory -> Chord Structure
+  showed its title twice (page h1 + the view's own h2): the h2 is hidden
+  inside the Theory section and the description sits right under the
+  title. Playwright 1180 EN + 390 HE — no errors.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

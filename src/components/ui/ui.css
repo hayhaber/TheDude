@@ -396,3 +396,37 @@ html .bpm-field:not(:where(.metronome *)) .bpm-field-input {
   width: 48px;
   color: var(--accent);
 }
+
+/* ---- retrofits (v1.0.200): older screen buttons drawn as the library's
+   gray button — white pills with a shadow / outline are gone ---- */
+html :is(.chord-chips-nav-button, .position-controls-nav > button, .display-options-trigger, .saved-progressions-trigger, .compose-smooth-toggle, .bp-latch) {
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
+  color: var(--accent);
+  box-shadow: none;
+  font-weight: 600;
+  transition: transform 0.18s var(--ease-ios, ease), filter 0.15s ease, background-color 0.15s ease;
+}
+html :is(.chord-chips-nav-button, .position-controls-nav > button, .display-options-trigger, .saved-progressions-trigger, .compose-smooth-toggle, .bp-latch):hover:not(:disabled) {
+  background: var(--fill-secondary);
+}
+html :is(.chord-chips-nav-button, .position-controls-nav > button, .display-options-trigger, .saved-progressions-trigger, .compose-smooth-toggle, .bp-latch):active:not(:disabled) {
+  transform: scale(0.96);
+  filter: var(--ui-press);
+}
+/* a toggle that is ON = accent tint (never a white pill) */
+html :is(.compose-smooth-toggle, .bp-latch):is(.active, .is-on, [aria-pressed='true']) {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+/* the position chips = the chord chips' look (gray; the chosen one keeps
+   its colour) */
+html .position-chip:not(.active) {
+  border-color: transparent;
+  background: var(--fill-tertiary);
+  color: var(--text);
+  box-shadow: none;
+}
+/* the Training hand-off = a tinted button, no outline */
+html .training-handoff-open {
+  border-color: transparent;
+}

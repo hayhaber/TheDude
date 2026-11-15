@@ -1,0 +1,135 @@
+/* Liquid Glass across the app (v1.0.192) — rule 11 of CLAUDE.md, from
+   Apple's HIG "Materials" + WWDC25 "Meet Liquid Glass":
+   - glass only on the functional layer that floats above the content
+     (bars, round buttons, popovers, sheets, menus, toasts, tooltips);
+   - the content itself stays solid;
+   - no glass on glass: things placed on a glass bar are flat fills;
+   - the regular variant (a thicker pane) for text-heavy glass;
+   - reduced transparency / more contrast = (almost) solid.
+   One file, so the pass is easy to read and to roll back. Selectors carry
+   an extra `html` so they win over each component's own rule whatever the
+   load order (lazy chunks load their CSS later). */
+
+:root {
+  /* the regular variant for text-heavy glass: sheets, popovers, drawers */
+  --glass-sheet: rgba(248, 248, 250, 0.8);
+  --glass-sheet-filter: blur(30px) saturate(180%);
+  --glass-sheet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 18px 48px rgba(0, 0, 0, 0.18);
+  /* dark HUD glass for toasts (white text) */
+  --glass-hud: rgba(28, 28, 30, 0.74);
+}
+:root[data-theme='dark'] {
+  --glass-sheet: rgba(30, 30, 32, 0.76);
+  --glass-sheet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* Reduce Transparency / Increase Contrast: glass turns (almost) solid */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.97);
+    --glass-control: rgba(255, 255, 255, 0.98);
+    --glass-sheet: rgba(250, 250, 252, 0.98);
+    --glass-hud: rgba(28, 28, 30, 0.97);
+  }
+  :root[data-theme='dark'] {
+    --glass-bg: rgba(28, 28, 30, 0.97);
+    --glass-control: rgba(44, 44, 46, 0.98);
+    --glass-sheet: rgba(30, 30, 32, 0.98);
+  }
+}
+
+/* ---- sheets, drawers, popovers, menus, alerts = the regular variant ---- */
+html .tuner-drawer,
+html .metronome-drawer,
+html .display-options-drawer,
+html .saved-progressions-drawer,
+html .settings-drawer,
+html .exercise-drawer,
+html .sw-sheet,
+html .sw-picker,
+html .profile-pop,
+html .cloud-modal,
+html .rw-toast,
+html .info-tooltip-bubble {
+  background: var(--glass-sheet);
+  -webkit-backdrop-filter: var(--glass-sheet-filter);
+  backdrop-filter: var(--glass-sheet-filter);
+  border-color: transparent;
+  box-shadow: var(--glass-sheet-shadow);
+}
+/* the ⓘ bubble was a solid navy box with white text — now glass + label colour */
+html .info-tooltip-bubble {
+  color: var(--text);
+}
+
+/* ---- toasts = dark HUD glass (their text is white) ---- */
+html .sw-toast,
+html .stg-toast,
+html .cloud-toast {
+  background: var(--glass-hud);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+/* ---- floating bars that were plain blur / a tinted card ---- */
+html .sw-top {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 0.5px 0 var(--separator);
+}
+/* the teacher's live banner floats over the exercise: neutral glass
+   (tint is kept for the one primary element, not for a whole bar) */
+html .coach-banner {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border-color: transparent;
+  box-shadow: var(--glass-shadow), 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+/* ---- no glass on glass ---- */
+/* desktop top bar (glass): its round buttons / avatar are flat fills */
+html .app-topbar .icon-circle-button,
+html .app-topbar .profile-chip.is-compact {
+  background: var(--fill-tertiary);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+html .app-topbar .icon-circle-button:hover,
+html .app-topbar .icon-circle-button.active {
+  background: var(--fill-secondary);
+}
+html .app-tools-button.is-live::after {
+  box-shadow: 0 0 0 2px var(--surface);
+}
+/* the Tools popover and the phone tools row (glass): the metronome /
+   drums / tuner pills inside are flat fills */
+html .app-tools-popover .metronome-bar,
+html .app-tools-popover .tuner-bar,
+html .app-mobile-metronome .metronome-bar,
+html .app-mobile-metronome .tuner-bar,
+html .app-topbar .metronome-bar,
+html .app-topbar .tuner-bar {
+  background: var(--fill-tertiary);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* phone / tablet: the strip under the round Home / avatar / Tools buttons
+   is a SCROLL EDGE (content fades + blurs under the buttons), not a glass
+   bar — the buttons themselves are the glass */
+@media (max-width: 899px) {
+  html .app-shell::before {
+    height: calc(var(--mobile-top-strip) + 14px);
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 82%, transparent) 0%, color-mix(in srgb, var(--bg) 60%, transparent) 62%, transparent 100%);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+    box-shadow: none;
+  }
+}

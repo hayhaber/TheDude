@@ -2945,6 +2945,27 @@ no tools).
   primary stays the only tint (blue, orange while running); under
   prefers-reduced-transparency / prefers-contrast the bubbles go solid.
 
+- v1.0.192 (user: "go over the whole system with this principle and
+  apply it where needed"): ONE file `src/styles/liquid-glass.css`
+  (imported in main.jsx right after index.css; selectors prefixed `html`
+  so they beat every component rule whatever the load order — roll back =
+  delete the import). (1) Regular-variant glass (`--glass-sheet`, blur
+  30 / saturate 180, rim + specular edge, `--glass-sheet-shadow`) for the
+  solid floating panes: tuner / metronome / display / saved / settings /
+  exercise drawers, songwriter sheet + chord picker, the profile popover
+  (home too), the cloud alert, the reward toast and the ⓘ bubble (was a
+  navy box; now glass + label colour). (2) Toasts (songwriter, stage,
+  cloud) = dark HUD glass `--glass-hud`. (3) Songwriter top bar and the
+  teacher's live banner = glass (banner no longer accent-tinted). (4) No
+  glass on glass: the desktop top bar's round buttons / avatar and the
+  metronome / drums / tuner pills inside the Tools popover = flat fills.
+  (5) Phone / tablet top strip = a SCROLL EDGE (fade + light blur, masked)
+  instead of a glass bar — the round buttons over it are the glass.
+  (6) prefers-reduced-transparency / prefers-contrast: all glass tokens
+  near-opaque. Content (cards, lists, devices, necks) untouched; the
+  ear-training panel is inline content, left solid. Playwright 390 HE,
+  1180 EN, 1180 HE dark: compose, Tools popover, tuner drawer — no errors.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

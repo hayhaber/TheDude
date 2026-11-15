@@ -3097,6 +3097,36 @@ no tools).
   inside the Theory section and the description sits right under the
   title. Playwright 1180 EN + 390 HE — no errors.
 
+- STAGE + BAND, the Apple way (v1.0.201, 2026-11-15; user: "the band
+  feature is buried" -> canvas https://claude.ai/artifact/WLKwrYsDPmMKvisEMaR3Jg
+  approved, "build"). SOLO FIRST: no band = one quiet row "Playing with a
+  band?" (`.stg-hint`, × hides it, device key `dudestar-stage-band-hint`;
+  then ••• "Band…") -> `BandJoinSheet`: three perks, then Create a band |
+  I have a code (Segmented) + one field + one filled CTA; signed out = "sign
+  in first" + Account. With bands: Segmented "Mine | <band>" (<= 2 bands,
+  else the pop-up Select) replaces the Library select + its ••• of seven
+  actions; the band = ONE row (`.stg-band-row`: member faces · "N members"
+  · Invite ›) -> `BandManageSheet` (code card + Share, members with "here
+  now" / Remove, Rename / New code / Another band, Leave / Delete two-tap).
+  Sync status = a footnote. PLAY TOGETHER = SharePlay: a band setlist shows
+  Start (filled) + "Start with the band" (opens the Performer as leader,
+  `initialRole`) + who of the band is here (faces); members on the band's
+  home / setlist see a green banner "<name> is on stage now · <set> · song
+  i of n · Join" (`LiveBanner`, from presence meta {set, song, i, n} that
+  the leader tracks) -> opens that setlist as follower. Performer: the
+  Off / I lead / Follow select is gone — the list sheet has a status line +
+  ONE key (Lead / Join / Stop / Solo) and a glass pill over the chart while
+  following ("Following X · Solo") or when someone leads ("X leads ·
+  Join"). The Performer now keeps the band channel open while a band chart
+  is open (also solo). bandLink.js: ONE channel per band per device,
+  ref-counted (supabase-js returns the existing channel for a topic),
+  closed 1.5 s after the last user, a re-open waits for the removal;
+  `setRole(role, extra)`. Invite text points to Stage › Band › I have a
+  code. Playwright (fake Supabase + Realtime relay, A 1180 EN / B 390 HE):
+  create, invite code, join, Start with the band -> B's banner -> Join ->
+  follows song jumps, Solo / Join again, Stop leading, manage sheet; no
+  errors. NOT verified with the real Supabase Realtime or on devices.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

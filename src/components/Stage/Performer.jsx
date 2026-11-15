@@ -92,7 +92,7 @@ function Icon({ d, size = 20, fill = false }) {
   );
 }
 
-export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder, band = null }) {
+export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder, band = null, initialRole = 'off', setId = null }) {
   // songs = [{id, name}]; the order can change on stage (drag in the list,
   // or the band's leader) — `onReorder(ids)` saves it to the setlist
   const { t, lang } = useLanguage();
@@ -538,7 +538,9 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   useEffect(() => stopCount, [song, stopCount]);
 
   // ---- band sync (v1.0.189): one leads, the others follow ----
-  const [role, setRole] = useState('off'); // off | lead | follow
+  // v1.0.201: SharePlay-like — "Start with the band" opens as the leader,
+  // "Join" on the band's banner as a follower; on stage: Solo / Join / Lead.
+  const [role, setRole] = useState(band ? initialRole : 'off'); // off | lead | follow
   const [people, setPeople] = useState([]);
   const [leader, setLeader] = useState(null); // the leader's name, when heard
   const linkRef = useRef(null);
@@ -594,7 +596,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     }
   };
   useEffect(() => {
-    if (!band || role === 'off') return undefined;
+    if (!band) return undefined;
     let alive = true;
     let link = null;
     openBandLink(band.id, {
@@ -606,7 +608,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         if (!alive) return l.close();
         link = l;
         linkRef.current = l;
-        l.setRole(roleRef.current);
+        l.setRole(roleRef.current, metaRef.current);
         if (roleRef.current === 'follow') l.hello();
         else sendStateRef.current?.();
       })
@@ -617,10 +619,16 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       linkRef.current = null;
       setPeople([]);
     };
-    // one channel while syncing; a role switch only re-tracks presence
-  }, [band?.id, role === 'off']); // eslint-disable-line react-hooks/exhaustive-deps
+    // one channel while the band's chart is open (also when playing solo:
+    // it shows who leads, to join them); a role switch only re-tracks presence
+  }, [band?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // what the band's home screens show about me (only a leader is shown)
+  const metaRef = useRef({});
+  metaRef.current = { set: setId, song: songs[idx]?.name ?? '', i: idx + 1, n: songs.length };
   useEffect(() => {
-    linkRef.current?.setRole(role);
+    linkRef.current?.setRole(role, metaRef.current);
+  }, [role, idx, songs.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
     if (role === 'follow') linkRef.current?.hello();
     if (role === 'lead') sendStateRef.current?.();
     if (role !== 'follow') setLeader(null);
@@ -1031,23 +1039,32 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
           </div>
           {band && (
             <div className="stage-sync">
-              <label className="stage-field">
-                <span className="stage-field-label">{t('stage.sync.label', { band: band.name })}</span>
-                <select className="stage-select" value={role} onChange={(e) => setRole(e.target.value)}>
-                  <option value="off">{t('stage.sync.off')}</option>
-                  <option value="lead">{t('stage.sync.lead')}</option>
-                  <option value="follow">{t('stage.sync.follow')}</option>
-                </select>
-              </label>
-              <p className="stage-field-hint">
+              <p className="stage-sync-text">
                 {role === 'lead'
                   ? t('stage.sync.leadText', { n: followers })
                   : role === 'follow'
                     ? leaderName
                       ? t('stage.sync.followText', { name: leaderName })
                       : t('stage.sync.waitText')
-                    : t('stage.sync.offText')}
+                    : leadPerson
+                      ? t('stage.sync.canJoin', { name: leadPerson.name || t('stage.band.someone') })
+                      : t('stage.sync.offText', { band: band.name })}
               </p>
+              {role === 'off' && leadPerson && (
+                <button type="button" className="stage-key is-text is-go" onClick={() => setRole('follow')}>
+                  {t('stage.sync.join')}
+                </button>
+              )}
+              {role === 'off' && !leadPerson && (
+                <button type="button" className="stage-key is-text is-go" onClick={() => setRole('lead')}>
+                  {t('stage.sync.lead')}
+                </button>
+              )}
+              {role !== 'off' && (
+                <button type="button" className="stage-key is-text" onClick={() => setRole('off')}>
+                  {role === 'lead' ? t('stage.sync.stop') : t('stage.sync.solo')}
+                </button>
+              )}
             </div>
           )}
           <ol className="stage-list-rows">
@@ -1075,6 +1092,18 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
               </li>
             ))}
           </ol>
+        </div>
+      )}
+
+      {band && !listOpen && !(atEnd && !playing && songs.length > 1) && (role === 'follow' || (role === 'off' && leadPerson)) && (
+        <div className="stage-sync-pill glass" dir={dir} role="status">
+          <span className={'stage-sync-dot' + (role === 'follow' && leaderName ? ' is-on' : '')} aria-hidden="true" />
+          <span className="stage-sync-pill-text">
+            {role === 'follow' ? (leaderName ? t('stage.sync.followShort', { name: leaderName }) : t('stage.sync.waiting')) : t('stage.sync.leads', { name: leader || leadPerson?.name || t('stage.band.someone') })}
+          </span>
+          <button type="button" className="stage-key is-text" onClick={() => setRole(role === 'follow' ? 'off' : 'follow')}>
+            {role === 'follow' ? t('stage.sync.solo') : t('stage.sync.join')}
+          </button>
         </div>
       )}
 

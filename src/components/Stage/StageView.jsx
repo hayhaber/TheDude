@@ -28,6 +28,8 @@ import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { Performer } from './Performer';
 import './Stage.css';
 import { Select } from '../ui/Select';
+import { Segmented } from '../ui/controls';
+import { openBandLink } from '../../music/sheets/bandLink';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -40,6 +42,7 @@ import { Select } from '../ui/Select';
 // The charts are the same store GuitarPro / PianoPro's PDFs use.
 
 const SCOPE_KEY = 'dudestar-stage-scope'; // device
+const HINT_KEY = 'dudestar-stage-band-hint'; // device: '1' = the band row was hidden
 
 function Chevron() {
   return (
@@ -155,6 +158,238 @@ function sinceText(iso, t) {
   return min < 1 ? t('stage.cloud.justNow') : min < 60 ? t('stage.cloud.minAgo', { n: min }) : t('stage.cloud.earlier');
 }
 
+function BandGlyph({ size = 20 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <circle cx="8" cy="9" r="3" />
+      <circle cx="16.5" cy="9.5" r="2.5" />
+      <path d="M3 19c0-3 2.5-5 5-5s5 2 5 5M13.5 18.5c.3-2.4 1.6-4 3.5-4 2 0 3.5 1.6 3.5 4" />
+    </svg>
+  );
+}
+
+const AVATAR_TINTS = ['#007aff', '#ff9500', '#af52de', '#34c759', '#ff2d55', '#5856d6', '#30b0c7', '#a2845e'];
+const initialOf = (name) => Array.from((name || '?').trim())[0]?.toUpperCase() || '?';
+function tintOf(id = '') {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return AVATAR_TINTS[h % AVATAR_TINTS.length];
+}
+function MemberAvatar({ m, small = false }) {
+  return (
+    <span className={'stg-avatar' + (small ? ' is-small' : '')} style={{ background: tintOf(m.id || m.key || m.name) }} aria-hidden="true">
+      {initialOf(m.name)}
+    </span>
+  );
+}
+
+/** "Dana is on stage now · Join" — SharePlay's join banner. */
+function LiveBanner({ person, setName, onJoin, t }) {
+  return (
+    <div className="stg-live" role="status">
+      <span className="stg-live-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="14" height="14">
+          <path d="M7 4.5v15l12.5-7.5z" fill="currentColor" />
+        </svg>
+      </span>
+      <span className="stg-live-text">
+        <strong dir="auto">{t('stage.live.title', { name: person.name || t('stage.band.someone') })}</strong>
+        {person.n > 0 && <span dir="auto">{setName ? t('stage.live.sub', { set: setName, i: person.i, n: person.n }) : t('stage.live.subNoSet', { i: person.i, n: person.n })}</span>}
+      </span>
+      <button type="button" className="stg-live-join" onClick={onJoin}>
+        {t('stage.live.join')}
+      </button>
+    </div>
+  );
+}
+
+/** The band sheet: what a band gives, then create one or join with a code. */
+function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
+  const [tab, setTab] = useState('new');
+  const [v, setV] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const go = async () => {
+    if (!v.trim() || busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await (tab === 'new' ? onCreate(v.trim()) : onJoin(v.trim()));
+      onClose();
+    } catch (e) {
+      setErr(e?.code === 'P0002' || /no band/i.test(e?.message || '') ? t('stage.band.badCode') : navigator.onLine === false ? t('stage.cloud.offline') : t('stage.cloud.failed'));
+      setBusy(false);
+    }
+  };
+  const perks = [
+    ['M6 3h9l4 4v14H6z M15 3v4h4', 'b1'],
+    ['M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', 'b2'],
+    ['M12 4v13M7 12l5 5 5-5M5 20h14', 'b3'],
+  ];
+  return (
+    <Sheet title={t('stage.band.title')} onClose={onClose} dir={dir} t={t}>
+      <div className="stg-band-hero">
+        <span className="stg-band-tile" aria-hidden="true">
+          <BandGlyph size={34} />
+        </span>
+        <h2>{t('stage.band.headline')}</h2>
+      </div>
+      <ul className="stg-perks">
+        {perks.map(([d, k]) => (
+          <li key={k}>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d={d} />
+            </svg>
+            <span>
+              <strong>{t('stage.band.' + k + 't')}</strong>
+              {t('stage.band.' + k)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {isIn ? (
+        <>
+          <Segmented
+            options={[
+              { value: 'new', label: t('stage.band.tabNew') },
+              { value: 'join', label: t('stage.band.tabJoin') },
+            ]}
+            value={tab}
+            onChange={(x) => {
+              setTab(x);
+              setV('');
+              setErr(null);
+            }}
+          />
+          <label className="stg-field">
+            <span>{tab === 'new' ? t('stage.band.name') : t('stage.band.code')}</span>
+            <input
+              key={tab}
+              dir={tab === 'new' ? 'auto' : 'ltr'}
+              className={tab === 'join' ? 'is-code' : ''}
+              value={v}
+              placeholder={tab === 'new' ? t('stage.band.namePh') : 'ABCD2345'}
+              autoCapitalize={tab === 'join' ? 'characters' : 'sentences'}
+              autoCorrect="off"
+              onChange={(e) => setV(tab === 'join' ? e.target.value.toUpperCase() : e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && go()}
+            />
+          </label>
+          {err && <p className="stg-err">{err}</p>}
+          <div className="stg-sheet-foot is-col">
+            <button type="button" className="stg-capsule is-primary is-wide" onClick={go} disabled={!v.trim() || busy}>
+              {busy ? '…' : tab === 'new' ? t('stage.band.create') : t('stage.band.joinBtn')}
+            </button>
+            <span className="stg-fine">{t('stage.band.anytime')}</span>
+          </div>
+        </>
+      ) : (
+        <div className="stg-sheet-foot is-col">
+          <p className="stg-sheet-text">{t('stage.band.signInFirst')}</p>
+          {onAccount && (
+            <button
+              type="button"
+              className="stg-capsule is-primary is-wide"
+              onClick={() => {
+                onClose();
+                onAccount();
+              }}
+            >
+              {t('stage.cloud.signIn')}
+            </button>
+          )}
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+/** The band's own sheet: invite code + Share, members, rename / new code / leave. */
+function BandManageSheet({ band, uid, here, onShare, onNewCode, onRename, onRemove, onAnother, onLeave, onClose, dir, t }) {
+  const owner = band.owner === uid;
+  const [renaming, setRenaming] = useState(false);
+  const [sure, setSure] = useState(false);
+  const hereIds = new Set(here.map((p) => (p.key || '').split(':')[0]));
+  return (
+    <Sheet title={band.name} onClose={onClose} dir={dir} t={t}>
+      <div className="stg-invite-card">
+        <span className="stg-fine">{t('stage.band.code')}</span>
+        <div className="stg-code" dir="ltr">
+          {band.code}
+        </div>
+        <button type="button" className="stg-capsule is-primary" onClick={onShare}>
+          <svg viewBox="0 0 24 26" width="15" height="17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 3v14M7 8l5-5 5 5M5 12v10h14V12" />
+          </svg>
+          {t('stage.band.share')}
+        </button>
+        <span className="stg-fine">{t('stage.band.inviteHow2')}</span>
+      </div>
+
+      <h3 className="stg-sheet-sec">{t('stage.band.members') + ' · ' + band.members.length}</h3>
+      <div className="ph-group stg-group">
+        {band.members.map((m) => (
+          <div key={m.id} className="stg-row">
+            <span className="ph-row stg-row-main">
+              <MemberAvatar m={m} />
+              <span className="ph-text">
+                <span className="ph-title" dir="auto">
+                  {m.name || t('stage.band.someone')}
+                  {m.id === uid ? ` (${t('stage.band.you')})` : ''}
+                </span>
+              </span>
+              {m.id === band.owner ? (
+                <span className="stg-detail">{t('stage.band.owner')}</span>
+              ) : (
+                m.id !== uid && hereIds.has(m.id) && <span className="stg-detail is-here">● {t('stage.band.here')}</span>
+              )}
+            </span>
+            {owner && m.id !== uid && (
+              <button type="button" className="stg-remove" onClick={() => onRemove(m.id)}>
+                {t('stage.band.remove')}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      {owner && band.members.length > 1 && <p className="stg-fine is-under">{t('stage.band.ownerOnly')}</p>}
+
+      <div className="ph-group stg-group stg-actions">
+        {owner &&
+          (renaming ? (
+            <span className="ph-row">
+              <NameEdit
+                value={band.name}
+                onSave={(v) => {
+                  setRenaming(false);
+                  onRename(v);
+                }}
+                onCancel={() => setRenaming(false)}
+              />
+            </span>
+          ) : (
+            <button type="button" className="ph-row stg-action" onClick={() => setRenaming(true)}>
+              {t('stage.band.rename')}
+            </button>
+          ))}
+        {owner && (
+          <button type="button" className="ph-row stg-action" onClick={onNewCode}>
+            {t('stage.band.newCodeRow')}
+          </button>
+        )}
+        <button type="button" className="ph-row stg-action" onClick={onAnother}>
+          {t('stage.band.another')}
+        </button>
+      </div>
+      <div className="ph-group stg-group stg-actions">
+        <button type="button" className="ph-row stg-action is-danger" onClick={() => (sure ? onLeave() : setSure(true))}>
+          {sure ? t('stage.deleteSure') : owner ? t('stage.band.delete') : t('stage.band.leave')}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
 export function StageView({ onAccount }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -190,6 +425,8 @@ export function StageView({ onAccount }) {
       onClose={() => setPerform(null)}
       onReorder={perform.setId ? reorderSet : undefined}
       band={band ? { id: band.id, name: band.name } : null}
+      initialRole={perform.role || 'off'}
+      setId={perform.setId ?? null}
     />
   );
   const [busy, setBusy] = useState(false);
@@ -200,6 +437,43 @@ export function StageView({ onAccount }) {
   const [msg, setMsg] = useState(null);
   const [photos, setPhotos] = useState(null); // several images: one chart or one each?
   const fileRef = useRef(null);
+  const [hintOff, setHintOff] = useState(() => {
+    try {
+      return localStorage.getItem(HINT_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const hideHint = () => {
+    setHintOff(true);
+    try {
+      localStorage.setItem(HINT_KEY, '1');
+    } catch {
+      /* private mode */
+    }
+  };
+  // who of the band is here right now (presence on the band's live channel;
+  // the Performer takes the channel over while a chart is open)
+  const [here, setHere] = useState([]);
+  useEffect(() => {
+    if (!bandId || perform) {
+      setHere([]);
+      return undefined;
+    }
+    let alive = true;
+    let link = null;
+    openBandLink(bandId, { people: (list) => alive && setHere(list.filter((x) => !x.me)) })
+      .then((l) => {
+        if (alive) link = l;
+        else l.close();
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+      link?.close();
+    };
+  }, [bandId, !!perform]); // eslint-disable-line react-hooks/exhaustive-deps
+  const leaderHere = here.find((x) => x.role === 'lead') ?? null;
 
   const chooseScope = (s) => {
     setScope(s);
@@ -395,29 +669,15 @@ export function StageView({ onAccount }) {
           </div>
         </Sheet>
       )}
-      {dialog === 'newBand' && (
-        <AskSheet
-          title={t('stage.band.new')}
-          label={t('stage.band.name')}
-          placeholder={t('stage.band.namePh')}
-          action={t('stage.band.create')}
-          onSubmit={async (name) => {
+      {dialog === 'band' && (
+        <BandJoinSheet
+          isIn={isIn}
+          onAccount={onAccount}
+          onCreate={async (name) => {
             const b = await createBand(name);
             if (b?.id) chooseScope(b.id);
           }}
-          onClose={() => setDialog(null)}
-          dir={dir}
-          t={t}
-        />
-      )}
-      {dialog === 'join' && (
-        <AskSheet
-          title={t('stage.band.join')}
-          label={t('stage.band.code')}
-          placeholder="ABCD2345"
-          action={t('stage.band.joinBtn')}
-          upper
-          onSubmit={async (code) => {
+          onJoin={async (code) => {
             const b = await joinBand(code);
             if (b?.id) chooseScope(b.id);
           }}
@@ -426,57 +686,39 @@ export function StageView({ onAccount }) {
           t={t}
         />
       )}
-      {dialog === 'invite' && band && (
-        <Sheet title={t('stage.band.invite')} onClose={() => setDialog(null)} dir={dir} t={t}>
-          <p className="stg-empty-text">{t('stage.band.inviteHow', { band: band.name })}</p>
-          <div className="stg-code" dir="ltr">
-            {band.code}
-          </div>
-          <div className="stg-sheet-foot">
-            <button type="button" className="stg-capsule is-primary" onClick={share}>
-              {t('stage.band.share')}
-            </button>
-            {owner && (
-              <button type="button" className="stg-capsule" onClick={() => newInviteCode(band.id).catch(fail)}>
-                {t('stage.band.newCode')}
-              </button>
-            )}
-          </div>
-        </Sheet>
-      )}
-      {dialog === 'members' && band && (
-        <Sheet title={t('stage.band.members')} onClose={() => setDialog(null)} dir={dir} t={t}>
-          <div className="ph-group stg-group">
-            {band.members.map((m) => (
-              <div key={m.id} className="stg-row">
-                <span className="ph-row stg-row-main">
-                  <span className="stg-avatar" aria-hidden="true">
-                    {Array.from((m.name || '?').trim())[0]?.toUpperCase()}
-                  </span>
-                  <span className="ph-text">
-                    <span className="ph-title" dir="auto">
-                      {m.name || t('stage.band.someone')}
-                      {m.id === uid ? ` (${t('stage.band.you')})` : ''}
-                    </span>
-                    {m.id === band.owner && <span className="ph-desc">{t('stage.band.owner')}</span>}
-                  </span>
-                </span>
-                {owner && m.id !== uid && (
-                  <button type="button" className="stg-remove" onClick={() => removeMember(band.id, m.id).catch(fail)}>
-                    {t('stage.band.remove')}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="stg-sheet-foot">
-            <button type="button" className="stg-capsule" onClick={() => setDialog('invite')}>
-              {t('stage.band.invite')}
-            </button>
-          </div>
-        </Sheet>
+      {dialog === 'manage' && band && (
+        <BandManageSheet
+          band={band}
+          uid={uid}
+          here={here}
+          onShare={share}
+          onNewCode={() => newInviteCode(band.id).catch(fail)}
+          onRename={(v) => renameBand(band.id, v).catch(fail)}
+          onRemove={(id) => removeMember(band.id, id).catch(fail)}
+          onAnother={() => setDialog('band')}
+          onLeave={() => {
+            setDialog(null);
+            (owner ? deleteBand(band.id) : leaveBand(band.id)).then(() => chooseScope('me')).catch(fail);
+          }}
+          onClose={() => setDialog(null)}
+          dir={dir}
+          t={t}
+        />
       )}
     </>
+  );
+
+  // Join the member who leads: open their setlist (or the band's charts)
+  // as a follower — the Performer then turns to their song and place.
+  const joinLeader = () => {
+    if (!leaderHere) return;
+    const list = sets.lists.find((l) => l.id === leaderHere.set);
+    const songs = list ? songsOf(list.items).filter((x) => !x.missing) : scoped.map((x) => ({ id: x.id, name: x.name }));
+    if (!songs.length) return;
+    setPerform({ songs, at: 0, setId: list?.id ?? null, role: 'follow' });
+  };
+  const liveBanner = band && leaderHere && (
+    <LiveBanner person={leaderHere} setName={sets.lists.find((l) => l.id === leaderHere.set)?.name} onJoin={joinLeader} t={t} />
   );
 
   // ---- a setlist ----
@@ -499,7 +741,7 @@ export function StageView({ onAccount }) {
             </p>
           </div>
           <div className="stg-head-actions">
-            {songs.some((s) => !s.missing) && (
+            {!band && songs.some((s) => !s.missing) && (
               <button type="button" className="stg-capsule is-primary" onClick={() => setPerform({ songs: songs.filter((s) => !s.missing), at: 0, setId: set.id })}>
                 <PlayGlyph />
                 {t('stage.start')}
@@ -521,6 +763,32 @@ export function StageView({ onAccount }) {
             </MoreMenu>
           </div>
         </header>
+
+        {liveBanner}
+        {band && songs.some((s) => !s.missing) && (
+          <div className="stg-start">
+            <button type="button" className="stg-capsule is-primary is-wide" onClick={() => setPerform({ songs: songs.filter((s) => !s.missing), at: 0, setId: set.id })}>
+              <PlayGlyph />
+              {t('stage.start')}
+            </button>
+            {!leaderHere && (
+              <button type="button" className="stg-capsule is-wide" onClick={() => setPerform({ songs: songs.filter((s) => !s.missing), at: 0, setId: set.id, role: 'lead' })}>
+                <BandGlyph />
+                {t('stage.startBand')}
+              </button>
+            )}
+            <p className="stg-presence">
+              {here.length > 0 && (
+                <span className="stg-faces" aria-hidden="true">
+                  {here.slice(0, 4).map((p) => (
+                    <MemberAvatar key={p.key} m={{ id: (p.key || '').split(':')[0], name: p.name }} small />
+                  ))}
+                </span>
+              )}
+              <span>{here.length ? t('stage.presence.some', { names: [...new Set(here.map((p) => p.name || t('stage.band.someone')))].join(', ') }) : t('stage.presence.none')}</span>
+            </p>
+          </div>
+        )}
 
         <div className="ph-group stg-group">
           {songs.map((s, i) => (
@@ -608,13 +876,30 @@ export function StageView({ onAccount }) {
       <header className="stg-head">
         <div className="stg-head-title">
           <h1>{t('stage.title')}</h1>
-          <p className="subtitle">{t('stage.subtitle')}</p>
+          {sheets && scoped.length === 0 && <p className="subtitle">{t('stage.subtitle')}</p>}
         </div>
-        <div className="stg-head-actions">{addCapsule}</div>
+        <div className="stg-head-actions">
+          {addCapsule}
+          {hintOff && !(isIn && cloud.bands.length > 0) && (
+            <MoreMenu label={t('stage.more')}>
+              <button type="button" className="more-menu-item" onClick={() => setDialog('band')}>
+                {t('stage.band.menu')}
+              </button>
+            </MoreMenu>
+          )}
+        </div>
       </header>
 
-      {isIn ? (
-        <div className="stg-scope">
+      {isIn && cloud.bands.length > 0 &&
+        (cloud.bands.length <= 2 ? (
+          <Segmented
+            className="stg-scope-seg"
+            ariaLabel={t('stage.library')}
+            options={[{ value: 'me', label: t('stage.mineShort') }, ...cloud.bands.map((b) => ({ value: b.id, label: b.name }))]}
+            value={band ? band.id : 'me'}
+            onChange={chooseScope}
+          />
+        ) : (
           <label className="stg-scope-select">
             <span className="stg-sr">{t('stage.library')}</span>
             <Select value={band ? band.id : 'me'} onChange={(e) => chooseScope(e.target.value)} aria-label={t('stage.library')}>
@@ -626,66 +911,39 @@ export function StageView({ onAccount }) {
               ))}
             </Select>
           </label>
-          <MoreMenu label={t('stage.more')}>
-            {band && (
-              <>
-                <button type="button" className="more-menu-item" onClick={() => setDialog('invite')}>
-                  {t('stage.band.invite')}
-                </button>
-                <button type="button" className="more-menu-item" onClick={() => setDialog('members')}>
-                  {t('stage.band.membersN', { n: band.members.length })}
-                </button>
-                {owner && (
-                  <button type="button" className="more-menu-item" onClick={() => setRenaming(band.id)}>
-                    {t('stage.band.rename')}
-                  </button>
-                )}
-              </>
-            )}
-            <button type="button" className="more-menu-item" onClick={() => setDialog('newBand')}>
-              {t('stage.band.new')}
-            </button>
-            <button type="button" className="more-menu-item" onClick={() => setDialog('join')}>
-              {t('stage.band.join')}
-            </button>
-            {band &&
-              (sureDelete === band.id ? (
-                <button
-                  type="button"
-                  className="more-menu-item is-danger"
-                  onClick={() => {
-                    setSureDelete(null);
-                    (owner ? deleteBand(band.id) : leaveBand(band.id)).then(() => chooseScope('me')).catch(fail);
-                  }}
-                >
-                  {t('stage.deleteSure')}
-                </button>
-              ) : (
-                <button type="button" className="more-menu-item is-danger" data-keep="1" onClick={() => setSureDelete(band.id)}>
-                  {owner ? t('stage.band.delete') : t('stage.band.leave')}
-                </button>
-              ))}
-          </MoreMenu>
-          {renaming === band?.id && (
-            <NameEdit
-              value={band.name}
-              onSave={(v) => {
-                setRenaming(null);
-                renameBand(band.id, v).catch(fail);
-              }}
-              onCancel={() => setRenaming(null)}
-            />
-          )}
-          {status && <span className={'stg-status' + (cloud.status === 'error' ? ' is-error' : '')}>{status}</span>}
-        </div>
-      ) : (
-        <div className="stg-invite">
-          <span>{t('stage.cloud.signInWhy')}</span>
-          {onAccount && (
-            <button type="button" className="stg-capsule" onClick={onAccount}>
-              {t('stage.cloud.signIn')}
-            </button>
-          )}
+        ))}
+
+      {liveBanner}
+
+      {band && (
+        <button type="button" className="ph-row stg-band-row" onClick={() => setDialog('manage')}>
+          <span className="stg-faces" aria-hidden="true">
+            {band.members.slice(0, 4).map((m) => (
+              <MemberAvatar key={m.id} m={m} />
+            ))}
+          </span>
+          <span className="ph-text">
+            <span className="ph-title">{band.members.length === 1 ? t('stage.band.member1') : t('stage.band.membersCount', { n: band.members.length })}</span>
+          </span>
+          <span className="stg-band-invite">{t('stage.band.inviteShort')}</span>
+          <Chevron />
+        </button>
+      )}
+
+      {!band && !(isIn && cloud.bands.length > 0) && !hintOff && (
+        <div className="stg-hint">
+          <span className="stg-tile is-band" aria-hidden="true">
+            <BandGlyph />
+          </span>
+          <button type="button" className="stg-hint-main" onClick={() => setDialog('band')}>
+            <strong>{t('stage.band.hintTitle')}</strong>
+            <span>{t('stage.band.hintText')}</span>
+          </button>
+          <button type="button" className="stg-hint-close" onClick={hideHint} aria-label={t('stage.band.hintClose')} title={t('stage.band.hintClose')}>
+            <svg viewBox="0 0 24 24" width="10" height="10" aria-hidden="true">
+              <path d="M5 5l14 14M19 5L5 19" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          </button>
         </div>
       )}
 
@@ -793,6 +1051,8 @@ export function StageView({ onAccount }) {
           </div>
         </section>
       )}
+
+      {status && <p className={'stg-status' + (cloud.status === 'error' ? ' is-error' : '')}>{status}</p>}
 
       {dialogs}
       {toast}

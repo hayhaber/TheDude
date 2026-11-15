@@ -28,7 +28,7 @@
   margin: 0;
   font-size: var(--type-subhead);
   line-height: 1.4;
-  text-align: start;
+  text-align: justify;
 }
 
 .first-visit-ok {

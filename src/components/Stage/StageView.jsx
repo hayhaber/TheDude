@@ -876,7 +876,6 @@ export function StageView({ onAccount }) {
       <header className="stg-head">
         <div className="stg-head-title">
           <h1>{t('stage.title')}</h1>
-          {sheets && scoped.length === 0 && <p className="subtitle">{t('stage.subtitle')}</p>}
         </div>
         <div className="stg-head-actions">
           {addCapsule}
@@ -889,6 +888,7 @@ export function StageView({ onAccount }) {
           )}
         </div>
       </header>
+      {sheets && scoped.length === 0 && <p className="subtitle stg-sub">{t('stage.subtitle')}</p>}
 
       {isIn && cloud.bands.length > 0 &&
         (cloud.bands.length <= 2 ? (

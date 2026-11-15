@@ -326,7 +326,7 @@
   font: inherit;
   font-size: 15px;
   line-height: 1.5;
-  text-align: start;
+  text-align: justify;
   white-space: pre-wrap;
   justify-content: flex-start;
   cursor: text;
@@ -1579,7 +1579,7 @@
   background: none;
   color: var(--text);
   font: inherit;
-  text-align: start;
+  text-align: justify;
   cursor: pointer;
 }
 .sw-idea-title,
@@ -2543,7 +2543,7 @@
   font: inherit;
   font-size: 17px;
   line-height: 1.4;
-  text-align: start;
+  text-align: justify;
   justify-content: flex-start;
   cursor: pointer;
   transition: background var(--dur-fast, 0.15s) var(--ease-ios, ease);

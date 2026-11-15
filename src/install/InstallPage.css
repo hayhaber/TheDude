@@ -156,7 +156,7 @@
   padding: 12px 14px;
   border-radius: 16px;
   background: var(--bg);
-  text-align: start;
+  text-align: justify;
   counter-increment: step;
 }
 
@@ -229,7 +229,7 @@
   background: color-mix(in srgb, #ff9500 13%, transparent);
   font-size: 15px;
   line-height: 1.5;
-  text-align: start;
+  text-align: justify;
 }
 
 .inst-link {

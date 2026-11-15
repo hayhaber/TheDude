@@ -145,6 +145,15 @@ button), `input.ui-slider`. Styles in `components/ui/ui.css`. Old screens
 move over one at a time; device faces (amp, tuner, metronome, drum
 machine, recorder / studio, EQ, Performer) keep their own hardware look.
 
+**16. Justified running text** (user's rule 2026-11-15): every paragraph
+of running text (lesson / theory text, descriptions, explanations, notes)
+is aligned to BOTH sides. Done once: `html { text-align: justify }` in
+index.css, INHERITED (text-align-last left at auto = the last / only line
+sits at the reading start), so a container that sets its own alignment
+(centred empty states, buttons, captions, device faces) keeps it for all
+inside; hyphens auto only on `p`. Never set `text-align: left / start` on
+running text; new centred blocks set `text-align: center` on the block.
+
 **12. Nothing jumps.** Shared chrome keeps its physical position across
 screens: the desktop top bar is a 3-column grid (`minmax(0,1fr) auto
 minmax(0,1fr)`) so the tabs stay centred on the bar whatever the side
@@ -3133,6 +3142,17 @@ no tools).
   (group, compose) — and the piano's first one is Learn (group learn,
   section studies, teacher icon) instead of "Theory". Every instrument card
   now speaks the same five group names as the in-app bar.
+
+- v1.0.203 (user, iPhone screenshot of a Theory lesson: "wherever there's
+  text like this, justify it — make it a general rule" -> rule 16):
+  `html { text-align: justify }` (inherited; centred blocks keep theirs),
+  `p` hyphens auto + `text-wrap: pretty`; containers that forced `start`
+  on running text now justify (first-visit note, settings root, profile
+  popover, lick card, idea text / freewrite pieces, Stage hint + note,
+  install steps / warning). Stage's subtitle moved under the title row
+  (justified in the narrow column beside Add it opened wide gaps).
+  Checked: 31 phone screens (no paragraph inside a centred block got
+  justified), Theory lesson / Practice / Stage screenshots, no errors.
 
 ## ⓘ explanations (info switch)
 

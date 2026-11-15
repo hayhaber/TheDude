@@ -497,3 +497,18 @@ button {
   top: -18px;
   bottom: -18px;
 }
+
+/* Rule 16 (user's rule 2026-11-15): running text is JUSTIFIED — aligned to
+   both sides. Set on the root and INHERITED, so every container that sets
+   its own alignment (centred empty states, buttons, captions, device faces)
+   keeps it for everything inside, and a single line still sits at the
+   reading start (text-align-last stays auto = start for justify). Hyphens
+   only in paragraphs (never in buttons / labels). */
+html {
+  text-align: justify;
+}
+p {
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  text-wrap: pretty; /* fewer short / gappy lines when justified */
+}

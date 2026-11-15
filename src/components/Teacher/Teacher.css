@@ -95,17 +95,24 @@
   border-radius: 999px;
   border: 1px solid transparent;
   background: var(--fill-tertiary);
-  color: var(--text-h);
+  /* the controls library's gray button: accent label (v1.0.197) */
+  color: var(--accent);
   font: inherit;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   flex: none;
+  transition: transform 0.18s var(--ease-ios, ease), filter 0.15s ease;
+}
+
+.tc-btn:active:not(:disabled) {
+  transform: scale(0.96);
+  filter: var(--ui-press, brightness(0.92));
 }
 
 .tc-btn.is-primary {
-  border-color: var(--accent);
+  border-color: transparent;
   background: var(--accent-fill);
   color: #fff;
 }
@@ -121,9 +128,19 @@
 }
 
 .tc-wide {
-  align-self: stretch;
-  height: 46px;
-  font-size: 16px;
+  /* the screen's one big action = a large capsule, not a full-width bar
+     (full width only on phones, as iOS does) */
+  align-self: center;
+  min-width: min(260px, 100%);
+  height: 50px;
+  padding: 0 28px;
+  font-size: 17px;
+}
+
+@media (max-width: 600px) {
+  .tc-wide {
+    align-self: stretch;
+  }
 }
 
 .tc-quiet {
@@ -233,8 +250,8 @@
   height: 34px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
   color: var(--text);
   font: inherit;
   font-size: 14px;
@@ -243,8 +260,8 @@
 }
 
 .tc-chip.is-on {
-  border-color: var(--accent);
-  background: var(--accent-bg);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
   font-weight: 600;
 }

@@ -3058,6 +3058,14 @@ no tools).
   round Demo / record keys stay (transport). Playwright 1180 EN + 390 HE:
   all 9 tools, ear session, rhythm with an exercise, bends — no errors.
 
+- CONTROLS LIBRARY, step 3 = TEACHER (v1.0.197): the teacher's own
+  button system (`.tc-btn` / `.tc-chip`, Teacher.css) now draws like the
+  library: gray buttons = accent label + press feedback, primary = filled
+  with no outline, `.tc-wide` = a 50 px capsule (min 260) centred instead
+  of a full-width bar (full width only <= 600 px, as iOS), multi-select
+  chips = gray fill, chosen = 14 % accent tint (were white outlined).
+  Playwright 1180 EN + 390 HE: intake, home, lesson steps — no errors.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

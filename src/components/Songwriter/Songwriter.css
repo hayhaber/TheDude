@@ -2657,3 +2657,43 @@
   color: var(--text-secondary);
   font-size: 14px;
 }
+
+/* ---- v1.0.198: the controls library's look ---- */
+/* the selected line's tools = gray buttons (accent label); Record = red
+   tint like Voice Memos; a tool that is on = accent tint */
+.sw-tool {
+  border-color: transparent;
+  background: var(--fill-tertiary);
+  color: var(--accent);
+  transition: transform 0.18s var(--ease-ios, ease), filter 0.15s ease;
+}
+.sw-tool:active:not(:disabled) {
+  transform: scale(0.96);
+  filter: var(--ui-press, brightness(0.92));
+}
+.sw-tool.is-rec {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+.sw-tool.is-on {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: transparent;
+  color: var(--accent);
+}
+/* "+ Add section" (a pull-down of section kinds) and "Dictate" = gray
+   buttons; the select inside is the button's own label */
+.sw-add-section {
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
+  height: 36px;
+}
+.sw-add-section.is-button {
+  background: var(--fill-tertiary);
+}
+html .sw-add-section select.ui-select {
+  background: transparent;
+  padding: 0;
+  min-width: 0;
+  height: auto;
+  font-weight: 600;
+}

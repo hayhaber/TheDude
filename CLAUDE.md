@@ -3066,6 +3066,14 @@ no tools).
   chips = gray fill, chosen = 14 % accent tint (were white outlined).
   Playwright 1180 EN + 390 HE: intake, home, lesson steps — no errors.
 
+- CONTROLS LIBRARY, step 4 = SONGWRITER (v1.0.198): the selected line's
+  tools (`.sw-tool`) = gray buttons with accent labels (were white
+  outlined pills), Record = red tint (Voice Memos), a tool that's on =
+  accent tint (was a filled blue pill); "+ Add section" + Dictate = gray
+  buttons (the dashed outline is gone; the section-kind select inside is
+  the button's own label, no capsule of its own). Rest of the card was
+  already HIG (v1.0.121). Playwright 390 HE + 1180 EN — no errors.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

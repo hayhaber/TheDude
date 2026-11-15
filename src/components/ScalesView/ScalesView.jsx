@@ -9,6 +9,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import './ScalesView.css';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { Select } from '../ui/Select';
 
 const STAGE_ORDER = [
   SCALES_STAGES.FOUNDATION,
@@ -142,14 +143,14 @@ export function ScalesView({ lessons, scalesLesson, progress, drill, metronome, 
             <div className="scales-controls">
               <label className="scales-field">
                 {t('scales.key')}
-                <select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
+                <Select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
                   {KEY_NAMES.map((name, i) => (
                     <option key={name} value={i}>
                       {name}
                       {scaleKeySuffix(lesson.scaleKey)}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
 
               <div className="mode-toggle" role="group" aria-label={t('scales.labelMode')}>

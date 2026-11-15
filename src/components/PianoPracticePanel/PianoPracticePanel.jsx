@@ -7,6 +7,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 // duplicating.
 import '../EarTrainingModal/EarTrainingModal.css';
 import './PianoPracticePanel.css';
+import { Select } from '../ui/Select';
 
 function choiceLabel(t, question, choice) {
   if (question.kind === 'inversionDrill') return t(choice.labelKey);
@@ -73,13 +74,13 @@ export function PianoPracticePanel({ pianoPractice }) {
       <div className="piano-practice-controls">
         <label className="ear-training-mode-field">
           {t('pianoPractice.difficultyLabel')}
-          <select value={difficultyKey} onChange={(e) => setDifficultyKey(e.target.value)}>
+          <Select value={difficultyKey} onChange={(e) => setDifficultyKey(e.target.value)}>
             {difficulties.map((d) => (
               <option key={d.key} value={d.key}>
                 {t(`difficulty.${d.label}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label className="ear-training-mode-field">
@@ -87,14 +88,14 @@ export function PianoPracticePanel({ pianoPractice }) {
             {t('pianoPractice.exerciseLabel')}
             <InfoTooltip text={t('tip.practice.pianoExercise')} />
           </span>
-          <select value={exerciseKey} onChange={(e) => setExerciseKey(e.target.value)}>
+          <Select value={exerciseKey} onChange={(e) => setExerciseKey(e.target.value)}>
             {exercisesInTier.map((ex) => (
               <option key={ex.key} value={ex.key}>
                 {t(ex.labelKey)}
                 {!ex.available ? ` (${t('pianoPractice.comingSoon')})` : ''}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
 

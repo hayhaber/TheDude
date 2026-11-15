@@ -5,6 +5,7 @@ import { keyName } from '../../music/songwriter/song';
 import { COLORS, MOODS, STYLES, STYLE_BAND, applyPlan, plans, suggestBpm, suggestKey } from '../../music/songwriter/progressions';
 import { parseLine } from '../../music/songwriter/lyrics';
 import { Icon } from './icons';
+import { Select } from '../ui/Select';
 
 const QUESTIONS = [
   { id: 'mood', options: MOODS },
@@ -212,7 +213,7 @@ export function ProgressionWizard({ song, audio, onApply, onClose, onPreview }) 
             <div className="sw-pw-key">
               <label className="sw-field is-inline">
                 <span>{t('sw.key')}</span>
-                <select
+                <Select
                   value={`${theKey.pc}:${theKey.minor ? 'm' : ''}`}
                   onChange={(e) => {
                     const [pc, m] = e.target.value.split(':');
@@ -226,7 +227,7 @@ export function ProgressionWizard({ song, audio, onApply, onClose, onPreview }) 
                       {keyName(k)}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <div className="sw-field is-inline">
                 <span>{t('sw.tempo')}</span>

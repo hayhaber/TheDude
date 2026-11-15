@@ -26,6 +26,7 @@ import {
 import { typeByKey } from '../../music/chordLibrary';
 import '../ChordLibrary/ChordLibraryView.css';
 import './ChordBuilderView.css';
+import { Select } from '../ui/Select';
 
 const STORE = 'dudestar-p-chord-builder';
 const DEFAULTS = { lesson: 'map', family: 'E', fret: 3, done: [] };
@@ -282,13 +283,13 @@ export function ChordBuilderView({ onStage }) {
         </div>
         <label className="cl-field cb-lesson">
           <span>{t('cb.lesson')}</span>
-          <select value={lesson.id} onChange={(e) => set({ lesson: e.target.value })}>
+          <Select value={lesson.id} onChange={(e) => set({ lesson: e.target.value })}>
             {LESSONS.map((l, i) => (
               <option key={l.id} value={l.id}>
                 {lessonTitle(l, i)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </header>
 

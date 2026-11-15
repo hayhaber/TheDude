@@ -4,6 +4,7 @@ import { playPianoNote, playPianoSequence } from '../../audio/pianoPlayer';
 import { StaffNotation, GrandStaff } from '../StaffNotation/StaffNotation';
 import { useLanguage } from '../../i18n/LanguageContext';
 import '../ModeToggle/ModeToggle.css';
+import { Select } from '../ui/Select';
 
 const MIDDLE_C = 60;
 const KEY_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -35,13 +36,13 @@ export function KeyboardGeographyDemo({ onPreviewNotes }) {
       <div className="cbe-controls">
         <label className="cbe-field">
           {t('piano.octave')}
-          <select value={octave} onChange={(e) => setOctave(Number(e.target.value))}>
+          <Select value={octave} onChange={(e) => setOctave(Number(e.target.value))}>
             {[1, 2, 3, 4, 5, 6, 7].map((o) => (
               <option key={o} value={o}>
                 C{o}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       <button type="button" className="play-button" onClick={play}>
@@ -81,13 +82,13 @@ export function HandPositionDemo({ onPreviewNotes, onPreviewFingers }) {
     <div className="cbe-demo">
       <label className="cbe-field">
         {t('chordsByEar.key')}
-        <select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
+        <Select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
           {KEY_NAMES.map((name, i) => (
             <option key={name} value={i}>
               {name}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <p className="cbe-hint" dir="auto">
         {t('piano.handPosition.hint')}
@@ -136,13 +137,13 @@ export function FiveFingerDemo({ onPreviewNotes, onPreviewFingers }) {
     <div className="cbe-demo">
       <label className="cbe-field">
         {t('chordsByEar.key')}
-        <select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
+        <Select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
           {KEY_NAMES.map((name, i) => (
             <option key={name} value={i}>
               {name}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <button type="button" className="play-button" onClick={play}>
         {t('chordsByEar.play')}

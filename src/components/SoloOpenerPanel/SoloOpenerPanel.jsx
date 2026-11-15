@@ -1,6 +1,7 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import './SoloOpenerPanel.css';
+import { Select } from '../ui/Select';
 
 // Practice -> Solo Opener: a metronome-driven loop that hands the player a
 // fresh, randomized constraint on how to START their next improvised phrase
@@ -22,13 +23,13 @@ export function SoloOpenerPanel({ soloOpener, metronome }) {
       <div className="solo-opener-controls">
         <label className="solo-opener-field">
           {t('soloOpener.loopLength')}
-          <select value={bars} onChange={(e) => setBars(Number(e.target.value))} disabled={isPlaying}>
+          <Select value={bars} onChange={(e) => setBars(Number(e.target.value))} disabled={isPlaying}>
             {[2, 4, 8].map((n) => (
               <option key={n} value={n}>
                 {t('soloOpener.bars', { count: n })}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <div className="solo-opener-field">

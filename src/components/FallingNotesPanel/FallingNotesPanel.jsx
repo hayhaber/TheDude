@@ -4,6 +4,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { PlayAlong } from '../PlayAlong/PlayAlong';
 import './FallingNotesPanel.css';
+import { Select } from '../ui/Select';
 
 const WHITE_PITCH_CLASSES = new Set([0, 2, 4, 5, 7, 9, 11]);
 const BLACK_AFTER_PITCH_CLASS = new Set([0, 2, 5, 7, 9]);
@@ -102,13 +103,13 @@ export function FallingNotesPanel({ fallingNotes, metronome }) {
       <div className="falling-notes-controls">
         <label className="falling-notes-field">
           {t('fallingNotes.songLabel')}
-          <select value={songKey} onChange={(e) => setSongKey(e.target.value)} disabled={isPlaying}>
+          <Select value={songKey} onChange={(e) => setSongKey(e.target.value)} disabled={isPlaying}>
             {songs.map((s) => (
               <option key={s.key} value={s.key}>
                 {t(s.labelKey)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <span style={{ display: 'flex', alignItems: 'center' }}>

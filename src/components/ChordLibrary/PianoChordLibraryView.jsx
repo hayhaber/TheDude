@@ -7,6 +7,7 @@ import { identifyPianoChord, inversionCount, pianoVoicing, voicingsFor } from '.
 import { playPianoChord, playPianoSequence } from '../../audio/pianoPlayer';
 import { KeysBox } from './KeysBox';
 import './ChordLibraryView.css';
+import { Select } from '../ui/Select';
 
 // Piano -> Chord Library (user's request 2026-10-19): the guitar library's
 // chords, laid out for the keys. Simple by default (the user's rule): tap a
@@ -164,7 +165,7 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
         <div className="cl-controls">
           <label className="cl-field is-wide">
             <span>{t('chordlib.type')}</span>
-            <select value={type} onChange={(e) => set({ type: e.target.value, bass: 'none' })}>
+            <Select value={type} onChange={(e) => set({ type: e.target.value, bass: 'none' })}>
               {TYPE_GROUPS.map((g) => (
                 <optgroup key={g} label={t(`chordlib.group.${g}`)}>
                   {CHORD_TYPES.filter((c) => c.group === g).map((c) => (
@@ -175,24 +176,24 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
                   ))}
                 </optgroup>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="cl-field">
             <span>
               {t('pchord.voicing')}
               <InfoTooltip text={t('tip.pchord.voicing')} />
             </span>
-            <select value={voicing} onChange={(e) => set({ voicing: e.target.value })}>
+            <Select value={voicing} onChange={(e) => set({ voicing: e.target.value })}>
               {styles.map((v) => (
                 <option key={v.key} value={v.key}>
                   {t(`pchord.v.${v.key}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="cl-field">
             <span>{t('chordlib.bass')}</span>
-            <select value={prefs.bass} onChange={(e) => set({ bass: e.target.value })}>
+            <Select value={prefs.bass} onChange={(e) => set({ bass: e.target.value })}>
               <option value="none">{t('chordlib.rootPos')}</option>
               <optgroup label={t('chordlib.inversions')}>
                 {tones.slice(1, 4).map((x, i) => (
@@ -210,7 +211,7 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
                     </option>
                   ))}
               </optgroup>
-            </select>
+            </Select>
           </label>
         </div>
       )}

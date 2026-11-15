@@ -4,6 +4,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels, parseGuitarChordProgressionText } from '../../music/guitarChordRhythmContent';
 import { LEAD_TIME_S } from '../../hooks/useGuitarChordRhythm';
 import './GuitarChordRhythmPanel.css';
+import { Select } from '../ui/Select';
 
 // Once a chord's own judging window has this little time left (real
 // seconds) and it's STILL unanswered, show what notes it's actually made
@@ -225,13 +226,13 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
                 </label>
                 <label className="guitar-chord-rhythm-field">
                   {t('guitarChordRhythm.repeats')}
-                  <select value={group.repeats} onChange={(e) => updateGroupRepeats(group.id, Number(e.target.value))} disabled={isPlaying}>
+                  <Select value={group.repeats} onChange={(e) => updateGroupRepeats(group.id, Number(e.target.value))} disabled={isPlaying}>
                     {REPEAT_OPTIONS.map((n) => (
                       <option key={n} value={n}>
                         {n}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
                 {groups.length > 1 && (
                   <button

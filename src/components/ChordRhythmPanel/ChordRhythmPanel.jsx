@@ -5,6 +5,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { LEAD_TIME_S } from '../../hooks/useChordRhythm';
 import { PlayAlong } from '../PlayAlong/PlayAlong';
 import './ChordRhythmPanel.css';
+import { Select } from '../ui/Select';
 
 // Same range useChordRhythm.js's own LENIENT_RANGE covers — used here only
 // to map a chord's root note to a position, so consecutive falling
@@ -180,13 +181,13 @@ export function ChordRhythmPanel({ chordRhythm, metronome }) {
 
         <label className="chord-rhythm-field">
           {t('chordRhythm.beatsPerChord')}
-          <select value={beatsPerChord} onChange={(e) => setBeatsPerChord(Number(e.target.value))} disabled={isPlaying}>
+          <Select value={beatsPerChord} onChange={(e) => setBeatsPerChord(Number(e.target.value))} disabled={isPlaying}>
             {[2, 4, 8].map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <div className="chord-rhythm-field">

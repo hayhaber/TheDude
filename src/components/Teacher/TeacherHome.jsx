@@ -18,6 +18,7 @@ import { soloSection } from '../../music/lickTrainer/library';
 import { LibraryRow } from '../PracticeView/PracticeHome';
 import { HomeworkList } from './LessonPlayer';
 import '../PracticeView/PracticeHome.css';
+import { Select } from '../ui/Select';
 
 const L = (en, he) => ({ en, he });
 
@@ -310,23 +311,23 @@ export function SoloGoalForm({ tx, solos, initial, onDone }) {
       <div className="tc-card tc-form">
         <label className="tc-field">
           <span>{tx(L('The solo', 'הסולו'))}</span>
-          <select value={soloId} onChange={(e) => setSoloId(e.target.value)}>
+          <Select value={soloId} onChange={(e) => setSoloId(e.target.value)}>
             {solos.map((s) => (
               <option key={s.id} value={s.id}>
                 {titleOf(s, lang)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="tc-field">
           <span>{tx(L('Target tempo', 'מהירות יעד'))}</span>
-          <select value={target} onChange={(e) => setTarget(Number(e.target.value))}>
+          <Select value={target} onChange={(e) => setTarget(Number(e.target.value))}>
             {TARGETS.map((v) => (
               <option key={v} value={v}>
                 {v === 100 ? tx(L('100% — the original', '100% — המקורית')) : v + '%'}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       <button

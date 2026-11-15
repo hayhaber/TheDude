@@ -3,6 +3,7 @@ import { DRILL_CATEGORIES, DIFFICULTIES, filterDrills } from '../../music/drills
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import './ExerciseDrawer.css';
+import { Select } from '../ui/Select';
 
 // `variant='inline'` renders the exact same filters/list in normal document
 // flow (no fixed positioning, no backdrop, no close button) for embedding
@@ -38,11 +39,11 @@ export function ExerciseDrawer({ open = true, onClose, onLoadExercise, variant =
           {/* Each has more than 3 options (All + 4 categories, Any + 3
               difficulties), so per the app's control-pattern rule these are
               dropdowns, not toggles/segmented controls (reserved for ≤3
-              choices) — same filterDrills() state, just a <select> instead
+              choices) — same filterDrills() state, just a <Select> instead
               of a button group. */}
           <label className="exercise-drawer-field">
             {t('exerciseDrawer.categoryLabel')}
-            <select value={category === undefined ? '__choose' : category ?? ''} onChange={(e) => setCategory(e.target.value || null)}>
+            <Select value={category === undefined ? '__choose' : category ?? ''} onChange={(e) => setCategory(e.target.value || null)}>
               {category === undefined && (
                 <option value="__choose" disabled>
                   {t('exerciseDrawer.choose')}
@@ -54,12 +55,12 @@ export function ExerciseDrawer({ open = true, onClose, onLoadExercise, variant =
                   {localize(c.label, lang)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
 
           <label className="exercise-drawer-field">
             {t('exerciseDrawer.difficultyLabel')}
-            <select value={difficulty === undefined ? '__choose' : difficulty ?? ''} onChange={(e) => setDifficulty(e.target.value || null)}>
+            <Select value={difficulty === undefined ? '__choose' : difficulty ?? ''} onChange={(e) => setDifficulty(e.target.value || null)}>
               {difficulty === undefined && (
                 <option value="__choose" disabled>
                   {t('exerciseDrawer.choose')}
@@ -71,7 +72,7 @@ export function ExerciseDrawer({ open = true, onClose, onLoadExercise, variant =
                   {t(`difficulty.${d}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
 

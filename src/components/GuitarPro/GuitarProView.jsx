@@ -11,6 +11,7 @@ import { PdfSheetView } from './PdfSheetView';
 import { isPdf, listSheets, saveSheet } from '../../music/sheets/sheetStore';
 import { removeChart, signedIn, syncCharts } from '../../music/sheets/chartCloud';
 import './GuitarProView.css';
+import { Select } from '../ui/Select';
 
 // MusicXML too (e.g. sheet music converted from a PDF): alphaTab reads it the same way.
 // …and sheet-music PDFs, shown as they are (PdfSheetView).
@@ -155,7 +156,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
       <div className="lt-filters gp-file-row">
         <label className="lt-field gp-file-field">
           <span>{t('gp.file')}</span>
-          <select
+          <Select
             value={sheet ? 'pdf:' + sheet.id : trainer.activeSoloId ?? ''}
             onChange={(e) => {
               setConfirmDelete(null);
@@ -186,7 +187,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
                 ))}
               </optgroup>
             )}
-          </select>
+          </Select>
         </label>
         {/* Adding a file: one obvious target — click it, or drop a file on it
             (or anywhere on this page). */}

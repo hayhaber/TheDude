@@ -5,6 +5,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { RoomCalibration } from './RoomCalibration';
 import './AudioInputSettings.css';
+import { Select } from '../ui/Select';
 
 // Settings UI for every feature that listens to the mic (Tuner, Ear
 // Training's mic-answer mode, Guitar Practice Trainer, Rhythm Practice) —
@@ -44,14 +45,14 @@ export function AudioInputSettings() {
       <p className="settings-attribution audio-input-howto">{t('audioInput.howto')}</p>
       <label className="settings-field">
         {t('audioInput.device')}
-        <select value={deviceId ?? ''} onChange={(e) => setDeviceId(e.target.value || null)}>
+        <Select value={deviceId ?? ''} onChange={(e) => setDeviceId(e.target.value || null)}>
           <option value="">{t('audioInput.defaultDevice')}</option>
           {devices.map((d, i) => (
             <option key={d.deviceId || i} value={d.deviceId}>
               {d.label || t('audioInput.unlabeledDevice', { index: i + 1 })}
             </option>
           ))}
-        </select>
+        </Select>
         {!hasLabels && <span className="settings-attribution">{t('audioInput.labelsHint')}</span>}
       </label>
 
@@ -71,7 +72,7 @@ export function AudioInputSettings() {
       {inputMode === 'direct' && (
         <label className="settings-field">
           {t('audioInput.channel')}
-          <select
+          <Select
             value={String(channel)}
             onChange={(e) => {
               const v = e.target.value;
@@ -82,7 +83,7 @@ export function AudioInputSettings() {
             <option value="mix">{t('audioInput.channel.mix')}</option>
             <option value="1">{t('audioInput.channel.n', { n: 1 })}</option>
             <option value="2">{t('audioInput.channel.n', { n: 2 })}</option>
-          </select>
+          </Select>
           <span className="settings-attribution">{t('audioInput.channelHint')}</span>
         </label>
       )}

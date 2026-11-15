@@ -11,6 +11,7 @@ import { searchYoutubeTopResult } from '../../music/youtubeSearch';
 import { getYoutubeApiKey } from '../../audio/youtubeApiKeyStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './SongVideoPlayer.css';
+import { Select } from '../ui/Select';
 
 const GP_EXTENSION_RE = /\.(gp3|gp4|gp5|gpx|gp)$/i;
 
@@ -460,13 +461,13 @@ export function SongVideoPlayer({ onActiveChordChange }) {
                 </label>
                 <label className="song-sync-field">
                   {t('songs.video.beatsPerChord')}
-                  <select value={syncBeatsPerChord} onChange={(e) => setSyncBeatsPerChord(Number(e.target.value))}>
+                  <Select value={syncBeatsPerChord} onChange={(e) => setSyncBeatsPerChord(Number(e.target.value))}>
                     {BEATS_PER_CHORD_OPTIONS.map((n) => (
                       <option key={n} value={n}>
                         {n}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
                 <button type="button" className="play-button" onClick={handleSync} disabled={!isReady || !syncSequence.trim()}>
                   {t('songs.video.sync')}

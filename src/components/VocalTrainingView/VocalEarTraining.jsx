@@ -8,6 +8,7 @@ import { TIMED_HOLD_CORRECT_MS, TIMED_HOLD_WRONG_MS } from '../../hooks/useEarTr
 import { TIMED_CHALLENGE_DURATION_S, loadBestStreak, loadLifetimeStats, saveBestStreak, saveLifetimeStats } from '../../music/earTraining';
 import { midiName } from '../../music/vocal/voiceRange';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { Select } from '../ui/Select';
 
 // Ear training for singers: listen on the piano, answer with a tap. The
 // last option, Sing back, is answered with the voice (the 'echo' exercise
@@ -218,36 +219,36 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
       <div className="vocal-card vocal-ear-setup">
         <label className="vocal-field">
           <span>{t('earTraining.modeLabel')}</span>
-          <select value={prefs.mode} onChange={(e) => savePrefs({ ...prefs, mode: e.target.value })}>
+          <Select value={prefs.mode} onChange={(e) => savePrefs({ ...prefs, mode: e.target.value })}>
             {MODES.map((m) => (
               <option key={m} value={m}>
                 {t(`vocal.ear.mode.${m}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {!echo && (
           <label className="vocal-field">
             <span>{t('earTraining.difficultyLabel')}</span>
-            <select value={prefs.level} onChange={(e) => savePrefs({ ...prefs, level: e.target.value })}>
+            <Select value={prefs.level} onChange={(e) => savePrefs({ ...prefs, level: e.target.value })}>
               {VOCAL_EAR_LEVELS.map((lv) => (
                 <option key={lv} value={lv}>
                   {t(`difficulty.${LEVEL_LABEL[lv]}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         {!echo && (
           <label className="vocal-field">
             <span>{t('earTraining.practiceModeLabel')}</span>
-            <select value={prefs.pace} onChange={(e) => savePrefs({ ...prefs, pace: e.target.value })}>
+            <Select value={prefs.pace} onChange={(e) => savePrefs({ ...prefs, pace: e.target.value })}>
               {PACES.map((p) => (
                 <option key={p} value={p}>
                   {t(`earTraining.practiceMode.${p}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         <p className="vocal-ear-about">{t(`vocal.ear.about.${prefs.mode}`)}</p>

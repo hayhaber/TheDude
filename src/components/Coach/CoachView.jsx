@@ -23,6 +23,7 @@ import { ProgressChart } from './ProgressChart';
 import { RewardsView } from '../Achievements/RewardsView';
 import '../Teacher/Teacher.css';
 import './CoachView.css';
+import { Select } from '../ui/Select';
 
 // Coach section: a goal-based practice plan. No plan yet -> a short wizard
 // (welcome, about you, goal, placement test, plan). With a plan -> the
@@ -198,31 +199,31 @@ function AboutStep({ initial, editing, onBack, onDone, t }) {
     >
       <div className="coach-fields">
         <Field id="coach-minutes" label={t('coach.about.minutes')}>
-          <select id="coach-minutes" value={d.minutesPerDay} onChange={(e) => set('minutesPerDay', Number(e.target.value))}>
+          <Select id="coach-minutes" value={d.minutesPerDay} onChange={(e) => set('minutesPerDay', Number(e.target.value))}>
             {MINUTES.map((n) => (
               <option key={n} value={n}>
                 {t('coach.about.minutesValue', { n })}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field id="coach-days" label={t('coach.about.days')}>
-          <select id="coach-days" value={d.daysPerWeek} onChange={(e) => set('daysPerWeek', Number(e.target.value))}>
+          <Select id="coach-days" value={d.daysPerWeek} onChange={(e) => set('daysPerWeek', Number(e.target.value))}>
             {DAYS.map((n) => (
               <option key={n} value={n}>
                 {t('coach.about.daysValue', { n })}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field id="coach-level" label={t('coach.about.level')} hint={t(`coach.level.${d.level}.desc`)}>
-          <select id="coach-level" value={d.level} onChange={(e) => set('level', e.target.value)}>
+          <Select id="coach-level" value={d.level} onChange={(e) => set('level', e.target.value)}>
             {LEVELS.map((k) => (
               <option key={k} value={k}>
                 {t(`coach.level.${k}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         {/* Styles: several allowed (2026-11-06; the plan's music rotates). */}
         <fieldset className="coach-field coach-styles">
@@ -327,13 +328,13 @@ function GoalStep({ intake, editing, onBack, onChoose, lang, t }) {
       )}
       {selected?.key === 'changes' && (
         <Field id="coach-chordset" label={t('coach.goal.chordSet')}>
-          <select id="coach-chordset" value={chordSet} onChange={(e) => setChordSet(e.target.value)} dir="ltr">
+          <Select id="coach-chordset" value={chordSet} onChange={(e) => setChordSet(e.target.value)} dir="ltr">
             {CHORD_SETS.map((s) => (
               <option key={s.key} value={s.key}>
                 {pick(s.label, lang)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
       )}
       <span className="coach-subhead">{t('coach.goal.forYou')}</span>

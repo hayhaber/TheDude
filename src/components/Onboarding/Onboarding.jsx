@@ -14,6 +14,7 @@ import { useLeftHanded } from '../Fretboard/handedness';
 import '../ModeToggle/ModeToggle.css';
 import '../Teacher/Teacher.css';
 import './Onboarding.css';
+import { Select } from '../ui/Select';
 
 const ART = {
   guitar: '/home/guitar-lp.webp',
@@ -184,13 +185,13 @@ export function Onboarding({ onDone }) {
         <div className="onb-pair">
           <label className="onb-field">
             <span>{t('onb.goals.minutes')}</span>
-            <select value={a.minutes} onChange={(e) => set({ minutes: Number(e.target.value) })}>
+            <Select value={a.minutes} onChange={(e) => set({ minutes: Number(e.target.value) })}>
               {MINUTES.map((m) => (
                 <option key={m} value={m}>
                   {t('teacher.min', { n: m })}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
       </>

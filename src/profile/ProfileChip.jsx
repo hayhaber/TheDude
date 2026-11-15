@@ -6,6 +6,7 @@ import { getLink } from '../cloud/cloudState';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useProfiles } from './profileStorage';
 import './ProfileChip.css';
+import { Select } from '../components/ui/Select';
 
 // A soft colour per profile, from its id.
 const HUES = [211, 145, 28, 280, 350, 190, 48, 255];
@@ -415,13 +416,13 @@ function AvatarEditor({ t, name, profile, value, onChange }) {
           >
             {Array.from(name.trim())[0]?.toUpperCase() ?? '?'}
           </button>
-          <select className="profile-look-group" value={group} onChange={(e) => setGroup(e.target.value)} aria-label={t('profile.look.emoji')}>
+          <Select className="profile-look-group" value={group} onChange={(e) => setGroup(e.target.value)} aria-label={t('profile.look.emoji')}>
             {EMOJI_SETS.map((g) => (
               <option key={g.key} value={g.key}>
                 {g.emoji[0]} {t('profile.look.set.' + g.key)}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="profile-emoji-grid" role="radiogroup" aria-label={t('profile.look.emoji')}>
           {set0.emoji.map((e) => (

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { loadPdfDocument } from '../../music/pdfTextExtractor';
 import { getSheet, setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
 import './PdfSheetView.css';
+import { Select } from '../ui/Select';
 
 // A sheet-music PDF, shown as it is (PianoPro / GuitarPro): the pages one
 // under the other at the width of the screen, a reading place remembered
@@ -326,13 +327,13 @@ export function PdfSheetView({ sheetId, t }) {
           </button>
           <label className="sheet-speed">
             <span className="sheet-sr">{t('sheet.speed')}</span>
-            <select value={secs} onChange={(e) => changeSecs(Number(e.target.value))} aria-label={t('sheet.speed')}>
+            <Select value={secs} onChange={(e) => changeSecs(Number(e.target.value))} aria-label={t('sheet.speed')}>
               {SPEEDS.map((s) => (
                 <option key={s} value={s}>
                   {t('sheet.perPage', { n: s })}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <button type="button" className="sheet-key is-round" onClick={() => setFull((v) => !v)} aria-label={t(full ? 'sheet.exitFull' : 'sheet.full')} title={t(full ? 'sheet.exitFull' : 'sheet.full')}>
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

@@ -3,6 +3,7 @@ import { generateSequenceQuestion, sequenceChordText, SEQUENCE_TIER_KEYS } from 
 import { playProgression } from '../../audio/chordsByEarPlayer';
 import { parseChordSymbol, sanitizeChordInput } from '../../music/chordSymbolParser';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { Select } from '../ui/Select';
 
 // Progression dictation — the "hear a sequence, write down every chord in
 // it" drill this course was missing (every other quiz here tests ONE chord,
@@ -84,13 +85,13 @@ export function SequenceDrill({ progress, lessonId, onPreviewChord }) {
     <div className="cbe-drill">
       <label className="cbe-field">
         {t('chordsByEar.tier')}
-        <select value={tierKey} onChange={(e) => setTierKey(e.target.value)} disabled={!result && slotAnswers.some((a) => a !== null)}>
+        <Select value={tierKey} onChange={(e) => setTierKey(e.target.value)} disabled={!result && slotAnswers.some((a) => a !== null)}>
           {SEQUENCE_TIER_KEYS.map((k) => (
             <option key={k} value={k}>
               {t(`chordsByEar.sequence.tier.${k}`)}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <button type="button" className="play-button" onClick={() => play()}>

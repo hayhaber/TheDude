@@ -6,6 +6,7 @@ import { LickNotation } from '../LickNotation/LickNotation';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './LickLibraryPanel.css';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { Select } from '../ui/Select';
 
 const TEMPO_OPTIONS = [0.5, 0.75, 1];
 
@@ -31,38 +32,38 @@ export function LickLibraryPanel({ selectedLick, onSelectLick, onPlay, tempo, on
       <div className="lick-library-filters">
         <label className="lick-library-field">
           {t('lickLibrary.artist')}
-          <select value={artistFilter ?? ''} onChange={(e) => setArtistFilter(e.target.value || null)}>
+          <Select value={artistFilter ?? ''} onChange={(e) => setArtistFilter(e.target.value || null)}>
             <option value="">{t('lickLibrary.all')}</option>
             {ARTISTS.map((a) => (
               <option key={a.key} value={a.key}>
                 {a.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label className="lick-library-field">
           {t('lickLibrary.genre')}
-          <select value={genreFilter ?? ''} onChange={(e) => setGenreFilter(e.target.value || null)}>
+          <Select value={genreFilter ?? ''} onChange={(e) => setGenreFilter(e.target.value || null)}>
             <option value="">{t('lickLibrary.all')}</option>
             {LICK_GENRES.map((g) => (
               <option key={g} value={g}>
                 {g}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label className="lick-library-field">
           {t('lickLibrary.difficulty')}
-          <select value={difficultyFilter ?? ''} onChange={(e) => setDifficultyFilter(e.target.value || null)}>
+          <Select value={difficultyFilter ?? ''} onChange={(e) => setDifficultyFilter(e.target.value || null)}>
             <option value="">{t('lickLibrary.all')}</option>
             {LICK_DIFFICULTIES.map((d) => (
               <option key={d} value={d}>
                 {t(`difficulty.${d}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
 

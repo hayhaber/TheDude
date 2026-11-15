@@ -13,6 +13,7 @@ import { PracticeDrillPanel } from '../PracticeDrillPanel/PracticeDrillPanel';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import './CircleOfFifthsView.css';
+import { Select } from '../ui/Select';
 
 const STAGE_ORDER = [
   CIRCLE_STAGES.FOUNDATION,
@@ -116,13 +117,13 @@ export function CircleOfFifthsView({ lessons, circleLesson, progress, drill, met
               <div className="circle-controls">
                 <label className="circle-field">
                   {t('circleOfFifths.key')}
-                  <select value={keyPosition} onChange={(e) => setKeyPosition(Number(e.target.value))}>
+                  <Select value={keyPosition} onChange={(e) => setKeyPosition(Number(e.target.value))}>
                     {KEY_CIRCLE.map((k) => (
                       <option key={k.position} value={k.position}>
                         {k.majorName} / {k.relativeMinorName}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
 
                 <p className="circle-key-summary" dir="auto">

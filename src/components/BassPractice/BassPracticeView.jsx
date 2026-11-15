@@ -10,6 +10,7 @@ import { loadOnboarding } from '../../onboarding/onboardingState';
 import './BassPractice.css';
 import { FreePlay } from '../PlayAlong/FreePlay';
 import { BASS_TUNING } from '../../music/notes';
+import { Select } from '../ui/Select';
 
 // The bass library (stage 4 of the redesign, the same list as the guitar's
 // Practice — rule 10): a group per category, a row per exercise; the
@@ -186,28 +187,28 @@ export function BassPracticeView({ bp, free, metronome, start = null }) {
         {ex?.keyed && (
           <label className="scale-practice-field">
             <span className="scale-practice-field-label">{t('bp.key')}</span>
-            <select value={prefs.key} disabled={running} onChange={(e) => save({ key: Number(e.target.value) })}>
+            <Select value={prefs.key} disabled={running} onChange={(e) => save({ key: Number(e.target.value) })}>
               {KEY_NAMES.map((n, pc) => (
                 <option key={pc} value={pc}>
                   {n}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         {ex?.keyed && (
           <label className="scale-practice-field">
             <span className="scale-practice-field-label">{t('bp.rootString')}</span>
-            <select value={prefs.rootString} disabled={running} onChange={(e) => save({ rootString: Number(e.target.value) })}>
+            <Select value={prefs.rootString} disabled={running} onChange={(e) => save({ rootString: Number(e.target.value) })}>
               <option value={0}>{t('bp.string.0')}</option>
               <option value={1}>{t('bp.string.1')}</option>
-            </select>
+            </Select>
           </label>
         )}
         {ex && (
           <label className="scale-practice-field">
             <span className="scale-practice-field-label">{t('bp.mode')}</span>
-            <select
+            <Select
               value={bp.mode}
               disabled={running}
               onChange={(e) => bp.setMode(e.target.value)}
@@ -217,13 +218,13 @@ export function BassPracticeView({ bp, free, metronome, start = null }) {
                   {t('bp.mode.' + m)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         {ex && (
           <label className="scale-practice-field">
             <span className="scale-practice-field-label">{t('bp.labels')}</span>
-            <select
+            <Select
               value={bp.labels}
               onChange={(e) => bp.setLabels(e.target.value)}
             >
@@ -232,7 +233,7 @@ export function BassPracticeView({ bp, free, metronome, start = null }) {
                   {t('bp.labels.' + m)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         {ex && bp.mode !== 'wait' && !freeOn && (

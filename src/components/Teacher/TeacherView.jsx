@@ -21,6 +21,7 @@ import { GoalPick, PathList, SoloGoalForm, SoloPlan, TeacherHome } from './Teach
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import '../ModeToggle/ModeToggle.css';
 import './Teacher.css';
+import { Select } from '../ui/Select';
 
 const EXPERIENCE = ['none', 'little', 'some', 'lot'];
 const CAN = ['D', 'A', 'E', 'Am', 'Em', 'G', 'C', 'Dm', 'barre', 'pentatonic', 'tab'];
@@ -50,13 +51,13 @@ function Intake({ initial, onDone }) {
       <h2>{t('teacher.intake.title')}</h2>
       <label className="tc-field">
         <span>{t('teacher.intake.experience')}</span>
-        <select value={v.experience} onChange={(e) => set({ experience: e.target.value })}>
+        <Select value={v.experience} onChange={(e) => set({ experience: e.target.value })}>
           {EXPERIENCE.map((x) => (
             <option key={x} value={x}>
               {t(`teacher.exp.${x}`)}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       {v.experience !== 'none' && (
         <fieldset className="tc-field">
@@ -94,13 +95,13 @@ function Intake({ initial, onDone }) {
       <div className="tc-row">
         <label className="tc-field">
           <span>{t('teacher.intake.minutes')}</span>
-          <select value={v.minutes} onChange={(e) => set({ minutes: Number(e.target.value) })}>
+          <Select value={v.minutes} onChange={(e) => set({ minutes: Number(e.target.value) })}>
             {MINUTES.map((m) => (
               <option key={m} value={m}>
                 {t('teacher.min', { n: m })}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       <label className="tc-field">

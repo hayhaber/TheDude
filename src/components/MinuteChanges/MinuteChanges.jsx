@@ -5,6 +5,7 @@ import { colorForChord } from '../../styles/colors';
 import { perfFor } from '../../coach/perfLog';
 import { pairIndexOf, parseChord, useMinuteChanges } from '../../hooks/useMinuteChanges';
 import './MinuteChanges.css';
+import { Select } from '../ui/Select';
 
 // Practice: One-Minute Changes — pick two chords, Start, alternate one
 // strum per chord for 60 s; the mic counts the clean changes (see
@@ -50,7 +51,7 @@ function ChordSelect({ id, value, onChange, disabled, label, t }) {
   return (
     <label className="minute-field" htmlFor={id}>
       <span className="minute-field-label">{label}</span>
-      <select id={id} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} dir="ltr">
+      <Select id={id} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} dir="ltr">
         {!ALL_CHORDS.includes(value) && <option value={value}>{value}</option>}
         {CHORD_GROUPS.map((g) => (
           <optgroup key={g.key} label={t(g.key)}>
@@ -61,7 +62,7 @@ function ChordSelect({ id, value, onChange, disabled, label, t }) {
             ))}
           </optgroup>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

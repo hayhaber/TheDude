@@ -5,13 +5,14 @@ import { SHAPE_SHIFT_TEMPOS, SHAPE_SHIFT_BEATS_PER_SHAPE } from '../../hooks/use
 // Same panel look as the Shape-Shift Workout.
 import '../ShapeShiftPanel/ShapeShiftPanel.css';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { Select } from '../ui/Select';
 
 // Studies -> CAGED -> "I-IV-V in One Area". `areas` comes from
 // buildProgressionAreas (one per shape of the I chord); `player` is a
 // useShapeShift instance stepping through the chosen area's I-IV-V-I.
 export function ProgressionAreaPanel({ areas, areaIndex, onAreaChange, player }) {
   const { t, lang } = useLanguage();
-  // htmlFor keeps the area <select> as the label's control (the ⓘ button is
+  // htmlFor keeps the area <Select> as the label's control (the ⓘ button is
   // labelable too and comes first in tree order).
   const areaSelectId = useId();
   const { steps, current, stepIndex, isPlaying, bpm, setBpm, play, stop, next, previous, goTo } = player;
@@ -27,13 +28,13 @@ export function ProgressionAreaPanel({ areas, areaIndex, onAreaChange, player })
           {t('progressionArea.area')}
           <InfoTooltip text={t('tip.compose.progressionArea')} />
         </span>
-        <select id={areaSelectId} value={areaIndex} onChange={(e) => onAreaChange(Number(e.target.value))}>
+        <Select id={areaSelectId} value={areaIndex} onChange={(e) => onAreaChange(Number(e.target.value))}>
           {areas.map((a, i) => (
             <option key={i} value={i}>
               {t('progressionArea.areaOption', { shape: shapeLabel(a.anchorShape, lang), where: whereInline(a.anchorFret) })}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <ol className="shape-shift-chain" dir="ltr" aria-label={t('progressionArea.chain')}>
@@ -71,13 +72,13 @@ export function ProgressionAreaPanel({ areas, areaIndex, onAreaChange, player })
         </button>
         <label className="shape-shift-tempo">
           <span>{t('progressionArea.tempo', { beats: SHAPE_SHIFT_BEATS_PER_SHAPE })}</span>
-          <select value={bpm} onChange={(e) => setBpm(Number(e.target.value))}>
+          <Select value={bpm} onChange={(e) => setBpm(Number(e.target.value))}>
             {SHAPE_SHIFT_TEMPOS.map((v) => (
               <option key={v} value={v}>
                 {v} BPM
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
     </div>

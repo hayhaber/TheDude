@@ -3,6 +3,7 @@ import { shapeLabel } from '../../music/cagedCurriculum';
 import { SHAPE_SHIFT_TEMPOS, SHAPE_SHIFT_BEATS_PER_SHAPE } from '../../hooks/useShapeShift';
 import './ShapeShiftPanel.css';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { Select } from '../ui/Select';
 
 // Studies -> CAGED -> Shape-Shift Workout controls. The shared Stage
 // Fretboard shows the current shape (App.jsx resolves it from
@@ -70,13 +71,13 @@ export function ShapeShiftPanel({ shapeShift, keyLabel }) {
         </button>
         <label className="shape-shift-tempo">
           <span>{t('shapeShift.tempo', { beats: SHAPE_SHIFT_BEATS_PER_SHAPE })}</span>
-          <select value={bpm} onChange={(e) => setBpm(Number(e.target.value))}>
+          <Select value={bpm} onChange={(e) => setBpm(Number(e.target.value))}>
             {SHAPE_SHIFT_TEMPOS.map((v) => (
               <option key={v} value={v}>
                 {v} BPM
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
     </div>

@@ -2,12 +2,13 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { CHORD_INVERSIONS } from '../../music/pianoInversions';
 import '../PositionControls/PositionControls.css';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { Select } from '../ui/Select';
 
 // Piano's equivalent of PositionControls (guitar's "← Back / Position N of
 // M — shape / Next →" stepper) — same layout, same CSS classes, same
 // numbered-chip row, reused wholesale rather than a second differently-
 // styled control, per explicit request to match guitar's position picker
-// exactly. Previously this was a <select> tucked inside the Display
+// exactly. Previously this was a <Select> tucked inside the Display
 // Options drawer; inversion is exactly as central to "what am I looking
 // at" on piano as position is on guitar, so it gets the same prominent,
 // always-visible placement (right after Playback Controls) instead.

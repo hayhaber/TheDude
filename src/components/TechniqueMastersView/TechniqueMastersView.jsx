@@ -3,6 +3,7 @@ import { TECHNIQUE_MASTERS_ARTISTS, filterTechniqueMasters } from '../../music/t
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import './TechniqueMastersView.css';
+import { Select } from '../ui/Select';
 
 const STEP_DURATION_MS = 900;
 
@@ -72,13 +73,13 @@ export function TechniqueMastersView({ visualizer }) {
     <div className="technique-masters-view">
       <label className="technique-masters-field">
         {t('techniqueMasters.artistLabel')}
-        <select value={artist ?? ''} onChange={(e) => setArtist(e.target.value || null)}>
+        <Select value={artist ?? ''} onChange={(e) => setArtist(e.target.value || null)}>
           {TECHNIQUE_MASTERS_ARTISTS.map((a) => (
             <option key={a} value={a}>
               {a}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <div className="technique-masters-list">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fivePositionWindows } from '../../music/scaleShapes';
 import { KEY_NAMES } from '../../music/scaleAnalyzer';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { Select } from '../ui/Select';
 
 const ANCHORS = [
   { key: 'E-shape', stringIndex: 0, labelKey: 'chordsByEar.string.lowE' },
@@ -53,13 +54,13 @@ export function MovableScaleShapeDemo({ onPreviewScale }) {
       <div className="cbe-controls">
         <label className="cbe-field">
           {t('chordsByEar.key')}
-          <select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
+          <Select value={rootPitchClass} onChange={(e) => setRootPitchClass(Number(e.target.value))}>
             {KEY_NAMES.map((name, i) => (
               <option key={name} value={i}>
                 {name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <div className="mode-toggle" role="group" aria-label={t('chordsByEar.anchorString')}>

@@ -7,6 +7,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { targetAt } from '../../music/vocal/exercises';
 import { getAudioContext } from '../../audio/audioContext';
 import { PitchRoll } from './PitchRoll';
+import { Select } from '../ui/Select';
 
 const TEMPOS = [
   { key: 'slow', value: 0.8 },
@@ -249,24 +250,24 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
             {timed && (
               <label className="vocal-field">
                 <span>{t('vocal.tempo')}</span>
-                <select value={tempoKey} onChange={(e) => setTempoKey(e.target.value)} disabled={running}>
+                <Select value={tempoKey} onChange={(e) => setTempoKey(e.target.value)} disabled={running}>
                   {TEMPOS.map((x) => (
                     <option key={x.key} value={x.key}>
                       {t(`vocal.tempo.${x.key}`)}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             )}
             <label className="vocal-field">
               <span>{t('vocal.volume')}</span>
-              <select value={volumeKey} onChange={(e) => changeVolume(e.target.value)}>
+              <Select value={volumeKey} onChange={(e) => changeVolume(e.target.value)}>
                 {Object.keys(LOUDNESS).map((k) => (
                   <option key={k} value={k}>
                     {t(`vocal.volume.${k}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <span className="vocal-with-tip">
               <label className="vocal-switch" title={t(isFree || ex.kind === 'harmony' ? `vocal.guideHint.${ex.kind}` : 'vocal.guideHint')}>

@@ -1,0 +1,399 @@
+/* The controls library (v1.0.195): one look for every button, switch,
+   segmented control, stepper, slider and pop-up button — Apple HIG.
+   Selectors carry `html` so they win over a screen's own older rule for
+   the same element (a screen's layout — width, margins — still applies). */
+
+:root {
+  --ui-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 9.5l5-5 5 5M7 14.5l5 5 5-5' fill='none' stroke='%23006bd6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --ui-switch-on: #34c759;
+  --ui-press: brightness(0.92);
+}
+:root[data-theme='dark'] {
+  --ui-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 9.5l5-5 5 5M7 14.5l5 5 5-5' fill='none' stroke='%233d9bff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --ui-switch-on: #30d158;
+  --ui-press: brightness(1.15);
+}
+
+/* ---- pop-up button (<Select>) ---- */
+html select.ui-select {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--fill-tertiary) var(--ui-chevron) no-repeat right 10px center / 13px 13px;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  line-height: normal;
+  padding-block: 0;
+  padding-inline: 13px 30px;
+  text-align: start;
+  text-overflow: ellipsis;
+  min-width: 74px;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+html select.ui-select:dir(rtl) {
+  background-position: left 10px center;
+}
+html [dir='rtl'] select.ui-select {
+  background-position: left 10px center;
+}
+html [dir='ltr'] select.ui-select {
+  background-position: right 10px center;
+}
+html select.ui-select:hover {
+  background-color: var(--fill-secondary);
+}
+html select.ui-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+html select.ui-select:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+html select.ui-select option,
+html select.ui-select optgroup {
+  color: var(--text);
+  background: var(--surface);
+}
+
+/* the menu it opens on a computer: regular Liquid Glass, ✓ beside the
+   chosen row, the row under the pointer = accent (macOS) */
+.ui-menu {
+  position: fixed;
+  z-index: 2000;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  max-width: min(340px, calc(100vw - 16px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 5px;
+  border-radius: 13px;
+  background: var(--glass-sheet, rgba(248, 248, 250, 0.9));
+  -webkit-backdrop-filter: var(--glass-sheet-filter, blur(30px) saturate(180%));
+  backdrop-filter: var(--glass-sheet-filter, blur(30px) saturate(180%));
+  box-shadow: var(--glass-sheet-shadow, 0 18px 48px rgba(0, 0, 0, 0.18));
+  color: var(--text);
+  font-size: 14px;
+  animation: ui-menu-in var(--dur-pop, 0.22s) var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1));
+}
+.ui-menu[data-side='up'] {
+  transform-origin: bottom center;
+}
+@keyframes ui-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+.ui-menu-group {
+  padding: 8px 10px 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.ui-menu-group:not(:first-child) {
+  margin-top: 4px;
+  border-top: 0.5px solid var(--separator);
+  padding-top: 9px;
+}
+.ui-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px 0 6px;
+  padding-inline: 6px 12px;
+  border-radius: 7px;
+  cursor: default;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ui-menu-item.is-hi {
+  background: var(--accent-fill, var(--accent));
+  color: #fff;
+}
+.ui-menu-item.is-disabled {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+.ui-menu-check {
+  flex: none;
+  width: 16px;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--accent);
+}
+.ui-menu-item.is-hi .ui-menu-check {
+  color: #fff;
+}
+.ui-menu-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Button ---- */
+html .ui-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: none;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--radius-pill, 999px);
+  font-family: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.18s var(--ease-ios, ease), filter 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+}
+html .ui-btn.is-sm { height: 30px; padding: 0 14px; font-size: 15px; font-weight: 500; }
+html .ui-btn.is-md { height: 36px; padding: 0 18px; font-size: 15px; }
+html .ui-btn.is-lg { height: 50px; padding: 0 24px; font-size: 17px; min-width: 140px; }
+html .ui-btn.is-filled { background: var(--accent-fill, var(--accent)); color: #fff; }
+html .ui-btn.is-tinted { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+html .ui-btn.is-gray { background: var(--fill-tertiary); color: var(--accent); }
+html .ui-btn.is-plain { background: transparent; color: var(--accent); padding-inline: 8px; min-width: 0; }
+html .ui-btn.is-danger.is-tinted,
+html .ui-btn.is-danger.is-gray { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+html .ui-btn.is-danger.is-plain { color: var(--danger); }
+html .ui-btn.is-icon { width: 44px; height: 44px; padding: 0; min-width: 0; border-radius: 50%; }
+html .ui-btn.is-icon.is-sm { width: 30px; height: 30px; }
+html .ui-btn.is-icon.is-md { width: 36px; height: 36px; }
+html .ui-btn:active:not(:disabled) { transform: scale(0.96); filter: var(--ui-press); }
+html .ui-btn.is-plain:active:not(:disabled) { filter: none; opacity: 0.45; }
+html .ui-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html .ui-btn:disabled { cursor: default; }
+html .ui-btn:disabled:not(.is-plain) { background: var(--fill-tertiary); color: var(--text-secondary); opacity: 0.6; }
+html .ui-btn.is-plain:disabled { color: var(--text-secondary); opacity: 0.6; }
+.ui-btn-label { overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Switch ---- */
+html .ui-switch {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 51px;
+  height: 31px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill-secondary);
+  cursor: pointer;
+  transition: background-color 0.25s var(--ease-ios, ease);
+}
+html .ui-switch[aria-checked='true'] { background: var(--ui-switch-on); }
+.ui-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+  transition: transform 0.3s var(--ease-ios, ease), width 0.2s var(--ease-ios, ease);
+}
+html .ui-switch[aria-checked='true'] .ui-switch-knob { transform: translateX(20px); }
+html .ui-switch:active:not(:disabled) .ui-switch-knob { width: 33px; }
+html .ui-switch[aria-checked='true']:active:not(:disabled) .ui-switch-knob { transform: translateX(14px); }
+/* RTL: on = the knob at the start side, as iOS in Hebrew */
+html .ui-switch:dir(rtl) .ui-switch-knob { left: auto; right: 2px; }
+html .ui-switch:dir(rtl)[aria-checked='true'] .ui-switch-knob { transform: translateX(-20px); }
+html .ui-switch:dir(rtl)[aria-checked='true']:active:not(:disabled) .ui-switch-knob { transform: translateX(-14px); }
+html .ui-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html .ui-switch:disabled { opacity: 0.45; cursor: default; }
+
+/* ---- a settings-style row: label at the start, control at the end ---- */
+.ui-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.ui-row-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ui-row-label { font-size: var(--type-body, 17px); color: var(--text); }
+.ui-row-sub { font-size: var(--type-footnote, 13px); color: var(--text-secondary); }
+.ui-row-control { flex: none; display: inline-flex; align-items: center; gap: 10px; }
+
+/* ---- Segmented ---- */
+html .ui-seg {
+  display: inline-grid;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 2px;
+  gap: 0;
+  border-radius: 9px;
+  background: var(--fill-tertiary);
+}
+html .ui-seg > button {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-ios, ease), box-shadow 0.2s ease;
+}
+html .ui-seg > button.is-on {
+  background: var(--surface);
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+}
+:root[data-theme='dark'] .ui-seg > button.is-on { background: #636366; }
+html .ui-seg > button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+html .ui-seg > button:disabled { opacity: 0.45; cursor: default; }
+
+/* ---- Stepper ---- */
+.ui-stepper-wrap { display: inline-flex; align-items: center; gap: 12px; }
+.ui-stepper-value { font-size: var(--type-body, 17px); color: var(--text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+html .ui-stepper {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--fill-tertiary);
+}
+html .ui-stepper > button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 46px;
+  height: 32px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+html .ui-stepper > button:active:not(:disabled) { background: var(--fill-secondary); }
+html .ui-stepper > button:disabled { color: var(--text-secondary); opacity: 0.45; cursor: default; }
+html .ui-stepper > button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ui-stepper > i { width: 1px; height: 18px; background: var(--separator); }
+
+/* ---- Slider: <input type="range" className="ui-slider"> ---- */
+html input[type='range'].ui-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+html input[type='range'].ui-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fill-secondary);
+}
+html input[type='range'].ui-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 27px;
+  height: 27px;
+  margin-top: -11.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+  transition: transform 0.2s var(--ease-ios, ease);
+}
+html input[type='range'].ui-slider:active::-webkit-slider-thumb { transform: scale(1.12); }
+html input[type='range'].ui-slider::-moz-range-track { height: 4px; border-radius: 2px; background: var(--fill-secondary); }
+html input[type='range'].ui-slider::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
+html input[type='range'].ui-slider::-moz-range-thumb { width: 27px; height: 27px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-menu { animation: none; }
+  html .ui-btn:active:not(:disabled) { transform: none; }
+  .ui-switch-knob { transition: none; }
+}
+
+/* ---- the tempo field (BpmField) outside the device faces = the stepper
+   look: − value + in one grey rounded box; tap the number to type ---- */
+html .bpm-field:not(:where(.metronome *)) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: var(--fill-tertiary);
+  box-shadow: none;
+}
+html .bpm-field:not(:where(.metronome *)) .bpm-field-step {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 40px;
+  min-width: 0;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+html .bpm-field:not(:where(.metronome *)) .bpm-field-step:active {
+  background: var(--fill-secondary);
+}
+html .bpm-field:not(:where(.metronome *)) .bpm-field-value,
+html .bpm-field:not(:where(.metronome *)) .bpm-field-input {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  min-width: 48px;
+  width: auto;
+  height: 22px;
+  padding: 0 6px;
+  border: 0;
+  border-inline: 1px solid var(--separator);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+  cursor: text;
+}
+html .bpm-field:not(:where(.metronome *)) .bpm-field-input {
+  width: 48px;
+  color: var(--accent);
+}

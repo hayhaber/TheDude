@@ -5,6 +5,7 @@ import { parseAsciiTab } from '../../music/tabPdfParser';
 import { playLick } from '../../audio/lickPlayer';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './TabPdfImporter.css';
+import { Select } from '../ui/Select';
 
 // Plain playback-speed multipliers (1 = normal, 2 = twice as fast, 0.5 =
 // half speed) instead of vague "Slow/Normal/Fast" labels, per explicit
@@ -255,13 +256,13 @@ export function TabPdfImporter({ onLickChange, onPlayingOrderChange, externalFil
           <div className="tab-pdf-controls">
             <label className="tab-pdf-speed-field">
               {t('songs.tabPdf.speed')}
-              <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} disabled={isPlaying}>
+              <Select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} disabled={isPlaying}>
                 {SPEED_VALUES.map((v) => (
                   <option key={v} value={v}>
                     {v}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <button type="button" className="tab-pdf-play-btn" onClick={handlePlay} disabled={isPlaying}>
               {isPlaying ? t('songs.tabPdf.playing') : `▶ ${t('songs.tabPdf.play')}`}

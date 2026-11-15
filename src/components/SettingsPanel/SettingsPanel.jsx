@@ -42,6 +42,7 @@ import {
 import "../ModeToggle/ModeToggle.css";
 import "./SettingsPanel.css";
 import { restartOnboarding } from "../../onboarding/onboardingState";
+import { Select } from '../ui/Select';
 
 // Right-side drawer, same interaction/anchor as MetronomeBar/TunerBar/
 // DisplayOptionsMenu (top-anchored, capped max-height so it never covers the
@@ -452,7 +453,7 @@ export function SettingsBody({
                   <span className="settings-field-label">
                     {t("settings.guitarSound")}
                   </span>
-                  <select
+                  <Select
                     value={guitarProfile}
                     onChange={(e) => onGuitarProfileChange(e.target.value)}
                   >
@@ -461,7 +462,7 @@ export function SettingsBody({
                         {t(p.labelKey)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
               )}
               {showSound("piano") && (
@@ -470,7 +471,7 @@ export function SettingsBody({
                     {t("settings.pianoSound")}
                     <InfoTooltip text={t("tip.tools.pianoSound")} />
                   </span>
-                  <select
+                  <Select
                     value={pianoProfile}
                     onChange={(e) => onPianoProfileChange(e.target.value)}
                   >
@@ -479,7 +480,7 @@ export function SettingsBody({
                         {t(p.labelKey)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
               )}
               {showSound("bass") && (
@@ -488,7 +489,7 @@ export function SettingsBody({
                     {t("settings.bassSound")}
                     <InfoTooltip text={t("tip.tools.bassSound")} />
                   </span>
-                  <select
+                  <Select
                     value={bassProfile}
                     onChange={(e) => onBassProfileChange(e.target.value)}
                   >
@@ -497,7 +498,7 @@ export function SettingsBody({
                         {t(p.labelKey)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
               )}
               <p className="set-footnote">

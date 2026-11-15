@@ -37,6 +37,7 @@ import { DICTATION_SUPPORTED } from './useDictation';
 import { gridFor, laneFor, scalePcs, validChord } from './swHelpers';
 import '../ModeToggle/ModeToggle.css';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
+import { Select } from '../ui/Select';
 
 const CLICKS = ['count', 'all', 'off'];
 // Rhyme colours on / off (device setting, default on).
@@ -474,7 +475,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
       <div className="sw-meta">
         <label className="sw-field">
           <span>{t('sw.key')}</span>
-          <select value={song.key ? `${song.key.pc}:${song.key.minor ? 'm' : ''}` : ''} onChange={(e) => changeKey(e.target.value)}>
+          <Select value={song.key ? `${song.key.pc}:${song.key.minor ? 'm' : ''}` : ''} onChange={(e) => changeKey(e.target.value)}>
             <option value="">—</option>
             <optgroup label={t('sw.key.major')}>
               {Array.from({ length: 12 }, (_, pc) => (
@@ -490,7 +491,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
                 </option>
               ))}
             </optgroup>
-          </select>
+          </Select>
         </label>
         <VoiceKey
           song={song}
@@ -512,43 +513,43 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
         </div>
         <label className="sw-field">
           <span>{t('sw.time')}</span>
-          <select value={song.time} onChange={(e) => set((s) => ({ ...s, time: e.target.value, grid: undefined }))}>
+          <Select value={song.time} onChange={(e) => set((s) => ({ ...s, time: e.target.value, grid: undefined }))}>
             {TIMES.map((x) => (
               <option key={x} value={x}>
                 {x}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="sw-field">
           <span>{t('sw.band')}</span>
-          <select value={bandStyle} onChange={(e) => set((s) => ({ ...s, band: { ...(s.band ?? {}), style: e.target.value || null } }))}>
+          <Select value={bandStyle} onChange={(e) => set((s) => ({ ...s, band: { ...(s.band ?? {}), style: e.target.value || null } }))}>
             <option value="">{t('sw.band.none')}</option>
             {BAND_KEYS.map((k) => (
               <option key={k} value={k}>
                 {t('sw.band.' + k)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {bandStyle && (
           <label className="sw-field">
             <span>{t('sw.band.melody')}</span>
-            <select value={song.band?.melody === false ? 'off' : 'on'} onChange={(e) => set((s) => ({ ...s, band: { ...(s.band ?? {}), melody: e.target.value === 'on' } }))}>
+            <Select value={song.band?.melody === false ? 'off' : 'on'} onChange={(e) => set((s) => ({ ...s, band: { ...(s.band ?? {}), melody: e.target.value === 'on' } }))}>
               <option value="on">{t('sw.band.melodyOn')}</option>
               <option value="off">{t('sw.band.melodyOff')}</option>
-            </select>
+            </Select>
           </label>
         )}
         <label className="sw-field">
           <span>{t('sw.click')}</span>
-          <select value={song.click ?? 'count'} onChange={(e) => set((s) => ({ ...s, click: e.target.value }))}>
+          <Select value={song.click ?? 'count'} onChange={(e) => set((s) => ({ ...s, click: e.target.value }))}>
             {CLICKS.map((c) => (
               <option key={c} value={c}>
                 {t('sw.click.' + c)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       )}
@@ -565,7 +566,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
             return (
               <section key={sec.id} className="sw-section">
                 <header className="sw-section-head">
-                  <select
+                  <Select
                     className="sw-kind"
                     value={sec.kind}
                     onChange={(e) => mapSection(sec.id, (x) => ({ ...x, kind: e.target.value }))}
@@ -576,7 +577,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
                         {t('sw.kind.' + k)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   {song.sections.filter((x) => x.kind === sec.kind).length > 1 && <span className="sw-kind-n">{n}</span>}
                   <span className="sw-section-tools">
                     <button
@@ -751,7 +752,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
           <div className="sw-add-row">
           <label className="sw-add-section">
             <Icon name="plus" size={16} />
-            <select
+            <Select
               value=""
               onChange={(e) => {
                 if (!e.target.value) return;
@@ -768,7 +769,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
                   {t('sw.kind.' + k)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           {DICTATION_SUPPORTED && (
             <button type="button" className="sw-add-section is-button" onClick={() => setDictating(true)}>

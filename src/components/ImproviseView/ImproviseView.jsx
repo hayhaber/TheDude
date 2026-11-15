@@ -6,6 +6,7 @@ import { SoloCoachPanel } from '../SoloCoachPanel/SoloCoachPanel';
 import { ARTISTS } from '../../music/licks';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './ImproviseView.css';
+import { Select } from '../ui/Select';
 
 const TABS = [
   { key: 'lick', labelKey: 'improvise.tab.lick' },
@@ -66,13 +67,13 @@ export function ImproviseView({
 
         <label className="improvise-field">
           {t('lickPanel.artistStyle')}
-          <select value={selectedArtist} onChange={(e) => handleArtistChange(e.target.value)}>
+          <Select value={selectedArtist} onChange={(e) => handleArtistChange(e.target.value)}>
             {ARTISTS.map((artist) => (
               <option key={artist.key} value={artist.key}>
                 {artist.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
 

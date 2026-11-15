@@ -6,6 +6,7 @@ import { getAudioContext } from '../../audio/audioContext';
 import { schedulePianoNotes } from '../../audio/pianoPlayer';
 import { identifyChord } from '../../music/chordFromNotes';
 import './FreePlayView.css';
+import { Select } from '../ui/Select';
 
 // Piano -> FreePlay: a big keyboard to play anything on — the keys fill the
 // width for the chosen number of octaves (around middle C by default), with
@@ -241,13 +242,13 @@ export function FreePlayView({ pianoProps }) {
       <div className="freeplay-controls">
         <label className="freeplay-field">
           <span>{t('freeplay.octaves')}</span>
-          <select value={octaves} onChange={(e) => setOctaves(Number(e.target.value))}>
+          <Select value={octaves} onChange={(e) => setOctaves(Number(e.target.value))}>
             {OCTAVE_CHOICES.map((o) => (
               <option key={o} value={o}>
                 {o}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         {/* Pedal + its ⓘ kept together as one item of the wrapping row. */}

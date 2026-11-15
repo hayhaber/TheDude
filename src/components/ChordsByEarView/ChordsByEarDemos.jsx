@@ -5,19 +5,20 @@ import { playChordVoicing, playFunctionalQuestionAudio, playProgression } from '
 import { KEY_NAMES } from '../../music/scaleAnalyzer';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
+import { Select } from '../ui/Select';
 
 function RootPicker({ rootPitchClass, onChange }) {
   const { t } = useLanguage();
   return (
     <label className="cbe-field">
       {t('chordsByEar.key')}
-      <select value={rootPitchClass} onChange={(e) => onChange(Number(e.target.value))}>
+      <Select value={rootPitchClass} onChange={(e) => onChange(Number(e.target.value))}>
         {KEY_NAMES.map((name, i) => (
           <option key={name} value={i}>
             {name}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }
@@ -106,13 +107,13 @@ export function HomeReferenceDemo({ onPreviewChord }) {
         <RootPicker rootPitchClass={rootPitchClass} onChange={setRootPitchClass} />
         <label className="cbe-field">
           {t('chordsByEar.degree')}
-          <select value={degreeIndex} onChange={(e) => setDegreeIndex(Number(e.target.value))}>
+          <Select value={degreeIndex} onChange={(e) => setDegreeIndex(Number(e.target.value))}>
             {diatonic.map((c, i) => (
               <option key={i} value={i}>
                 {c.roman}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <button type="button" className="play-button" onClick={play}>
           {t('chordsByEar.play')}

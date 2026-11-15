@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { loadRange, comfortRange, midiName } from '../../music/vocal/voiceRange';
 import { rankKeys, songNotes } from '../../music/songwriter/keyFit';
 import { keyName } from '../../music/songwriter/song';
+import { Select } from '../ui/Select';
 
 // "Your key" (v1.0.168): the key that fits THIS voice best, from the range
 // test (comfortable range, steadiest notes, register break) and the song's
@@ -60,13 +61,13 @@ export function VoiceKey({ song, onApply }) {
         </p>
       )}
       <div className="sw-vk-row">
-        <select value={chosen.shift} onChange={(e) => setPick(Number(e.target.value))} aria-label={t('sw.vk.title')}>
+        <Select value={chosen.shift} onChange={(e) => setPick(Number(e.target.value))} aria-label={t('sw.vk.title')}>
           {options.map((r, i) => (
             <option key={r.shift} value={r.shift}>
               {iso(`${name(r)} · ${span(r)}`)} · {r.shift === 0 ? t('sw.vk.current') : i === 0 ? t('sw.vk.bestTag') : verdict(r)}
             </option>
           ))}
-        </select>
+        </Select>
         <button type="button" className="sw-btn is-small is-tint" disabled={chosen.shift === 0} onClick={() => {
             setPick(null);
             onApply(chosen);

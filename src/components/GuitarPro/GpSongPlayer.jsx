@@ -10,6 +10,7 @@ import { buildChordChart, chordAt } from '../../music/chordChart';
 import { ChordChartView } from './ChordChartView';
 import { useChordPlayAlong } from './useChordPlayAlong';
 import { fixHebrew } from '../Songwriter/ScoreView';
+import { Select } from '../ui/Select';
 
 const TICKS_PER_BEAT = 960;
 
@@ -333,33 +334,33 @@ function LoopTrainer({ rowRef, cfg, onChange, passes, countingIn, tempo, t }) {
         <>
           <label className="gp-inline-field">
             <span>{t('gpx.step')}</span>
-            <select dir="ltr" value={cfg.step} onChange={(e) => onChange({ step: Number(e.target.value) })}>
+            <Select dir="ltr" value={cfg.step} onChange={(e) => onChange({ step: Number(e.target.value) })}>
               {RAMP_STEPS.map((v) => (
                 <option key={v} value={v}>
                   +{v}%
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="gp-inline-field">
             <span>{t('gpx.every')}</span>
-            <select value={cfg.every} onChange={(e) => onChange({ every: Number(e.target.value) })}>
+            <Select value={cfg.every} onChange={(e) => onChange({ every: Number(e.target.value) })}>
               {RAMP_EVERY.map((v) => (
                 <option key={v} value={v}>
                   {t(v === 1 ? 'gpx.passOne' : 'gpx.passMany', { n: v })}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="gp-inline-field">
             <span>{t('gpx.target')}</span>
-            <select dir="ltr" value={cfg.target} onChange={(e) => onChange({ target: Number(e.target.value) })}>
+            <Select dir="ltr" value={cfg.target} onChange={(e) => onChange({ target: Number(e.target.value) })}>
               {RAMP_TARGETS.map((v) => (
                 <option key={v} value={v}>
                   {v}%
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </>
       )}
@@ -1038,13 +1039,13 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile, view = 'so
         </span>
         <label className="gp-inline-field">
           <span>{t('lickTrainer.tempo')}</span>
-          <select dir="ltr" value={songTempo} onChange={(e) => setSongTempo(Number(e.target.value), { manual: true })}>
+          <Select dir="ltr" value={songTempo} onChange={(e) => setSongTempo(Number(e.target.value), { manual: true })}>
             {[...new Set([...TEMPO_OPTIONS, songTempo])].sort((a, b) => a - b).map((v) => (
               <option key={v} value={v}>
                 {v}%
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <button
           type="button"

@@ -7,6 +7,7 @@ import { Fretboard } from '../Fretboard/Fretboard';
 import { PianoKeyboard } from '../PianoKeyboard/PianoKeyboard';
 import { EarTrainingMicAnswer } from './EarTrainingMicAnswer';
 import './EarTrainingModal.css';
+import { Select } from '../ui/Select';
 
 // question.prompt/choices[].label come from music/earTraining.js as fixed
 // English strings (also used internally there for nothing beyond display),
@@ -256,26 +257,26 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
               dropdown instead (same setModeKey state as before). */}
           <label className="ear-training-mode-field">
             {t('earTraining.modeLabel')}
-            <select value={modeKey} onChange={(e) => setModeKey(e.target.value)}>
+            <Select value={modeKey} onChange={(e) => setModeKey(e.target.value)}>
               {modes.map((m) => (
                 <option key={m.key} value={m.key}>
                   {t(m.labelKey)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           {/* Was a 3-button toggle — every other Practice difficulty filter
               (Drills' ExerciseDrawer included) is a dropdown, so this was the
               one inconsistent case. */}
           <label className="ear-training-mode-field">
             {t('earTraining.difficultyLabel')}
-            <select value={difficultyKey} onChange={(e) => setDifficultyKey(e.target.value)}>
+            <Select value={difficultyKey} onChange={(e) => setDifficultyKey(e.target.value)}>
               {difficulties.map((d) => (
                 <option key={d.key} value={d.key}>
                   {t(`difficulty.${d.label}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <span style={{ display: 'flex', alignItems: 'center' }}>
             <div className="mode-toggle" role="group" aria-label={t('earTraining.practiceModeLabel')}>

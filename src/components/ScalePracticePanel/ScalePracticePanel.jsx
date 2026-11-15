@@ -8,6 +8,7 @@ import { PlayAlong } from '../PlayAlong/PlayAlong';
 import { FreePlay } from '../PlayAlong/FreePlay';
 import { STANDARD_TUNING } from '../../music/notes';
 import './ScalePracticePanel.css';
+import { Select } from '../ui/Select';
 
 export const SCALE_PRACTICE_KEYS = ['minorPentatonic', 'majorPentatonic', 'major', 'naturalMinor'];
 const SCALE_KEYS = SCALE_PRACTICE_KEYS;
@@ -149,13 +150,13 @@ export function ScalePracticePanel({ scalePractice, scaleFree, seed, onSeedConsu
           <span className="scale-practice-field-label" aria-hidden="true">
             {t('scalePractice.root')}
           </span>
-          <select className="scale-practice-select-narrow" value={root} onChange={(e) => setRoot(Number(e.target.value))} disabled={isPlaying}>
+          <Select className="scale-practice-select-narrow" value={root} onChange={(e) => setRoot(Number(e.target.value))} disabled={isPlaying}>
             {ROOT_NAMES.map((name, i) => (
               <option key={name} value={i}>
                 {name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="scale-practice-field">
@@ -211,13 +212,13 @@ export function ScalePracticePanel({ scalePractice, scaleFree, seed, onSeedConsu
               <span className="scale-practice-field-label" aria-hidden="true">
                 {t('scalePractice.startString')}
               </span>
-              <select value={stringIndex} onChange={(e) => setStringIndex(Number(e.target.value))} disabled={isPlaying}>
+              <Select value={stringIndex} onChange={(e) => setStringIndex(Number(e.target.value))} disabled={isPlaying}>
                 {STRING_NAMES.slice(0, stringCount === 2 ? 5 : 6).map((key, i) => (
                   <option key={key} value={i}>
                     {t(key)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="scale-practice-field">
               <span className="scale-practice-field-label" aria-hidden="true">

@@ -35,6 +35,7 @@ import { lessonForChord } from '../../teacher/tryIn';
 import { knowsChord } from '../../teacher/mastery';
 import { useTeacher } from '../../teacher/teacherState';
 import { studentLevel } from '../PracticeView/practiceLibrary';
+import { Select } from '../ui/Select';
 
 const STORE = 'dudestar-p-chord-library'; // per profile
 const ALL_BASSES = 'auto';
@@ -254,7 +255,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
       <div className="cl-controls">
         <label className="cl-field is-wide">
           <span>{t('chordlib.type')}</span>
-          <select value={type} onChange={(e) => set({ type: e.target.value, bass: ALL_BASSES })}>
+          <Select value={type} onChange={(e) => set({ type: e.target.value, bass: ALL_BASSES })}>
             {TYPE_GROUPS.map((g) => (
               <optgroup key={g} label={t(`chordlib.group.${g}`)}>
                 {CHORD_TYPES.filter((c) => c.group === g).map((c) => (
@@ -265,14 +266,14 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
                 ))}
               </optgroup>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="cl-field">
           <span>
             {t('chordlib.bass')}
             <InfoTooltip text={t('tip.chordlib.bass')} />
           </span>
-          <select value={prefs.bass} onChange={(e) => set({ bass: e.target.value })}>
+          <Select value={prefs.bass} onChange={(e) => set({ bass: e.target.value })}>
             <option value={ALL_BASSES}>{chordType.power ? t('chordlib.rootPos') : t('chordlib.allInv')}</option>
             {!chordType.power && (
               <optgroup label={t('chordlib.inversions')}>
@@ -290,25 +291,25 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
                 </option>
               ))}
             </optgroup>
-          </select>
+          </Select>
         </label>
         <label className="cl-field">
           <span>{t('chordlib.tuning')}</span>
-          <select value={prefs.tuning} onChange={(e) => set({ tuning: e.target.value })}>
+          <Select value={prefs.tuning} onChange={(e) => set({ tuning: e.target.value })}>
             {GUITAR_TUNINGS.map((x) => (
               <option key={x.id} value={x.id}>
                 {t(`tuning.${x.id}`)} ({x.names.join('')})
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="cl-field">
           <span>{t('chordlib.labels')}</span>
-          <select value={labels} onChange={(e) => set({ labels: e.target.value })}>
+          <Select value={labels} onChange={(e) => set({ labels: e.target.value })}>
             <option value="note">{t('chordlib.labels.note')}</option>
             <option value="interval">{t('chordlib.labels.interval')}</option>
             <option value="finger">{t('chordlib.labels.finger')}</option>
-          </select>
+          </Select>
         </label>
       </div>
 
@@ -360,7 +361,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
               {t('chordlib.changes')}
               <InfoTooltip text={t('tip.chordlib.changes')} />
             </span>
-            <select
+            <Select
               value=""
               disabled={!baseSymbol}
               onChange={(e) => e.target.value && onPracticeChanges?.([baseSymbol, e.target.value])}
@@ -372,7 +373,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
                   {baseSymbol} ⇄ {c}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
       </section>

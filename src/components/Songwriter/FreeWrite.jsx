@@ -13,6 +13,7 @@ const readWorld = () => {
   }
 };
 import { Icon } from './icons';
+import { Select } from '../ui/Select';
 
 // Timed free writing (v1.0.163; the songwriters' review: write without
 // stopping, judge later). Three quiet screens over everything:
@@ -118,26 +119,26 @@ export function FreeWrite({ onClose, onSave }) {
           </section>
           <label className="sw-fw-world">
             <span>{t('sw.fw.world')}</span>
-            <select value={world} onChange={(e) => chooseWorld(e.target.value)}>
+            <Select value={world} onChange={(e) => chooseWorld(e.target.value)}>
               <option value="">{t('sw.fw.worldAny')}</option>
               {WORLDS.map((w) => (
                 <option key={w.key} value={w.key}>
                   {w.label[lang] ?? w.label.en}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <p className="sw-fw-senses">{t('sw.fw.senses')}</p>
           <div className="sw-fw-go">
             <label className="sw-fw-time">
               <span>{t('sw.fw.time')}</span>
-              <select value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
+              <Select value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
                 {DURATIONS.map((m) => (
                   <option key={m} value={m}>
                     {t('sw.fw.min', { n: m })}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <button type="button" className="sw-btn is-primary is-big" onClick={start}>
               {t('sw.fw.start')}

@@ -14,8 +14,10 @@ history without asking.
 
 **2. New-work-only UI conventions** (do NOT retrofit onto existing UI):
    - Every button label is exactly one word, for NEW buttons.
-   - Any NEW selection control with more than 2 options is a `<select>`
-     dropdown, not radio/tabs/segmented-toggle — UNLESS it's a genuinely
+   - Any NEW selection control with more than 2 options is a POP-UP
+     BUTTON = `<Select>` from `components/ui/Select.jsx` (never a bare
+     `<select>`; user's OK 2026-11-15), not radio/tabs/segmented-toggle —
+     2–5 short options that switch a VIEW are a `<Segmented>` — UNLESS it's a genuinely
      global, always-visible switcher (like the Guitar/Piano/Bass instrument
      toggle), which stays as individual pill buttons per explicit user
      preference (confirmed twice: a dropdown redesign was tried and reverted).
@@ -131,6 +133,17 @@ progression follows a real, validated method / graded syllabus for the
 instrument (RSL / Trinity / ABRSM-style grades, established methods like
 JustinGuitar's), never ad-hoc content. New lessons and the order of
 skills must be justified by such a method.
+
+**15. One controls library** (user's OK 2026-11-15, canvas
+https://claude.ai/artifact/AjF7jbzZfRchRqxSpMp7dR): every NEW control
+comes from `src/components/ui/` — `Button` (variant filled = the screen's
+ONE primary / tinted / gray / plain; size sm 30 / md 36 / lg 50; danger;
+iconOnly 44 circle), `Switch` (iOS, green on, at the END of its row),
+`ControlRow` (label start, control end, >= 44), `Segmented` (2–5 short
+options), `Stepper` (− | +, the value BESIDE it), `Select` (pop-up
+button), `input.ui-slider`. Styles in `components/ui/ui.css`. Old screens
+move over one at a time; device faces (amp, tuner, metronome, drum
+machine, recorder / studio, EQ, Performer) keep their own hardware look.
 
 **12. Nothing jumps.** Shared chrome keeps its physical position across
 screens: the desktop top bar is a 3-column grid (`minmax(0,1fr) auto
@@ -3005,6 +3018,28 @@ no tools).
   sideways scroll (not during a zoom anchor), restored when the chart is
   drawn (the song still starts at the top). Playwright 390 HE + 1180 EN:
   zoom 250 %, pan to 70 %, close, reopen -> 0.70.
+
+- CONTROLS LIBRARY, step 1 (v1.0.195, 2026-11-15; user: "are all our
+  controls exactly as Apple designs them?" -> no: ~94 button classes, ~44
+  toggles, 139 bare <select>s; canvas approved, "build"; rollback branch
+  `ui-pre-controls-v1.0.194`). `components/ui/`: Select.jsx = a DROP-IN
+  for <select> (same native element, same props / children / onChange)
+  drawn as the HIG pop-up button (grey capsule, accent text, ⌃⌄ at the
+  end side); touch = the system's own menu (iOS UIMenu), mouse /
+  trackpad = a Liquid Glass listbox portaled to <body> (✓ beside the
+  chosen row, accent highlight, optgroup headers, arrows / Home / End /
+  type-ahead / Enter / Escape / Tab, flips above when there's no room,
+  closes on outside tap / scroll / resize); choosing sets the native
+  value + fires a real change event. controls.jsx = Button / Switch /
+  ControlRow / Segmented / Stepper; ui.css (+ `.ui-slider`, and the
+  BpmField outside device faces now looks like the stepper: − value + in
+  one grey box). ALL 115 selects in 53 files moved to <Select> (device
+  faces kept: RecorderView, Metronome / DrumMachine, GuitarTuner, AmpView,
+  Performer). `min-width: 74px` keeps "A#" readable in narrow ones.
+  Playwright 1180 EN light / dark + 390 HE dark: every guitar practice
+  tool, chord library advanced, settings pages, songwriter, bass practice
+  — menu opens / chooses (value reaches React), no page errors. Next:
+  screens' own buttons / toggles -> Button / Switch, one screen at a time.
 
 ## ⓘ explanations (info switch)
 

@@ -27,6 +27,7 @@ import { BackButton } from '../PracticeView/PracticeHome';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { Performer } from './Performer';
 import './Stage.css';
+import { Select } from '../ui/Select';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -616,14 +617,14 @@ export function StageView({ onAccount }) {
         <div className="stg-scope">
           <label className="stg-scope-select">
             <span className="stg-sr">{t('stage.library')}</span>
-            <select value={band ? band.id : 'me'} onChange={(e) => chooseScope(e.target.value)} aria-label={t('stage.library')}>
+            <Select value={band ? band.id : 'me'} onChange={(e) => chooseScope(e.target.value)} aria-label={t('stage.library')}>
               <option value="me">{t('stage.mine')}</option>
               {cloud.bands.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <MoreMenu label={t('stage.more')}>
             {band && (

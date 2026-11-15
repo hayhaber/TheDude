@@ -16,6 +16,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { localize } from '../../i18n/localize';
 import './StudiesView.css';
+import { Select } from '../ui/Select';
 
 
 // Structured, step-by-step CAGED course. Like PracticeView, this owns no
@@ -109,13 +110,13 @@ export function StudiesView({
             {activeLesson.kind !== 'shapeQuiz' && (
               <label className="studies-field">
                 <span>{t('studies.key')}</span>
-                <select value={keyValue} onChange={(e) => onKeyChange?.(e.target.value)}>
+                <Select value={keyValue} onChange={(e) => onKeyChange?.(e.target.value)}>
                   {CAGED_KEYS.map((k) => (
                     <option key={k.value} value={k.value}>
                       {t('studies.keyOption', { key: k.label })}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             )}
 
@@ -151,7 +152,7 @@ export function StudiesView({
                   {t('studies.inversionStringSet')}
                   <InfoTooltip text={t('tip.tools.stringSet')} />
                 </span>
-                <select
+                <Select
                   value={inversionStringSet}
                   onChange={(e) => onInversionStringSetChange?.(Number(e.target.value))}
                 >
@@ -160,7 +161,7 @@ export function StudiesView({
                       {localize(set.label, lang)}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             )}
           </div>

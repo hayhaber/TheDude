@@ -12,6 +12,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { BackButton, LibraryRow } from '../PracticeView/PracticeHome';
 import './LickTrainer.css';
+import { Select } from '../ui/Select';
 
 const STRING_NUM = (stringIndex) => 6 - stringIndex; // app index -> tab string number
 
@@ -427,7 +428,7 @@ export function ArpBuilder({ trainer, t, lang, busy }) {
       <div className="lt-filters">
         <label className="lt-field">
           <span>{t('arp.preset')}</span>
-          <select
+          <Select
             value={presetValue}
             onChange={(e) => {
               const v = e.target.value;
@@ -453,7 +454,7 @@ export function ArpBuilder({ trainer, t, lang, busy }) {
                 ))}
               </optgroup>
             )}
-          </select>
+          </Select>
         </label>
         <label className="lt-field lt-grow">
           <span>{t('arp.chords')}</span>
@@ -463,42 +464,42 @@ export function ArpBuilder({ trainer, t, lang, busy }) {
       <div className="lt-filters">
         <label className="lt-field">
           <span>{t('arp.shape')}</span>
-          <select value={shape} onChange={(e) => setShape(e.target.value)}>
+          <Select value={shape} onChange={(e) => setShape(e.target.value)}>
             {ARP_SHAPES.map((x) => (
               <option key={x} value={x}>
                 {t('arp.shape.' + x)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {shape !== 'sweep5' && (
           <label className="lt-field">
             <span>{t('arp.rhythm')}</span>
-            <select value={rhythm} onChange={(e) => setRhythm(e.target.value)}>
+            <Select value={rhythm} onChange={(e) => setRhythm(e.target.value)}>
               {ARP_RHYTHMS.map((x) => (
                 <option key={x} value={x}>
                   {t('arp.rhythm.' + x)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         <label className="lt-field">
           <span>{t('arp.repeat')}</span>
-          <select value={repeat} onChange={(e) => setRepeat(Number(e.target.value))}>
+          <Select value={repeat} onChange={(e) => setRepeat(Number(e.target.value))}>
             <option value={1}>{t('arp.repeat.1')}</option>
             <option value={2}>{t('arp.repeat.2')}</option>
-          </select>
+          </Select>
         </label>
         <label className="lt-field">
           <span>{t('arp.position')}</span>
-          <select value={position} onChange={(e) => setPosition(e.target.value)}>
+          <Select value={position} onChange={(e) => setPosition(e.target.value)}>
             {Object.keys(ARP_POSITIONS).map((x) => (
               <option key={x} value={x}>
                 {t('arp.position.' + x)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <button type="button" className="lt-import-btn" onClick={build} disabled={busy || !chords.trim()}>
           {t('arp.build')}
@@ -537,54 +538,54 @@ export function ImportPanel({ trainer, t, lang, forceSaveAs = null }) {
         </label>
         <label className="lt-field">
           <span>{t('lickTrainer.importTrack')}</span>
-          <select value={trackIndex} onChange={(e) => setTrackIndex(Number(e.target.value))}>
+          <Select value={trackIndex} onChange={(e) => setTrackIndex(Number(e.target.value))}>
             {info.tracks.map((tr) => (
               <option key={tr.index} value={tr.index} disabled={tr.noteCount === 0 || tr.percussion}>
                 {tr.name} ({tr.noteCount})
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {!forceSaveAs && (
         <label className="lt-field">
           <span>{t('lickTrainer.importSaveAs')}</span>
-          <select value={saveAs} onChange={(e) => setSaveAs(e.target.value)}>
+          <Select value={saveAs} onChange={(e) => setSaveAs(e.target.value)}>
             <option value="solo">{t('lickTrainer.saveAsSolo')}</option>
             <option value="lick">{t('lickTrainer.saveAsLick')}</option>
-          </select>
+          </Select>
         </label>
         )}
         {saveAs === 'solo' && (
           <label className="lt-field">
             <span>{t('lickTrainer.importSplit')}</span>
-            <select value={barsPerSection} onChange={(e) => setBarsPerSection(Number(e.target.value))}>
+            <Select value={barsPerSection} onChange={(e) => setBarsPerSection(Number(e.target.value))}>
               {[1, 2, 4].map((n) => (
                 <option key={n} value={n}>
                   {t('lickTrainer.importSplitBars', { count: n })}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         <label className="lt-field">
           <span>{t('lickTrainer.genre')}</span>
-          <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+          <Select value={genre} onChange={(e) => setGenre(e.target.value)}>
             {LICK_GENRES.map((g) => (
               <option key={g.key} value={g.key}>
                 {localize(g.label, lang)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="lt-field">
           <span>{t('lickTrainer.level')}</span>
-          <select value={level} onChange={(e) => setLevel(e.target.value)}>
+          <Select value={level} onChange={(e) => setLevel(e.target.value)}>
             {LICK_LEVELS.map((l) => (
               <option key={l.key} value={l.key}>
                 {localize(l.label, lang)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       <p className="lt-muted lt-small">{t('lickTrainer.importWhere')}</p>
@@ -700,13 +701,13 @@ function Player({ trainer, t, lang, variant, busy, looping, pm, tempoOptions, co
                 {trainer.autoTempo.on && (
                   <label className="lt-opt">
                     <span className="lt-opt-label">{t('trainerx.target')}</span>
-                    <select dir="ltr" value={trainer.autoTempo.to} onChange={(e) => trainer.setAutoTempo({ to: Number(e.target.value) })} disabled={busy}>
+                    <Select dir="ltr" value={trainer.autoTempo.to} onChange={(e) => trainer.setAutoTempo({ to: Number(e.target.value) })} disabled={busy}>
                       {TEMPO_OPTIONS.filter((v) => v >= 60).map((v) => (
                         <option key={v} value={v}>
                           {v}%
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </label>
                 )}
                 <OptSwitch checked={trainer.loop} onChange={trainer.setLoop}>
@@ -834,24 +835,24 @@ function Player({ trainer, t, lang, variant, busy, looping, pm, tempoOptions, co
         <div className="lt-tchips">
           <label className="lt-chip">
             <span className="lt-chip-label">{t('lickTrainer.tempo')}</span>
-            <select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))} disabled={busy || looping}>
+            <Select dir="ltr" value={trainer.tempoPct} onChange={(e) => trainer.setTempoPct(Number(e.target.value))} disabled={busy || looping}>
               {tempoOptions.map((v) => (
                 <option key={v} value={v}>
                   {v}% · {tempoLabel(lick, Math.round((lick.bpm * v) / 100))}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="lt-chip">
             <span className="lt-chip-label">
               {t('trainerx.mode')}
               <InfoTooltip text={t('trainerx.tip.mode')} />
             </span>
-            <select value={pm} onChange={(e) => trainer.setPracticeMode(e.target.value)} disabled={busy || looping}>
+            <Select value={pm} onChange={(e) => trainer.setPracticeMode(e.target.value)} disabled={busy || looping}>
               <option value="normal">{t('trainerx.mode.normal')}</option>
               <option value="wait">{t('trainerx.mode.wait')}</option>
               <option value="build">{t('trainerx.mode.build')}</option>
-            </select>
+            </Select>
           </label>
         </div>
       </div>
@@ -1012,14 +1013,14 @@ export function LickTrainer({ trainer, variant = 'licks', onExit }) {
           <div className="lt-filters">
             <label className="lt-field">
               <span>{t('lickTrainer.section')}</span>
-              <select value={trainer.sectionIndex} onChange={(e) => trainer.setSectionIndex(Number(e.target.value))} disabled={busy}>
+              <Select value={trainer.sectionIndex} onChange={(e) => trainer.setSectionIndex(Number(e.target.value))} disabled={busy}>
                 <option value={-1}>{t('lickTrainer.wholeSolo')}</option>
                 {trainer.activeSolo.sections.map((sec, k) => (
                   <option key={k} value={k}>
                     {t('lickTrainer.sectionOption', { n: k + 1, bars: localize(sec.label, lang) })}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
         )}

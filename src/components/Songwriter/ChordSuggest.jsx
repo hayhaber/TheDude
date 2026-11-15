@@ -6,6 +6,7 @@ import { parseLine, syllables } from '../../music/songwriter/lyrics';
 import { playHarmony } from '../../audio/songwriter/harmonyPlayer';
 import { prepareGuitar } from '../../audio/chordPlayer';
 import { Icon } from './icons';
+import { Select } from '../ui/Select';
 
 const INSTRUMENTS = ['guitar', 'piano'];
 const STYLES = ['strum', 'arp', 'block'];
@@ -81,7 +82,7 @@ export function ChordSuggest({ song, line, onApply, onPrefs, onClose }) {
         <h3>{t('sw.harm.title')}</h3>
         <label className="sw-field is-inline">
           <span>{t('sw.key')}</span>
-          <select
+          <Select
             value={`${key.pc}:${key.minor ? 'm' : ''}`}
             onChange={(e) => {
               const [pc, m] = e.target.value.split(':');
@@ -93,7 +94,7 @@ export function ChordSuggest({ song, line, onApply, onPrefs, onClose }) {
                 {keyName(k)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       {!song.key && <p className="sw-harm-note">{t('sw.harm.keyGuess', { key: keyName(key) })}</p>}
@@ -101,30 +102,30 @@ export function ChordSuggest({ song, line, onApply, onPrefs, onClose }) {
       <div className="sw-harm-prefs">
         <label className="sw-field is-inline">
           <span>{t('sw.harm.instrument')}</span>
-          <select value={prefs.instrument} onChange={(e) => onPrefs({ instrument: e.target.value })}>
+          <Select value={prefs.instrument} onChange={(e) => onPrefs({ instrument: e.target.value })}>
             {INSTRUMENTS.map((x) => (
               <option key={x} value={x}>
                 {t('sw.harm.inst.' + x)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="sw-field is-inline">
           <span>{t('sw.harm.style')}</span>
-          <select value={prefs.style} onChange={(e) => onPrefs({ style: e.target.value })}>
+          <Select value={prefs.style} onChange={(e) => onPrefs({ style: e.target.value })}>
             {STYLES.map((x) => (
               <option key={x} value={x}>
                 {t('sw.harm.style.' + x)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="sw-field is-inline">
           <span>{t('sw.harm.melody')}</span>
-          <select value={useVoice ? 'mine' : 'piano'} disabled={!voiceOk} onChange={(e) => onPrefs({ voice: e.target.value })}>
+          <Select value={useVoice ? 'mine' : 'piano'} disabled={!voiceOk} onChange={(e) => onPrefs({ voice: e.target.value })}>
             <option value="mine">{t('sw.harm.voice.mine')}</option>
             <option value="piano">{t('sw.harm.voice.piano')}</option>
-          </select>
+          </Select>
         </label>
       </div>
       {!voiceOk && <p className="sw-harm-note">{t(take ? 'sw.harm.voiceOff' : 'sw.harm.voiceNone')}</p>}

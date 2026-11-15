@@ -6,6 +6,7 @@ import { SongVideoPlayer } from '../SongVideoPlayer/SongVideoPlayer';
 import { TabUploadPanel } from '../TabUploadPanel/TabUploadPanel';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './SongsView.css';
+import { Select } from '../ui/Select';
 
 // Query-builder only — this app can't legitimately host chord charts, lyrics,
 // or TAB transcriptions for real/commercial songs (copyright lives in the
@@ -96,7 +97,7 @@ export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSong
 
       {/* 4 options (Song / Solo / Video / Tab / GP Files) — a dropdown
           rather than a segmented toggle, per this app's own convention that
-          a control with more than 2 choices is a <select>. "Tab" is a
+          a control with more than 2 choices is a <Select>. "Tab" is a
           single upload point covering BOTH Guitar Pro files and TAB PDFs
           (previously two separate options) — TabUploadPanel tells them
           apart by file extension, so the player just uploads the file
@@ -106,13 +107,13 @@ export function SongsView({ onSongActiveChordChange, onSongTabLickChange, onSong
           {t('songs.modeLabel')}
           <InfoTooltip text={t('tip.tools.songsMode')} />
         </span>
-        <select value={mode} onChange={(e) => setMode(e.target.value)}>
+        <Select value={mode} onChange={(e) => setMode(e.target.value)}>
           <option value="song">{t('songs.mode.song')}</option>
           <option value="solo">{t('songs.mode.solo')}</option>
           <option value="video">{t('songs.mode.video')}</option>
           <option value="tabUpload">{t('songs.mode.tabUpload')}</option>
           <option value="gpFiles">{t('songs.mode.gpFiles')}</option>
-        </select>
+        </Select>
       </label>
 
       {mode === 'video' ? (

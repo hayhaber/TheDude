@@ -9,6 +9,7 @@ import { Icon } from './icons';
 import { RecMeter } from './RecMeter';
 import { fmt } from './LyricLine';
 import { ChordSuggest } from './ChordSuggest';
+import { Select } from '../ui/Select';
 
 /**
  * A line's melody, editable: the roll (tap / drag / stretch), the selected
@@ -164,13 +165,13 @@ export function MelodyEditor({ song, line, inKey, audio, finding, recTick, onCha
               )}
               <label className="sw-field is-inline">
                 <span>{t('sw.grid')}</span>
-                <select value={lane.grid} onChange={(e) => onGrid(Number(e.target.value))}>
+                <Select value={lane.grid} onChange={(e) => onGrid(Number(e.target.value))}>
                   {(song.time.endsWith('/8') ? [1, 0.5] : [1, 0.5, 0.25]).map((g) => (
                     <option key={g} value={g}>
                       {t('sw.grid.' + gridKey(g, song.time))}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </>
           )}

@@ -235,6 +235,22 @@ export const ICON_PATHS = {
     </>
   ),
   // Stage: a music stand holding a chart.
+  setlist: (
+    <>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <circle cx="4.6" cy="6" r="1" />
+      <circle cx="4.6" cy="12" r="1" />
+      <circle cx="4.6" cy="18" r="1" />
+    </>
+  ),
+  band: (
+    <>
+      <circle cx="8.5" cy="8.5" r="3" />
+      <circle cx="16.5" cy="9.5" r="2.4" />
+      <path d="M3 19.5c.6-3.3 2.8-5.3 5.5-5.3s4.9 2 5.5 5.3" />
+      <path d="M15 14.4c2.6-.4 4.8 1.3 5.6 4.6" />
+    </>
+  ),
   stage: (
     <>
       <rect x="5" y="3.5" width="14" height="10.5" rx="1.2" />

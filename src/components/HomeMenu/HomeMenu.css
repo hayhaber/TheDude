@@ -185,7 +185,8 @@
 .home-art-piano::after,
 .home-art-tools::after,
 .home-art-vocal::after,
-.home-art-songwriter::after {
+.home-art-songwriter::after,
+.home-art-stage::after {
   display: none;
 }
 
@@ -205,7 +206,8 @@
 .home-art-piano img,
 .home-art-tools img,
 .home-art-vocal img,
-.home-art-songwriter img {
+.home-art-songwriter img,
+.home-art-stage img {
   position: relative;
   z-index: 1;
   display: block;
@@ -428,7 +430,8 @@
   .home-art-piano img,
   .home-art-tools img,
   .home-art-vocal img,
-.home-art-songwriter img {
+.home-art-songwriter img,
+.home-art-stage img {
     height: var(--home-art-h);
   }
 
@@ -459,6 +462,12 @@
   .home-option:first-child:nth-last-child(3),
   .home-option:first-child:nth-last-child(3) ~ .home-option {
     flex-basis: 33.333%;
+  }
+
+  /* Four shortcuts (Stage): one row of four. */
+  .home-option:first-child:nth-last-child(4),
+  .home-option:first-child:nth-last-child(4) ~ .home-option {
+    flex-basis: 25%;
   }
 
   /* Five shortcuts (the five goal groups): one row, like the tab bar. */
@@ -586,7 +595,8 @@
   .home-art-piano img,
   .home-art-tools img,
   .home-art-vocal img,
-.home-art-songwriter img {
+.home-art-songwriter img,
+.home-art-stage img {
     height: 160px;
   }
 
@@ -643,7 +653,8 @@
   .home-art-piano img,
   .home-art-tools img,
   .home-art-vocal img,
-.home-art-songwriter img {
+.home-art-songwriter img,
+.home-art-stage img {
     height: 370px;
   }
 
@@ -938,6 +949,24 @@ html.home-locked body {
 }
 
 /* Songwriter picture 5 % smaller at every size (user's request v1.0.159). */
-.home-art-songwriter img {
+.home-art-songwriter img,
+.home-art-stage img {
   scale: 0.95;
 }
+
+/* v1.0.206: Edit — show / hide / reorder the cards (iOS's plain text key). */
+.home-edit {
+  flex: none;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--fill-tertiary, rgba(118, 118, 128, 0.12));
+  color: var(--accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--dur-fast, 0.15s) var(--ease-ios, ease);
+}
+.home-edit:active { transform: scale(0.96); }

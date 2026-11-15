@@ -34,7 +34,11 @@ export async function listSheets() {
   try {
     const all = (await run('readonly', (s) => s.getAll())) ?? [];
     // band = the band it belongs to (null = mine); cloud = in the cloud too
-    return all.map(({ id, name, size, at, band, cloud, path }) => ({ id, name, size, at, band: band ?? null, cloud: !!cloud, path: path ?? null })).sort((a, b) => a.at - b.at);
+    // pdf = a chart PDF is stored; lyrics = the song's words (v1.0.206: a
+    // song may be words only — the singer's)
+    return all
+      .map(({ id, name, size, at, band, cloud, path, blob, lyrics }) => ({ id, name, size, at, band: band ?? null, cloud: !!cloud, path: path ?? null, pdf: !!blob, lyrics: lyrics ?? '' }))
+      .sort((a, b) => a.at - b.at);
   } catch {
     return [];
   }
@@ -60,6 +64,29 @@ export async function saveSheet(file, { band = null } = {}) {
   await run('readwrite', (s) => s.put({ id, name, size: blob.size, at: Date.now(), blob, band }));
   notify();
   return { id, name, size: blob.size, at: Date.now(), band };
+}
+
+/** A song with words only (no PDF): the singer's (v1.0.206). */
+export async function saveTextSheet({ name, lyrics = '', band = null }) {
+  const id = 'sheet-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const rec = { id, name: (name || 'Song').trim(), size: 0, at: Date.now(), band, lyrics };
+  await run('readwrite', (s) => s.put(rec));
+  notify();
+  return rec;
+}
+
+/** Set a song's words (the change goes to the cloud via onSheetsChange listeners). */
+export async function setSheetLyrics(id, lyrics) {
+  const rec = await getSheet(id);
+  if (!rec) return;
+  await run('readwrite', (s) => s.put({ ...rec, lyrics }));
+  notify();
+  for (const fn of lyricListeners) fn(id, lyrics);
+}
+const lyricListeners = new Set();
+export function onSheetLyrics(fn) {
+  lyricListeners.add(fn);
+  return () => lyricListeners.delete(fn);
 }
 
 /** Rename a sheet (the Stage's charts). */

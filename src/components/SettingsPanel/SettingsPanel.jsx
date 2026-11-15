@@ -1,3 +1,4 @@
+import { HomeCardsList } from "../HomeMenu/HomeCardsList";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 function useMediaQuery(q) {
@@ -164,6 +165,10 @@ function InstallField() {
 // Nothing was removed; every field lives on one of the pages.
 
 const PAGE_ICONS = {
+  home: {
+    color: "#5856d6",
+    path: "M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v5H4zM13 14h7v5h-7z",
+  },
   sound: {
     color: "#ff2d55",
     path: "M9 18V5l11-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
@@ -424,6 +429,7 @@ export function SettingsBody({
               label={t("settings.page.display")}
               value={displayValue}
             />
+            <NavRow {...nav("home")} label={t("settings.page.home")} />
           </div>
 
           <div className="set-group">
@@ -515,6 +521,13 @@ export function SettingsBody({
                 {t("settings.audioAttribution")}{" "}
                 {t("settings.pianoAudioAttribution")}
               </p>
+            </div>
+          )}
+
+          {shown === "home" && (
+            <div className="set-page">
+              <HomeCardsList />
+              <p className="set-footnote">{t("settings.home.foot")}</p>
             </div>
           )}
 

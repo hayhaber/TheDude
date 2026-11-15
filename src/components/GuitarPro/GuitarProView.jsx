@@ -63,7 +63,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
   const [sheetId, setSheetId] = useState(null);
   const [sheetBusy, setSheetBusy] = useState(false);
   useEffect(() => {
-    listSheets().then(setSheets);
+    listSheets().then((l) => setSheets(l.filter((x) => x.pdf)));
   }, []);
   const addFile = async (file) => {
     if (!file) return;
@@ -76,7 +76,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
     try {
       const rec = await saveSheet(file);
       if (signedIn()) syncCharts();
-      setSheets(await listSheets());
+      setSheets((await listSheets()).filter((x) => x.pdf));
       trainer.stop();
       setSheetId(rec.id);
     } finally {
@@ -221,7 +221,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
                   setConfirmDelete(null);
                   await removeChart(sheet.id).catch(() => {});
                   setSheetId(null);
-                  setSheets(await listSheets());
+                  setSheets((await listSheets()).filter((x) => x.pdf));
                 }}
               >
                 {t(confirmDelete === sheet.id ? 'sheet.deleteConfirm' : 'sheet.delete')}

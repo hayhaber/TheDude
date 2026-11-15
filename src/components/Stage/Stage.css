@@ -1539,3 +1539,181 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
 /* the subtitle runs the full width under the title row (justified text
    in the narrow column beside Add opened wide gaps) */
 .stg-sub { margin: -14px 0 0; }
+
+/* ---- the singer's words on stage (v1.0.206) ---- */
+.stage-words-box {
+  width: min(900px, 100%);
+  margin-inline: auto;
+  flex: none;
+  padding: 8px 14px 0;
+  box-sizing: border-box;
+  transform-origin: 50% 0;
+}
+.stage-words-end {
+  flex: none;
+  height: 20vh;
+}
+.stage-words {
+  --w-size: calc(clamp(24px, 5.4vw, 40px) * var(--w-zoom, 1));
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--w-size) * 0.9);
+  text-align: start;
+  color: #fff;
+}
+.stage-w-sec {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--w-size) * 0.32);
+}
+.stage-w-label {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 8px;
+  background: rgba(255, 179, 64, 0.16);
+  color: #ffb340;
+  font-size: max(13px, calc(var(--w-size) * 0.42));
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.stage-w-line {
+  margin: 0;
+  font-size: var(--w-size);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  text-align: start;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.35s var(--ease-ios, ease), opacity 0.35s var(--ease-ios, ease);
+}
+.stage-perf.is-words .stage-w-line.is-past { color: rgba(255, 255, 255, 0.3); }
+.stage-perf.is-words .stage-w-line.is-now { color: #fff; }
+.stage-w-line.has-chords {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.28em;
+  row-gap: 0.1em;
+}
+.stage-w-line:not(.has-chords) .stage-w-word + .stage-w-word::before { content: ' '; }
+.stage-w-line.has-chords .stage-w-word {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.stage-w-chord {
+  font-size: max(14px, calc(var(--w-size) * 0.5));
+  font-weight: 700;
+  line-height: 1.15;
+  color: #64a8ff;
+  unicode-bidi: isolate;
+}
+.stage-w-chordrow {
+  font-size: max(14px, calc(var(--w-size) * 0.5));
+  color: #64a8ff;
+  white-space: pre-wrap;
+}
+.stage-w-note {
+  align-self: flex-start;
+  font-size: max(14px, calc(var(--w-size) * 0.48));
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 10px;
+  background: rgba(255, 214, 10, 0.13);
+  color: #ffd60a !important;
+}
+.stage-start-key {
+  flex: none;
+  gap: 5px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 18px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.stage-start-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.stage-start-ctl .ui-select { min-width: 84px; }
+.stage-field-label small {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.stage-view-seg { width: 100%; }
+
+/* the words editor */
+.stg-ly-sheet { max-height: min(92svh, 760px); }
+.stg-ly-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  font-size: 17px;
+}
+.stg-ly-head > :last-child { justify-self: end; }
+.stg-ly-cancel {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 17px;
+  justify-content: flex-start;
+}
+.stg-ly-text {
+  min-height: 40svh;
+  padding: 12px 14px;
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+  text-align: start;
+  unicode-bidi: plaintext; /* each line its own direction (Hebrew words, Latin chords) */
+}
+.stg-ly-hint { margin: 0; }
+.stg-ly-list { max-height: 46svh; overflow-y: auto; }
+.stg-ly-pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.stg-tile.is-words { background: #ff2d55; }
+
+/* The Stage card's screen (v1.0.206) */
+.stg-screen {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+.stg-screen-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 20px 10px;
+  pointer-events: none;
+}
+.stg-screen-top > * { pointer-events: auto; }
+.stg-screen-main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 4px 20px calc(40px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+@media (max-width: 640px) {
+  .stg-screen-top { padding: calc(6px + env(safe-area-inset-top, 0px)) 12px 6px; }
+  .stg-screen-main { padding-inline: 16px; }
+}

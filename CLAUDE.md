@@ -3192,3 +3192,54 @@ no tools).
   test first), optional cloud sync later on top of the existing
   `api/library.js` mechanism (needs a real login — not the shared
   DUDESTAR_KEY).
+
+- STAGE CARD + THE SINGER'S WORDS + HOME CARDS (v1.0.206, 2026-11-15;
+  user: "a Play & Band card, hide cards in Settings?" -> Claude: yes, only
+  if Stage LEAVES the instruments' Play (no two doors); + "a singer needs
+  the words, not a PDF" -> "build"). (1) Home card `stage` ("Stage" /
+  "במה", art = drawn `public/home/stage.svg`, precached + preloaded; 4
+  shortcuts in one row on phones: Setlists · Songs · Band · Rehearse (=
+  the Recorder tool screen, back = the Stage card); primary = Continue
+  the last setlist (device key `dudestar-stage-last` {id, scope, name},
+  `lastSetlist()` in StageView) else Start). App `stageScreen` {start,
+  n} -> `components/Stage/StageScreen.jsx` (round Home + StageView
+  `start` = sets | songs (scrolls to `#stg-songs`) | band (manage sheet /
+  join sheet) | continue); onOpen with section 'stage' (old remembered
+  place) opens it too. NAV_GROUPS play = ['guitarpro'] only (no
+  segmented control); GuitarPro still opens PDFs (same sheetStore).
+  (2) A song = a chart PDF and/or WORDS: sheet records carry `lyrics`;
+  words-only songs (`saveTextSheet`, no blob; listSheets gives `pdf`,
+  `lyrics`; GuitarPro lists only `pdf` ones). Pure
+  `music/sheets/lyricsText.js`: [Section] / "Chorus:" labels, [Am]word
+  chords, {note} stage notes, blank line = new section; tab-site chord
+  lines above a LATIN line are merged by column (`mergeChordLines`, a
+  chord over a space goes to the next word), above Hebrew kept as a
+  chord row; `songToLyrics()` (Songwriter song -> text + first melody
+  note), `pdfLines()` (PDF text runs -> lines, Hebrew runs reversed).
+  `LyricsSheet.jsx`: Type | My songs (Songwriter, `SONGS_KEY`) | PDF
+  (take the text out, to check), name for a new song; Stage header
+  "Words" capsule, every song row's ••• Add / Edit words, Performer
+  details "Words · Edit". (3) Performer: per DEVICE view (device key
+  `dudestar-stage-view` chart | words | wordsChords; Segmented in the
+  details sheet when the song has both) — words = `.stage-words` big
+  text (size = device key `dudestar-stage-words-zoom` 0.6–2.2, the Size
+  stepper / pinch), section labels orange, stage notes yellow, chords
+  blue above their word (transposed with the Key stepper), the line at
+  the reading guide lit, sung lines dimmed (paintGuide), 20vh end room.
+  FIRST NOTE: sheet pref `start` (midi), set in details (Select C2–C6 +
+  Hear, "In the moved key: …"), from a written song's melody on import;
+  in the words view it replaces Night in the top bar (♪ G♯4, played on
+  the piano at the transposed pitch). No roles: the view says who you
+  are (user's question, Claude's call). Cloud: migration
+  `supabase/migrations/004_stage_lyrics.sql` (lyrics, start_note; path ''
+  = words only) — THE USER RUNS IT; until then words-only songs stay on
+  the device and words don't travel (`hasSong` fallback, like hasMeta).
+  (4) Home cards: personal key `dudestar-p-home-cards` {hidden, order}
+  (`HomeMenu/homeCards.js`, `useHomeCards`, never all hidden); home
+  "Edit" pill -> sheet (`HomeCardsList reorder`: grip drag + Switch,
+  Original order); Settings -> "Home screen" page (switches only).
+  HomeMenu's ring takes the visible cards (N dynamic, ringDist(i,pos,N)).
+  Playwright 390 HE + 1180 EN (+ dark): card, words song, PDF words,
+  My songs import (start note), setlist, chart -> words switch, next song,
+  start note + key +2, Continue, Rehearse round trip, edit hide / drag,
+  settings page; no page errors. NOT verified on devices / real Supabase.

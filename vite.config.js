@@ -61,6 +61,7 @@ export default defineConfig({
         globPatterns: [
           '**/*.{js,css,html}',
           'home/{guitar-lp,piano-grand,bass-pb2,vocal-mic4,songwriter-notebook,tools-studio}.webp',
+          'home/stage.svg',
         ],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         // A new service worker version now takes over immediately instead

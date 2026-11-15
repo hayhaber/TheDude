@@ -8,6 +8,10 @@ import { ProfileChip } from '../../profile/ProfileChip';
 import { LineIcon } from '../LineIcon/LineIcon';
 import { NAV_GROUPS, SECTIONS, lastSectionIn, lastPlace } from '../AppShell/sections';
 import { lastPracticeTab } from '../PracticeView/practiceLibrary';
+import { lastSetlist } from '../Stage/StageView';
+import { Button } from '../ui/controls';
+import { resetCardOrder, useHomeCards } from './homeCards';
+import { HomeCardsList } from './HomeCardsList';
 import './HomeMenu.css';
 
 // One card per instrument. `instrument: null` keeps whatever is selected
@@ -72,6 +76,20 @@ const CARDS = [
     ],
   },
   {
+    // The show (v1.0.206): songs as charts or words, setlists, the band.
+    // Not an instrument — the singer and every player use it the same way.
+    key: 'stage',
+    instrument: null,
+    titleKey: 'home.stage.title',
+    descKey: 'home.stage.desc',
+    options: [
+      { stage: 'sets', icon: 'setlist', labelKey: 'stage.nav.sets' },
+      { stage: 'songs', icon: 'lyrics', labelKey: 'stage.nav.songs' },
+      { stage: 'band', icon: 'band', labelKey: 'stage.nav.band' },
+      { tool: 'record', icon: 'record', labelKey: 'stage.nav.rehearse' },
+    ],
+  },
+  {
     // Songwriting (not an instrument): lyrics + chords + the sung melody.
     key: 'songwriter',
     instrument: null,
@@ -126,7 +144,7 @@ function Chevron({ dir }) {
 // exactly one card per swipe, and keeps the "drum" in step with the finger —
 // native scrolling on iPhone (momentum, snap, a copy-jump for the loop)
 // flickered, skipped several cards and ran out of copies.
-const N = CARDS.length;
+// (the number of cards shown is per profile: homeCards.js)
 
 // The drum: cards beside the centre turn away and recede.
 const TURN_DEG = 33;
@@ -139,12 +157,41 @@ const ANIM_MS = 420;
 const SWIPE_SHARE = 0.12;
 const SWIPE_SPEED = 0.35;
 
-// Signed distance on the ring, in -N/2..N/2.
-function ringDist(i, pos) {
+// Signed distance on the ring of n cards, in -n/2..n/2.
+function ringDist(i, pos, N) {
+  if (N <= 1) return i - pos;
   let d = (i - pos) % N;
   if (d < -N / 2) d += N;
   if (d >= N / 2) d -= N;
   return d;
+}
+
+/** The home screen's Edit sheet: show / hide / reorder the cards. */
+function HomeEditSheet({ onClose, t }) {
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div className="hc-sheet-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="hc-sheet" role="dialog" aria-label={t('home.cards.title')}>
+        <header className="hc-head">
+          <span />
+          <strong>{t('home.cards.title')}</strong>
+          <Button variant="filled" size="sm" onClick={onClose}>
+            {t('settings.done')}
+          </Button>
+        </header>
+        <p className="hc-text">{t('home.cards.text')}</p>
+        <HomeCardsList reorder />
+        <p className="hc-foot">{t('home.cards.foot')}</p>
+        <Button variant="plain" size="sm" className="hc-reset" onClick={resetCardOrder}>
+          {t('home.cards.reset')}
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
@@ -158,6 +205,12 @@ const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, place = null, initialCard, learnFor = null }) {
   const { t, lang } = useLanguage();
   const { instrument } = useInstrument();
+  const homeCards = useHomeCards();
+  const cards = homeCards.visible.map((k) => CARDS.find((c) => c.key === k)).filter(Boolean);
+  const N = cards.length;
+  const nRef = useRef(N);
+  nRef.current = N;
+  const [editing, setEditing] = useState(false);
   const trackRef = useRef(null);
   const rootRef = useRef(null);
   const cardRefs = useRef([]);
@@ -165,7 +218,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
   // instrument in use.
   const startIndex = Math.max(
     0,
-    CARDS.findIndex((c) => (initialCard ? c.key === initialCard : c.instrument === instrument)),
+    cards.findIndex((c) => (initialCard ? c.key === initialCard : c.instrument === instrument)),
   );
   const [active, setActive] = useState(startIndex);
   const activeRef = useRef(startIndex);
@@ -179,6 +232,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
     const track = trackRef.current;
     if (!track) return;
     const pos = posRef.current;
+    const N = nRef.current;
     const turnDeg = window.matchMedia?.(PHONE_MQ).matches ? TURN_DEG_PHONE : TURN_DEG;
     const first = cardRefs.current[0];
     const gap = parseFloat(getComputedStyle(track).getPropertyValue('--home-gap')) || 28;
@@ -192,7 +246,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
     const step = phone ? cardW + gap : Math.max(cardW + gap, viewW / 2 + (cardW * (1 - SHRINK)) / 2 + 24);
     cardRefs.current.forEach((el, i) => {
       if (!el) return;
-      const d = ringDist(i, pos);
+      const d = ringDist(i, pos, N);
       const a = Math.min(1, Math.abs(d));
       // RTL: the next card waits on the left.
       const x = -d * step;
@@ -231,7 +285,23 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
   const step = useCallback((dir) => animateTo(targetRef.current + dir), [animateTo]);
 
   // A dot / a side card: the shortest way round to it.
-  const goToCard = useCallback((i) => animateTo(targetRef.current + ringDist(i, targetRef.current)), [animateTo]);
+  const goToCard = useCallback((i) => animateTo(targetRef.current + ringDist(i, targetRef.current, nRef.current)), [animateTo]);
+
+  // The cards shown changed (Edit): stay on the same card when it's still there.
+  const shownKey = homeCards.visible.join(',');
+  const lastKeysRef = useRef(shownKey);
+  useLayoutEffect(() => {
+    if (lastKeysRef.current === shownKey) return;
+    const before = lastKeysRef.current.split(',');
+    lastKeysRef.current = shownKey;
+    const was = before[((Math.round(targetRef.current) % before.length) + before.length) % before.length];
+    const at = Math.max(0, cards.findIndex((c) => c.key === was));
+    cancelAnimationFrame(animRef.current);
+    posRef.current = at;
+    targetRef.current = at;
+    activeRef.current = -1;
+    draw();
+  }, [shownKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // While the home screen is up, the document itself can't scroll or
   // bounce either (iOS rubber-band).
@@ -317,6 +387,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (document.querySelector('.hc-sheet-scrim')) return;
       // RTL: the next card is to the left.
       step(e.key === 'ArrowLeft' ? 1 : -1);
     };
@@ -345,7 +416,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
     const avg = (xs) => xs.reduce((a, b) => a + b, 0) / (xs.length || 1);
     const onWheel = (e) => {
       // The profile list scrolls by itself.
-      if (e.target instanceof Element && e.target.closest('.profile-pop')) return;
+      if (e.target instanceof Element && e.target.closest('.profile-pop, .hc-sheet-scrim')) return;
       const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
       e.preventDefault();
       const d = horizontal ? -e.deltaX : e.deltaY;
@@ -397,6 +468,10 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
       onOpen({ songwriter: option.songwriter, card: card.key });
       return;
     }
+    if (option.stage) {
+      onOpen({ stage: option.stage, card: card.key });
+      return;
+    }
     if (option.tool) {
       // The tool on its own screen.
       onOpen({ tool: option.tool, tunerMode: option.tunerMode, card: card.key });
@@ -430,6 +505,11 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
   const START = t('home.primary.btnStart');
   const primaryFor = (card) => {
     const inst = card.instrument;
+    if (card.key === 'stage') {
+      const last = lastSetlist();
+      if (last?.id && last.name) return { label: CONT, caption: t('home.stage.lastSet', { name: last.name }), go: () => onOpen({ stage: 'continue', card: card.key }) };
+      return { label: START, caption: t('home.stage.first'), go: () => onOpen({ stage: 'sets', card: card.key }) };
+    }
     if (!inst && card.key !== 'vocal') return null;
     // The teacher's next step for this instrument (v1.0.160) comes first.
     const learn = inst && learnFor ? learnFor(inst) : null;
@@ -488,6 +568,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
 
   return (
     <div className="home-menu" dir="rtl" ref={rootRef}>
+      {editing && <HomeEditSheet onClose={() => setEditing(false)} t={t} />}
       <header className="home-top">
         <div className="home-brand">
           <AppLogo size={40} />
@@ -495,7 +576,10 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
         </div>
         <div className="home-top-end">
           {/* Who's practising (local profiles), at the far right. */}
-          <ProfileChip onSettings={() => onOpen({ tool: 'settings', card: CARDS[((Math.round(targetRef.current) % N) + N) % N].key })} />
+          <button type="button" className="home-edit" onClick={() => setEditing(true)}>
+            {t('home.edit')}
+          </button>
+          <ProfileChip onSettings={() => onOpen({ tool: 'settings', card: cards[((Math.round(targetRef.current) % N) + N) % N]?.key })} />
         </div>
       </header>
 
@@ -508,9 +592,9 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          {CARDS.map((card, i) => {
+          {cards.map((card, i) => {
             const opts = card.options.filter((o) => {
-              if (o.tool || o.songwriter) return true;
+              if (o.tool || o.songwriter || o.stage) return true;
               const inst = card.instrument ?? (instrument === 'bass' ? 'guitar' : instrument);
               return supportsInstrument(o.section, inst);
             });
@@ -568,7 +652,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
                 <div className={'home-options' + (primary ? ' is-quiet' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
                   {opts.map((o) => (
                     <button
-                      key={o.tool ?? o.songwriter ?? o.section + (o.practiceTab ?? '') + (o.vocalScreen ?? '') + (o.teacherScreen ?? '')}
+                      key={o.stage ?? o.tool ?? o.songwriter ?? o.section + (o.practiceTab ?? '') + (o.vocalScreen ?? '') + (o.teacherScreen ?? '')}
                       type="button"
                       className="home-option"
                       onClick={guard(() => (isActive ? open(card, o) : goToCard(i)))}
@@ -591,7 +675,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
           <Chevron dir="right" />
         </button>
         <div className="home-dots" role="tablist" aria-label={t('home.instruments')}>
-          {CARDS.map((card, i) => (
+          {cards.map((card, i) => (
             <button
               key={card.key}
               type="button"

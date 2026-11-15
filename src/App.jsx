@@ -14,6 +14,7 @@ import { SongsView } from './components/SongsView/SongsView';
 import { GuitarProView } from './components/GuitarPro/GuitarProView';
 import { FreePlayView } from './components/FreePlayView/FreePlayView';
 import { StageView } from './components/Stage/StageView';
+import { StageScreen } from './components/Stage/StageScreen';
 import { ChordLibraryView } from './components/ChordLibrary/ChordLibraryView';
 import { PianoChordLibraryView } from './components/ChordLibrary/PianoChordLibraryView';
 import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingView';
@@ -164,6 +165,8 @@ function App() {
   const [settingsSheet, setSettingsSheet] = useState(false);
   // The Songwriter card's screen: { view: 'list'|'new'|'idea', n } | null.
   const [songwriter, setSongwriter] = useState(null);
+  // The Stage card's own screen (v1.0.206): {start, n}
+  const [stageScreen, setStageScreen] = useState(null);
   // Which Vocal screen the Singing card opened (home / ear); n remounts it.
   const [vocalStart, setVocalStart] = useState({ screen: 'home', n: 0 });
   // The tuner's guitar/bass setting there (bass only when opened from the
@@ -2360,6 +2363,27 @@ function App() {
     );
   }
 
+  if (stageScreen) {
+    return (
+      <>
+        {settingsSheet && (
+          <div className="settings-sheet">
+            <ToolScreen tool="settings" asSheet onBack={() => setSettingsSheet(false)} settingsProps={settingsProps} metronome={metronome} drums={drums} />
+          </div>
+        )}
+        <StageScreen
+          key={stageScreen.n}
+          start={stageScreen.start}
+          onBack={() => {
+            setStageScreen(null);
+            setHomeCard('stage');
+          }}
+          onAccount={() => setSettingsSheet(true)}
+        />
+      </>
+    );
+  }
+
   if (toolScreen) {
     return (
       <ToolScreen
@@ -2377,7 +2401,13 @@ function App() {
   if (home) {
     return (
       <HomeMenu
-        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen, teacherScreen, songwriter: swView, bassExercise }) => {
+        onOpen={({ instrument: nextInstrument, section, practiceTab: tab, tool, tunerMode: mode, card, vocalScreen, teacherScreen, songwriter: swView, bassExercise, stage: stageStart }) => {
+          // The Stage has its own card and screen now (v1.0.206) — also when
+          // an older "continue" still points at the section.
+          if (stageStart || section === 'stage') {
+            setStageScreen((v) => ({ start: stageStart ?? 'sets', n: (v?.n ?? 0) + 1 }));
+            return;
+          }
           if (swView) {
             stopMetronome();
             setSongwriter((v) => ({ view: swView, n: (v?.n ?? 0) + 1 }));

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { isPdf, listSheets, onSheetsChange, sheetPrefs } from '../../music/sheets/sheetStore';
+import { isPdf, listSheets, onSheetsChange, setSheetLyrics, setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
 import { fmtDur, moveItem, useSetlists } from '../../music/sheets/setlists';
 import { imagesToPdf, isImage } from '../../music/sheets/imageToPdf';
 import {
   addCharts,
+  addTextSong,
   bandSetlistApi,
   createBand,
   deleteBand,
@@ -30,6 +31,7 @@ import './Stage.css';
 import { Select } from '../ui/Select';
 import { Segmented } from '../ui/controls';
 import { openBandLink } from '../../music/sheets/bandLink';
+import { LyricsSheet } from './LyricsSheet';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -43,6 +45,23 @@ import { openBandLink } from '../../music/sheets/bandLink';
 
 const SCOPE_KEY = 'dudestar-stage-scope'; // device
 const HINT_KEY = 'dudestar-stage-band-hint'; // device: '1' = the band row was hidden
+// v1.0.206: the setlist opened last (the home card's Continue)
+export const LAST_SET_KEY = 'dudestar-stage-last'; // device: {id, scope, name}
+export function lastSetlist() {
+  try {
+    return JSON.parse(localStorage.getItem(LAST_SET_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function WordsGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <path d="M5 7h14M5 12h14M5 17h9" />
+    </svg>
+  );
+}
 
 function Chevron() {
   return (
@@ -390,7 +409,7 @@ function BandManageSheet({ band, uid, here, onShare, onNewCode, onRename, onRemo
   );
 }
 
-export function StageView({ onAccount }) {
+export function StageView({ onAccount, start = null }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const cloud = useSyncExternalStore(subscribeChartCloud, getChartCloud, getChartCloud);
@@ -400,6 +419,7 @@ export function StageView({ onAccount }) {
   const personal = useSetlists();
   const [scope, setScope] = useState(() => {
     try {
+      if (start === 'continue' && lastSetlist()?.scope) return lastSetlist().scope;
       return localStorage.getItem(SCOPE_KEY) || 'me';
     } catch {
       return 'me';
@@ -409,7 +429,12 @@ export function StageView({ onAccount }) {
   const bandId = band?.id ?? null;
   const sets = band ? bandSetlistApi(band.id) : personal;
   const [sheets, setSheets] = useState(null); // [{id, name, band, cloud, ...}]
-  const [openSet, setOpenSet] = useState(null); // setlist id
+  const [openSet, setOpenSetRaw] = useState(() => {
+    if (start !== 'continue') return null;
+    const last = lastSetlist();
+    return last?.id ?? null;
+  }); // setlist id
+  const [words, setWords] = useState(null); // {id?, name, text, pdf} — the words editor
   const [perform, setPerform] = useState(null); // {songs, at, setId?}
   // a reorder on stage (v1.0.189) is saved to the setlist; songs missing on
   // this device keep their place at the end
@@ -517,9 +542,34 @@ export function StageView({ onAccount }) {
   const scoped = (sheets ?? []).filter((s) => (s.band ?? null) === bandId);
   const byId = new Map((sheets ?? []).map((s) => [s.id, s]));
   const set = sets.lists.find((l) => l.id === openSet) ?? null;
+  const setOpenSet = setOpenSetRaw;
   useEffect(() => {
-    if (openSet && !set) setOpenSet(null);
-  }, [openSet, set]);
+    // a band's setlists arrive with the first sync: wait for them
+    if (openSet && !set && (!band || cloud.lastSync)) setOpenSet(null);
+  }, [openSet, set, band, cloud.lastSync]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!set) return;
+    try {
+      localStorage.setItem(LAST_SET_KEY, JSON.stringify({ id: set.id, scope: band ? band.id : 'me', name: set.name }));
+    } catch {
+      /* private mode */
+    }
+  }, [set?.id, set?.name, band?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The home card's shortcuts: Songs = the song list, Band = the band sheet.
+  const startedRef = useRef(false);
+  useEffect(() => {
+    if (startedRef.current || !sheets) return;
+    startedRef.current = true;
+    if (start === 'songs') document.getElementById('stg-songs')?.scrollIntoView({ block: 'start' });
+    if (start === 'band') {
+      if (band) setDialog('manage');
+      else if (isIn && cloud.bands.length) {
+        chooseScope(cloud.bands[0].id);
+        setDialog('manage');
+      } else setDialog('band');
+    }
+  }, [sheets]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const songsOf = (ids) => ids.map((id) => ({ id, name: byId.get(id)?.name ?? t('stage.missing'), missing: !byId.has(id) }));
 
@@ -571,6 +621,11 @@ export function StageView({ onAccount }) {
   };
   const linkError = (e) => (e?.linkError ? t('stage.link.err.' + (['bad-url', 'not-a-chart', 'too-big'].includes(e.linkError) ? e.linkError : 'fetch')) : null);
 
+  const openWords = (id) => {
+    const sh = byId.get(id);
+    if (sh) setWords({ id, name: sh.name, text: sh.lyrics || '', pdf: sh.pdf });
+  };
+
   const removeSheet = async (id) => {
     setSureDelete(null);
     try {
@@ -606,6 +661,10 @@ export function StageView({ onAccount }) {
         </svg>
         <span className="stg-cap-label">{t('stage.link')}</span>
       </button>
+      <button type="button" className="stg-capsule is-quiet" onClick={() => setWords({ id: null, name: '', text: '', pdf: false })} disabled={busy} aria-label={t('stage.ly.newTitle')} title={t('stage.ly.newTitle')}>
+        <WordsGlyph />
+        <span className="stg-cap-label">{t('stage.ly.short')}</span>
+      </button>
       <input
         ref={fileRef}
         type="file"
@@ -640,8 +699,25 @@ export function StageView({ onAccount }) {
       /* cancelled */
     }
   };
+  const saveWords = async ({ name, text, start: first }) => {
+    const w = words;
+    setWords(null);
+    try {
+      if (w.id) {
+        await setSheetLyrics(w.id, text);
+        if (first != null && sheetPrefs(w.id).start == null) setSheetPrefs(w.id, { start: first });
+      } else {
+        const id = await addTextSong({ name, lyrics: text, band: bandId, start: first });
+        if (set) sets.setItems(set.id, [...set.items, id]);
+      }
+      await reload();
+    } catch (e) {
+      fail(e);
+    }
+  };
   const dialogs = (
     <>
+      {words && <LyricsSheet songId={words.id} name={words.name} text={words.text} hasPdf={words.pdf} onSave={saveWords} onClose={() => setWords(null)} />}
       {dialog === 'link' && (
         <AskSheet
           title={t('stage.link.title')}
@@ -811,6 +887,11 @@ export function StageView({ onAccount }) {
                 {(s.missing || durOf(s.id)) && <span className="stg-detail">{s.missing ? t('stage.missing') : durOf(s.id)}</span>}
               </button>
               <MoreMenu label={t('stage.more')}>
+                {!s.missing && (
+                  <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
+                    {byId.get(s.id)?.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
+                  </button>
+                )}
                 {i > 0 && (
                   <button type="button" className="more-menu-item" onClick={() => sets.setItems(set.id, moveItem(set.items, i, i - 1))}>
                     {t('stage.up')}
@@ -853,6 +934,7 @@ export function StageView({ onAccount }) {
           </Sheet>
         )}
 
+        {dialogs}
         {toast}
         {perform && performer}
       </div>
@@ -983,7 +1065,7 @@ export function StageView({ onAccount }) {
       )}
 
       {scoped.length > 0 && (
-        <section className="ph-section">
+        <section className="ph-section" id="stg-songs">
           <h2 className="ph-section-title">{t('stage.charts')}</h2>
           <div className="ph-group stg-group">
             {scoped.map((s, i) => (
@@ -1001,12 +1083,18 @@ export function StageView({ onAccount }) {
                   </span>
                 ) : (
                   <button type="button" className="ph-row stg-row-main" onClick={() => setPerform({ songs: scoped.map((x) => ({ id: x.id, name: x.name })), at: i })}>
-                    <span className="stg-tile is-doc" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M7 3h7l4 4v14H7z" />
-                        <path d="M14 3v4h4M9.5 12h6M9.5 15.5h6" />
-                      </svg>
-                    </span>
+                    {s.pdf ? (
+                      <span className="stg-tile is-doc" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M7 3h7l4 4v14H7z" />
+                          <path d="M14 3v4h4M9.5 12h6M9.5 15.5h6" />
+                        </svg>
+                      </span>
+                    ) : (
+                      <span className="stg-tile is-words" aria-hidden="true">
+                        <WordsGlyph />
+                      </span>
+                    )}
                     <span className="ph-text">
                       <span className="ph-title" dir="auto">
                         {s.name}
@@ -1020,6 +1108,9 @@ export function StageView({ onAccount }) {
                 <MoreMenu label={t('stage.more')}>
                   <button type="button" className="more-menu-item" onClick={() => setRenaming(s.id)}>
                     {t('stage.rename')}
+                  </button>
+                  <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
+                    {s.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
                   </button>
                   {!band &&
                     cloud.bands.map((b) => (

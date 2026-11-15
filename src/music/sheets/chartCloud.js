@@ -12,7 +12,7 @@
 // The state (bands, band setlists, status) is a small store for React,
 // cached per user so the screen shows the last known bands offline.
 import { getLink, loadCloud } from '../../cloud/cloudState';
-import { deleteSheet, getSheet, listSheets, onSheetPrefs, patchSheet, putSheet, saveSheet, setSheetPrefs, sheetPrefs } from './sheetStore';
+import { deleteSheet, getSheet, listSheets, onSheetLyrics, onSheetPrefs, patchSheet, putSheet, saveSheet, saveTextSheet, setSheetLyrics, setSheetPrefs, sheetPrefs } from './sheetStore';
 
 const BUCKET = 'charts';
 const CACHE = (uid) => `dudestar-stage-cloud:${uid}`; // device
@@ -65,6 +65,12 @@ let hasMeta = true;
 const META = (p) => (hasMeta ? { bpm: p.bpm ?? null, notes: p.note ?? null } : {});
 const missingColumn = (e) => e && (e.code === '42703' || e.code === 'PGRST204' || /column .*(bpm|notes)/i.test(e.message || ''));
 
+// lyrics / start_note come with migration 004 (v1.0.206): before it, words-only
+// songs stay on this device and the words don't travel.
+let hasSong = true;
+const SONG = (rec, p) => (hasSong ? { lyrics: rec.lyrics || null, start_note: p.start ?? null } : {});
+const missingSongCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /lyrics|start_note/i.test(e.message || '');
+
 const pathFor = (uid, rec) => (rec.band ? `b/${rec.band}/${rec.id}.pdf` : `u/${uid}/${rec.id}.pdf`);
 
 // ---- sync (pure enough to test with a fake client) ----------------------------
@@ -78,16 +84,25 @@ export async function syncWith(sb, uid, local) {
   const mine = await local.listSheets();
   for (const meta of mine.filter((m) => !m.cloud)) {
     const rec = await local.getSheet(meta.id);
-    if (!rec?.blob) continue;
-    const path = pathFor(uid, rec);
-    const up = await sb.storage.from(BUCKET).upload(path, rec.blob, { upsert: true, contentType: 'application/pdf' });
-    if (up.error) throw up.error;
+    if (!rec) continue;
+    // a words-only song has no file; it needs migration 004's columns
+    if (!rec.blob && (!hasSong || !rec.lyrics)) continue;
+    const path = rec.blob ? pathFor(uid, rec) : '';
+    if (rec.blob) {
+      const up = await sb.storage.from(BUCKET).upload(path, rec.blob, { upsert: true, contentType: 'application/pdf' });
+      if (up.error) throw up.error;
+    }
     const p = local.sheetPrefs(rec.id);
     const row = { id: rec.id, band_id: rec.band ?? null, name: rec.name, size: rec.size ?? null, path, dur: p.dur ?? null, tr: p.tr ?? null, deleted: false };
-    let { error } = await sb.from('charts').upsert({ ...row, ...META(p) });
+    let { error } = await sb.from('charts').upsert({ ...row, ...META(p), ...SONG(rec, p) });
+    if (error && hasSong && missingSongCol(error)) {
+      hasSong = false;
+      if (!rec.blob) continue;
+      ({ error } = await sb.from('charts').upsert({ ...row, ...META(p) }));
+    }
     if (error && hasMeta && missingColumn(error)) {
       hasMeta = false;
-      ({ error } = await sb.from('charts').upsert(row));
+      ({ error } = await sb.from('charts').upsert({ ...row, ...SONG(rec, p) }));
     }
     if (error) throw error;
     await local.patchSheet(rec.id, { cloud: true, path });
@@ -95,10 +110,15 @@ export async function syncWith(sb, uid, local) {
 
   // 2) every chart this user may see
   const cols = 'id,band_id,name,size,path,dur,tr,deleted,updated_at';
-  let { data: rows, error } = await sb.from('charts').select(hasMeta ? cols + ',bpm,notes' : cols);
+  const pick = () => cols + (hasMeta ? ',bpm,notes' : '') + (hasSong ? ',lyrics,start_note' : '');
+  let { data: rows, error } = await sb.from('charts').select(pick());
+  if (error && hasSong && missingSongCol(error)) {
+    hasSong = false;
+    ({ data: rows, error } = await sb.from('charts').select(pick()));
+  }
   if (error && hasMeta && missingColumn(error)) {
     hasMeta = false;
-    ({ data: rows, error } = await sb.from('charts').select(cols));
+    ({ data: rows, error } = await sb.from('charts').select(pick()));
   }
   if (error) throw error;
   const byId = new Map(rows.map((r) => [r.id, r]));
@@ -111,11 +131,19 @@ export async function syncWith(sb, uid, local) {
       continue;
     }
     if (!h) {
-      const dl = await sb.storage.from(BUCKET).download(r.path);
-      if (dl.error || !dl.data) continue; // try again next time
-      await local.putSheet({ id: r.id, name: r.name, size: r.size ?? dl.data.size, at: Date.parse(r.updated_at) || Date.now(), blob: dl.data, band: r.band_id ?? null, cloud: true, path: r.path });
-    } else if (h.name !== r.name || (h.band ?? null) !== (r.band_id ?? null) || !h.cloud) {
-      await local.patchSheet(r.id, { name: r.name, band: r.band_id ?? null, cloud: true, path: r.path });
+      const base = { id: r.id, name: r.name, at: Date.parse(r.updated_at) || Date.now(), band: r.band_id ?? null, cloud: true, path: r.path, lyrics: r.lyrics ?? '' };
+      if (!r.path) {
+        await local.putSheet({ ...base, size: 0 }); // words only
+      } else {
+        const dl = await sb.storage.from(BUCKET).download(r.path);
+        if (dl.error || !dl.data) continue; // try again next time
+        await local.putSheet({ ...base, size: r.size ?? dl.data.size, blob: dl.data });
+      }
+    } else {
+      const patch = {};
+      if (h.name !== r.name || (h.band ?? null) !== (r.band_id ?? null) || !h.cloud) Object.assign(patch, { name: r.name, band: r.band_id ?? null, cloud: true, path: r.path });
+      if (hasSong && 'lyrics' in r && (r.lyrics ?? '') !== (h.lyrics ?? '') && !pendingLyrics.has(r.id)) patch.lyrics = r.lyrics ?? '';
+      if (Object.keys(patch).length) await local.patchSheet(r.id, patch);
     }
     const p = local.sheetPrefs(r.id);
     const patch = {};
@@ -123,6 +151,7 @@ export async function syncWith(sb, uid, local) {
     if (r.tr != null && r.tr !== p.tr) patch.tr = r.tr;
     if (r.bpm != null && r.bpm !== p.bpm) patch.bpm = r.bpm;
     if (r.notes != null && r.notes !== (p.note ?? '')) patch.note = r.notes;
+    if (r.start_note != null && r.start_note !== p.start) patch.start = r.start_note;
     if (Object.keys(patch).length) local.setSheetPrefs(r.id, patch, { quiet: true });
   }
   // cloud charts nobody shows us any more (a band left / removed us)
@@ -171,7 +200,7 @@ export function syncCharts() {
 const pendingMeta = new Map();
 let metaTimer = null;
 onSheetPrefs((id, patch) => {
-  if (!signedIn() || !('dur' in patch || 'tr' in patch || 'bpm' in patch || 'note' in patch)) return;
+  if (!signedIn() || !('dur' in patch || 'tr' in patch || 'bpm' in patch || 'note' in patch || 'start' in patch)) return;
   pendingMeta.set(id, { ...(pendingMeta.get(id) ?? {}), ...patch });
   clearTimeout(metaTimer);
   metaTimer = setTimeout(async () => {
@@ -187,9 +216,14 @@ onSheetPrefs((id, patch) => {
         if ('tr' in p) row.tr = p.tr;
         if (hasMeta && 'bpm' in p) row.bpm = p.bpm ?? null;
         if (hasMeta && 'note' in p) row.notes = p.note || null;
+        if (hasSong && 'start' in p) row.start_note = p.start ?? null;
         if (!Object.keys(row).length) continue;
         const { error } = await sb.from('charts').update(row).eq('id', cid);
-        if (error && missingColumn(error)) {
+        if (error && missingSongCol(error)) {
+          hasSong = false;
+          delete row.start_note;
+          if (Object.keys(row).length) await sb.from('charts').update(row).eq('id', cid);
+        } else if (error && missingColumn(error)) {
           hasMeta = false;
           delete row.bpm;
           delete row.notes;
@@ -200,6 +234,34 @@ onSheetPrefs((id, patch) => {
       /* next sync uploads nothing for meta — the local value stays */
     }
   }, 1500);
+});
+
+// A song's words changed: send them (a words-only song that isn't in the
+// cloud yet goes up with the next sync).
+const pendingLyrics = new Set();
+let lyricTimer = null;
+onSheetLyrics((id) => {
+  if (!signedIn()) return;
+  pendingLyrics.add(id);
+  clearTimeout(lyricTimer);
+  lyricTimer = setTimeout(async () => {
+    const ids = [...pendingLyrics];
+    try {
+      const sb = await client();
+      for (const cid of ids) {
+        const rec = await getSheet(cid);
+        if (!rec) continue;
+        if (!rec.cloud) continue;
+        if (!hasSong) continue;
+        const { error } = await sb.from('charts').update({ lyrics: rec.lyrics || null }).eq('id', cid);
+        if (error && missingSongCol(error)) hasSong = false;
+      }
+    } catch {
+      /* the local copy stays; the next edit sends again */
+    }
+    ids.forEach((x) => pendingLyrics.delete(x));
+    syncCharts();
+  }, 1200);
 });
 
 // ---- chart actions --------------------------------------------------------------
@@ -241,14 +303,29 @@ export async function renameChart(id, name) {
   }
 }
 
-/** Give a band its own copy of one of my charts. */
+/** A new song with words only (v1.0.206), to my songs or a band's. */
+export async function addTextSong({ name, lyrics, band = null, start = null }) {
+  const rec = await saveTextSheet({ name, lyrics, band });
+  if (start != null) setSheetPrefs(rec.id, { start }, { quiet: true });
+  if (signedIn()) syncCharts();
+  return rec.id;
+}
+
+/** Give a band its own copy of one of my charts / songs. */
 export async function shareChart(id, band) {
   const rec = await getSheet(id);
-  if (!rec?.blob) return null;
-  const file = new File([rec.blob], `${rec.name}.pdf`, { type: 'application/pdf' });
-  const [copy] = await addCharts([file], band);
+  if (!rec) return null;
+  let copy;
+  if (rec.blob) {
+    const file = new File([rec.blob], `${rec.name}.pdf`, { type: 'application/pdf' });
+    [copy] = await addCharts([file], band);
+    if (copy && rec.lyrics) await setSheetLyrics(copy, rec.lyrics);
+  } else {
+    copy = (await saveTextSheet({ name: rec.name, lyrics: rec.lyrics, band })).id;
+  }
   const p = sheetPrefs(id);
-  if (copy && (p.dur || p.tr || p.bpm || p.note)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr, bpm: p.bpm, note: p.note }, { quiet: true });
+  if (copy && (p.dur || p.tr || p.bpm || p.note || p.start != null)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr, bpm: p.bpm, note: p.note, start: p.start }, { quiet: true });
+  if (signedIn()) syncCharts();
   return copy;
 }
 

@@ -8,6 +8,12 @@ import { fmtDur } from '../../music/sheets/setlists';
 import { Page, useWakeLock } from '../GuitarPro/PdfSheetView';
 import { getAudioContext } from '../../audio/audioContext';
 import { openBandLink } from '../../music/sheets/bandLink';
+import { chordsOf, parseLyrics } from '../../music/sheets/lyricsText';
+import { playPianoNote, preparePiano } from '../../audio/pianoPlayer';
+import { Segmented } from '../ui/controls';
+import { Select } from '../ui/Select';
+import { LyricsSheet } from './LyricsSheet';
+import { setSheetLyrics } from '../../music/sheets/sheetStore';
 
 // The Stage's performance screen (v1.0.176): one chart of a setlist at a
 // time, full screen on black, the pages at the screen's width. Auto-scroll
@@ -25,7 +31,77 @@ const CLICK_KEY = 'dudestar-stage-click'; // device: a click under the count-in
 const COUNT_BEATS = 4;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
-const clampZoom = (z) => Math.round(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)) * 20) / 20;
+// the words (v1.0.206) zoom their letters, not a page: a smaller floor
+const WZOOM_MIN = 0.6;
+const WZOOM_MAX = 2.2;
+let wordsMode = false;
+const clampZoom = (z) => Math.round(Math.max(wordsMode ? WZOOM_MIN : ZOOM_MIN, Math.min(wordsMode ? WZOOM_MAX : ZOOM_MAX, z)) * 20) / 20;
+const VIEW_KEY = 'dudestar-stage-view'; // device: chart | words | wordsChords
+const WZOOM_KEY = 'dudestar-stage-words-zoom'; // device: the letters' size
+const NOTE_NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+const SHARP_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+const FLAT_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+/** "G♯4"; `flats` = true / false by the song's key, undefined = the usual names */
+export const noteLabel = (m, flats) => (flats === true ? FLAT_NAMES : flats === false ? SHARP_NAMES : NOTE_NAMES)[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+function readView() {
+  try {
+    const v = localStorage.getItem(VIEW_KEY);
+    return ['chart', 'words', 'wordsChords'].includes(v) ? v : 'chart';
+  } catch {
+    return 'chart';
+  }
+}
+function readWordsZoom() {
+  try {
+    const z = Number(localStorage.getItem(WZOOM_KEY));
+    return z >= WZOOM_MIN && z <= WZOOM_MAX ? z : 1;
+  } catch {
+    return 1;
+  }
+}
+
+/** The song's words, big, a line per row (chords over the words when shown). */
+function Words({ sections, chords, tr, flats, dir, t }) {
+  return (
+    <div className="stage-words" dir={dir}>
+      {sections.map((sec, i) => (
+        <section key={i} className="stage-w-sec">
+          {sec.label && <span className="stage-w-label" dir="auto">{sec.label}</span>}
+          {sec.lines.map((l, k) => {
+            if (l.kind === 'note')
+              return (
+                <p key={k} className="stage-w-line stage-w-note" dir="auto">
+                  {l.text}
+                </p>
+              );
+            if (l.kind === 'chords')
+              return chords ? (
+                <p key={k} className="stage-w-line stage-w-chordrow" dir="ltr">
+                  {l.chords.map((c) => transposeChord(c, tr, flats)).join('   ')}
+                </p>
+              ) : null;
+            const withChords = chords && l.words.some((w) => w.chord);
+            return (
+              <p key={k} className={'stage-w-line' + (withChords ? ' has-chords' : '')} dir="auto">
+                {l.words.map((w, j) =>
+                  withChords ? (
+                    <span key={j} className="stage-w-word">
+                      <b className="stage-w-chord" dir="ltr">{w.chord ? transposeChord(w.chord, tr, flats) : '\u00a0'}</b>
+                      <span>{w.text || '\u00a0'}</span>
+                    </span>
+                  ) : (
+                    w.text && <span key={j} className="stage-w-word">{w.text}</span>
+                  )
+                )}
+              </p>
+            );
+          })}
+        </section>
+      ))}
+      {!sections.length && <p className="stage-perf-msg">{t('stage.ly.empty')}</p>}
+    </div>
+  );
+}
 
 function readFlag(key) {
   try {
@@ -127,29 +203,62 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const [click, setClick] = useState(() => readFlag(CLICK_KEY));
   const [width, setWidth] = useState(0);
   const [scroller, setScroller] = useState(null);
+  // the song's words (v1.0.206) and how THIS device shows the song
+  const [rec, setRec] = useState(null); // {pdf, lyrics} once read
+  const [viewPref, setViewPref] = useState(readView);
+  const [startNote, setStartNote] = useState(null);
+  const [editWords, setEditWords] = useState(false);
+  const hasPdf = !!rec?.pdf;
+  const lyrics = rec?.lyrics ?? '';
+  const mode = !rec ? null : hasPdf && (viewPref === 'chart' || !lyrics.trim()) ? 'chart' : viewPref === 'words' ? 'words' : 'wordsChords';
+  const isWords = mode === 'words' || mode === 'wordsChords';
+  wordsMode = isWords;
+  const sectionsW = useMemo(() => (isWords ? parseLyrics(lyrics) : []), [isWords, lyrics]);
+  const ready = mode === 'chart' ? !!doc : isWords;
   useWakeLock(true);
 
   // Open the song.
   useEffect(() => {
     if (!song) return undefined;
     let alive = true;
-    let loaded = null;
     const prefs = sheetPrefs(song.id);
     setDur(prefs.dur ?? DEFAULT_DUR);
     setTr(prefs.tr ?? 0);
     setBpm(prefs.bpm ?? null);
     setNote(prefs.note ?? '');
-    setZoom(clampZoom(prefs.zoom ?? 1));
+    setStartNote(prefs.start ?? null);
     setDoc(null);
     setSizes([]);
     setChords(null);
     setError(false);
     setPlaying(false);
     setAtEnd(false);
+    setRec(null);
+    (async () => {
+      try {
+        const r = await getSheet(song.id);
+        if (!r) throw new Error('missing');
+        if (!alive) return;
+        setRec({ pdf: !!r.blob, lyrics: r.lyrics ?? '' });
+      } catch {
+        if (alive) setError(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [song]);
+
+  // The chart's pages, when this device shows the chart.
+  useEffect(() => {
+    if (!song || mode !== 'chart') return undefined;
+    let alive = true;
+    let loaded = null;
+    setZoom(clampZoom(sheetPrefs(song.id).zoom ?? 1));
     (async () => {
       try {
         const rec = await getSheet(song.id);
-        if (!rec) throw new Error('missing');
+        if (!rec?.blob) throw new Error('missing');
         const d = await loadPdfDocument(rec.blob);
         loaded = d;
         const out = [];
@@ -169,12 +278,20 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     return () => {
       alive = false;
       loaded?.destroy?.();
+      setDoc(null);
+      setSizes([]);
+      setChords(null);
     };
-  }, [song]);
+  }, [song, mode]);
+
+  // The words: their letters' size is one for every song (this device).
+  useEffect(() => {
+    if (isWords) setZoom(readWordsZoom());
+  }, [isWords, song]);
 
   // Back to the top for every song.
   useLayoutEffect(() => {
-    if (!scroller || !doc) return;
+    if (!scroller || !ready) return;
     scroller.scrollTop = 0;
     // a zoomed chart opens where it was placed sideways last time
     const panX = song ? sheetPrefs(song.id).panX : null;
@@ -186,11 +303,11 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       scroller.scrollTop = pend.p * Math.max(0, scroller.scrollHeight - scroller.clientHeight);
       if (pend.playing) setPlaying(true);
     }
-  }, [scroller, doc]);
+  }, [scroller, ready, song, mode]);
 
   // Remember the sideways place of a zoomed chart (this device only).
   useEffect(() => {
-    if (!scroller || !doc || !song) return undefined;
+    if (!scroller || !doc || !song || mode !== 'chart') return undefined;
     const id = song.id;
     let t = 0;
     const save = () => {
@@ -208,7 +325,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       clearTimeout(t);
       scroller.removeEventListener('scroll', save);
     };
-  }, [scroller, doc, song]);
+  }, [scroller, doc, song, mode]);
 
   const [baseWidth, setBaseWidth] = useState(0);
   useLayoutEffect(() => {
@@ -236,6 +353,17 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     scroller.scrollTop = box.offsetTop + a.y * r - a.cy;
   }, [width, scroller]);
 
+  // the chart's zoom is per chart; the words' letters one size for all
+  const saveZoomRef = useRef(null);
+  saveZoomRef.current = (z) => {
+    if (wordsMode) {
+      try {
+        localStorage.setItem(WZOOM_KEY, String(z));
+      } catch {
+        /* private mode */
+      }
+    } else if (song) setSheetPrefs(song.id, { zoom: z });
+  };
   const flashZoom = useRef(0);
   const showZoom = useCallback(() => {
     setZoomShown(true);
@@ -263,7 +391,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       };
       setZoom(to);
       showZoom();
-      if (song) setSheetPrefs(song.id, { zoom: to });
+      saveZoomRef.current(to);
     },
     [scroller, song, showZoom]
   );
@@ -319,7 +447,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         anchorRef.current = { from: p.z0, to, cx: p.cx, cy: p.cy, x: p.ox, y: p.oy };
         setZoom(to);
         showZoom();
-        if (song) setSheetPrefs(song.id, { zoom: to });
+        saveZoomRef.current(to);
       }
     };
     const noGesture = (e) => e.preventDefault(); // iOS Safari's page zoom
@@ -378,6 +506,20 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     if (lineRef.current) lineRef.current.style.transform = `translateY(${y}px)`;
     if (dimRef.current) dimRef.current.style.height = `${y}px`;
     if (progRef.current) progRef.current.style.transform = `scaleX(${p})`;
+    // the words: the line at the guide is lit, the ones sung are dimmed
+    if (box.classList.contains('stage-words-box')) {
+      const lines = box.querySelectorAll('.stage-w-line');
+      const top = scroller.getBoundingClientRect().top;
+      let now = -1;
+      lines.forEach((el, i) => {
+        if (el.getBoundingClientRect().top - top <= y + 4) now = i;
+      });
+      if (now < 0 && lines.length) now = 0;
+      lines.forEach((el, i) => {
+        el.classList.toggle('is-now', i === now);
+        el.classList.toggle('is-past', i < now);
+      });
+    }
     const l = Math.max(0, Math.round(dur * (1 - p)));
     if (l !== leftRef.current) {
       leftRef.current = l;
@@ -393,11 +535,12 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       scroller.removeEventListener('scroll', paintGuide);
       window.removeEventListener('resize', paintGuide);
     };
-  }, [scroller, paintGuide, doc, width]);
+  }, [scroller, paintGuide, doc, width, ready, sectionsW, zoom]);
   const started = playing || (left != null && left < dur - 1 && !atEnd);
   const leftText = left != null ? '−' + fmtDur(left) : '';
 
-  const firstChord = useMemo(() => chords?.flat()[0]?.text ?? null, [chords]);
+  const wordChords = useMemo(() => (isWords ? chordsOf(sectionsW) : []), [isWords, sectionsW]);
+  const firstChord = useMemo(() => (isWords ? (wordChords[0] ?? null) : (chords?.flat()[0]?.text ?? null)), [isWords, wordChords, chords]);
   const hasChords = !!firstChord;
   const flats = useMemo(() => (firstChord ? flatsFor(firstChord, tr) : false), [firstChord, tr]);
 
@@ -883,6 +1026,32 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     });
   };
   const zoomPct = Math.round(zoom * 100);
+  const chooseView = (v) => {
+    setViewPref(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* private mode */
+    }
+  };
+  const changeStart = (m) => {
+    setStartNote(m);
+    setSheetPrefs(song.id, { start: m });
+  };
+  const hearStart = () => {
+    if (startNote == null) return;
+    try {
+      preparePiano();
+      getAudioContext().resume?.();
+      playPianoNote(startNote + tr);
+    } catch {
+      /* no sound */
+    }
+  };
+  const viewOptions = [
+    ...(hasPdf ? [{ value: 'chart', label: t('stage.view.chart') }] : []),
+    ...(lyrics.trim() ? [{ value: 'words', label: t('stage.view.words') }, { value: 'wordsChords', label: t('stage.view.wordsChords') }] : []),
+  ];
 
   const next = songs[idx + 1];
   const keyName = hasChords ? keyOf(firstChord, tr) : null;
@@ -891,11 +1060,19 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   if (!song) return null;
 
   return createPortal(
-    <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare') + (bpm || note ? ' has-note' : '')} role="dialog" aria-label={song.name} dir={dir} ref={rootRef}>
+    <div className={'stage-perf' + (isWords ? ' is-words' : '') + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare') + (bpm || note ? ' has-note' : '')} role="dialog" aria-label={song.name} dir={dir} ref={rootRef}>
       <div className="stage-perf-scroll" ref={setScroller} dir="ltr">
         {error && <p className="stage-perf-msg">{t(song.missing ? 'stage.missing' : 'stage.error')}</p>}
-        {!error && !doc && <p className="stage-perf-msg">{t('stage.loading')}</p>}
-        {doc && (
+        {!error && !ready && <p className="stage-perf-msg">{t('stage.loading')}</p>}
+        {isWords && (
+          <>
+            <div className="stage-words-box" ref={pagesRef} style={{ '--w-zoom': zoom }}>
+              <Words sections={sectionsW} chords={mode === 'wordsChords'} tr={tr} flats={flats} dir={dir} t={t} />
+            </div>
+            <div className="stage-words-end" aria-hidden="true" />
+          </>
+        )}
+        {mode === 'chart' && doc && (
           <div className="stage-perf-pages" ref={pagesRef}>
           {sizes.map((s, i) => (
             <Page key={song.id + ':' + i} doc={doc} index={i} size={s} width={width} root={scroller}>
@@ -924,7 +1101,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         )}
       </div>
 
-      <div className={'stage-guide' + (playing ? ' is-on' : '')} aria-hidden="true">
+      <div className={'stage-guide' + (playing && !isWords ? ' is-on' : '')} aria-hidden="true">
         <div className="stage-guide-dim" ref={dimRef} />
         <div className="stage-guide-line" ref={lineRef} />
       </div>
@@ -960,9 +1137,20 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
             <Icon d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" size={18} />
           </button>
         )}
-        <button type="button" className={'stage-key is-round' + (night ? ' is-on' : '')} onClick={toggleNight} aria-pressed={night} aria-label={t('stage.night')} title={t('stage.night')}>
-          <Icon d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" size={18} />
-        </button>
+        {isWords ? (
+          // the words are already light on black: the singer's first note
+          // takes Night's place
+          startNote != null && (
+            <button type="button" className="stage-key stage-start-key" onClick={hearStart} aria-label={t('stage.start.title') + ' ' + noteLabel(startNote + tr, flats)} title={t('stage.start.title')}>
+              <Icon d="M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" size={15} />
+              <span dir="ltr">{noteLabel(startNote + tr, flats)}</span>
+            </button>
+          )
+        ) : (
+          <button type="button" className={'stage-key is-round' + (night ? ' is-on' : '')} onClick={toggleNight} aria-pressed={night} aria-label={t('stage.night')} title={t('stage.night')}>
+            <Icon d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" size={18} />
+          </button>
+        )}
       </header>
 
       {(bpm || note) && (
@@ -992,6 +1180,38 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
               <strong dir="auto">{song.name}</strong>
               <button type="button" className="stage-done" onClick={() => setDetails(false)}>
                 {t('stage.done')}
+              </button>
+            </div>
+            {viewOptions.length > 1 && (
+              <div className="stage-field is-col">
+                <span className="stage-field-label">{t('stage.view.title')}</span>
+                <Segmented options={viewOptions} value={mode} onChange={chooseView} ariaLabel={t('stage.view.title')} className="stage-view-seg" />
+              </div>
+            )}
+            <div className="stage-field">
+              <span className="stage-field-label">
+                {t('stage.start.title')}
+                <small>{t('stage.start.sub')}</small>
+              </span>
+              <span className="stage-start-ctl">
+                <Select value={startNote ?? ''} onChange={(e) => changeStart(e.target.value === '' ? null : Number(e.target.value))} aria-label={t('stage.start.title')}>
+                  <option value="">—</option>
+                  {Array.from({ length: 49 }, (_, i) => 36 + i).map((m) => (
+                    <option key={m} value={m}>
+                      {noteLabel(m, flats)}
+                    </option>
+                  ))}
+                </Select>
+                <button type="button" className="stage-key is-text" onClick={hearStart} disabled={startNote == null}>
+                  {t('stage.start.hear')}
+                </button>
+              </span>
+            </div>
+            {tr !== 0 && startNote != null && <p className="stage-field-hint">{t('stage.start.moved', { note: noteLabel(startNote + tr, flats) })}</p>}
+            <div className="stage-field">
+              <span className="stage-field-label">{t('stage.ly.row')}</span>
+              <button type="button" className="stage-key is-text" onClick={() => setEditWords(true)}>
+                {lyrics.trim() ? t('stage.ly.editShort') : t('stage.ly.addShort')}
               </button>
             </div>
             <div className="stage-field">
@@ -1029,6 +1249,22 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
             </div>
           </div>
         </div>
+      )}
+
+      {editWords && (
+        <LyricsSheet
+          songId={song.id}
+          text={lyrics}
+          hasPdf={hasPdf}
+          onClose={() => setEditWords(false)}
+          onSave={async ({ text, start }) => {
+            setEditWords(false);
+            await setSheetLyrics(song.id, text);
+            setRec((r) => ({ ...(r ?? {}), lyrics: text }));
+            if (start != null && startNote == null) changeStart(start);
+            if (text.trim() && !hasPdf) chooseView(viewPref === 'chart' ? 'wordsChords' : viewPref);
+          }}
+        />
       )}
 
       {listOpen && (
@@ -1180,7 +1416,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
           </button>
           <span className="stage-stepper-val">
             <small>{t('stage.key')}</small>
-            {chords === null ? '…' : hasChords ? (
+            {chords === null && mode === 'chart' ? '…' : hasChords ? (
               <>
                 {keyName}
                 {tr !== 0 && <em>{tr > 0 ? `+${tr}` : tr}</em>}
@@ -1194,14 +1430,14 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
           </button>
         </span>
         <span className="stage-stepper" title={t('stage.zoomHint')}>
-          <button type="button" className="stage-key is-small" onClick={() => zoomTo(zoom - 0.25)} disabled={zoom <= ZOOM_MIN} aria-label={t('stage.zoomOut')}>
+          <button type="button" className="stage-key is-small" onClick={() => zoomTo(zoom - (isWords ? 0.1 : 0.25))} disabled={zoom <= (isWords ? WZOOM_MIN : ZOOM_MIN)} aria-label={t('stage.zoomOut')}>
             −
           </button>
           <span className="stage-stepper-val">
             <small>{t('stage.zoom')}</small>
             {zoomPct}%
           </span>
-          <button type="button" className="stage-key is-small" onClick={() => zoomTo(zoom + 0.25)} disabled={zoom >= ZOOM_MAX} aria-label={t('stage.zoomIn')}>
+          <button type="button" className="stage-key is-small" onClick={() => zoomTo(zoom + (isWords ? 0.1 : 0.25))} disabled={zoom >= (isWords ? WZOOM_MAX : ZOOM_MAX)} aria-label={t('stage.zoomIn')}>
             +
           </button>
         </span>

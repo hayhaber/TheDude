@@ -2998,6 +2998,14 @@ no tools).
   ends lower than the old bar's top). Playwright 390 HE, 820 HE dark,
   1180 EN, 1366 HE dark (Chords): no errors.
 
+- v1.0.194 (user, iPhone at 295 %: "save where I placed the chart
+  sideways — coming back it sat at the left"): Performer keeps each
+  chart's SIDEWAYS place in sheet prefs `panX` (0..1 of the room to
+  pan, this device, not pushed to the cloud): saved 300 ms after a
+  sideways scroll (not during a zoom anchor), restored when the chart is
+  drawn (the song still starts at the top). Playwright 390 HE + 1180 EN:
+  zoom 250 %, pan to 70 %, close, reopen -> 0.70.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

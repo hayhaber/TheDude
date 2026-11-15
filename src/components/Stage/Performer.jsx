@@ -176,6 +176,10 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   useLayoutEffect(() => {
     if (!scroller || !doc) return;
     scroller.scrollTop = 0;
+    // a zoomed chart opens where it was placed sideways last time
+    const panX = song ? sheetPrefs(song.id).panX : null;
+    const room = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    scroller.scrollLeft = panX != null && room > 2 ? panX * room : 0;
     const pend = pendingPRef.current; // a followed leader's place in this song
     if (pend) {
       pendingPRef.current = null;
@@ -183,6 +187,28 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       if (pend.playing) setPlaying(true);
     }
   }, [scroller, doc]);
+
+  // Remember the sideways place of a zoomed chart (this device only).
+  useEffect(() => {
+    if (!scroller || !doc || !song) return undefined;
+    const id = song.id;
+    let t = 0;
+    const save = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        if (anchorRef.current) return;
+        const room = scroller.scrollWidth - scroller.clientWidth;
+        if (room <= 2) return;
+        const panX = Math.round((scroller.scrollLeft / room) * 1000) / 1000;
+        if (sheetPrefs(id).panX !== panX) setSheetPrefs(id, { panX });
+      }, 300);
+    };
+    scroller.addEventListener('scroll', save, { passive: true });
+    return () => {
+      clearTimeout(t);
+      scroller.removeEventListener('scroll', save);
+    };
+  }, [scroller, doc, song]);
 
   const [baseWidth, setBaseWidth] = useState(0);
   useLayoutEffect(() => {

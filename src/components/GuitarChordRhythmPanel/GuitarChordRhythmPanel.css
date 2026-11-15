@@ -334,3 +334,10 @@
   font-weight: 700;
   color: var(--text);
 }
+
+/* v1.0.196: the loop switch sits on the controls' baseline (36 px row) */
+.guitar-chord-rhythm-switch {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height, 36px);
+}

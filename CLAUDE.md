@@ -3041,6 +3041,23 @@ no tools).
   — menu opens / chooses (value reaches React), no page errors. Next:
   screens' own buttons / toggles -> Button / Switch, one screen at a time.
 
+- CONTROLS LIBRARY, step 2 = PRACTICE (v1.0.196): Chord changes'
+  Content / Chords / Length chip rows -> pop-up buttons, Loop -> Switch,
+  Start -> Button filled (Stop = gray danger); Scales' scale chips -> a
+  pop-up (the whole setup now fits one row on a computer); One-minute
+  changes: Swap = gray Button + ⇄ glyph, Start / Stop = Button; Bends:
+  Start = the one filled primary (was a 2nd "primary" next to Play again),
+  Play again = gray + PlayGlyph (the ▶ in the string is stripped), Skip
+  plain, Again tinted; Ear training: Exit / Skip = plain (Exit was a red
+  outlined pill — it isn't destructive), Next filled, Finish gray, Play
+  again tinted, answer choices = the gray md button look (CSS); Rhythm /
+  Finger drills "Pick another" = plain (was red outlined). The inline
+  exercise list (ExerciseDrawer inside the page) lost the glass sheet
+  v1.0.192 had given every `.exercise-drawer` (content, not floating).
+  New glyphs `PlayGlyph`, `SwapGlyph` in ui/controls.jsx. PlayAlong's
+  round Demo / record keys stay (transport). Playwright 1180 EN + 390 HE:
+  all 9 tools, ear session, rhythm with an exercise, bends — no errors.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

@@ -134,16 +134,16 @@ export function ScalePracticePanel({ scalePractice, scaleFree, seed, onSeedConsu
         </div>
 
         <div className="scale-practice-field">
-          <span className="scale-practice-field-label align-start" aria-hidden="true">
+          <span className="scale-practice-field-label" aria-hidden="true">
             {t('scalePractice.scale')}
           </span>
-          <div className="mode-toggle wrap" role="group" aria-label={t('scalePractice.scale')}>
+          <Select value={scaleKey} onChange={(e) => setScaleKey(e.target.value)} disabled={isPlaying} aria-label={t('scalePractice.scale')}>
             {SCALE_KEYS.map((key) => (
-              <button key={key} type="button" className={scaleKey === key ? 'active' : ''} onClick={() => setScaleKey(key)} disabled={isPlaying}>
+              <option key={key} value={key}>
                 {t(`scalePractice.scale.${key}`)}
-              </button>
+              </option>
             ))}
-          </div>
+          </Select>
         </div>
 
         <div className="scale-practice-field">

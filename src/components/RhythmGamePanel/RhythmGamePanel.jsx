@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { PlayAlong } from '../PlayAlong/PlayAlong';
 import './RhythmGamePanel.css';
+import { Button } from '../ui/controls';
 
 // "Guitar Hero"-style rhythm practice — pick an exercise (same catalog
 // Practice -> Drills already uses, via the same ExerciseDrawer component),
@@ -36,9 +37,9 @@ export function RhythmGamePanel({ rhythmGame, metronome }) {
             {localize(exercise.title, lang)}
           </h2>
         </div>
-        <button type="button" className="rhythm-game-exit" onClick={rhythmGame.exit}>
+        <Button variant="plain" className="rhythm-game-exit" onClick={rhythmGame.exit}>
           {t('rhythmGame.pickAnother')}
-        </button>
+        </Button>
       </div>
 
       <PlayAlong game={rhythmGame} metronome={metronome} />

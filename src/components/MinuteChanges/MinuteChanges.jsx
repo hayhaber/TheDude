@@ -6,6 +6,7 @@ import { perfFor } from '../../coach/perfLog';
 import { pairIndexOf, parseChord, useMinuteChanges } from '../../hooks/useMinuteChanges';
 import './MinuteChanges.css';
 import { Select } from '../ui/Select';
+import { Button, SwapGlyph } from '../ui/controls';
 
 // Practice: One-Minute Changes — pick two chords, Start, alternate one
 // strum per chord for 60 s; the mic counts the clean changes (see
@@ -164,19 +165,19 @@ export function MinuteChanges({ initialChords, onResult }) {
 
       <div className="minute-controls">
         <ChordSelect id="minute-chord-a" value={a} onChange={setA} disabled={busy} label={t('minute.chordA')} t={t} />
-        <button type="button" className="minute-swap" onClick={swap} disabled={busy} aria-label={t('minute.swapLabel')} title={t('minute.swapLabel')}>
-          <span aria-hidden="true">⇄</span> {t('minute.swap')}
-        </button>
+        <Button variant="gray" className="minute-swap" icon={<SwapGlyph />} onClick={swap} disabled={busy} aria-label={t('minute.swapLabel')} title={t('minute.swapLabel')}>
+          {t('minute.swap')}
+        </Button>
         <ChordSelect id="minute-chord-b" value={b} onChange={setB} disabled={busy} label={t('minute.chordB')} t={t} />
         <div className="minute-actions">
           {busy ? (
-            <button type="button" className="minute-btn is-stop" onClick={mc.stop}>
+            <Button variant="gray" danger className="minute-btn" onClick={mc.stop}>
               {t('minute.stop')}
-            </button>
+            </Button>
           ) : (
-            <button type="button" className="minute-btn is-primary" onClick={mc.start} disabled={same}>
+            <Button variant="filled" className="minute-btn" onClick={mc.start} disabled={same}>
               {mc.phase === 'done' ? t('minute.again') : t('minute.start')}
-            </button>
+            </Button>
           )}
         </div>
       </div>

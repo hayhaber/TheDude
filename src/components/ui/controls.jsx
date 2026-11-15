@@ -132,3 +132,21 @@ export function Stepper({ value, onChange, min = -Infinity, max = Infinity, step
     </span>
   );
 }
+
+/** ▶ for Play / Hear buttons — never mirrored in RTL (time runs left to right). */
+export function PlayGlyph({ size = 13 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className="ui-glyph-play">
+      <path d="M7 4.5v15l12.5-7.5z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Two-arrow swap glyph (⇄). */
+export function SwapGlyph({ size = 15 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      <path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

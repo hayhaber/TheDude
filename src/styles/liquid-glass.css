@@ -57,6 +57,13 @@ html .info-tooltip-bubble {
   border-color: transparent;
   box-shadow: var(--glass-sheet-shadow);
 }
+/* the exercise list embedded in a page is CONTENT, not a floating sheet */
+html .exercise-drawer.exercise-drawer-inline {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
 /* the ⓘ bubble was a solid navy box with white text — now glass + label colour */
 html .info-tooltip-bubble {
   color: var(--text);

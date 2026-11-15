@@ -2,6 +2,7 @@ import { BEND_STATES } from '../../music/bendingTraining';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './BendingPracticePanel.css';
+import { Button, PlayGlyph } from '../ui/controls';
 
 const STATE_COLOR = {
   [BEND_STATES.IDLE]: '#8e8e93',
@@ -83,12 +84,12 @@ export function BendingPracticePanel({ bending }) {
 
       <div className="bending-session">
         <div className="bending-primary-actions">
-          <button type="button" className="play-button" onClick={bending.playDemo}>
-            {t('earTraining.replay')}
-          </button>
-          <button type="button" className="bending-toggle-btn" onClick={bending.isListening ? bending.stop : bending.start}>
+          <Button variant={bending.isListening ? 'gray' : 'filled'} size="lg" onClick={bending.isListening ? bending.stop : bending.start}>
             {bending.isListening ? t('vocal.stop') : t('vocal.start')}
-          </button>
+          </Button>
+          <Button variant="gray" size="lg" icon={<PlayGlyph />} onClick={bending.playDemo}>
+            {t('earTraining.replay').replace(/^▶\s*/, '')}
+          </Button>
         </div>
 
         {bending.error && <p className="bending-error">{bending.error}</p>}
@@ -156,14 +157,14 @@ export function BendingPracticePanel({ bending }) {
               <div className="bending-hold-fill" style={{ width: `${bending.holdProgress * 100}%` }} />
             </div>
 
-            <button type="button" className="bending-skip-btn" onClick={bending.skip}>{t('vocal.skip')}</button>
+            <Button variant="plain" className="bending-skip-btn" onClick={bending.skip}>{t('vocal.skip')}</Button>
           </>
         )}
 
         {bending.isListening && bending.isComplete && (
           <div className="bending-complete">
             <p>{t('vocal.complete')}</p>
-            <button type="button" className="bending-again-btn" onClick={bending.restart}>{t('vocal.again')}</button>
+            <Button variant="tinted" onClick={bending.restart}>{t('vocal.again')}</Button>
           </div>
         )}
 

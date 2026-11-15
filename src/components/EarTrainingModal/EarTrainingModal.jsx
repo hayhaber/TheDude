@@ -8,6 +8,7 @@ import { PianoKeyboard } from '../PianoKeyboard/PianoKeyboard';
 import { EarTrainingMicAnswer } from './EarTrainingMicAnswer';
 import './EarTrainingModal.css';
 import { Select } from '../ui/Select';
+import { Button, PlayGlyph } from '../ui/controls';
 
 // question.prompt/choices[].label come from music/earTraining.js as fixed
 // English strings (also used internally there for nothing beyond display),
@@ -207,9 +208,9 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
       <div className={isInline ? 'ear-training-modal ear-training-modal-inline' : 'ear-training-modal'} onClick={(e) => e.stopPropagation()}>
         <div className="ear-training-header">
           <h2 className="ear-training-title">{t('earTraining.title')}</h2>
-          <button type="button" className="ear-training-exit" onClick={onClose}>
+          <Button variant="plain" className="ear-training-exit" onClick={onClose}>
             {t('earTraining.exit')}
-          </button>
+          </Button>
         </div>
         <div className="ear-training-summary">
           <h3>{t(isFinished ? 'earTraining.summary.title' : 'earTraining.timedSummary.title')}</h3>
@@ -242,13 +243,13 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
           <div className="ear-training-header-actions">
             {/* Finish: end this session and see how it went. */}
             {score.total > 0 && (
-              <button type="button" className="ear-training-finish" onClick={finish}>
+              <Button variant="gray" className="ear-training-finish" onClick={finish}>
                 {t('earTraining.finish')}
-              </button>
+              </Button>
             )}
-            <button type="button" className="ear-training-exit" onClick={onClose}>
+            <Button variant="plain" className="ear-training-exit" onClick={onClose}>
               {t('earTraining.exit')}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -376,9 +377,9 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
             {inlineInstrument}
 
             <div className="ear-training-actions">
-              <button type="button" className="play-button" onClick={replay}>
-                {t('earTraining.replay')}
-              </button>
+              <Button variant="tinted" icon={<PlayGlyph />} onClick={replay}>
+                {t('earTraining.replay').replace(/^▶\s*/, '')}
+              </Button>
               {question.kind === 'callresponse' && progress.length > 0 && (
                 <span className="ear-training-progress-label">
                   {t('earTraining.progressLabel', { done: progress.length, total: question.targetMidiSequence.length })}
@@ -390,14 +391,14 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                     after answering pauses that and brings back a Next
                     button so you can re-listen/study as long as you want. */}
                 {answered && ((isAutoFlowQuestion && autoAdvancePaused) || (!isTimed && !isAutoFlowQuestion)) && (
-                  <button type="button" className="ear-training-next" onClick={next}>
+                  <Button variant="filled" className="ear-training-next" onClick={next}>
                     {t('earTraining.next')}
-                  </button>
+                  </Button>
                 )}
                 {!answered && (
-                  <button type="button" className="ear-training-skip" onClick={skip}>
+                  <Button variant="plain" className="ear-training-skip" onClick={skip}>
                     {t('earTraining.skip')}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

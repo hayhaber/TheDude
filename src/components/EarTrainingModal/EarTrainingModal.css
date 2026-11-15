@@ -310,13 +310,15 @@
 }
 
 .ear-training-choice {
-  font-size: 13px;
-  font-weight: 590;
-  padding: 9px 16px;
+  /* the controls library's gray button, md (v1.0.196) */
+  min-height: 36px;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0 18px;
   border-radius: 980px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
+  border: 1px solid transparent;
+  background: var(--fill-tertiary);
+  color: var(--accent);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
 }

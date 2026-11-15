@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { localize } from '../../i18n/localize';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import './PracticeDrillPanel.css';
+import { Button } from '../ui/controls';
 
 // Space = play/pause, arrow keys = manual step when paused — only active
 // while an exercise is loaded.
@@ -54,9 +55,9 @@ export function PracticeDrillPanel({ drill }) {
             <span className="practice-drill-timer">{formatElapsed(elapsedMs)}</span>
           </p>
         </div>
-        <button type="button" className="practice-drill-exit" onClick={drill.exit}>
+        <Button variant="plain" className="practice-drill-exit" onClick={drill.exit}>
           {t('practiceDrillPanel.exit')}
-        </button>
+        </Button>
       </div>
 
       <div className="practice-drill-controls">

@@ -5,6 +5,7 @@ import { GUITAR_CHORD_RHYTHM_MODES, getChordToneLabels, parseGuitarChordProgress
 import { LEAD_TIME_S } from '../../hooks/useGuitarChordRhythm';
 import './GuitarChordRhythmPanel.css';
 import { Select } from '../ui/Select';
+import { Button, Switch } from '../ui/controls';
 
 // Once a chord's own judging window has this little time left (real
 // seconds) and it's STILL unanswered, show what notes it's actually made
@@ -149,13 +150,13 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
           <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
             {t('guitarChordRhythm.source')}
           </span>
-          <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.source')}>
+          <Select value={source} onChange={(e) => setSource(e.target.value)} disabled={isPlaying} aria-label={t('guitarChordRhythm.source')}>
             {['auto', 'custom', 'song'].map((key) => (
-              <button key={key} type="button" className={source === key ? 'active' : ''} onClick={() => setSource(key)} disabled={isPlaying}>
+              <option key={key} value={key}>
                 {t(`guitarChordRhythm.source.${key}`)}
-              </button>
+              </option>
             ))}
-          </div>
+          </Select>
         </div>
 
         {source === 'auto' && (
@@ -165,32 +166,26 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
                 <span aria-hidden="true">{t('guitarChordRhythm.mode')}</span>
                 <InfoTooltip text={t('tip.practice.chordPool')} />
               </span>
-              <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.mode')}>
+              <Select value={mode} onChange={(e) => setMode(e.target.value)} disabled={isPlaying} aria-label={t('guitarChordRhythm.mode')}>
                 {GUITAR_CHORD_RHYTHM_MODES.map((m) => (
-                  <button key={m.key} type="button" className={mode === m.key ? 'active' : ''} onClick={() => setMode(m.key)} disabled={isPlaying}>
+                  <option key={m.key} value={m.key}>
                     {t(`guitarChordRhythm.mode.${m.key}`)}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </Select>
             </div>
 
             <div className="guitar-chord-rhythm-field">
               <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
                 {t('guitarChordRhythm.duration')}
               </span>
-              <div className="mode-toggle wrap" role="group" aria-label={t('guitarChordRhythm.duration')}>
+              <Select value={autoDuration} onChange={(e) => setAutoDuration(e.target.value)} disabled={isPlaying} aria-label={t('guitarChordRhythm.duration')}>
                 {['fixed', 'timer', 'endless'].map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    className={autoDuration === key ? 'active' : ''}
-                    onClick={() => setAutoDuration(key)}
-                    disabled={isPlaying}
-                  >
+                  <option key={key} value={key}>
                     {t(`guitarChordRhythm.duration.${key}`)}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </Select>
             </div>
           </>
         )}
@@ -258,14 +253,9 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
             <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
               {t('guitarChordRhythm.loop')}
             </span>
-            <div className="mode-toggle" role="group" aria-label={t('guitarChordRhythm.loop')}>
-              <button type="button" className={!loop ? 'active' : ''} onClick={() => setLoop(false)} disabled={isPlaying}>
-                {t('guitarChordRhythm.loop.off')}
-              </button>
-              <button type="button" className={loop ? 'active' : ''} onClick={() => setLoop(true)} disabled={isPlaying}>
-                {t('guitarChordRhythm.loop.on')}
-              </button>
-            </div>
+            <span className="guitar-chord-rhythm-switch">
+              <Switch checked={loop} onChange={setLoop} disabled={isPlaying} aria-label={t('guitarChordRhythm.loop')} />
+            </span>
           </div>
         )}
 
@@ -287,9 +277,9 @@ export function GuitarChordRhythmPanel({ guitarChordRhythm, metronome }) {
           <span className="guitar-chord-rhythm-field-label" aria-hidden="true">
             &nbsp;
           </span>
-          <button type="button" className="play-button" onClick={isPlaying ? stop : ended ? restart : play}>
+          <Button variant={isPlaying ? 'gray' : 'filled'} danger={isPlaying} onClick={isPlaying ? stop : ended ? restart : play}>
             {isPlaying ? t('vocal.stop') : ended ? t('chordRhythm.tryAgain') : t('vocal.start')}
-          </button>
+          </Button>
         </div>
       </div>
 

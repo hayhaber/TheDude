@@ -3253,3 +3253,9 @@ no tools).
   card's 4th shortcut is named "Record" / "הקלטה" (`stage.nav.rehearse`,
   it opens the Recorder tool screen) and its icon is the record dot again. A real
   rehearsal screen was offered, not chosen.
+- v1.0.210 (user: "Setlists and Songs are the same thing" -> option 1):
+  the Band screen's home is two lists like Apple Music's library — a
+  Segmented "Setlists | Songs" (`.stg-tabs`, StageView `tab`, start
+  'songs' opens Songs, everything else Setlists); each tab shows only its
+  list (section titles screen-reader only); the empty state shows on
+  Songs, and on Setlists only while there are no songs and no setlists.

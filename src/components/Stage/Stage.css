@@ -1717,3 +1717,11 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
   .stg-screen-top { padding: calc(6px + env(safe-area-inset-top, 0px)) 12px 6px; }
   .stg-screen-main { padding-inline: 16px; }
 }
+
+/* v1.0.210: Setlists | Songs */
+.stg-tabs {
+  align-self: stretch;
+  max-width: 520px;
+}
+.stg-tabs + .ph-section,
+.stg-tabs + .stg-empty { margin-top: 4px; }

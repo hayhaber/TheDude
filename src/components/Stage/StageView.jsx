@@ -462,6 +462,9 @@ export function StageView({ onAccount, start = null }) {
   const [msg, setMsg] = useState(null);
   const [photos, setPhotos] = useState(null); // several images: one chart or one each?
   const fileRef = useRef(null);
+  // v1.0.210: the home is two lists, like Apple Music's library — Setlists |
+  // Songs (the card's two shortcuts open one each)
+  const [tab, setTab] = useState(start === 'songs' ? 'songs' : 'sets');
   const [hintOff, setHintOff] = useState(() => {
     try {
       return localStorage.getItem(HINT_KEY) === '1';
@@ -561,7 +564,6 @@ export function StageView({ onAccount, start = null }) {
   useEffect(() => {
     if (startedRef.current || !sheets) return;
     startedRef.current = true;
-    if (start === 'songs') document.getElementById('stg-songs')?.scrollIntoView({ block: 'start' });
     if (start === 'band') {
       if (band) setDialog('manage');
       else if (isIn && cloud.bands.length) {
@@ -1029,16 +1031,27 @@ export function StageView({ onAccount, start = null }) {
         </div>
       )}
 
-      {sheets && scoped.length === 0 && (
+      <Segmented
+        className="stg-tabs"
+        ariaLabel={t('stage.title')}
+        options={[
+          { value: 'sets', label: t('stage.nav.sets') },
+          { value: 'songs', label: t('stage.nav.songs') },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
+
+      {sheets && scoped.length === 0 && (tab === 'songs' || sets.lists.length === 0) && (
         <div className="stg-empty">
           <strong>{band ? t('stage.band.emptyTitle', { band: band.name }) : t('stage.emptyTitle')}</strong>
           <p className="stg-empty-text">{band ? t('stage.band.emptyText') : t('stage.emptyText')}</p>
         </div>
       )}
 
-      {(scoped.length > 0 || sets.lists.length > 0) && (
+      {tab === 'sets' && (scoped.length > 0 || sets.lists.length > 0) && (
         <section className="ph-section">
-          <h2 className="ph-section-title">{t('stage.setlists')}</h2>
+          <h2 className="stg-sr">{t('stage.setlists')}</h2>
           <div className="ph-group stg-group">
             {sets.lists.map((l) => (
               <button key={l.id} type="button" className="ph-row" onClick={() => setOpenSet(l.id)}>
@@ -1064,9 +1077,9 @@ export function StageView({ onAccount, start = null }) {
         </section>
       )}
 
-      {scoped.length > 0 && (
+      {tab === 'songs' && scoped.length > 0 && (
         <section className="ph-section" id="stg-songs">
-          <h2 className="ph-section-title">{t('stage.charts')}</h2>
+          <h2 className="stg-sr">{t('stage.charts')}</h2>
           <div className="ph-group stg-group">
             {scoped.map((s, i) => (
               <div key={s.id} className="stg-row">

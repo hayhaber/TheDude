@@ -1,4 +1,6 @@
+import { useMemo, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { BackSlotContext } from '../HomeButton/BackButton';
 import { HomeButton } from '../HomeButton/HomeButton';
 import { StageView } from './StageView';
 import './Stage.css';
@@ -10,13 +12,20 @@ import './Stage.css';
  */
 export function StageScreen({ start = 'sets', onBack, onAccount }) {
   const { lang } = useLanguage();
+  const [slot, setSlot] = useState(null);
+  const slots = useMemo(() => [slot], [slot]);
   return (
     <div className="stg-screen" dir={lang === 'he' ? 'rtl' : 'ltr'}>
-      <header className="stg-screen-top">
+      {/* Home always at the top-left, like inside an instrument; a screen's
+          Back circle beside it. */}
+      <header className="stg-screen-top" dir="ltr">
         <HomeButton className="stg-screen-home" onClick={onBack} />
+        <span className="app-back-slot" ref={setSlot} />
       </header>
       <main className="stg-screen-main">
-        <StageView start={start} onAccount={onAccount} />
+        <BackSlotContext.Provider value={slots}>
+          <StageView start={start} onAccount={onAccount} />
+        </BackSlotContext.Provider>
       </main>
     </div>
   );

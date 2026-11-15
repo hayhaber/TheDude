@@ -32,16 +32,8 @@ export function LibraryRow({ color, icon, title, desc, tag, tagTone, onClick }) 
   );
 }
 
-export function BackButton({ label, onClick }) {
-  return (
-    <button type="button" className="ph-back practice-tabs" onClick={onClick}>
-      <svg viewBox="0 0 12 20" width="12" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M10 2L2 10l8 8" />
-      </svg>
-      {label}
-    </button>
-  );
-}
+// The Back button moved to components/HomeButton (a glass circle beside Home).
+export { BackButton } from '../HomeButton/BackButton';
 
 function Row({ item, level, onOpen, t }) {
   const challenging = level != null && item.min > level;

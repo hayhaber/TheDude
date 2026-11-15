@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { LineIcon } from '../LineIcon/LineIcon';
 import { SECTIONS, NAV_GROUPS, lastSectionIn, rememberSection, rememberPlace } from './sections';
 import { TunerBar } from '../TunerBar/TunerBar';
 import { ProfileChip } from '../../profile/ProfileChip';
 import { HomeButton } from '../HomeButton/HomeButton';
+import { BackSlotContext } from '../HomeButton/BackButton';
 import { RewardToast } from '../Achievements/RewardToast';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useInstrument } from '../../instruments/useInstrument';
@@ -156,10 +157,17 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
     return () => ro.disconnect();
   }, [stage != null]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The slots a screen's Back button is portaled into (beside Home).
+  const [stripSlot, setStripSlot] = useState(null);
+  const [barSlot, setBarSlot] = useState(null);
+  const backSlots = useMemo(() => [stripSlot, barSlot], [stripSlot, barSlot]);
+
   return (
     <div className={'app-shell' + (bare ? ' is-bare' : '') + (noTools ? ' no-tools' : '')}>
       {/* Phone/tablet: the round Home button (back to the main menu), top-left. */}
       <HomeButton className="app-mobile-brand" onClick={() => onHome?.()} />
+      {/* A screen's Back button lands here (beside Home) — see BackButton. */}
+      <div className="app-back-slot is-strip" ref={setStripSlot} />
 
       {/* Phone/tablet: the group's segmented control sits in the top strip,
           between Home and the round buttons — iOS's navigation-bar segment. */}
@@ -183,6 +191,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
           {/* Left: the round Home button (back to the main menu). */}
           <div className="app-topbar-brand">
             <HomeButton className="app-topbar-home" onClick={() => onHome?.()} />
+            <span className="app-back-slot is-bar" ref={setBarSlot} />
           </div>
           {/* The goal groups in reading order (Learn first). */}
           <nav className={'app-topbar-nav mode-toggle wrap' + (bare ? ' is-empty' : '')} dir={dir} aria-label={t('nav.mainLabel')}>
@@ -207,6 +216,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
             <ProfileChip compact onSettings={onSettings} />
           </div>
         </header>
+        <BackSlotContext.Provider value={backSlots}>
         <div className="app-section-content" dir={dir}>
           {/* Inside a group of two: an iOS segmented control between them
               (desktop: above the title; phone/tablet: in the top strip). */}
@@ -214,6 +224,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
           {!bare && <FirstVisit key={instrument + ':' + activeSection} section={activeSection} instrument={instrument} />}
           {children}
         </div>
+        </BackSlotContext.Provider>
         {stage && (
           <div className={'app-stage-anchor' + (stageCollapsed ? ' is-collapsed' : '')} ref={stageRef}>
             <button

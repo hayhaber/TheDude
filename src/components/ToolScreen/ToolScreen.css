@@ -245,3 +245,12 @@
     width: min(1040px, 100%);
   }
 }
+
+/* Home + a page's Back circle (v1.0.211), at the screen's start. */
+.tool-screen-lead {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 37px;
+}

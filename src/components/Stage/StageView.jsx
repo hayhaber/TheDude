@@ -24,7 +24,7 @@ import {
 } from '../../music/sheets/chartCloud';
 import { getLink } from '../../cloud/cloudState';
 import { useCloud } from '../../cloud/useCloud';
-import { BackButton } from '../PracticeView/PracticeHome';
+import { BackButton } from '../HomeButton/BackButton';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { Performer } from './Performer';
 import './Stage.css';
@@ -409,6 +409,50 @@ function BandManageSheet({ band, uid, here, onShare, onNewCode, onRename, onRemo
   );
 }
 
+// Search (v1.0.211): shown once a list is longer than this.
+const SEARCH_FROM = 8;
+const fold = (x) =>
+  String(x ?? '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f\u0591-\u05c7]/g, '')
+    .replace(/[\u05f3\u05f4'"״׳`’]/g, '');
+/** true = the name matches; a string = a bit of the words that match; null = no match. */
+function matchSong(s, q) {
+  const n = fold(q).trim();
+  if (!n) return true;
+  if (fold(s.name).includes(n)) return true;
+  if (!s.lyrics) return null;
+  const plain = String(s.lyrics).replace(/\[[^\]]*\]|\{[^}]*\}/g, '');
+  for (const line of plain.split('\n')) {
+    if (fold(line).includes(n)) {
+      const l = line.replace(/\s+/g, ' ').trim();
+      return l.length > 60 ? l.slice(0, 58) + '…' : l;
+    }
+  }
+  return null;
+}
+
+function SearchField({ value, onChange, t }) {
+  return (
+    <label className="stg-search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="M15.5 15.5 20 20" />
+      </svg>
+      <input type="search" dir="auto" value={value} placeholder={t('stage.search')} aria-label={t('stage.search')} onChange={(e) => onChange(e.target.value)} enterKeyHint="search" />
+      {value && (
+        <button type="button" className="stg-search-clear" aria-label={t('stage.ly.cancel')} onClick={() => onChange('')}>
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+            <circle cx="8" cy="8" r="8" fill="currentColor" />
+            <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="var(--bg, #fff)" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
+    </label>
+  );
+}
+
 export function StageView({ onAccount, start = null }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -458,6 +502,8 @@ export function StageView({ onAccount, start = null }) {
   const [renaming, setRenaming] = useState(null); // id of a sheet / setlist
   const [sureDelete, setSureDelete] = useState(null);
   const [picking, setPicking] = useState(false);
+  const [query, setQuery] = useState('');
+  const [pickQuery, setPickQuery] = useState('');
   const [dialog, setDialog] = useState(null); // 'newBand' | 'join' | 'invite' | 'members'
   const [msg, setMsg] = useState(null);
   const [photos, setPhotos] = useState(null); // several images: one chart or one each?
@@ -886,7 +932,7 @@ export function StageView({ onAccount, start = null }) {
                     {s.name}
                   </span>
                 </span>
-                {(s.missing || durOf(s.id)) && <span className="stg-detail">{s.missing ? t('stage.missing') : durOf(s.id)}</span>}
+                {!s.missing && durOf(s.id) && <span className="stg-detail">{durOf(s.id)}</span>}
               </button>
               <MoreMenu label={t('stage.more')}>
                 {!s.missing && (
@@ -917,12 +963,15 @@ export function StageView({ onAccount, start = null }) {
         </div>
 
         {picking && (
-          <Sheet title={t('stage.pick')} onClose={() => setPicking(false)} dir={dir} t={t}>
+          <Sheet title={t('stage.pick')} onClose={() => (setPicking(false), setPickQuery(''))} dir={dir} t={t}>
+            {notIn.length > SEARCH_FROM && <SearchField value={pickQuery} onChange={setPickQuery} t={t} />}
             {notIn.length === 0 ? (
               <p className="stg-empty-text">{scoped.length ? t('stage.allPicked') : t('stage.emptyText')}</p>
+            ) : notIn.filter((s) => matchSong(s, pickQuery)).length === 0 ? (
+              <p className="stg-empty-text">{t('stage.searchNone', { q: pickQuery.trim() })}</p>
             ) : (
               <div className="ph-group stg-group">
-                {notIn.map((s) => (
+                {notIn.filter((s) => matchSong(s, pickQuery)).map((s) => (
                   <button key={s.id} type="button" className="ph-row" onClick={() => sets.setItems(set.id, [...set.items, s.id])}>
                     <span className="stg-plus" aria-hidden="true">+</span>
                     <span className="ph-title" dir="auto">
@@ -944,6 +993,11 @@ export function StageView({ onAccount, start = null }) {
   }
 
   // ---- home ----
+  const shownSongs = scoped.flatMap((s, i) => {
+    if (scoped.length <= SEARCH_FROM) return [{ s, i, inWords: null }];
+    const m = matchSong(s, query);
+    return m ? [{ s, i, inWords: m === true ? null : m }] : [];
+  });
   const status = !isIn
     ? null
     : cloud.status === 'syncing'
@@ -1080,8 +1134,10 @@ export function StageView({ onAccount, start = null }) {
       {tab === 'songs' && scoped.length > 0 && (
         <section className="ph-section" id="stg-songs">
           <h2 className="stg-sr">{t('stage.charts')}</h2>
-          <div className="ph-group stg-group">
-            {scoped.map((s, i) => (
+          {scoped.length > SEARCH_FROM && <SearchField value={query} onChange={setQuery} t={t} />}
+          {shownSongs.length === 0 && <p className="stg-empty-text stg-search-none">{t('stage.searchNone', { q: query.trim() })}</p>}
+          <div className={"ph-group stg-group" + (shownSongs.length === 0 ? " stg-hidden" : "")}>
+            {shownSongs.map(({ s, i, inWords }) => (
               <div key={s.id} className="stg-row">
                 {renaming === s.id ? (
                   <span className="ph-row stg-row-main">
@@ -1112,6 +1168,7 @@ export function StageView({ onAccount, start = null }) {
                       <span className="ph-title" dir="auto">
                         {s.name}
                       </span>
+                      {inWords && <span className="ph-desc stg-hit" dir="auto">{t('stage.inWords')} · {inWords}</span>}
                     </span>
                     {(durOf(s.id) || (isIn && !s.cloud)) && (
                       <span className="stg-detail">{[durOf(s.id), isIn && !s.cloud ? t('stage.cloud.notYet') : null].filter(Boolean).join(' · ')}</span>

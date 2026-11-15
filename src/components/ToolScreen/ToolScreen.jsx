@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { BackSlotContext } from '../HomeButton/BackButton';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { HomeButton } from '../HomeButton/HomeButton';
 import { Metronome } from '../Metronome/Metronome';
@@ -19,6 +20,9 @@ import './ToolScreen.css';
  */
 export function ToolScreen({ tool, onBack, asSheet = false, tunerMode, onTunerModeChange, settingsProps, metronome, drums }) {
   const { t, lang } = useLanguage();
+  // A page's Back circle (Settings) sits beside Home / at the sheet's start.
+  const [slot, setSlot] = useState(null);
+  const slots = useMemo(() => [slot], [slot]);
   // The Metronome | Tuner switch only belongs to those two.
 
   useEffect(() => {
@@ -32,7 +36,10 @@ export function ToolScreen({ tool, onBack, asSheet = false, tunerMode, onTunerMo
   return (
     <div className={'tool-screen' + (tool === 'settings' ? ' is-settings' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <header className="tool-screen-top">
-        {asSheet ? <span aria-hidden="true" /> : <HomeButton className="tool-screen-home" onClick={onBack} />}
+        <span className="tool-screen-lead">
+          {!asSheet && <HomeButton className="tool-screen-home" onClick={onBack} />}
+          <span className="app-back-slot" ref={setSlot} />
+        </span>
         {/* No Metronome | Tuner switch (user's request): each tool opens from
             its own shortcut on the Tools card. */}
         <span aria-hidden="true" />
@@ -46,6 +53,7 @@ export function ToolScreen({ tool, onBack, asSheet = false, tunerMode, onTunerMo
         )}
       </header>
 
+      <BackSlotContext.Provider value={slots}>
       <main className="tool-screen-body">
         {tool !== 'settings' && <h1 className="tool-screen-title">
           {t(
@@ -89,6 +97,7 @@ export function ToolScreen({ tool, onBack, asSheet = false, tunerMode, onTunerMo
           )}
         </div>
       </main>
+      </BackSlotContext.Provider>
     </div>
   );
 }

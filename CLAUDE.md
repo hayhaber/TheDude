@@ -3259,3 +3259,21 @@ no tools).
   'songs' opens Songs, everything else Setlists); each tab shows only its
   list (section titles screen-reader only); the empty state shows on
   Songs, and on Setlists only while there are no songs and no setlists.
+- v1.0.211 (user, iPad: the blue "‹ Stage" link + "Not on this device"
+  twice; "many songs need a search"): (1) BACK = a round glass chevron
+  circle beside the Home button everywhere (`components/HomeButton/
+  BackButton.jsx`; PracticeHome re-exports it). Screens keep rendering
+  `<BackButton label onClick>` where they like; it is PORTALED into a slot
+  (`BackSlotContext`): AppShell `.app-back-slot.is-strip` (phone / tablet,
+  fixed, Home + 45 px) + `.is-bar` (desktop top bar's brand area), the
+  Band screen's top, ToolScreen's `.tool-screen-lead` (Settings pages;
+  as a sheet = top-start beside Done). No slot = inline circle. The
+  label is read out only (aria "Back · <screen>"), chevron mirrored in
+  Hebrew. `stage.back` = Band / להקה. (2) SEARCH in Band -> Songs and the
+  "Add songs" sheet once the list is longer than 8 (`SEARCH_FROM`):
+  iOS grey search field, matches the name or the words (niqqud / chords
+  / notes ignored); a words hit shows "in the words · <line>" under the
+  title; none = "No song matches …". (3) A setlist song missing here
+  shows "Not on this device" once (title), no detail. Playwright 390 HE +
+  1180 EN: search name / Hebrew / words / none / clear, pick sheet,
+  back beside Home on Band, Practice tool, Settings pages; no errors.

@@ -1703,6 +1703,7 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
   z-index: 20;
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: calc(10px + env(safe-area-inset-top, 0px)) 20px 10px;
   pointer-events: none;
 }
@@ -1725,3 +1726,55 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
 }
 .stg-tabs + .ph-section,
 .stg-tabs + .stg-empty { margin-top: 4px; }
+
+/* Search (v1.0.211): the iOS search field — a grey capsule, magnifier,
+   a clear key while there is text. */
+.stg-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  margin: 0 0 12px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--fill-tertiary);
+  color: var(--text-secondary);
+}
+.stg-search input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.stg-search input::-webkit-search-cancel-button {
+  display: none;
+}
+.stg-search input::placeholder {
+  color: var(--text-secondary);
+}
+.stg-search-clear {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  cursor: pointer;
+}
+.stg-hidden {
+  display: none !important;
+}
+.stg-search-none {
+  text-align: center;
+  padding: 12px 0;
+}
+.stg-hit {
+  font-style: normal;
+}

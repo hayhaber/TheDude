@@ -641,3 +641,47 @@
     white-space: nowrap;
   }
 }
+
+/* A screen's Back button (v1.0.211): a glass circle beside Home — the
+   desktop top bar's brand area, the phone / tablet strip. */
+.app-back-slot {
+  display: none;
+}
+.app-back-slot:not(:empty) {
+  display: flex;
+  align-items: center;
+}
+.app-back-slot.is-strip {
+  position: fixed;
+  top: calc(var(--mobile-top-pad, 16px) + env(safe-area-inset-top, 0px));
+  left: calc(var(--space-4) + 45px);
+  z-index: 6;
+}
+@media (min-width: 900px) {
+  .app-back-slot.is-strip {
+    display: none !important;
+  }
+}
+@media (max-width: 899px) {
+  .app-back-slot.is-bar {
+    display: none !important;
+  }
+}
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--text);
+}
+.back-button svg {
+  margin-inline-end: 2px;
+}
+.back-button.is-rtl svg {
+  transform: scaleX(-1);
+}
+.back-button.is-inline {
+  align-self: flex-start;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}

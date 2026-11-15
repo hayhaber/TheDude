@@ -32,6 +32,7 @@ import { Select } from '../ui/Select';
 import { Segmented } from '../ui/controls';
 import { openBandLink } from '../../music/sheets/bandLink';
 import { LyricsSheet } from './LyricsSheet';
+import { SuggestionsView } from './SuggestionsView';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -510,7 +511,10 @@ export function StageView({ onAccount, start = null }) {
   const fileRef = useRef(null);
   // v1.0.210: the home is two lists, like Apple Music's library — Setlists |
   // Songs (the card's two shortcuts open one each)
-  const [tab, setTab] = useState(start === 'songs' ? 'songs' : 'sets');
+  const [tab, setTab] = useState(start === 'songs' ? 'songs' : start === 'ideas' ? 'ideas' : 'sets');
+  useEffect(() => {
+    if (tab === 'ideas' && !band && (!isIn || cloud.lastSync)) setTab('sets');
+  }, [tab, band, isIn, cloud.lastSync]);
   const [hintOff, setHintOff] = useState(() => {
     try {
       return localStorage.getItem(HINT_KEY) === '1';
@@ -1091,12 +1095,29 @@ export function StageView({ onAccount, start = null }) {
         options={[
           { value: 'sets', label: t('stage.nav.sets') },
           { value: 'songs', label: t('stage.nav.songs') },
+          ...(band ? [{ value: 'ideas', label: t('stage.nav.ideas') }] : []),
         ]}
         value={tab}
         onChange={setTab}
       />
 
-      {sheets && scoped.length === 0 && (tab === 'songs' || sets.lists.length === 0) && (
+      {tab === 'ideas' && band && (
+        <SuggestionsView
+          band={band}
+          uid={uid}
+          suggestions={cloud.suggestions}
+          ready={cloud.suggestReady}
+          songIds={new Set(scoped.map((x) => x.id))}
+          sets={sets}
+          onOpenSet={setOpenSet}
+          say={setMsg}
+          Sheet={Sheet}
+          dir={dir}
+          t={t}
+        />
+      )}
+
+      {tab !== 'ideas' && sheets && scoped.length === 0 && (tab === 'songs' || sets.lists.length === 0) && (
         <div className="stg-empty">
           <strong>{band ? t('stage.band.emptyTitle', { band: band.name }) : t('stage.emptyTitle')}</strong>
           <p className="stg-empty-text">{band ? t('stage.band.emptyText') : t('stage.emptyText')}</p>

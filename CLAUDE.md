@@ -3277,3 +3277,36 @@ no tools).
   shows "Not on this device" once (title), no detail. Playwright 390 HE +
   1180 EN: search name / Hebrew / words / none / clear, pick sheet,
   back beside Home on Band, Practice tool, Settings pages; no errors.
+- BAND SUGGESTIONS (v1.0.212, 2026-11-15; user: "for a cover band's
+  repertoire — each member suggests a few songs, one shared list everyone
+  sees, from it we pick the songs to rehearse"). Band screen, band scope
+  only: a 3rd tab "Suggestions" / "הצעות" (StageView `tab` 'ideas';
+  hidden in "Mine", falls back to Setlists). `Stage/SuggestionsView.jsx`:
+  one-line how-to; groups "For rehearsal · n" (+ quiet "Setlist" capsule =
+  a band setlist "Rehearsal <d.m>" of the picks, opened at once) ·
+  "Suggestions · n" (most likes first, "+ Suggest a song" row) · a folded
+  "Not chosen · n". Row = like key (thumb + count, accent when mine, 44 pt)
+  · title / artist · "by <name>" / the note (2 lines) · ••• Listen (link) /
+  Rehearse it / Back to suggestions / Not for us / Edit / Delete (two-tap,
+  only who suggested it or the band owner). Tap = the sheet (song, artist,
+  https link, why; shows who suggested + who liked). "Rehearse it" =
+  status picked + a words-only BAND SONG "Title – Artist" (addTextSong,
+  reused if its song still exists) so it can go into setlists; toast says
+  to add words / a chart. Cloud (chartCloud.js): state `suggestions`,
+  `suggestReady`; synced in syncWith step 4 (missing table 42P01 /
+  PGRST205 -> not ready = "one-time server setup" card, nothing breaks);
+  addSuggestion / updateSuggestion / removeSuggestion (soft) /
+  voteSuggestion (rpc) — optimistic, a refused write re-syncs. NEW
+  `supabase/migrations/005_band_suggestions.sql` — THE USER RUNS IT:
+  table band_suggestions (status open | picked | dropped, votes uuid[],
+  by_user / by_name, deleted), trigger keeps band / author / created fixed,
+  votes change ONLY via `toggle_suggestion_vote(s)` (security definer,
+  members only, atomic), delete only by the author or the owner, RLS
+  members read / add / change, anon none. Checked on a local Postgres 16
+  (stub auth / storage): member adds, direct vote edit ignored, rpc
+  toggles, outsider sees / adds / votes nothing, bad link refused, member
+  can't delete another's, owner can, undelete ignored, anon denied, script
+  re-runs. Playwright (fake Supabase, A 1180 EN owner + B 390 HE member):
+  suggest (bad link blocked), like / unlike, B's suggestion seen by A,
+  pick -> band song + toast, drop -> folded, rehearsal setlist, no table ->
+  setup card; no page errors. Not checked against the real Supabase.

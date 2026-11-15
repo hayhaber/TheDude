@@ -19,15 +19,15 @@ const CACHE = (uid) => `dudestar-stage-cloud:${uid}`; // device
 
 // ---- store -----------------------------------------------------------------
 
-let state = { status: 'off', error: null, bands: [], setlists: [], lastSync: null };
+let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, lastSync: null };
 const subs = new Set();
 function set(patch) {
   state = { ...state, ...patch };
   for (const fn of subs) fn();
   const uid = getLink()?.userId;
-  if (uid && (patch.bands || patch.setlists || patch.lastSync)) {
+  if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.lastSync)) {
     try {
-      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, lastSync: state.lastSync }));
+      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, lastSync: state.lastSync }));
     } catch {
       /* quota */
     }
@@ -47,7 +47,7 @@ function restoreCache() {
   if (!uid) return;
   try {
     const c = JSON.parse(localStorage.getItem(CACHE(uid)));
-    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], lastSync: c.lastSync ?? null };
+    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], lastSync: c.lastSync ?? null };
   } catch {
     /* none */
   }
@@ -70,6 +70,22 @@ const missingColumn = (e) => e && (e.code === '42703' || e.code === 'PGRST204' |
 let hasSong = true;
 const SONG = (rec, p) => (hasSong ? { lyrics: rec.lyrics || null, start_note: p.start ?? null } : {});
 const missingSongCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /lyrics|start_note/i.test(e.message || '');
+
+const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
+const suggestionOf = (x) => ({
+  id: x.id,
+  band: x.band_id,
+  title: x.title,
+  artist: x.artist || '',
+  link: x.link || '',
+  note: x.note || '',
+  status: x.status || 'open',
+  song: x.song_id || null,
+  votes: Array.isArray(x.votes) ? x.votes : [],
+  by: x.by_user || null,
+  byName: x.by_name || '',
+  at: x.created_at || null,
+});
 
 const pathFor = (uid, rec) => (rec.band ? `b/${rec.band}/${rec.id}.pdf` : `u/${uid}/${rec.id}.pdf`);
 
@@ -168,7 +184,12 @@ export async function syncWith(sb, uid, local) {
     .map((band) => ({ id: band.id, name: band.name, owner: band.owner, code: band.invite_code, members: mem.data.filter((m) => m.band_id === band.id).map((m) => ({ id: m.user_id, name: m.display_name })) }))
     .sort((x, y) => x.name.localeCompare(y.name));
   const setlists = sl.data.filter((s) => !s.deleted).map((s) => ({ id: s.id, band: s.band_id, name: s.name, items: Array.isArray(s.items) ? s.items : [] }));
-  return { bands, setlists };
+
+  // 4) the bands' song suggestions (migration 005; before it: not ready)
+  const sg = await sb.from('band_suggestions').select('id,band_id,title,artist,link,note,status,song_id,votes,by_user,by_name,deleted,created_at');
+  if (sg.error && !missingTable(sg.error)) throw sg.error;
+  const suggestions = sg.error ? null : sg.data.filter((x) => !x.deleted).map(suggestionOf);
+  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error };
 }
 
 const LOCAL = { listSheets, getSheet, patchSheet, putSheet, deleteSheet, sheetPrefs, setSheetPrefs };
@@ -432,4 +453,75 @@ export function bandSetlistApi(band) {
       for (const l of state.setlists.filter((x) => x.band === band && x.items.includes(sheetId))) put({ ...l, items: l.items.filter((x) => x !== sheetId) });
     },
   };
+}
+
+// ---- a band's song suggestions (v1.0.212; migration 005) -----------------------
+// Building a cover band's repertoire: every member suggests songs, the band
+// sees one list, votes (one per member), and picks the songs to rehearse.
+// Optimistic like the setlists: shown at once, sent right after; a refused
+// write re-syncs to what the band really has.
+
+function sid() {
+  return 'sg-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+function putLocal(x) {
+  set({ suggestions: [...state.suggestions.filter((s) => s.id !== x.id), ...(x.deleted ? [] : [x])] });
+}
+async function sent(p) {
+  try {
+    const { error } = await p;
+    if (error) throw error;
+  } catch (e) {
+    set({ error: e?.message || String(e) });
+    syncCharts();
+    throw e;
+  }
+}
+
+export async function addSuggestion(band, { title, artist = '', link = '', note = '' }) {
+  const uid = getLink()?.userId;
+  const x = { id: sid(), band, title: title.trim().slice(0, 120), artist: artist.trim().slice(0, 120), link: link.trim().slice(0, 500), note: note.trim().slice(0, 500), status: 'open', song: null, votes: uid ? [uid] : [], by: uid, byName: myName() || '', at: new Date().toISOString() };
+  putLocal(x);
+  const sb = await client();
+  await sent(sb.from('band_suggestions').insert({ id: x.id, band_id: band, title: x.title, artist: x.artist || null, link: x.link || null, note: x.note || null, by_name: x.byName || null }));
+  return x;
+}
+
+/** Change title / artist / link / note / status / song (who suggested it and the votes stay). */
+export async function updateSuggestion(id, patch) {
+  const cur = state.suggestions.find((s) => s.id === id);
+  if (!cur) return;
+  putLocal({ ...cur, ...patch });
+  const row = {};
+  if ('title' in patch) row.title = patch.title.trim().slice(0, 120);
+  if ('artist' in patch) row.artist = patch.artist.trim() || null;
+  if ('link' in patch) row.link = patch.link.trim() || null;
+  if ('note' in patch) row.note = patch.note.trim() || null;
+  if ('status' in patch) row.status = patch.status;
+  if ('song' in patch) row.song_id = patch.song;
+  const sb = await client();
+  await sent(sb.from('band_suggestions').update(row).eq('id', id));
+}
+
+export async function removeSuggestion(id) {
+  const cur = state.suggestions.find((s) => s.id === id);
+  if (!cur) return;
+  putLocal({ ...cur, deleted: true });
+  const sb = await client();
+  await sent(sb.from('band_suggestions').update({ deleted: true }).eq('id', id));
+}
+
+export async function voteSuggestion(id) {
+  const uid = getLink()?.userId;
+  const cur = state.suggestions.find((s) => s.id === id);
+  if (!cur || !uid) return;
+  putLocal({ ...cur, votes: cur.votes.includes(uid) ? cur.votes.filter((v) => v !== uid) : [...cur.votes, uid] });
+  try {
+    const votes = await rpc('toggle_suggestion_vote', { s: id });
+    const now = state.suggestions.find((s) => s.id === id);
+    if (now && Array.isArray(votes)) putLocal({ ...now, votes });
+  } catch (e) {
+    set({ error: e?.message || String(e) });
+    syncCharts();
+  }
 }

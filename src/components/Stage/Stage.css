@@ -1778,3 +1778,111 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
 .stg-hit {
   font-style: normal;
 }
+
+/* Band suggestions (v1.0.212) */
+.stg-sg-how {
+  margin: 0 4px 14px;
+}
+.stg-sg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.stg-sg-head .ph-section-title {
+  margin-bottom: 0;
+}
+.stg-sg-head .stg-capsule {
+  margin-bottom: 6px;
+}
+.stg-sg-row {
+  padding-inline-start: 6px;
+}
+/* the like key: a 44 pt target, count under the thumb; on = accent */
+.stg-sg-vote {
+  flex: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 46px;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform var(--dur-fast, 0.15s) var(--ease-ios, ease), color 0.15s ease;
+}
+.stg-sg-vote.is-on {
+  color: var(--accent);
+}
+.stg-sg-vote:active {
+  transform: scale(0.9);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stg-sg-vote:active {
+    transform: none;
+  }
+}
+.stg-sg-row .stg-row-main {
+  padding-inline-start: 4px;
+}
+.stg-sg-note {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-style: italic;
+}
+.stg-sg-row.is-dropped .ph-title {
+  color: var(--text-secondary);
+}
+.stg .stg-sg-row .ph-text {
+  padding-block: 8px;
+}
+.stg-sg-fold {
+  justify-content: space-between;
+}
+.stg-sg-fold .ph-title {
+  color: var(--text-secondary);
+}
+.stg-sg-fold-chev {
+  color: var(--text-tertiary, var(--text-secondary));
+  font-size: 20px;
+  transition: transform var(--dur-fast, 0.15s) var(--ease-ios, ease);
+}
+.stg-sg-fold-chev.is-open {
+  transform: rotate(90deg);
+}
+.stg-sg-by {
+  margin: 4px 4px 0;
+}
+.stg-field textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  resize: vertical;
+  min-height: 52px;
+}
+.stg-sg .stg-empty .stg-capsule {
+  margin-top: 12px;
+}
+.stg-sg .more-menu-item[href] {
+  text-decoration: none;
+  color: inherit;
+}
+.stg-sg .ph-section + .ph-section {
+  margin-top: 24px;
+}

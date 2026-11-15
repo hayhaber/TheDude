@@ -3243,3 +3243,7 @@ no tools).
   My songs import (start note), setlist, chart -> words switch, next song,
   start note + key +2, Continue, Rehearse round trip, edit hide / drag,
   settings page; no page errors. NOT verified on devices / real Supabase.
+- v1.0.207 (user: rename "במה" to "להקה"): the card / screen / nav name
+  is "Band" / "להקה" (`home.stage.title`, `stage.title`, `nav.stage`;
+  code keys stay `stage`); its band shortcut became "Members" / "חברים"
+  (`stage.nav.band`) so it doesn't repeat the card's name.

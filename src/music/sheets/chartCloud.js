@@ -59,6 +59,12 @@ async function client() {
   return m.cloudClient();
 }
 
+// bpm / notes columns come with migration 003; until the user has run it the
+// sync keeps working without them (a missing column = Postgres 42703).
+let hasMeta = true;
+const META = (p) => (hasMeta ? { bpm: p.bpm ?? null, notes: p.note ?? null } : {});
+const missingColumn = (e) => e && (e.code === '42703' || e.code === 'PGRST204' || /column .*(bpm|notes)/i.test(e.message || ''));
+
 const pathFor = (uid, rec) => (rec.band ? `b/${rec.band}/${rec.id}.pdf` : `u/${uid}/${rec.id}.pdf`);
 
 // ---- sync (pure enough to test with a fake client) ----------------------------
@@ -77,13 +83,23 @@ export async function syncWith(sb, uid, local) {
     const up = await sb.storage.from(BUCKET).upload(path, rec.blob, { upsert: true, contentType: 'application/pdf' });
     if (up.error) throw up.error;
     const p = local.sheetPrefs(rec.id);
-    const { error } = await sb.from('charts').upsert({ id: rec.id, band_id: rec.band ?? null, name: rec.name, size: rec.size ?? null, path, dur: p.dur ?? null, tr: p.tr ?? null, deleted: false });
+    const row = { id: rec.id, band_id: rec.band ?? null, name: rec.name, size: rec.size ?? null, path, dur: p.dur ?? null, tr: p.tr ?? null, deleted: false };
+    let { error } = await sb.from('charts').upsert({ ...row, ...META(p) });
+    if (error && hasMeta && missingColumn(error)) {
+      hasMeta = false;
+      ({ error } = await sb.from('charts').upsert(row));
+    }
     if (error) throw error;
     await local.patchSheet(rec.id, { cloud: true, path });
   }
 
   // 2) every chart this user may see
-  const { data: rows, error } = await sb.from('charts').select('id,band_id,name,size,path,dur,tr,deleted,updated_at');
+  const cols = 'id,band_id,name,size,path,dur,tr,deleted,updated_at';
+  let { data: rows, error } = await sb.from('charts').select(hasMeta ? cols + ',bpm,notes' : cols);
+  if (error && hasMeta && missingColumn(error)) {
+    hasMeta = false;
+    ({ data: rows, error } = await sb.from('charts').select(cols));
+  }
   if (error) throw error;
   const byId = new Map(rows.map((r) => [r.id, r]));
   const now = await local.listSheets();
@@ -105,6 +121,8 @@ export async function syncWith(sb, uid, local) {
     const patch = {};
     if (r.dur != null && r.dur !== p.dur) patch.dur = r.dur;
     if (r.tr != null && r.tr !== p.tr) patch.tr = r.tr;
+    if (r.bpm != null && r.bpm !== p.bpm) patch.bpm = r.bpm;
+    if (r.notes != null && r.notes !== (p.note ?? '')) patch.note = r.notes;
     if (Object.keys(patch).length) local.setSheetPrefs(r.id, patch, { quiet: true });
   }
   // cloud charts nobody shows us any more (a band left / removed us)
@@ -153,7 +171,7 @@ export function syncCharts() {
 const pendingMeta = new Map();
 let metaTimer = null;
 onSheetPrefs((id, patch) => {
-  if (!signedIn() || !('dur' in patch || 'tr' in patch)) return;
+  if (!signedIn() || !('dur' in patch || 'tr' in patch || 'bpm' in patch || 'note' in patch)) return;
   pendingMeta.set(id, { ...(pendingMeta.get(id) ?? {}), ...patch });
   clearTimeout(metaTimer);
   metaTimer = setTimeout(async () => {
@@ -167,7 +185,16 @@ onSheetPrefs((id, patch) => {
         const row = {};
         if ('dur' in p) row.dur = p.dur;
         if ('tr' in p) row.tr = p.tr;
-        await sb.from('charts').update(row).eq('id', cid);
+        if (hasMeta && 'bpm' in p) row.bpm = p.bpm ?? null;
+        if (hasMeta && 'note' in p) row.notes = p.note || null;
+        if (!Object.keys(row).length) continue;
+        const { error } = await sb.from('charts').update(row).eq('id', cid);
+        if (error && missingColumn(error)) {
+          hasMeta = false;
+          delete row.bpm;
+          delete row.notes;
+          if (Object.keys(row).length) await sb.from('charts').update(row).eq('id', cid);
+        }
       }
     } catch {
       /* next sync uploads nothing for meta — the local value stays */
@@ -221,7 +248,7 @@ export async function shareChart(id, band) {
   const file = new File([rec.blob], `${rec.name}.pdf`, { type: 'application/pdf' });
   const [copy] = await addCharts([file], band);
   const p = sheetPrefs(id);
-  if (copy && (p.dur || p.tr)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr }, { quiet: true });
+  if (copy && (p.dur || p.tr || p.bpm || p.note)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr, bpm: p.bpm, note: p.note }, { quiet: true });
   return copy;
 }
 

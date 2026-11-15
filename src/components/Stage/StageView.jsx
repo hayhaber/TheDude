@@ -174,7 +174,23 @@ export function StageView({ onAccount }) {
   const sets = band ? bandSetlistApi(band.id) : personal;
   const [sheets, setSheets] = useState(null); // [{id, name, band, cloud, ...}]
   const [openSet, setOpenSet] = useState(null); // setlist id
-  const [perform, setPerform] = useState(null); // {songs, at}
+  const [perform, setPerform] = useState(null); // {songs, at, setId?}
+  // a reorder on stage (v1.0.189) is saved to the setlist; songs missing on
+  // this device keep their place at the end
+  const reorderSet = (ids) => {
+    const list = sets.lists.find((l) => l.id === perform?.setId);
+    if (!list) return;
+    sets.setItems(list.id, [...ids, ...list.items.filter((x) => !ids.includes(x))]);
+  };
+  const performer = perform && (
+    <Performer
+      songs={perform.songs}
+      startAt={perform.at}
+      onClose={() => setPerform(null)}
+      onReorder={perform.setId ? reorderSet : undefined}
+      band={band ? { id: band.id, name: band.name } : null}
+    />
+  );
   const [busy, setBusy] = useState(false);
   const [renaming, setRenaming] = useState(null); // id of a sheet / setlist
   const [sureDelete, setSureDelete] = useState(null);
@@ -483,7 +499,7 @@ export function StageView({ onAccount }) {
           </div>
           <div className="stg-head-actions">
             {songs.some((s) => !s.missing) && (
-              <button type="button" className="stg-capsule is-primary" onClick={() => setPerform({ songs: songs.filter((s) => !s.missing), at: 0 })}>
+              <button type="button" className="stg-capsule is-primary" onClick={() => setPerform({ songs: songs.filter((s) => !s.missing), at: 0, setId: set.id })}>
                 <PlayGlyph />
                 {t('stage.start')}
               </button>
@@ -514,7 +530,7 @@ export function StageView({ onAccount }) {
                 disabled={s.missing}
                 onClick={() => {
                   const playable = songs.filter((x) => !x.missing);
-                  setPerform({ songs: playable, at: playable.findIndex((x) => x.id === s.id) });
+                  setPerform({ songs: playable, at: playable.findIndex((x) => x.id === s.id), setId: set.id });
                 }}
               >
                 <span className="stg-num">{i + 1}</span>
@@ -569,7 +585,7 @@ export function StageView({ onAccount }) {
         )}
 
         {toast}
-        {perform && <Performer songs={perform.songs} startAt={perform.at} onClose={() => setPerform(null)} />}
+        {perform && performer}
       </div>
     );
   }
@@ -779,7 +795,7 @@ export function StageView({ onAccount }) {
 
       {dialogs}
       {toast}
-      {perform && <Performer songs={perform.songs} startAt={perform.at} onClose={() => setPerform(null)} />}
+      {perform && performer}
     </div>
   );
 }

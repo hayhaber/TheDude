@@ -42,6 +42,8 @@ create table if not exists public.charts (
   path       text        not null check (char_length(path) <= 300),
   dur        integer     check (dur is null or dur between 10 and 3600),
   tr         integer     check (tr is null or tr between -11 and 11),
+  bpm        integer     check (bpm is null or bpm between 30 and 300),
+  notes      text        check (notes is null or char_length(notes) <= 300),
   deleted    boolean     not null default false,
   updated_at timestamptz not null default now()
 );

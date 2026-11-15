@@ -6,6 +6,8 @@ import { getSheet, setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetSto
 import { chordsOnPage, keyOf, transposeChord, flatsFor } from '../../music/sheets/chartChords';
 import { fmtDur } from '../../music/sheets/setlists';
 import { Page, useWakeLock } from '../GuitarPro/PdfSheetView';
+import { getAudioContext } from '../../audio/audioContext';
+import { openBandLink } from '../../music/sheets/bandLink';
 
 // The Stage's performance screen (v1.0.176): one chart of a setlist at a
 // time, full screen on black, the pages at the screen's width. Auto-scroll
@@ -19,6 +21,8 @@ const GAP = 12;
 const DEFAULT_DUR = 210; // 3:30
 const NIGHT_KEY = 'dudestar-stage-night'; // device
 const MINI_KEY = 'dudestar-stage-bar-mini'; // device: the control bubble folded
+const CLICK_KEY = 'dudestar-stage-click'; // device: a click under the count-in
+const COUNT_BEATS = 4;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
 const clampZoom = (z) => Math.round(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)) * 20) / 20;
@@ -88,11 +92,17 @@ function Icon({ d, size = 20, fill = false }) {
   );
 }
 
-export function Performer({ songs, startAt = 0, onClose }) {
-  // songs = [{id, name}]
+export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder, band = null }) {
+  // songs = [{id, name}]; the order can change on stage (drag in the list,
+  // or the band's leader) — `onReorder(ids)` saves it to the setlist
   const { t, lang } = useLanguage();
-  const [idx, setIdx] = useState(Math.min(startAt, Math.max(0, songs.length - 1)));
+  const [songs, setSongs] = useState(initialSongs);
+  const [idx, setIdx] = useState(Math.min(startAt, Math.max(0, initialSongs.length - 1)));
   const song = songs[idx];
+  const songsRef = useRef(songs);
+  songsRef.current = songs;
+  const idxRef = useRef(idx);
+  idxRef.current = idx;
   const [doc, setDoc] = useState(null);
   const [sizes, setSizes] = useState([]);
   const [chords, setChords] = useState(null); // per page, null = still looking
@@ -111,6 +121,10 @@ export function Performer({ songs, startAt = 0, onClose }) {
   const pinchedRef = useRef(false);
   const [dur, setDur] = useState(DEFAULT_DUR);
   const [tr, setTr] = useState(0);
+  const [bpm, setBpm] = useState(null); // the song's tempo (count-in), null = none
+  const [note, setNote] = useState(''); // stage notes: capo, who counts in…
+  const [details, setDetails] = useState(false); // the song's details sheet
+  const [click, setClick] = useState(() => readFlag(CLICK_KEY));
   const [width, setWidth] = useState(0);
   const [scroller, setScroller] = useState(null);
   useWakeLock(true);
@@ -123,6 +137,8 @@ export function Performer({ songs, startAt = 0, onClose }) {
     const prefs = sheetPrefs(song.id);
     setDur(prefs.dur ?? DEFAULT_DUR);
     setTr(prefs.tr ?? 0);
+    setBpm(prefs.bpm ?? null);
+    setNote(prefs.note ?? '');
     setZoom(clampZoom(prefs.zoom ?? 1));
     setDoc(null);
     setSizes([]);
@@ -158,7 +174,14 @@ export function Performer({ songs, startAt = 0, onClose }) {
 
   // Back to the top for every song.
   useLayoutEffect(() => {
-    if (scroller && doc) scroller.scrollTop = 0;
+    if (!scroller || !doc) return;
+    scroller.scrollTop = 0;
+    const pend = pendingPRef.current; // a followed leader's place in this song
+    if (pend) {
+      pendingPRef.current = null;
+      scroller.scrollTop = pend.p * Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+      if (pend.playing) setPlaying(true);
+    }
   }, [scroller, doc]);
 
   const [baseWidth, setBaseWidth] = useState(0);
@@ -388,7 +411,208 @@ export function Performer({ songs, startAt = 0, onClose }) {
     window.addEventListener('pointerdown', away, true);
     return () => window.removeEventListener('pointerdown', away, true);
   }, [listOpen]);
-  useEffect(() => setListOpen(false), [idx]);
+  useEffect(() => setListOpen(false), [song]);
+
+  // ---- reorder (v1.0.189): drag a row by its grip ----
+  const [dragId, setDragId] = useState(null);
+  const reorderRef = useRef(onReorder);
+  reorderRef.current = onReorder;
+  const applyOrder = useCallback((next) => {
+    const cur = songsRef.current[idxRef.current]?.id;
+    setSongs(next);
+    const at = next.findIndex((x) => x.id === cur);
+    if (at >= 0) setIdx(at);
+  }, []);
+  const startDrag = (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rowH = e.currentTarget.closest('li')?.offsetHeight || 48;
+    let y0 = e.clientY;
+    setDragId(id);
+    const move = (ev) => {
+      const list = songsRef.current;
+      const from = list.findIndex((x) => x.id === id);
+      const dy = ev.clientY - y0;
+      const to = Math.max(0, Math.min(list.length - 1, from + (dy > rowH / 2 ? 1 : dy < -rowH / 2 ? -1 : 0)));
+      if (to !== from) {
+        const next = [...list];
+        const [x] = next.splice(from, 1);
+        next.splice(to, 0, x);
+        applyOrder(next);
+        y0 += (to - from) * rowH;
+      }
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+      setDragId(null);
+      const ids = songsRef.current.map((x) => x.id);
+      reorderRef.current?.(ids);
+      sendStateRef.current?.();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+  };
+
+  // ---- count-in (v1.0.189): one bar at the song's tempo, then the scroll ----
+  const [count, setCount] = useState(null); // the beat shown (1..4) or null
+  const countRef = useRef(null); // {timers}
+  const stopCount = useCallback(() => {
+    countRef.current?.timers.forEach(clearTimeout);
+    countRef.current = null;
+    setCount(null);
+  }, []);
+  const clickRef = useRef(click);
+  clickRef.current = click;
+  const tick = (accent) => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state !== 'running') ctx.resume();
+      const t0 = ctx.currentTime + 0.01;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.frequency.value = accent ? 2400 : 1800;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.5, t0 + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
+      o.connect(g).connect(ctx.destination);
+      o.start(t0);
+      o.stop(t0 + 0.08);
+    } catch {
+      /* no sound — the numbers still show */
+    }
+  };
+  // `at` = when beat 1 falls (Date.now() clock — the band shares it)
+  const startCount = useCallback(
+    (tempo, at = Date.now() + 120) => {
+      stopCount();
+      const beat = 60000 / tempo;
+      const timers = [];
+      for (let k = 0; k < COUNT_BEATS; k += 1) {
+        timers.push(
+          setTimeout(() => {
+            setCount(k + 1);
+            if (clickRef.current) tick(k === 0);
+          }, Math.max(0, at + k * beat - Date.now()))
+        );
+      }
+      timers.push(
+        setTimeout(() => {
+          countRef.current = null;
+          setCount(null);
+          setPlaying(true);
+        }, Math.max(0, at + COUNT_BEATS * beat - Date.now()))
+      );
+      countRef.current = { timers };
+    },
+    [stopCount]
+  );
+  useEffect(() => stopCount, [song, stopCount]);
+
+  // ---- band sync (v1.0.189): one leads, the others follow ----
+  const [role, setRole] = useState('off'); // off | lead | follow
+  const [people, setPeople] = useState([]);
+  const [leader, setLeader] = useState(null); // the leader's name, when heard
+  const linkRef = useRef(null);
+  const roleRef = useRef(role);
+  roleRef.current = role;
+  const playingRef = useRef(false);
+  const scrollerRef = useRef(null);
+  scrollerRef.current = scroller;
+  const sendStateRef = useRef(null);
+  const followRef = useRef(null);
+  const pendingPRef = useRef(null);
+  const progress = () => {
+    const sc = scrollerRef.current;
+    if (!sc) return 0;
+    const span = sc.scrollHeight - sc.clientHeight;
+    return span > 0 ? sc.scrollTop / span : 0;
+  };
+  sendStateRef.current = (extra = {}) => {
+    if (roleRef.current !== 'lead' || !linkRef.current) return;
+    const list = songsRef.current;
+    linkRef.current.send({ order: list.map((x) => x.id), song: list[idxRef.current]?.id, playing: playingRef.current, p: progress(), ...extra });
+  };
+  followRef.current = (msg, name) => {
+    if (roleRef.current !== 'follow' || !msg) return;
+    if (name) setLeader(name);
+    const list = songsRef.current;
+    let next = list;
+    if (Array.isArray(msg.order)) {
+      const byId = new Map(list.map((x) => [x.id, x]));
+      const known = msg.order.map((id) => byId.get(id)).filter(Boolean);
+      const rest = list.filter((x) => !msg.order.includes(x.id));
+      next = [...known, ...rest];
+      if (next.some((x, i) => x !== list[i])) applyOrder(next);
+    }
+    const at = msg.song ? next.findIndex((x) => x.id === msg.song) : -1;
+    const moved = at >= 0 && next[at] !== list[idxRef.current];
+    if (moved) {
+      setIdx(at);
+      // the new chart still loads: its place + scroll come when it's drawn
+      pendingPRef.current = { p: typeof msg.p === 'number' ? msg.p : 0, playing: !!msg.playing };
+      return;
+    }
+    if (msg.count) {
+      startCount(msg.count.bpm, msg.count.at);
+      return;
+    }
+    if (typeof msg.playing === 'boolean' && !countRef.current) setPlaying(msg.playing);
+    if (typeof msg.p === 'number') {
+      const sc = scrollerRef.current;
+      const span = sc ? sc.scrollHeight - sc.clientHeight : 0;
+      const h = holdRef.current;
+      if (sc && span > 0 && !h.touching && performance.now() >= h.until && Math.abs(progress() - msg.p) > 0.015) sc.scrollTop = msg.p * span;
+    }
+  };
+  useEffect(() => {
+    if (!band || role === 'off') return undefined;
+    let alive = true;
+    let link = null;
+    openBandLink(band.id, {
+      state: (msg, name) => followRef.current?.(msg, name),
+      hello: () => sendStateRef.current?.(),
+      people: (list) => alive && setPeople(list),
+    })
+      .then((l) => {
+        if (!alive) return l.close();
+        link = l;
+        linkRef.current = l;
+        l.setRole(roleRef.current);
+        if (roleRef.current === 'follow') l.hello();
+        else sendStateRef.current?.();
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+      link?.close();
+      linkRef.current = null;
+      setPeople([]);
+    };
+    // one channel while syncing; a role switch only re-tracks presence
+  }, [band?.id, role === 'off']); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    linkRef.current?.setRole(role);
+    if (role === 'follow') linkRef.current?.hello();
+    if (role === 'lead') sendStateRef.current?.();
+    if (role !== 'follow') setLeader(null);
+  }, [role]);
+  // the leader tells the band when the song or the scroll changes, and
+  // the position every 2 s while it runs
+  useEffect(() => {
+    playingRef.current = playing;
+    sendStateRef.current?.();
+    if (!playing || role !== 'lead') return undefined;
+    const iv = setInterval(() => sendStateRef.current?.(), 2000);
+    return () => clearInterval(iv);
+  }, [playing, song, role]);
+  const followers = people.filter((x) => !x.me && x.role === 'follow').length;
+  // who leads: the name in their messages, else from presence (a profile
+  // with no name = "the leader")
+  const leadPerson = people.find((x) => !x.me && x.role === 'lead');
+  const leaderName = leader || (leadPerson ? leadPerson.name || t('stage.sync.theLeader') : null);
 
   // A finger / wheel on the sheet while it scrolls = the reader moves it by
   // hand: the auto-scroll HOLDS (doesn't stop) while the finger is down and
@@ -396,6 +620,8 @@ export function Performer({ songs, startAt = 0, onClose }) {
   const holdRef = useRef({ touching: false, until: 0 });
   const listOpenRef = useRef(false);
   listOpenRef.current = listOpen;
+  const detailsRef = useRef(false);
+  detailsRef.current = details;
   useEffect(() => {
     if (!scroller) return undefined;
     const h = holdRef.current;
@@ -501,7 +727,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
         turn(-1);
       } else if (e.key === ' ') {
         e.preventDefault();
-        setPlaying((v) => !v);
+        toggleRef.current?.();
       } else if (e.key === '+' || e.key === '=') {
         e.preventDefault();
         zoomTo(zoomRef.current + 0.25);
@@ -510,6 +736,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
         zoomTo(zoomRef.current - 0.25);
       } else if (e.key === 'Escape') {
         if (listOpenRef.current) setListOpen(false);
+        else if (detailsRef.current) setDetails(false);
         else onClose();
       }
     };
@@ -571,12 +798,43 @@ export function Performer({ songs, startAt = 0, onClose }) {
     setSheetPrefs(song.id, { tr: v });
   };
   // at the end, Scroll starts the chart again from the top
+  // with a tempo, Scroll from the top counts one bar in first (v1.0.189)
   const toggleScroll = () => {
+    if (count != null) {
+      stopCount();
+      sendStateRef.current?.({ playing: false });
+      return;
+    }
     if (!playing && atEnd && scroller) {
       scroller.scrollTop = 0;
       setAtEnd(false);
     }
+    if (!playing && bpm && scroller && (scroller.scrollTop <= 2 || atEnd)) {
+      const at = Date.now() + 250;
+      if (clickRef.current) getAudioContext().resume?.();
+      startCount(bpm, at);
+      sendStateRef.current?.({ count: { bpm, at } });
+      return;
+    }
     setPlaying((v) => !v);
+  };
+  const toggleRef = useRef(null);
+  toggleRef.current = toggleScroll;
+  const changeBpm = (v) => {
+    const n = v == null ? null : Math.max(30, Math.min(300, Math.round(v)));
+    setBpm(n);
+    setSheetPrefs(song.id, { bpm: n });
+  };
+  const saveNote = (v) => {
+    const clean = v.slice(0, 300);
+    setNote(clean);
+    setSheetPrefs(song.id, { note: clean });
+  };
+  const toggleClick = () => {
+    setClick((v) => {
+      writeFlag(CLICK_KEY, !v);
+      return !v;
+    });
   };
   const toggleNight = () => {
     setNight((v) => {
@@ -599,7 +857,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
   if (!song) return null;
 
   return createPortal(
-    <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare')} role="dialog" aria-label={song.name} dir={dir} ref={rootRef}>
+    <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare') + (bpm || note ? ' has-note' : '')} role="dialog" aria-label={song.name} dir={dir} ref={rootRef}>
       <div className="stage-perf-scroll" ref={setScroller} dir="ltr">
         {error && <p className="stage-perf-msg">{t(song.missing ? 'stage.missing' : 'stage.error')}</p>}
         {!error && !doc && <p className="stage-perf-msg">{t('stage.loading')}</p>}
@@ -648,13 +906,14 @@ export function Performer({ songs, startAt = 0, onClose }) {
         <button type="button" className="stage-key is-round" onClick={onClose} aria-label={t('stage.close')} title={t('stage.close')}>
           <Icon d="M6 6l12 12M18 6L6 18" size={18} />
         </button>
-        <div className="stage-perf-title">
+        <button type="button" className="stage-perf-title" onClick={() => setDetails(true)} aria-label={t('stage.details')} title={t('stage.details')}>
           <strong dir="auto">{song.name}</strong>
           <span>
+            {role === 'lead' ? t('stage.sync.leadShort', { n: followers }) + ' · ' : role === 'follow' ? (leaderName ? t('stage.sync.followShort', { name: leaderName }) : t('stage.sync.waiting')) + ' · ' : ''}
             {songs.length > 1 ? t('stage.of', { i: idx + 1, n: songs.length }) + ' · ' : ''}
             <bdi>{next ? t('stage.next', { name: next.name }) : songs.length > 1 ? t('stage.last') : ''}</bdi>
           </span>
-        </div>
+        </button>
         {songs.length > 1 && (
           <button
             type="button"
@@ -672,15 +931,102 @@ export function Performer({ songs, startAt = 0, onClose }) {
         </button>
       </header>
 
+      {(bpm || note) && (
+        <button type="button" className="stage-note glass" onClick={() => setDetails(true)} dir={dir}>
+          {bpm && (
+            <span className="stage-note-bpm">
+              <span className={'stage-beat' + (playing || count != null ? ' is-on' : '')} style={{ animationDuration: `${60 / bpm}s` }} aria-hidden="true" />
+              {bpm}
+            </span>
+          )}
+          {note && <span className="stage-note-text" dir="auto">{note}</span>}
+        </button>
+      )}
+
+      {count != null && (
+        <div className="stage-count" aria-live="assertive">
+          <span key={count} className="stage-count-num">
+            {count}
+          </span>
+        </div>
+      )}
+
+      {details && (
+        <div className="stage-sheet-scrim" onPointerDown={(e) => e.target === e.currentTarget && setDetails(false)}>
+          <div className="stage-details glass" role="dialog" aria-label={t('stage.details')} dir={dir}>
+            <div className="stage-list-head">
+              <strong dir="auto">{song.name}</strong>
+              <button type="button" className="stage-done" onClick={() => setDetails(false)}>
+                {t('stage.done')}
+              </button>
+            </div>
+            <div className="stage-field">
+              <span className="stage-field-label">{t('stage.tempo')}</span>
+              <span className="stage-stepper">
+                <button type="button" className="stage-key is-small" onClick={() => changeBpm((bpm ?? 100) - 1)} aria-label={t('stage.slower')}>
+                  −
+                </button>
+                <input
+                  className="stage-bpm-input"
+                  type="number"
+                  inputMode="numeric"
+                  min="30"
+                  max="300"
+                  placeholder="—"
+                  value={bpm ?? ''}
+                  onChange={(e) => changeBpm(e.target.value === '' ? null : Number(e.target.value) || null)}
+                  aria-label={t('stage.tempo')}
+                />
+                <button type="button" className="stage-key is-small" onClick={() => changeBpm((bpm ?? 99) + 1)} aria-label={t('stage.faster')}>
+                  +
+                </button>
+              </span>
+            </div>
+            <p className="stage-field-hint">{bpm ? t('stage.tempoOn') : t('stage.tempoHint')}</p>
+            <label className="stage-field is-col">
+              <span className="stage-field-label">{t('stage.notes')}</span>
+              <textarea className="stage-notes-input" dir="auto" rows={3} maxLength={300} value={note} placeholder={t('stage.notesHint')} onChange={(e) => saveNote(e.target.value)} />
+            </label>
+            <div className="stage-field">
+              <span className="stage-field-label">{t('stage.click')}</span>
+              <button type="button" role="switch" aria-checked={click} className={'stage-switch' + (click ? ' is-on' : '')} onClick={toggleClick} aria-label={t('stage.click')}>
+                <span />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {listOpen && (
         <div className="stage-list glass" ref={listRef} role="dialog" aria-label={t('stage.setlist')} dir={dir}>
           <div className="stage-list-head">
             <strong>{t('stage.setlist')}</strong>
             <span>{t('stage.of', { i: idx + 1, n: songs.length })}</span>
           </div>
+          {band && (
+            <div className="stage-sync">
+              <label className="stage-field">
+                <span className="stage-field-label">{t('stage.sync.label', { band: band.name })}</span>
+                <select className="stage-select" value={role} onChange={(e) => setRole(e.target.value)}>
+                  <option value="off">{t('stage.sync.off')}</option>
+                  <option value="lead">{t('stage.sync.lead')}</option>
+                  <option value="follow">{t('stage.sync.follow')}</option>
+                </select>
+              </label>
+              <p className="stage-field-hint">
+                {role === 'lead'
+                  ? t('stage.sync.leadText', { n: followers })
+                  : role === 'follow'
+                    ? leaderName
+                      ? t('stage.sync.followText', { name: leaderName })
+                      : t('stage.sync.waitText')
+                    : t('stage.sync.offText')}
+              </p>
+            </div>
+          )}
           <ol className="stage-list-rows">
             {songs.map((s, i) => (
-              <li key={s.id + ':' + i}>
+              <li key={s.id} className={dragId === s.id ? 'is-drag' : ''}>
                 <button
                   type="button"
                   className={'stage-list-row' + (i === idx ? ' is-current' : '') + (i < idx ? ' is-done' : '')}
@@ -695,6 +1041,11 @@ export function Performer({ songs, startAt = 0, onClose }) {
                   </span>
                   {sheetPrefs(s.id).dur && <span className="stage-list-dur">{fmtDur(sheetPrefs(s.id).dur)}</span>}
                 </button>
+                {songs.length > 1 && role !== 'follow' && (
+                  <span className="stage-list-grip" onPointerDown={(e) => startDrag(e, s.id)} role="button" aria-label={t('stage.drag')} title={t('stage.drag')}>
+                    <Icon d="M5 9h14M5 15h14" size={18} />
+                  </span>
+                )}
               </li>
             ))}
           </ol>

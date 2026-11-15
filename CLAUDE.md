@@ -2859,6 +2859,45 @@ no tools).
   upNext / nextBtn / setDone / setDoneText / finish`. Playwright 390 HE +
   1180 EN: list, jump, outside-close, end card -> next, last -> finish.
 
+- v1.0.189 (user: "build 1–4" of the live-show list):
+  (1) REORDER on stage: the setlist sheet's rows have a grip (≡,
+  `.stage-list-grip`, touch-action none) — drag = live reorder
+  (`startDrag`, a row's height per step), the current song keeps playing
+  (`applyOrder` keeps idx on its id); on release `onReorder(ids)` ->
+  StageView `reorderSet` (setlist items, missing songs kept at the end;
+  personal or band setlist). "All charts" = this session only.
+  (2) SONG DETAILS: tap the title -> `.stage-details` sheet: tempo (−/+ +
+  type-in, 30–300, none = "—"), stage notes (≤ 300), "Click on the
+  count-in" switch (device key `dudestar-stage-click`, default off).
+  Saved per chart in sheet prefs `bpm` / `note`; shown as the
+  `.stage-note` glass pill under the top bar (♩ BPM with a beat dot ·
+  notes, 2 lines; the chart gets room via `.has-note`). Cloud: columns
+  `bpm` / `notes` on `charts` (002 now has them; NEW
+  `supabase/migrations/003_stage_notes.sql` adds them to an existing
+  table — the USER runs it); chartCloud falls back without them on
+  42703 / PGRST204 (`hasMeta`), so sync never breaks before 003.
+  (3) COUNT-IN: with a tempo, Scroll from the top (or the end) shows a
+  big glass 1 2 3 4 (`.stage-count`, one bar, `COUNT_BEATS`) then the
+  scroll starts; Scroll during it cancels; optional click (1.8 / 2.4 kHz
+  on the shared context). Space = the same key.
+  (4) PLAY TOGETHER (band setlists / charts, signed in): the setlist
+  sheet has "Play together · <band>" select Off / I lead / Follow the
+  leader. `music/sheets/bandLink.js` = a Supabase Realtime BROADCAST
+  channel `stage-<bandId>` + presence {name, role} (nothing stored, no
+  SQL needed). Leader sends {order, song, playing, p} on every change,
+  every 2 s while scrolling, `count {bpm, at}` (Date.now clock) and
+  answers a follower's hello; followers apply the order, jump to the song
+  (place + playing applied once its chart is drawn — `pendingPRef`),
+  start the same count-in, follow play / pause and correct the scroll
+  when off by > 1.5 % (not while a finger holds it); no grips while
+  following. Top-bar subtitle: "Leading · n" / "Following <name>" /
+  "Waiting for the leader" (no profile name = "the leader").
+  Privacy page updated. Playwright: 390 HE + 1180 EN (drag, details,
+  count 1-2-3-4 -> scroll), two devices through a fake Realtime relay
+  (routeWebSocket, vsn 2.0.0 binary broadcast): presence count, jump,
+  reorder (+ server setlist), count-in, play / pause followed. NOT
+  verified against the real Supabase Realtime or on iPads.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

@@ -3247,3 +3247,5 @@ no tools).
   is "Band" / "להקה" (`home.stage.title`, `stage.title`, `nav.stage`;
   code keys stay `stage`); its band shortcut became "Members" / "חברים"
   (`stage.nav.band`) so it doesn't repeat the card's name.
+- v1.0.208 (user picked option 5 of 10): the Band card's Rehearse
+  shortcut icon = a sound wave (LineIcon `waveform`), was the record dot.

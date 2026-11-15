@@ -235,6 +235,8 @@ export const ICON_PATHS = {
     </>
   ),
   // Stage: a music stand holding a chart.
+  // the Band card's Rehearse shortcut (v1.0.208, the user's pick)
+  waveform: <path d="M3 12h1M6.5 8.5v7M10 5v14M13.5 9v6M17 6.5v11M20.5 11v2" />,
   setlist: (
     <>
       <path d="M9 6h11M9 12h11M9 18h11" />

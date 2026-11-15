@@ -3127,6 +3127,13 @@ no tools).
   follows song jumps, Solo / Join again, Stop leading, manage sheet; no
   errors. NOT verified with the real Supabase Realtime or on devices.
 
+- v1.0.202 (user: "the guitar / piano cards say Play, only bass says
+  GuitarPro — shouldn't it be the same?"): the bass card's shortcuts are
+  the bar's group names too — Practice · Play (group, guitarpro) · Create
+  (group, compose) — and the piano's first one is Learn (group learn,
+  section studies, teacher icon) instead of "Theory". Every instrument card
+  now speaks the same five group names as the in-app bar.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

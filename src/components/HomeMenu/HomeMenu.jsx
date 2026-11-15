@@ -36,7 +36,7 @@ const CARDS = [
     titleKey: 'home.piano.title',
     descKey: 'home.piano.desc',
     options: [
-      { section: 'studies', icon: 'studies' },
+      { group: 'learn', section: 'studies', icon: 'teacher', labelKey: 'nav.group.learn' },
       { section: 'practice', icon: 'practice' },
       { section: 'chords', icon: 'pianoChords' },
       { group: 'play', section: 'guitarpro', icon: 'play', labelKey: 'nav.group.play' },
@@ -50,8 +50,8 @@ const CARDS = [
     descKey: 'home.bass.desc',
     options: [
       { section: 'bassPractice', icon: 'practice', labelKey: 'nav.practice' },
-      { section: 'guitarpro', icon: 'guitarpro' },
-      { section: 'compose', icon: 'compose' },
+      { group: 'play', section: 'guitarpro', icon: 'play', labelKey: 'nav.group.play' },
+      { group: 'create', section: 'compose', icon: 'create', labelKey: 'nav.group.create' },
     ],
   },
   {

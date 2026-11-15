@@ -3310,3 +3310,11 @@ no tools).
   suggest (bad link blocked), like / unlike, B's suggestion seen by A,
   pick -> band song + toast, drop -> folded, rehearsal setlist, no table ->
   setup card; no page errors. Not checked against the real Supabase.
+- v1.0.213 (user's iPad: "Create a band" said only "That didn't work"):
+  band sheets now say WHY (`bandErr()` in StageView): wrong code ·
+  offline / fetch failed · server not set up (PGRST202 / PGRST205 / 42883
+  / 42P01 / "could not find the function" -> `stage.cloud.setup` = run
+  002_stage_charts.sql) · sign-in expired (`stage.cloud.signAgain`) ·
+  else "That didn't work (<server message>)". Most likely cause on his
+  iPad: migration 002 never run (create_band missing). Fake-Supabase
+  check: PGRST202 -> the setup text; after "running" it -> band created.

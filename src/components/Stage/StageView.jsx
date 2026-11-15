@@ -107,6 +107,22 @@ function NameEdit({ value, onSave, onCancel }) {
   );
 }
 
+/**
+ * Why a band action failed, in words (v1.0.213; the user saw a bare "That
+ * didn't work" on the iPad): a wrong code, offline, the server's band setup
+ * not run yet (002 / its functions missing), a sign-in that expired, else the
+ * server's own message.
+ */
+function bandErr(e, t) {
+  const code = e?.code || '';
+  const m = e?.message || String(e || '');
+  if (code === 'P0002' || /no band/i.test(m)) return t('stage.band.badCode');
+  if (navigator.onLine === false || /Failed to fetch|NetworkError|Load failed/i.test(m)) return t('stage.cloud.offline');
+  if (['PGRST202', 'PGRST205', '42883', '42P01'].includes(code) || /could not find the (function|table)|does not exist|schema cache/i.test(m)) return t('stage.cloud.setup');
+  if (['PGRST301', '401', '42501'].includes(code) || /jwt|not authenticated|permission denied/i.test(m)) return t('stage.cloud.signAgain');
+  return t('stage.cloud.failed') + (m ? ` (${m.slice(0, 140)})` : '');
+}
+
 /** A small sheet over the screen (Liquid Glass), closed by Done / a tap outside. */
 function Sheet({ title, onClose, children, dir, t }) {
   useEffect(() => {
@@ -142,7 +158,7 @@ function AskSheet({ title, label, placeholder, action, onSubmit, onClose, dir, t
       await onSubmit(v.trim());
       onClose();
     } catch (e) {
-      setErr(errorOf?.(e) || (e?.code === 'P0002' || /no band/i.test(e?.message || '') ? t('stage.band.badCode') : navigator.onLine === false ? t('stage.cloud.offline') : t('stage.cloud.failed')));
+      setErr(errorOf?.(e) || bandErr(e, t));
       setBusy(false);
     }
   };
@@ -237,7 +253,7 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
       await (tab === 'new' ? onCreate(v.trim()) : onJoin(v.trim()));
       onClose();
     } catch (e) {
-      setErr(e?.code === 'P0002' || /no band/i.test(e?.message || '') ? t('stage.band.badCode') : navigator.onLine === false ? t('stage.cloud.offline') : t('stage.cloud.failed'));
+      setErr(bandErr(e, t));
       setBusy(false);
     }
   };

@@ -90,29 +90,12 @@ html .coach-banner {
 }
 
 /* ---- no glass on glass ---- */
-/* desktop top bar (glass): its round buttons / avatar are flat fills */
-html .app-topbar .icon-circle-button,
-html .app-topbar .profile-chip.is-compact {
-  background: var(--fill-tertiary);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
-}
-html .app-topbar .icon-circle-button:hover,
-html .app-topbar .icon-circle-button.active {
-  background: var(--fill-secondary);
-}
-html .app-tools-button.is-live::after {
-  box-shadow: 0 0 0 2px var(--surface);
-}
 /* the Tools popover and the phone tools row (glass): the metronome /
    drums / tuner pills inside are flat fills */
 html .app-tools-popover .metronome-bar,
 html .app-tools-popover .tuner-bar,
 html .app-mobile-metronome .metronome-bar,
-html .app-mobile-metronome .tuner-bar,
-html .app-topbar .metronome-bar,
-html .app-topbar .tuner-bar {
+html .app-mobile-metronome .tuner-bar {
   background: var(--fill-tertiary);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -131,5 +114,88 @@ html .app-topbar .tuner-bar {
     -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
     box-shadow: none;
+  }
+}
+
+/* ==== v1.0.193 — the iOS 26 / iPadOS 26 structure ==== */
+
+/* Desktop / iPad landscape: no full-width bar. The top row is the page's
+   own background; the controls FLOAT on it as glass — the Home button and
+   the round buttons as glass circles, the five tabs in ONE glass capsule
+   (iPadOS 26's floating tab bar). Inside the capsule the tabs are plain
+   (no glass on glass): the chosen one = a tinted pill. */
+html .app-topbar {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom: none;
+}
+html .app-topbar-nav.mode-toggle.wrap {
+  padding: 4px;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--glass-control);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow), 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+html .app-topbar-nav.mode-toggle.wrap button {
+  background: transparent;
+  color: var(--text);
+}
+html .app-topbar-nav.mode-toggle.wrap button:hover {
+  background: var(--fill-tertiary);
+}
+html .app-topbar-nav.mode-toggle.wrap button.active {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+/* Phone / tablet portrait: the tab bar is a FLOATING CAPSULE above the
+   home indicator, inset from the edges (iOS 26) — not a full-width bar.
+   The chosen tab sits on a soft pill; nothing inside is glass. */
+@media (max-width: 899px) {
+  html .app-bottom-tabs {
+    left: 12px;
+    right: 12px;
+    margin-inline: auto;
+    max-width: 560px;
+    bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) - 8px));
+    height: var(--bottom-tabs-height);
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+    box-shadow: var(--glass-shadow), 0 10px 30px rgba(0, 0, 0, 0.14);
+  }
+  html .app-bottom-tab {
+    padding-top: 0;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 999px;
+    transition: background var(--dur-fast, 0.18s) var(--ease-ios, ease), transform var(--dur-fast, 0.18s) var(--ease-ios, ease);
+  }
+  html .app-bottom-tab.active {
+    background: var(--fill-tertiary);
+  }
+}
+
+/* Interactive glass: a glass control answers the finger — it grows a
+   little and lights up while pressed, then settles back (iOS 26). */
+html :is(.icon-circle-button, .profile-chip.is-compact, .tool-screen-done, .app-stage-toggle, .stage-perf .stage-key.is-round, .stage-perf .stage-key.is-primary, .sw-pf-round) {
+  transition: transform 0.22s var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1)), filter 0.22s ease, box-shadow 0.22s ease, background 0.15s ease;
+}
+html :is(.icon-circle-button, .profile-chip.is-compact, .tool-screen-done, .app-stage-toggle, .stage-perf .stage-key.is-round, .stage-perf .stage-key.is-primary, .sw-pf-round):active {
+  transform: scale(1.07);
+  filter: brightness(1.08);
+}
+html .app-bottom-tab:active,
+html .app-topbar-nav.mode-toggle.wrap button:active {
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  html :is(.icon-circle-button, .profile-chip.is-compact, .tool-screen-done, .app-stage-toggle, .stage-perf .stage-key, .sw-pf-round, .app-bottom-tab):active {
+    transform: none;
   }
 }

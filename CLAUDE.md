@@ -97,6 +97,22 @@ Liquid Glass"):
      increased contrast (more opaque fill).
    - Look: a lit rim + specular top edge + soft depth, concentric
      capsule / circle shapes, shadow grows as content scrolls under.
+   - STRUCTURE (iOS 26 / iPadOS 26, user's rule 2026-11-15): no
+     full-width bars. The tab bar is a FLOATING CAPSULE inset from the
+     edges above the home indicator (phone / tablet) or centred at the top
+     (desktop / iPad landscape); round buttons float as separate glass
+     circles; where content scrolls under the top controls there is a
+     SCROLL EDGE (fade + light blur), not a glass strip. Inside the
+     capsule the tabs are plain; the chosen one = a soft / tinted pill.
+   - INTERACTIVE: a glass control answers the finger — grows ~5–7 % and
+     lights up while pressed, then settles (ease-ios); tabs inside a
+     capsule press down slightly. Respect prefers-reduced-motion.
+   - Web limits (known, accepted): real lensing / refraction and glass
+     that flips light / dark by the content beneath can't be done in
+     Safari — approximated with blur + rim; the theme decides light /
+     dark.
+   - All app-wide glass lives in `src/styles/liquid-glass.css` (`html`-
+     prefixed selectors); new floating UI follows it.
    - Tokens: index.css `--glass-bg` / `--glass-control` /
      `--glass-filter` / `--glass-shadow`, utility `.glass` (dark values
      under data-theme dark); the Performer's material = Stage.css
@@ -2965,6 +2981,22 @@ no tools).
   near-opaque. Content (cards, lists, devices, necks) untouched; the
   ear-training panel is inline content, left solid. Playwright 390 HE,
   1180 EN, 1180 HE dark: compose, Tools popover, tuner drawer — no errors.
+
+- v1.0.193 (user: "build all your recommendations and make them part of
+  the fixed design principles" -> rule 11 gained STRUCTURE / INTERACTIVE /
+  web limits): liquid-glass.css — (1) phone / tablet tab bar = a floating
+  glass capsule (inset 12 px, max 560, above the home indicator, chosen
+  tab on a soft pill, items centred); (2) desktop / iPad landscape top
+  row = no bar (transparent, no hairline): the five tabs in ONE glass
+  capsule (plain inside, chosen = 15 % accent pill + accent text — was
+  gray chips + a solid accent chip), Home / Tools / avatar = floating
+  glass circles again (the v1.0.192 flat-fill rule for them is gone);
+  (3) interactive glass: round glass buttons, avatar, Done, the stage
+  handle, Performer round / primary keys and the songwriter perform keys
+  scale 1.07 + brighten while pressed; tabs press to 0.96;
+  prefers-reduced-motion = none. Content reserve unchanged (the capsule
+  ends lower than the old bar's top). Playwright 390 HE, 820 HE dark,
+  1180 EN, 1366 HE dark (Chords): no errors.
 
 ## ⓘ explanations (info switch)
 

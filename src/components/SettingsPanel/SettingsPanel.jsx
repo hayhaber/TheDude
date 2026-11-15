@@ -43,6 +43,7 @@ import "../ModeToggle/ModeToggle.css";
 import "./SettingsPanel.css";
 import { restartOnboarding } from "../../onboarding/onboardingState";
 import { Select } from '../ui/Select';
+import { previewSound } from '../../audio/soundPreview';
 
 // Right-side drawer, same interaction/anchor as MetronomeBar/TunerBar/
 // DisplayOptionsMenu (top-anchored, capped max-height so it never covers the
@@ -455,7 +456,10 @@ export function SettingsBody({
                   </span>
                   <Select
                     value={guitarProfile}
-                    onChange={(e) => onGuitarProfileChange(e.target.value)}
+                    onChange={(e) => {
+                      onGuitarProfileChange(e.target.value);
+                      previewSound('guitar', e.target.value);
+                    }}
                   >
                     {GUITAR_SOUND_PROFILES.map((p) => (
                       <option key={p.key} value={p.key}>
@@ -473,7 +477,10 @@ export function SettingsBody({
                   </span>
                   <Select
                     value={pianoProfile}
-                    onChange={(e) => onPianoProfileChange(e.target.value)}
+                    onChange={(e) => {
+                      onPianoProfileChange(e.target.value);
+                      previewSound('piano', e.target.value);
+                    }}
                   >
                     {PIANO_SOUND_PROFILES.map((p) => (
                       <option key={p.key} value={p.key}>
@@ -491,7 +498,10 @@ export function SettingsBody({
                   </span>
                   <Select
                     value={bassProfile}
-                    onChange={(e) => onBassProfileChange(e.target.value)}
+                    onChange={(e) => {
+                      onBassProfileChange(e.target.value);
+                      previewSound('bass', e.target.value);
+                    }}
                   >
                     {BASS_SOUND_PROFILES.map((p) => (
                       <option key={p.key} value={p.key}>

@@ -3154,6 +3154,17 @@ no tools).
   Checked: 31 phone screens (no paragraph inside a centred block got
   justified), Theory lesson / Practice / Stage screenshots, no errors.
 
+- v1.0.204 (user: "in Settings, when a sound is changed, play a few notes
+  of it so I can judge it"): `audio/soundPreview.js` `previewSound(kind,
+  key)` — guitar = C E G C E picked + the open C strummed, piano = C E G C
+  up + the chord in two hands, bass = root–5th–octave–6th–5th–root; sets
+  the store first, waits up to 4 s for the new samples (no synth stand-in
+  when they're coming), a new choice cuts the phrase playing. Wired to the
+  three sound pop-ups in SettingsBody (sound page + Tools-card Settings).
+  Playwright 1180 EN + 390 HE: each choice schedules its phrase (10 / 8 / 6
+  notes, right pitches); samples blocked here, so heard as the fallback
+  synth — real sound NOT judged.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

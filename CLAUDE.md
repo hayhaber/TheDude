@@ -3249,3 +3249,7 @@ no tools).
   (`stage.nav.band`) so it doesn't repeat the card's name.
 - v1.0.208 (user picked option 5 of 10): the Band card's Rehearse
   shortcut icon = a sound wave (LineIcon `waveform`), was the record dot.
+- v1.0.209 (user: "Rehearse is really Record?" -> option 2): the Band
+  card's 4th shortcut is named "Record" / "הקלטה" (`stage.nav.rehearse`,
+  it opens the Recorder tool screen) and its icon is the record dot again. A real
+  rehearsal screen was offered, not chosen.

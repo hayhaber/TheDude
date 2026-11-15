@@ -86,7 +86,7 @@ const CARDS = [
       { stage: 'sets', icon: 'setlist', labelKey: 'stage.nav.sets' },
       { stage: 'songs', icon: 'lyrics', labelKey: 'stage.nav.songs' },
       { stage: 'band', icon: 'band', labelKey: 'stage.nav.band' },
-      { tool: 'record', icon: 'waveform', labelKey: 'stage.nav.rehearse' },
+      { tool: 'record', icon: 'record', labelKey: 'stage.nav.rehearse' },
     ],
   },
   {

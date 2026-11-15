@@ -67,22 +67,40 @@ one instrument is applied to the same exercise on every other instrument
 that has it (e.g. ear-training auto-advance guitar/piano -> singing;
 bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
 
-**11. Liquid Glass = the guiding line of the WHOLE design** (user's
-rule 2026-11-03, raised 2026-11-15: "the glass design is the guiding line
-for the entire system"). Every new or touched screen is designed in
-Apple's Liquid Glass language: everything that floats or controls — tab
-bar, top bars, the tools row, round buttons, bubbles, sheets, popovers,
-transport keys, and the keys / steppers INSIDE them — is a clear glass
-pane (the content shows through, blurred), with a lit rim, a specular
-top edge and soft depth; keys inside glass are glass capsules (tinted
-glass for the primary), never flat grey or solid fills. Tokens: index.css
-`--glass-bg` / `--glass-control` / `--glass-filter` / `--glass-shadow`,
-utility `.glass` (dark values under data-theme dark); the Performer's
-fuller material = Stage.css `--sg-*` (v1.0.190). As Apple does, the
-reading content itself (charts, scores, lyrics, the necks / drawn
-devices) stays solid so it stays legible — glass is the layer above it.
-Legibility first: white text on glass keeps >= 4.5:1 over a white page
-(tint + darkening backdrop filter).
+**11. Liquid Glass, the way Apple's HIG defines it** (user's rule
+2026-11-03; 2026-11-15: glass is the guiding line of the whole design,
+"fitted to Apple's design principles" — HIG Materials + WWDC25 "Meet
+Liquid Glass"):
+   - TWO LAYERS. Glass = the functional layer that floats ABOVE the
+     content: tab bar, top bars, the tools row, round buttons, floating
+     transport / scroll bubbles, sheets, popovers, menus. The content
+     layer (cards, lists, charts, scores, lyrics, necks, drawn devices)
+     never gets glass — it stays solid, or uses a plain blur material
+     where separation is needed. Exception: a control in the content
+     that is being dragged (slider / fader / toggle) may turn glass
+     while touched.
+   - SPARINGLY. Only the most important functional elements are glass;
+     the material is there to bring attention to the content beneath.
+   - NO GLASS ON GLASS. Things placed on a glass bubble (keys, steppers,
+     rows, boxes) are NOT their own glass panes: they use flat fills
+     (white 10–16 % on dark glass / black 5–8 % on light) or nothing,
+     and vibrant labels (primary / secondary / tertiary text).
+   - TINT ONLY THE PRIMARY. Colour on glass marks the one primary element
+     (the screen's main action, an on-state); everything else neutral.
+   - REGULAR VARIANT by default (blurs + adjusts the backdrop's luminosity
+     so text stays legible) — always for text-heavy glass (sheets,
+     popovers, lists). CLEAR (very translucent) only over media-rich,
+     bold, bright content (photos / video), with a ~35 % dark dimming
+     layer when the content is bright. Never mix the two in one place.
+   - LEGIBILITY FIRST: text on glass keeps >= 4.5:1 over the brightest
+     content it can sit on; respect prefers-reduced-transparency /
+     increased contrast (more opaque fill).
+   - Look: a lit rim + specular top edge + soft depth, concentric
+     capsule / circle shapes, shadow grows as content scrolls under.
+   - Tokens: index.css `--glass-bg` / `--glass-control` /
+     `--glass-filter` / `--glass-shadow`, utility `.glass` (dark values
+     under data-theme dark); the Performer's material = Stage.css
+     `--sg-*`.
 
 **13. Design as Apple would, always** (user's standing rule 2026-11-06 —
 "I don't want to repeat it every time"): every visual / UI / UX decision,
@@ -2917,6 +2935,15 @@ no tools).
   glass capsules (white sheen + inset highlight), primary = tinted blue
   glass, Pause = tinted orange glass, steppers / sync box / current row
   likewise. Playwright screenshots 390 HE, 1180 EN, folded bubble.
+
+- v1.0.191 (user: "fit the rule to Apple's design principles"): rule 11
+  rewritten from the HIG Materials page + WWDC25 "Meet Liquid Glass" (two
+  layers, sparingly, no glass on glass, tint only the primary, regular vs
+  clear, legibility, reduced transparency). The Performer follows it: the
+  keys / steppers / sync box / current row inside its bubbles are flat
+  fills again (v1.0.190 made them glass capsules = glass on glass), the
+  primary stays the only tint (blue, orange while running); under
+  prefers-reduced-transparency / prefers-contrast the bubbles go solid.
 
 ## ⓘ explanations (info switch)
 

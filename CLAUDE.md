@@ -3165,6 +3165,10 @@ no tools).
   notes, right pitches); samples blocked here, so heard as the fallback
   synth — real sound NOT judged.
 
+- v1.0.205: re-push only — Vercel never built v1.0.204's commit (no
+  deployment / status on it; check with `gh api repos/hayhaber/TheDude/
+  commits/<sha>/status`). If a push doesn't reach the user, look there.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

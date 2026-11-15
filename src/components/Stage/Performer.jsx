@@ -361,11 +361,41 @@ export function Performer({ songs, startAt = 0, onClose }) {
     },
     [songs.length]
   );
+  const goTo = useCallback((i) => setIdx(Math.max(0, Math.min(songs.length - 1, i))), [songs.length]);
+
+  // The setlist sheet (v1.0.188): every song of the set at one tap, to jump
+  // to another one on stage.
+  const [listOpen, setListOpen] = useState(false);
+  const swallowTapRef = useRef(0);
+  // the end-of-song card sits just above the control bubble, whatever its height
+  const rootRef = useRef(null);
+  const barRef = useCallback((el) => {
+    if (!el) return;
+    const set = () => rootRef.current?.style.setProperty('--stage-bar-h', el.offsetHeight + 'px');
+    set();
+    new ResizeObserver(set).observe(el);
+  }, []);
+  const listRef = useRef(null);
+  useEffect(() => {
+    if (!listOpen) return undefined;
+    listRef.current?.querySelector('.is-current')?.scrollIntoView({ block: 'center' });
+    const away = (e) => {
+      if (!e.target.closest?.('.stage-list, .stage-list-key')) {
+        swallowTapRef.current = performance.now(); // this tap only closes the list
+        setListOpen(false);
+      }
+    };
+    window.addEventListener('pointerdown', away, true);
+    return () => window.removeEventListener('pointerdown', away, true);
+  }, [listOpen]);
+  useEffect(() => setListOpen(false), [idx]);
 
   // A finger / wheel on the sheet while it scrolls = the reader moves it by
   // hand: the auto-scroll HOLDS (doesn't stop) while the finger is down and
   // the page still glides, then goes on from wherever the reader left it.
   const holdRef = useRef({ touching: false, until: 0 });
+  const listOpenRef = useRef(false);
+  listOpenRef.current = listOpen;
   useEffect(() => {
     if (!scroller) return undefined;
     const h = holdRef.current;
@@ -478,7 +508,10 @@ export function Performer({ songs, startAt = 0, onClose }) {
       } else if (e.key === '-' || e.key === '_') {
         e.preventDefault();
         zoomTo(zoomRef.current - 0.25);
-      } else if (e.key === 'Escape') onClose();
+      } else if (e.key === 'Escape') {
+        if (listOpenRef.current) setListOpen(false);
+        else onClose();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -512,6 +545,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
         goSong(dx < 0 ? 1 : -1);
         return;
       }
+      if (performance.now() - swallowTapRef.current < 700) return;
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 400) setChrome((v) => !v);
     };
     scroller.addEventListener('touchstart', down, { passive: true });
@@ -565,7 +599,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
   if (!song) return null;
 
   return createPortal(
-    <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare')} role="dialog" aria-label={song.name} dir={dir}>
+    <div className={'stage-perf' + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare')} role="dialog" aria-label={song.name} dir={dir} ref={rootRef}>
       <div className="stage-perf-scroll" ref={setScroller} dir="ltr">
         {error && <p className="stage-perf-msg">{t(song.missing ? 'stage.missing' : 'stage.error')}</p>}
         {!error && !doc && <p className="stage-perf-msg">{t('stage.loading')}</p>}
@@ -621,13 +655,72 @@ export function Performer({ songs, startAt = 0, onClose }) {
             <bdi>{next ? t('stage.next', { name: next.name }) : songs.length > 1 ? t('stage.last') : ''}</bdi>
           </span>
         </div>
+        {songs.length > 1 && (
+          <button
+            type="button"
+            className={'stage-key is-round stage-list-key' + (listOpen ? ' is-on' : '')}
+            onClick={() => setListOpen((v) => !v)}
+            aria-expanded={listOpen}
+            aria-label={t('stage.setlist')}
+            title={t('stage.setlist')}
+          >
+            <Icon d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" size={18} />
+          </button>
+        )}
         <button type="button" className={'stage-key is-round' + (night ? ' is-on' : '')} onClick={toggleNight} aria-pressed={night} aria-label={t('stage.night')} title={t('stage.night')}>
           <Icon d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" size={18} />
         </button>
       </header>
 
+      {listOpen && (
+        <div className="stage-list glass" ref={listRef} role="dialog" aria-label={t('stage.setlist')} dir={dir}>
+          <div className="stage-list-head">
+            <strong>{t('stage.setlist')}</strong>
+            <span>{t('stage.of', { i: idx + 1, n: songs.length })}</span>
+          </div>
+          <ol className="stage-list-rows">
+            {songs.map((s, i) => (
+              <li key={s.id + ':' + i}>
+                <button
+                  type="button"
+                  className={'stage-list-row' + (i === idx ? ' is-current' : '') + (i < idx ? ' is-done' : '')}
+                  onClick={() => (i === idx ? setListOpen(false) : goTo(i))}
+                  aria-current={i === idx ? 'true' : undefined}
+                >
+                  <span className="stage-list-num">
+                    {i === idx ? <Icon d="M7 4.5v15l13-7.5z" size={12} fill /> : i + 1}
+                  </span>
+                  <span className="stage-list-name" dir="auto">
+                    {s.name}
+                  </span>
+                  {sheetPrefs(s.id).dur && <span className="stage-list-dur">{fmtDur(sheetPrefs(s.id).dur)}</span>}
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {atEnd && !playing && songs.length > 1 && (
+        <div className="stage-endcard glass" dir={dir} role="status">
+          <div className="stage-endcard-text">
+            <small>{next ? t('stage.upNext') : t('stage.setDone')}</small>
+            <strong dir="auto">{next ? next.name : t('stage.setDoneText')}</strong>
+          </div>
+          {next ? (
+            <button type="button" className="stage-key is-primary" onClick={() => goSong(1)}>
+              <span>{t('stage.nextBtn')}</span>
+            </button>
+          ) : (
+            <button type="button" className="stage-key is-primary" onClick={onClose}>
+              <span>{t('stage.finish')}</span>
+            </button>
+          )}
+        </div>
+      )}
+
       {mini ? (
-        <div className="stage-perf-bar is-mini glass" dir="ltr">
+        <div className="stage-perf-bar is-mini glass" dir="ltr" ref={barRef}>
           <button type="button" className={'stage-key is-round is-primary' + (playing ? ' is-on' : '')} onClick={toggleScroll} aria-label={playing ? t('stage.pause') : t('stage.scroll')} title={playing ? t('stage.pause') : t('stage.scroll')}>
             {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M7 4.5v15l13-7.5z" size={16} fill />}
           </button>
@@ -641,7 +734,7 @@ export function Performer({ songs, startAt = 0, onClose }) {
           </button>
         </div>
       ) : (
-      <div className="stage-perf-bar glass" dir="ltr">
+      <div className="stage-perf-bar glass" dir="ltr" ref={barRef}>
         <div className="stage-group">
         <button type="button" className="stage-key is-round is-quiet" onClick={toggleMini} aria-label={t('stage.collapse')} title={t('stage.collapse')}>
           <Icon d="M6 9l6 6 6-6" size={18} />

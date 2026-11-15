@@ -2845,6 +2845,20 @@ no tools).
   Playing scrubber, not Apple Music red (it clashed with the orange
   Pause key and added a hue the app doesn't use).
 
+- v1.0.188 (user: "on stage we may change the order — a button that
+  shows the whole setlist at once; and at a song's end a button straight
+  to the next one"): Performer top bar gets a list key (`.stage-list-key`,
+  only with > 1 song) -> `.stage-list` glass sheet under the top bar: the
+  set numbered, the current row tinted with a play glyph, played rows
+  dimmer, each song's length; tap = jump there (`goTo`), tap outside /
+  Escape closes (that tap doesn't also hide the controls —
+  `swallowTapRef`). End of a song (`atEnd`, not playing, > 1 song) =
+  `.stage-endcard` floating just above the control bubble (its height
+  measured into `--stage-bar-h`): "Up next · <name>" + Next, or on the
+  last song "End of the setlist" + Finish (closes). Text `stage.setlist /
+  upNext / nextBtn / setDone / setDoneText / finish`. Playwright 390 HE +
+  1180 EN: list, jump, outside-close, end card -> next, last -> finish.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

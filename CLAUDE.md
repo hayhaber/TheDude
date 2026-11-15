@@ -67,13 +67,22 @@ one instrument is applied to the same exercise on every other instrument
 that has it (e.g. ear-training auto-advance guitar/piano -> singing;
 bass re-pluck detection -> Teacher play steps). User's rule 2026-10-31.
 
-**11. Apple's Liquid Glass where it fits** (user's general design rule,
-2026-11-03). The navigation / control layer that floats ABOVE the content
-— tab bar, top bars, the tools row, round buttons, sheets and popovers,
-floating transport keys — uses the glass material (index.css tokens
+**11. Liquid Glass = the guiding line of the WHOLE design** (user's
+rule 2026-11-03, raised 2026-11-15: "the glass design is the guiding line
+for the entire system"). Every new or touched screen is designed in
+Apple's Liquid Glass language: everything that floats or controls — tab
+bar, top bars, the tools row, round buttons, bubbles, sheets, popovers,
+transport keys, and the keys / steppers INSIDE them — is a clear glass
+pane (the content shows through, blurred), with a lit rim, a specular
+top edge and soft depth; keys inside glass are glass capsules (tinted
+glass for the primary), never flat grey or solid fills. Tokens: index.css
 `--glass-bg` / `--glass-control` / `--glass-filter` / `--glass-shadow`,
-utility `.glass`; dark values under data-theme dark). Content itself
-(cards, lists, text, the necks and drawn devices) stays solid.
+utility `.glass` (dark values under data-theme dark); the Performer's
+fuller material = Stage.css `--sg-*` (v1.0.190). As Apple does, the
+reading content itself (charts, scores, lyrics, the necks / drawn
+devices) stays solid so it stays legible — glass is the layer above it.
+Legibility first: white text on glass keeps >= 4.5:1 over a white page
+(tint + darkening backdrop filter).
 
 **13. Design as Apple would, always** (user's standing rule 2026-11-06 —
 "I don't want to repeat it every time"): every visual / UI / UX decision,
@@ -2897,6 +2906,17 @@ no tools).
   (routeWebSocket, vsn 2.0.0 binary broadcast): presence count, jump,
   reorder (+ server setlist), count-in, play / pause followed. NOT
   verified against the real Supabase Realtime or on iPads.
+
+- v1.0.190 (user: "make the scroll bubble glass; glass is the guiding
+  line for the whole system" -> rule 11 rewritten): one Liquid Glass
+  material for every Performer bubble (`--sg-*` on `.stage-perf`): a
+  clear pane (tint 34 % + backdrop blur 14 / saturate 1.9 / brightness
+  .66 — the chart shows through, white text stays readable), a sheen
+  gradient, a lit rim + specular top edge (inset shadows, no border),
+  soft depth; sheets (list / details) the stronger variant. Keys inside =
+  glass capsules (white sheen + inset highlight), primary = tinted blue
+  glass, Pause = tinted orange glass, steppers / sync box / current row
+  likewise. Playwright screenshots 390 HE, 1180 EN, folded bubble.
 
 ## ⓘ explanations (info switch)
 

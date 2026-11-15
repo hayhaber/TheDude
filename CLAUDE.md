@@ -3074,6 +3074,17 @@ no tools).
   the button's own label, no capsule of its own). Rest of the card was
   already HIG (v1.0.121). Playwright 390 HE + 1180 EN — no errors.
 
+- CONTROLS LIBRARY, fix (v1.0.199): the pop-up's chevron used
+  `:dir(rtl)`, which the build (lightningcss) rewrites into a `:lang(he…)`
+  list — every select inside the Hebrew page put its chevron on the left
+  even when the select itself is dir="ltr" (GuitarPro's tempo "70%" and
+  the song name sat under it on the iPhone). Select.jsx now reads the
+  computed direction after layout and sets `data-rtl`; the Switch knob
+  moves by `margin-inline-start` (logical, no :dir). Never write
+  `:dir()` in our CSS — use an attribute or logical properties. GuitarPro
+  / Stage checked: already on the library's look (tinted Add, gray
+  transport keys, segmented modes). Playwright 390 HE + 1180 EN.
+
 ## ⓘ explanations (info switch)
 
 - `InfoTooltip` (components/InfoTooltip) renders only while the global "i"

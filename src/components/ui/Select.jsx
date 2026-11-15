@@ -41,6 +41,14 @@ export const Select = forwardRef(function Select({ className = '', onMouseDown, 
   const ref = useRef(null);
   const lastPointer = useRef('mouse');
   const [menu, setMenu] = useState(null); // {items, rect, dir}
+  const [rtl, setRtl] = useState(false);
+  // the chevron goes to the END side: read the real direction after layout
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const r = getComputedStyle(el).direction === 'rtl';
+    if (r !== rtl) setRtl(r);
+  });
   const setRefs = useCallback(
     (el) => {
       ref.current = el;
@@ -72,6 +80,7 @@ export const Select = forwardRef(function Select({ className = '', onMouseDown, 
       <select
         {...props}
         ref={setRefs}
+        data-rtl={rtl ? '' : undefined}
         className={'ui-select ' + className}
         onPointerDown={(e) => {
           lastPointer.current = e.pointerType || 'mouse';

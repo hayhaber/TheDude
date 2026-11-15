@@ -37,14 +37,11 @@ html select.ui-select {
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
-html select.ui-select:dir(rtl) {
+/* the chevron sits at the END side: data-rtl is set by Select.jsx from
+   the computed direction (lightningcss turns :dir() into :lang() lists,
+   which flipped dir="ltr" selects inside the Hebrew page) */
+html select.ui-select[data-rtl] {
   background-position: left 10px center;
-}
-html [dir='rtl'] select.ui-select {
-  background-position: left 10px center;
-}
-html [dir='ltr'] select.ui-select {
-  background-position: right 10px center;
 }
 html select.ui-select:hover {
   background-color: var(--fill-secondary);
@@ -194,28 +191,30 @@ html .ui-switch {
   border: 0;
   border-radius: 999px;
   background: var(--fill-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2px;
+  box-sizing: border-box;
   cursor: pointer;
   transition: background-color 0.25s var(--ease-ios, ease);
 }
 html .ui-switch[aria-checked='true'] { background: var(--ui-switch-on); }
 .ui-switch-knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
+  display: block;
   width: 27px;
   height: 27px;
+  margin-inline-start: 0;
   border-radius: 999px;
   background: #fff;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
-  transition: transform 0.3s var(--ease-ios, ease), width 0.2s var(--ease-ios, ease);
+  transition: margin 0.3s var(--ease-ios, ease), width 0.2s var(--ease-ios, ease);
 }
-html .ui-switch[aria-checked='true'] .ui-switch-knob { transform: translateX(20px); }
+/* logical margin = the knob runs toward the end side in both directions
+   (on = left in Hebrew, as iOS) — no :dir() needed */
+html .ui-switch[aria-checked='true'] .ui-switch-knob { margin-inline-start: 20px; }
 html .ui-switch:active:not(:disabled) .ui-switch-knob { width: 33px; }
-html .ui-switch[aria-checked='true']:active:not(:disabled) .ui-switch-knob { transform: translateX(14px); }
-/* RTL: on = the knob at the start side, as iOS in Hebrew */
-html .ui-switch:dir(rtl) .ui-switch-knob { left: auto; right: 2px; }
-html .ui-switch:dir(rtl)[aria-checked='true'] .ui-switch-knob { transform: translateX(-20px); }
-html .ui-switch:dir(rtl)[aria-checked='true']:active:not(:disabled) .ui-switch-knob { transform: translateX(-14px); }
+html .ui-switch[aria-checked='true']:active:not(:disabled) .ui-switch-knob { margin-inline-start: 14px; }
 html .ui-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 html .ui-switch:disabled { opacity: 0.45; cursor: default; }
 

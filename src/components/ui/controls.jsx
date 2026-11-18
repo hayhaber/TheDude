@@ -150,3 +150,13 @@ export function SwapGlyph({ size = 15 }) {
     </svg>
   );
 }
+
+/** Restart glyph (SF Symbols' arrow.counterclockwise). */
+export function RestartGlyph({ size = 18 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
+      <path d="M4 3.5v4.2h4.2" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

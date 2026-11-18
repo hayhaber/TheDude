@@ -8,7 +8,8 @@ import { PianoKeyboard } from '../PianoKeyboard/PianoKeyboard';
 import { EarTrainingMicAnswer } from './EarTrainingMicAnswer';
 import './EarTrainingModal.css';
 import { Select } from '../ui/Select';
-import { Button, PlayGlyph } from '../ui/controls';
+import { Button, PlayGlyph, RestartGlyph } from '../ui/controls';
+import { LineIcon } from '../LineIcon/LineIcon';
 
 // question.prompt/choices[].label come from music/earTraining.js as fixed
 // English strings (also used internally there for nothing beyond display),
@@ -348,6 +349,22 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
 
         {question && (
           <>
+            {/* Timed: the clock above the question, where the eye is — the
+                time in the label colour (accent is for what you can tap),
+                red in the last 10 s; Restart = a round icon key (v1.0.216). */}
+            {isTimed && (
+              <div className="ear-training-clock">
+                <span className={'ear-training-clock-time' + (timerRunning && timeRemaining <= 10 ? ' is-low' : '')} role="timer" aria-label={t('earTraining.timeLeft') + ' ' + timeRemaining}>
+                  <LineIcon name="stopwatch" size={18} strokeWidth={2} />
+                  <span dir="ltr">{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</span>
+                </span>
+                {!timerRunning && score.total === 0 && <span className="ear-training-clock-wait">{t('earTraining.timerWaits')}</span>}
+                {(timerRunning || score.total > 0) && (
+                  <Button variant="gray" size="lg" iconOnly icon={<RestartGlyph />} className="ear-training-restart" onClick={restart} aria-label={t('earTraining.restart')} title={t('earTraining.restart')} />
+                )}
+              </div>
+            )}
+
             <p className={'ear-training-prompt' + (feedback ? feedback.correct ? ' correct' : ' incorrect' : '')} dir="auto">
               {promptFor(t, question)}
             </p>
@@ -418,19 +435,6 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
 
             {/* Directly below Skip/Next, matching its right edge — a
                 separate line, not sharing the actions row. */}
-            {isTimed && (
-              <div className="ear-training-timer-row">
-                <div className={'ear-training-timer-inline' + (timerRunning && timeRemaining <= 10 ? ' danger' : '')} dir="auto">
-                  {t('earTraining.timeLeft')} {timeRemaining}
-                  {!timerRunning && score.total === 0 && <span className="ear-training-timer-wait"> · {t('earTraining.timerWaits')}</span>}
-                </div>
-                {(timerRunning || score.total > 0) && (
-                  <Button variant="plain" size="sm" className="ear-training-restart" onClick={restart}>
-                    {t('earTraining.restart')}
-                  </Button>
-                )}
-              </div>
-            )}
 
             {/* Answering by playing the note on a real guitar is a
                 secondary path — tucked into a collapsed disclosure so it

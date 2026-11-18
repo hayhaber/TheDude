@@ -435,21 +435,37 @@
   transform: scale(0.96);
 }
 
-/* Timed: the clock + Restart on one line (v1.0.214) */
-.ear-training-timer-row {
+/* Timed clock (v1.0.216) */
+.ear-training-clock {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 12px;
-  margin-top: 6px;
+  min-height: 44px;
+  margin: 4px 0 10px;
 }
-.ear-training-timer-row .ear-training-timer-inline {
-  margin-top: 0;
+.ear-training-clock-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
-.ear-training-timer-wait {
-  font-size: 15px;
-  font-weight: 500;
+.ear-training-clock-time svg {
   color: var(--text-secondary);
+}
+.ear-training-clock-time.is-low,
+.ear-training-clock-time.is-low svg {
+  color: var(--danger);
+}
+.ear-training-clock-wait {
+  flex: 1;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+.ear-training-clock .ear-training-restart {
+  margin-inline-start: auto;
 }
 /* Inline (Practice): no title of its own — the actions sit at the end */
 .ear-training-modal-inline .ear-training-header {

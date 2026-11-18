@@ -3345,3 +3345,14 @@ no tools).
   variant unchanged. Playwright 390 HE guitar + 1180 EN piano: Play ->
   Play again, no board / title before answering, back + return = start
   card, Timed flow as v1.0.214; no errors.
+- v1.0.216 (user: "would Apple design the Restart next to the clock like
+  this?" -> no): Timed clock moved ABOVE the question (`.ear-training-
+  clock`; it sat under Play / Skip, below the fold on phones), shown as
+  m:ss in tabular numerals in the LABEL colour with a stopwatch glyph (was
+  accent blue "Time: 58" — accent means tappable), red (`--danger`) in the
+  last 10 s, `role="timer"`; "starts on the first play" in secondary text
+  while waiting; Restart = a gray 44 pt round icon key (new `RestartGlyph`
+  = SF arrow.counterclockwise in ui/controls.jsx, aria-label / title
+  "Restart") at the row's end instead of a plain text word. Playwright 390
+  HE + 1180 EN: 1:00 waiting -> 0:58 after play -> red at 0:50? no (only
+  <= 10), restart -> 1:00; no errors.

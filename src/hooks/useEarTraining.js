@@ -86,6 +86,8 @@ export function useEarTraining() {
   const [practiceMode, setPracticeMode] = useState(EAR_TRAINING_PRACTICE_MODES[0].key);
   const [timeRemaining, setTimeRemaining] = useState(TIMED_CHALLENGE_DURATION_S);
   const [isTimedOver, setIsTimedOver] = useState(false);
+  // Has this question's sound been played yet? (the key reads Play, then Play again)
+  const [heard, setHeard] = useState(false);
   // "Finish" ends a session by choice and shows its summary.
   const [isFinished, setIsFinished] = useState(false);
   const [sessionBestStreak, setSessionBestStreak] = useState(0);
@@ -223,8 +225,10 @@ export function useEarTraining() {
     // AudioContext (see EarTrainingModal.jsx's own comment on that).
     if (suppressAutoplayOnceRef.current) {
       suppressAutoplayOnceRef.current = false;
+      setHeard(false);
     } else {
       playQuestionAudio(q);
+      setHeard(true);
     }
   }
 
@@ -406,6 +410,7 @@ export function useEarTraining() {
 
   function replay() {
     playQuestionAudio(question);
+    setHeard(true);
     ensureTimerRunning();
     // Asking to hear it again after answering means "don't rush me" — stop
     // the pending auto-advance and hand control back via the Next button.
@@ -626,6 +631,7 @@ export function useEarTraining() {
     practiceModes: EAR_TRAINING_PRACTICE_MODES,
     timeRemaining,
     timerRunning: !!timerIntervalRef.current,
+    heard,
     restart,
     timedDurationS: TIMED_CHALLENGE_DURATION_S,
     isTimedOver,

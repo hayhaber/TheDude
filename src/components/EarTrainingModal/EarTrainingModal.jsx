@@ -92,9 +92,9 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
         <p className="ear-training-start-copy" dir="auto">
           {t(instrument === 'piano' ? 'earTraining.startCopyPiano' : 'earTraining.startCopy')}
         </p>
-        <button type="button" className="play-button" onClick={earTraining.start}>
-          {t('earTraining.startQuiz')}
-        </button>
+        <Button variant="filled" size="lg" icon={<PlayGlyph />} onClick={earTraining.start}>
+          {t('earTraining.startQuiz').replace(/^▶\s*/, '')}
+        </Button>
       </div>
     );
   }
@@ -121,6 +121,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     practiceModes,
     timeRemaining,
     timerRunning,
+    heard,
     restart,
     isTimedOver,
     isFinished,
@@ -209,10 +210,12 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     return (
       <div className={isInline ? 'ear-training-modal ear-training-modal-inline' : 'ear-training-modal'} onClick={(e) => e.stopPropagation()}>
         <div className="ear-training-header">
-          <h2 className="ear-training-title">{t('earTraining.title')}</h2>
-          <Button variant="plain" className="ear-training-exit" onClick={onClose}>
-            {t('earTraining.exit')}
-          </Button>
+          {!isInline && <h2 className="ear-training-title">{t('earTraining.title')}</h2>}
+          {!isInline && (
+            <Button variant="plain" className="ear-training-exit" onClick={onClose}>
+              {t('earTraining.exit')}
+            </Button>
+          )}
         </div>
         <div className="ear-training-summary">
           <h3>{t(isFinished ? 'earTraining.summary.title' : 'earTraining.timedSummary.title')}</h3>
@@ -230,9 +233,9 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
               {t('earTraining.summary.bestStreak')} <strong>{sessionBestStreak}</strong>
             </span>
           </div>
-          <button type="button" className="play-button" onClick={earTraining.start}>
+          <Button variant="filled" icon={<PlayGlyph />} onClick={earTraining.start}>
             {t('vocal.again')}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -241,7 +244,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
   const content = (
     <div className={isInline ? 'ear-training-modal ear-training-modal-inline' : 'ear-training-modal'} onClick={(e) => e.stopPropagation()}>
         <div className="ear-training-header">
-          <h2 className="ear-training-title">{t('earTraining.title')}</h2>
+          {!isInline && <h2 className="ear-training-title">{t('earTraining.title')}</h2>}
           <div className="ear-training-header-actions">
             {/* Finish: end this session and see how it went. */}
             {score.total > 0 && (
@@ -249,9 +252,11 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
                 {t('earTraining.finish')}
               </Button>
             )}
-            <Button variant="plain" className="ear-training-exit" onClick={onClose}>
-              {t('earTraining.exit')}
-            </Button>
+            {!isInline && (
+              <Button variant="plain" className="ear-training-exit" onClick={onClose}>
+                {t('earTraining.exit')}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -311,6 +316,9 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
           <p dir="auto">{t(`earTraining.explain.${modeKey}`)}</p>
         </details>
 
+        {/* Six zeros before the first answer say nothing — the board shows
+            once there is a score (this session or all-time). */}
+        {(score.total > 0 || lifetimeAccuracyPct !== null) && (
         <div className="ear-training-scoreboard">
           <span>
             {t('earTraining.correct')} <strong>{score.correct}</strong>
@@ -336,6 +344,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
             <InfoTooltip text={t('tip.practice.earAllTime')} /> <strong>{lifetimeAccuracyPct === null ? '—' : `${lifetimeAccuracyPct}%`}</strong>
           </span>
         </div>
+        )}
 
         {question && (
           <>
@@ -379,8 +388,10 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
             {inlineInstrument}
 
             <div className="ear-training-actions">
-              <Button variant="tinted" icon={<PlayGlyph />} onClick={replay}>
-                {t('earTraining.replay').replace(/^▶\s*/, '')}
+              {/* Not heard yet = the screen's one primary, "Play"; after
+                  that a quiet "Play again" (v1.0.215). */}
+              <Button variant={heard ? 'tinted' : 'filled'} icon={<PlayGlyph />} onClick={replay}>
+                {heard ? t('earTraining.replay').replace(/^▶\s*/, '') : t('earTraining.play')}
               </Button>
               {question.kind === 'callresponse' && progress.length > 0 && (
                 <span className="ear-training-progress-label">

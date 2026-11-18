@@ -668,7 +668,9 @@ function App() {
     if (prev === practicePlace) return;
     if (prev === 'rhythm') rhythmGame.flushPerf();
     if (prev === 'scalePractice') scalePractice.flushPerf();
-    if (prev === 'ear-training') earTraining.flushPerf();
+    // v1.0.215: leaving ear training ends its session (the back circle is
+    // the way out; coming back starts fresh, a Timed clock never runs on).
+    if (prev === 'ear-training' && earTraining.open) earTraining.exit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practicePlace]);
 

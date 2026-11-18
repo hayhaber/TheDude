@@ -3331,3 +3331,17 @@ no tools).
   starts the clock; Timed runs get the same Restart key (= begin()).
   Playwright 390 HE guitar + 1180 EN piano: Timed -> 60 held 2.5 s, Play
   -> 58 after 2.6 s, Restart -> 60 waiting; no errors.
+- v1.0.215 (user: the first question's key said "Play again" before
+  anything played; "go over the design, fit it to Apple"): ear training
+  (guitar / piano) — useEarTraining `heard` (set by every play, false for
+  the first question that waits): the key is the screen's one FILLED
+  primary "Play" / "השמעה" until heard, then tinted "Play again".
+  Inline (Practice): no title of its own (the page h1 says it), no Exit
+  (the back circle is the way out — leaving the tool now ENDS the session,
+  App practicePlace effect -> `earTraining.exit()`, so a Timed clock never
+  runs on and a return starts fresh), the empty header row hidden; the
+  scoreboard (six zeros) shows only once there's a score this session or
+  all-time; Start / Again = library Buttons (filled + PlayGlyph). Popup
+  variant unchanged. Playwright 390 HE guitar + 1180 EN piano: Play ->
+  Play again, no board / title before answering, back + return = start
+  card, Timed flow as v1.0.214; no errors.

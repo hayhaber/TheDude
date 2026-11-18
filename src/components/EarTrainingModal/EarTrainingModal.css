@@ -451,3 +451,10 @@
   font-weight: 500;
   color: var(--text-secondary);
 }
+/* Inline (Practice): no title of its own — the actions sit at the end */
+.ear-training-modal-inline .ear-training-header {
+  justify-content: flex-end;
+}
+.ear-training-modal-inline .ear-training-header:not(:has(button)) {
+  display: none;
+}

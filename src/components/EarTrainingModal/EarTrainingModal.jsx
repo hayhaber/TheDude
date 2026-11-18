@@ -248,7 +248,7 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
           {!isInline && <h2 className="ear-training-title">{t('earTraining.title')}</h2>}
           <div className="ear-training-header-actions">
             {/* Finish: end this session and see how it went. */}
-            {score.total > 0 && (
+            {score.total > 0 && !isInline && (
               <Button variant="gray" className="ear-training-finish" onClick={finish}>
                 {t('earTraining.finish')}
               </Button>
@@ -316,36 +316,6 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
           <summary>{t('earTraining.explain.label')}</summary>
           <p dir="auto">{t(`earTraining.explain.${modeKey}`)}</p>
         </details>
-
-        {/* Six zeros before the first answer say nothing — the board shows
-            once there is a score (this session or all-time). */}
-        {(score.total > 0 || lifetimeAccuracyPct !== null) && (
-        <div className="ear-training-scoreboard">
-          <span>
-            {t('earTraining.correct')} <strong>{score.correct}</strong>
-          </span>
-          <span>
-            {t('earTraining.incorrect')} <strong>{incorrectCount}</strong>
-          </span>
-          <span>
-            {t('earTraining.streak')} <strong>{streak}</strong>
-          </span>
-          <span>
-            {t('earTraining.accuracy')} <strong>{accuracyPct === null ? '—' : `${accuracyPct}%`}</strong>
-          </span>
-          <span>
-            {t('earTraining.bestStreak')} <strong>{bestStreak}</strong>
-          </span>
-          {/* Everything above resets to 0 the moment a new session starts —
-              this is the one tile that doesn't: accuracy on this mode,
-              accumulated across every session ever, so there's an actual
-              answer to "am I improving over time?". */}
-          <span>
-            {t('earTraining.lifetimeAccuracy')}
-            <InfoTooltip text={t('tip.practice.earAllTime')} /> <strong>{lifetimeAccuracyPct === null ? '—' : `${lifetimeAccuracyPct}%`}</strong>
-          </span>
-        </div>
-        )}
 
         {question && (
           <>
@@ -474,6 +444,45 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
               </div>
             )}
           </>
+        )}
+        {/* Six zeros before the first answer say nothing — the board shows
+            once there is a score (this session or all-time), at the END so
+            its appearing never moves the question / instrument (v1.0.217). */}
+        {(score.total > 0 || lifetimeAccuracyPct !== null) && (
+        <div className="ear-training-scoreboard">
+          <span>
+            {t('earTraining.correct')} <strong>{score.correct}</strong>
+          </span>
+          <span>
+            {t('earTraining.incorrect')} <strong>{incorrectCount}</strong>
+          </span>
+          <span>
+            {t('earTraining.streak')} <strong>{streak}</strong>
+          </span>
+          <span>
+            {t('earTraining.accuracy')} <strong>{accuracyPct === null ? '—' : `${accuracyPct}%`}</strong>
+          </span>
+          <span>
+            {t('earTraining.bestStreak')} <strong>{bestStreak}</strong>
+          </span>
+          {/* Everything above resets to 0 the moment a new session starts —
+              this is the one tile that doesn't: accuracy on this mode,
+              accumulated across every session ever, so there's an actual
+              answer to "am I improving over time?". */}
+          <span>
+            {t('earTraining.lifetimeAccuracy')}
+            <InfoTooltip text={t('tip.practice.earAllTime')} /> <strong>{lifetimeAccuracyPct === null ? '—' : `${lifetimeAccuracyPct}%`}</strong>
+          </span>
+        </div>
+        )}
+        {/* Inline: Finish sits with the score at the end (in the header its
+            appearing after the first answer pushed everything down). */}
+        {isInline && score.total > 0 && (
+          <div className="ear-training-finish-row">
+            <Button variant="gray" className="ear-training-finish" onClick={finish}>
+              {t('earTraining.finish')}
+            </Button>
+          </div>
         )}
     </div>
   );

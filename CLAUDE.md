@@ -3356,3 +3356,12 @@ no tools).
   "Restart") at the row's end instead of a plain text word. Playwright 390
   HE + 1180 EN: 1:00 waiting -> 0:58 after play -> red at 0:50? no (only
   <= 10), restart -> 1:00; no errors.
+- v1.0.217 (user: the screen jumped after the first answer): two things
+  appeared ABOVE the question on the first answer — the scoreboard (shown
+  only once there's a score, v1.0.215) and, inline, the header row with
+  Finish (its only button). Both now live at the END of the session
+  (scoreboard, then `.ear-training-finish-row` with Finish, inline only;
+  the popup keeps Finish in its header). Measured (scratchpad
+  earshift.cjs: y of prompt / reveal / instrument / actions / choices
+  before vs 250 ms after the first answer, every mode x Standard / Timed,
+  390 HE guitar + 1180 EN piano): 0 px everywhere (was +52 px).

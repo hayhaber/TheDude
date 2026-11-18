@@ -359,6 +359,11 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
                 <button type="button" className={answer ? 'primary' : ''} onClick={next}>
                   {answer ? t('earTraining.next') : t('earTraining.skip')}
                 </button>
+                {timed && (
+                  <button type="button" onClick={begin}>
+                    {t('earTraining.restart')}
+                  </button>
+                )}
                 <InfoTooltip text={t('tip.tools.vocalEar')} />
               </div>
             </>

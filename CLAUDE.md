@@ -3318,3 +3318,16 @@ no tools).
   else "That didn't work (<server message>)". Most likely cause on his
   iPad: migration 002 never run (create_band missing). Fake-Supabase
   check: PGRST202 -> the setup text; after "running" it -> band created.
+- v1.0.214 (user: Timed ear training on guitar / piano started its clock
+  the moment Timed was chosen / the session opened, and there was no way
+  to start over): useEarTraining `start()` no longer starts the countdown
+  — it waits at 60 ("· starts on the first play", `earTraining.timerWaits`)
+  and starts on the first Play / answer (`ensureTimerRunning`, the first
+  question still doesn't auto-play). New `restart()` (exposed with
+  `timerRunning`): fresh score / streak / session best, full waiting clock,
+  a new question that waits for Play; a plain "Restart" / "מחדש" next to
+  the clock (`.ear-training-timer-row`) once the clock runs or something
+  was answered. Singing ear training (rule 10): its Start already plays +
+  starts the clock; Timed runs get the same Restart key (= begin()).
+  Playwright 390 HE guitar + 1180 EN piano: Timed -> 60 held 2.5 s, Play
+  -> 58 after 2.6 s, Restart -> 60 waiting; no errors.

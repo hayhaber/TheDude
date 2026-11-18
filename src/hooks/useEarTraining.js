@@ -298,10 +298,30 @@ export function useEarTraining() {
     }
     timerDeadlineRef.current = null;
 
-    if (practiceMode === 'timed') {
-      setTimeRemaining(TIMED_CHALLENGE_DURATION_S);
-      beginTimedCountdown();
-    }
+    // v1.0.214 (user: "the clock starts the moment I enter Timed, no way
+    // to start over"): the clock waits at the full minute and starts on the
+    // first Play / answer (ensureTimerRunning) — the first question doesn't
+    // auto-play, so the player starts it when ready. Again (summary) = the
+    // same: the next question plays, so the clock starts with it.
+    if (practiceMode === 'timed') setTimeRemaining(TIMED_CHALLENGE_DURATION_S);
+  }
+
+  // Start over in the middle of a run: a fresh score and a full, waiting
+  // clock; the new question waits for Play (its sound starts the clock).
+  function restart() {
+    flushPerf(1);
+    clearTimers();
+    timerIntervalRef.current = null;
+    timerDeadlineRef.current = null;
+    feedbackHoldTimeoutRef.current = null;
+    setScore({ correct: 0, total: 0 });
+    setStreak(0);
+    setSessionBestStreak(0);
+    setIsTimedOver(false);
+    setIsFinished(false);
+    setTimeRemaining(TIMED_CHALLENGE_DURATION_S);
+    suppressAutoplayOnceRef.current = true;
+    newQuestion();
   }
 
   function finish() {
@@ -605,6 +625,8 @@ export function useEarTraining() {
     setPracticeMode,
     practiceModes: EAR_TRAINING_PRACTICE_MODES,
     timeRemaining,
+    timerRunning: !!timerIntervalRef.current,
+    restart,
     timedDurationS: TIMED_CHALLENGE_DURATION_S,
     isTimedOver,
     isFinished,

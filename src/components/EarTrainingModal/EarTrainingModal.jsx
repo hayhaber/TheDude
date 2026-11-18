@@ -120,6 +120,8 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
     setPracticeMode,
     practiceModes,
     timeRemaining,
+    timerRunning,
+    restart,
     isTimedOver,
     isFinished,
     finish,
@@ -406,8 +408,16 @@ export function EarTrainingModal({ earTraining, onClose, variant = 'modal' }) {
             {/* Directly below Skip/Next, matching its right edge — a
                 separate line, not sharing the actions row. */}
             {isTimed && (
-              <div className={'ear-training-timer-inline' + (timeRemaining <= 10 ? ' danger' : '')} dir="auto">
-                {t('earTraining.timeLeft')} {timeRemaining}
+              <div className="ear-training-timer-row">
+                <div className={'ear-training-timer-inline' + (timerRunning && timeRemaining <= 10 ? ' danger' : '')} dir="auto">
+                  {t('earTraining.timeLeft')} {timeRemaining}
+                  {!timerRunning && score.total === 0 && <span className="ear-training-timer-wait"> · {t('earTraining.timerWaits')}</span>}
+                </div>
+                {(timerRunning || score.total > 0) && (
+                  <Button variant="plain" size="sm" className="ear-training-restart" onClick={restart}>
+                    {t('earTraining.restart')}
+                  </Button>
+                )}
               </div>
             )}
 

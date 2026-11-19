@@ -36,6 +36,7 @@ import { knowsChord } from '../../teacher/mastery';
 import { useTeacher } from '../../teacher/teacherState';
 import { studentLevel } from '../PracticeView/practiceLibrary';
 import { Select } from '../ui/Select';
+import { AddedToast } from './AddedToast';
 
 const STORE = 'dudestar-p-chord-library'; // per profile
 const ALL_BASSES = 'auto';
@@ -51,12 +52,12 @@ function load() {
   }
 }
 
-export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges }) {
+export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPracticeChanges }) {
   const { t, lang } = useLanguage();
   const [leftHanded] = useLeftHanded();
   const [prefs, setPrefs] = useState(load);
   const [pick, setPick] = useState({ group: 0, index: 0 });
-  const [added, setAdded] = useState(false);
+  const [added, setAdded] = useState(null); // {symbol, n} = the toast
   const addedTimer = useRef(0);
   const set = (patch) => {
     setPrefs((p) => {
@@ -151,6 +152,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
 
   return (
     <div className={'chord-library' + (advanced ? ' is-advanced' : '')}>
+      <AddedToast added={added} onOpen={onOpenCompose} onClose={() => setAdded(null)} />
       <header className="cl-head">
         <h1>
           {t('chordlib.title')}
@@ -349,12 +351,12 @@ export function ChordLibraryView({ onStage, onAddToCompose, onPracticeChanges })
             title={symbol ? undefined : t('chordlib.notInCompose')}
             onClick={() => {
               onAddToCompose?.(symbol);
-              setAdded(true);
+              setAdded((a) => ({ symbol, n: (a?.n ?? 0) + 1 }));
               clearTimeout(addedTimer.current);
-              addedTimer.current = setTimeout(() => setAdded(false), 1600);
+              addedTimer.current = setTimeout(() => setAdded(null), 4000);
             }}
           >
-            {added ? '✓' : t('chordlib.add')}
+            {t('chordlib.add')}
           </button>
           <label className="cl-field cl-changes">
             <span>

@@ -8,6 +8,7 @@ import { playPianoChord, playPianoSequence } from '../../audio/pianoPlayer';
 import { KeysBox } from './KeysBox';
 import './ChordLibraryView.css';
 import { Select } from '../ui/Select';
+import { AddedToast } from './AddedToast';
 
 // Piano -> Chord Library (user's request 2026-10-19): the guitar library's
 // chords, laid out for the keys. Simple by default (the user's rule): tap a
@@ -29,11 +30,11 @@ function load() {
   }
 }
 
-export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef }) {
+export function PianoChordLibraryView({ onStage, onAddToCompose, onOpenCompose, noteEventRef }) {
   const { t } = useLanguage();
   const [prefs, setPrefs] = useState(load);
   const [inv, setInv] = useState(0);
-  const [added, setAdded] = useState(false);
+  const [added, setAdded] = useState(null); // {symbol, n} = the toast
   // Keys played on the Stage keyboard / MIDI / computer keys: held keys, plus
   // keys tapped within the last 1.5 s (so a chord can be tapped note by note
   // with a mouse too).
@@ -126,6 +127,7 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
 
   return (
     <div className={'chord-library is-piano' + (advanced ? ' is-advanced' : '')}>
+      <AddedToast added={added} onOpen={onOpenCompose} onClose={() => setAdded(null)} />
       <header className="cl-head">
         <h1>
           {t('chordlib.title')}
@@ -291,12 +293,12 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, noteEventRef })
               title={symbol ? t('tip.chordlib.add') : t('chordlib.notInCompose')}
               onClick={() => {
                 onAddToCompose?.(symbol);
-                setAdded(true);
+                setAdded((a) => ({ symbol, n: (a?.n ?? 0) + 1 }));
                 clearTimeout(addedTimer.current);
-                addedTimer.current = setTimeout(() => setAdded(false), 1600);
+                addedTimer.current = setTimeout(() => setAdded(null), 4000);
               }}
             >
-              {added ? '✓' : t('chordlib.add')}
+              {t('chordlib.add')}
             </button>
           </div>
         </section>

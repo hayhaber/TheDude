@@ -3394,3 +3394,11 @@ no tools).
   it grows about its own centre. Handle 40x16 -> 44x18 (top -9, chevron
   20x10). Measured 390 + 1180: centre 195 / 590 at rest and pressed (was
   a full jump), toggle still folds the neck; no errors.
+- v1.0.220 (user: "what does Add in the Chord Library do? I don't get
+  it"): the button is "+ Compose" / "+ להלחנה" (guitar + piano
+  libraries), and a tap shows `AddedToast` (ChordLibrary/AddedToast.jsx,
+  `.cl-added`): a glass HUD under the top controls, "Am7 added to
+  Compose" + ONE action Open (`chordlib.goCompose`; `chordlib.open` is
+  the "Open position" label) -> App `onOpenCompose` = the Compose
+  section; 4 s, a new add replaces it. Playwright 390 HE + 1180 EN: label,
+  toast, Open -> Compose holds the chord; no errors.

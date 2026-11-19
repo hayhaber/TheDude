@@ -2740,13 +2740,14 @@ function App() {
       {activeSection === 'stage' && <StageView onAccount={() => setSettingsSheet(true)} />}
       {activeSection === 'freeplay' && <FreePlayView pianoProps={stagePianoProps} />}
       {activeSection === 'chords' && instrument === 'piano' && (
-        <PianoChordLibraryView onStage={setPianoChordKeys} onAddToCompose={addToCompose} noteEventRef={pianoChordNoteRef} />
+        <PianoChordLibraryView onStage={setPianoChordKeys} onAddToCompose={addToCompose} onOpenCompose={() => setActiveSection('compose')} noteEventRef={pianoChordNoteRef} />
       )}
       {activeSection === 'chords' && instrument !== 'piano' && (
         <ChordLibraryView
           key={chordLibN}
           onStage={setChordLibStage}
           onAddToCompose={addToCompose}
+          onOpenCompose={() => setActiveSection('compose')}
           onPracticeChanges={(chords) => launchPracticeRef.current({ tool: 'minuteChanges', chords })}
         />
       )}

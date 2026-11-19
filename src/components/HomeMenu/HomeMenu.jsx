@@ -211,6 +211,11 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
   const nRef = useRef(N);
   nRef.current = N;
   const [editing, setEditing] = useState(false);
+  // Long press on a card (or right click) = a context menu with "Edit cards"
+  // (v1.0.223; like the iPhone home screen — no Edit button in the header).
+  const [ctxMenu, setCtxMenu] = useState(null); // {x, y} | null
+  const pressRef = useRef(0);
+  useEffect(() => () => clearTimeout(pressRef.current), []);
   const trackRef = useRef(null);
   const rootRef = useRef(null);
   const cardRefs = useRef([]);
@@ -342,11 +347,22 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
       dragging: false,
     };
     suppressClickRef.current = false;
+    clearTimeout(pressRef.current);
+    if (e.pointerType !== 'mouse') {
+      const { clientX: x, clientY: y } = e;
+      pressRef.current = setTimeout(() => {
+        dragRef.current = null;
+        suppressClickRef.current = true; // the finger's lift isn't a tap
+        navigator.vibrate?.(10);
+        setCtxMenu({ x, y });
+      }, 500);
+    }
   };
   const onPointerMove = (e) => {
     const g = dragRef.current;
     if (!g || g.id !== e.pointerId) return;
     const dx = e.clientX - g.x0;
+    if (Math.abs(dx) > 6 || Math.abs(e.clientY - g.y0) > 6) clearTimeout(pressRef.current);
     if (!g.dragging) {
       if (Math.abs(dx) < 6) return;
       if (Math.abs(e.clientY - g.y0) > Math.abs(dx)) {
@@ -374,6 +390,7 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
     draw();
   };
   const onPointerUp = (e) => {
+    clearTimeout(pressRef.current);
     const g = dragRef.current;
     dragRef.current = null;
     if (!g || g.id !== e.pointerId || !g.dragging) return;
@@ -569,6 +586,46 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
   return (
     <div className="home-menu" dir="rtl" ref={rootRef}>
       {editing && <HomeEditSheet onClose={() => setEditing(false)} t={t} />}
+      {ctxMenu && (
+        <div
+          className="home-ctx-scrim"
+          onPointerDown={(e) => e.target === e.currentTarget && setCtxMenu(null)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setCtxMenu(null);
+          }}
+        >
+          <div
+            className="home-ctx"
+            role="menu"
+            dir={lang === 'he' ? 'rtl' : 'ltr'}
+            style={{
+              left: Math.max(12, Math.min(ctxMenu.x - 120, window.innerWidth - 252)),
+              top: Math.max(12, Math.min(ctxMenu.y + 12, window.innerHeight - 76)),
+            }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="home-ctx-item"
+              autoFocus
+              onClick={() => {
+                setCtxMenu(null);
+                setEditing(true);
+              }}
+              onKeyDown={(e) => e.key === 'Escape' && setCtxMenu(null)}
+            >
+              <span>{t('home.editCards')}</span>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <rect x="4" y="4" width="6.5" height="6.5" rx="1.6" />
+                <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" />
+                <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" />
+                <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
       <header className="home-top">
         <div className="home-brand">
           <AppLogo size={40} />
@@ -576,9 +633,6 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
         </div>
         <div className="home-top-end">
           {/* Who's practising (local profiles), at the far right. */}
-          <button type="button" className="home-edit" onClick={() => setEditing(true)}>
-            {t('home.edit')}
-          </button>
           <ProfileChip onSettings={() => onOpen({ tool: 'settings', card: cards[((Math.round(targetRef.current) % N) + N) % N]?.key })} />
         </div>
       </header>
@@ -591,6 +645,12 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            clearTimeout(pressRef.current);
+            if (e.nativeEvent.pointerType && e.nativeEvent.pointerType !== 'mouse') return; // touch: the timer handles it
+            setCtxMenu({ x: e.clientX, y: e.clientY });
+          }}
         >
           {cards.map((card, i) => {
             const opts = card.options.filter((o) => {

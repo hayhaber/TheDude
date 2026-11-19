@@ -3424,3 +3424,12 @@ no tools).
   "הבא →", "← חזרה" (arrows now point the way they go). Playwright 390
   HE: chips Am Fm C G at x 16 / 79 / 139 / 189, arrow glyph after "הבא";
   toast text; no errors. New UI with a chord sequence: dir="ltr".
+- v1.0.223 (user: "would Apple put an Edit button at the top to edit the
+  cards?" -> no; "build"): the home header's Edit pill is GONE. A LONG
+  PRESS on a card (500 ms, touch; cancelled by > 6 px movement; the lift
+  isn't a tap) or a RIGHT CLICK opens `.home-ctx` — a glass context menu
+  at the finger with one row "Edit Cards" / "עריכת הכרטיסים" + grid icon
+  (`home.editCards`) -> the same HomeEditSheet; outside tap / Escape
+  closes. Settings -> "Home screen" stays as the visible way. Playwright
+  390 HE (CDP touch long press on a shortcut: menu, still home, sheet
+  opens) + 1180 EN (right click, outside click closes); no errors.

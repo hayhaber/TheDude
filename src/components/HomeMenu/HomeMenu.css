@@ -970,3 +970,55 @@ html.home-locked body {
   transition: transform var(--dur-fast, 0.15s) var(--ease-ios, ease);
 }
 .home-edit:active { transform: scale(0.96); }
+
+/* Long press on a card = a context menu (v1.0.223, like the iPhone home
+   screen's "Edit Home Screen"; the header Edit pill is gone). */
+.home-ctx-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+.home-ctx {
+  position: fixed;
+  width: 240px;
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--glass-sheet, var(--glass-bg));
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow), 0 16px 40px rgba(0, 0, 0, 0.18);
+  animation: home-ctx-in var(--dur-pop, 0.28s) var(--ease-ios, ease-out);
+}
+.home-ctx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+}
+.home-ctx-item:hover,
+.home-ctx-item:focus-visible,
+.home-ctx-item:active {
+  background: var(--fill-tertiary, rgba(118, 118, 128, 0.12));
+  outline: none;
+}
+@keyframes home-ctx-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-ctx {
+    animation: none;
+  }
+}

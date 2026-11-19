@@ -15,7 +15,7 @@ export function ChordChips({ progression, activeIndex, onSelect, onPrev, onNext 
 
   return (
     <div className="chord-chips">
-      <div className="chord-chips-row">
+      <div className="chord-chips-row" dir="ltr">
         {progression.map((chord, i) => {
           const isActive = i === activeIndex;
           const isInvalid = !chord.parsed;
@@ -37,11 +37,11 @@ export function ChordChips({ progression, activeIndex, onSelect, onPrev, onNext 
         })}
       </div>
 
-      <div className="chord-chips-nav" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+      <div className="chord-chips-nav" dir="ltr">
         <button type="button" className="chord-chips-nav-button" onClick={onPrev} disabled={progression.length < 2}>
           {t('chordChips.prevChord')}
         </button>
-        <span className="chord-chips-nav-label">
+        <span className="chord-chips-nav-label" dir={lang === 'he' ? 'rtl' : 'ltr'}>
           {t('chordChips.navLabel', { index: activeIndex + 1, total: progression.length, name: active.text })}
         </span>
         <button type="button" className="chord-chips-nav-button" onClick={onNext} disabled={progression.length < 2}>

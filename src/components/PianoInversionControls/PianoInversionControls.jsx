@@ -24,11 +24,11 @@ export function PianoInversionControls({ inversion, setInversion, chordColor }) 
 
   return (
     <div className="position-controls">
-      <div className="position-controls-nav" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+      <div className="position-controls-nav" dir="ltr">
         <button type="button" onClick={() => step(-1)}>
           {t('positionControls.back')}
         </button>
-        <span className="position-label">
+        <span className="position-label" dir={lang === 'he' ? 'rtl' : 'ltr'}>
           {t('piano.inversion.navLabel', { index: currentIndex + 1, total: CHORD_INVERSIONS.length, name: t(current.labelKey) })}
           <InfoTooltip text={t('tip.compose.inversion')} />
         </span>
@@ -37,7 +37,7 @@ export function PianoInversionControls({ inversion, setInversion, chordColor }) 
         </button>
       </div>
 
-      <div className="position-chips">
+      <div className="position-chips" dir="ltr">
         {CHORD_INVERSIONS.map((inv, i) => {
           const isActive = i === currentIndex;
           return (

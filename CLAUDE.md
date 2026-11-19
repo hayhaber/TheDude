@@ -3410,3 +3410,17 @@ no tools).
   overscroll-behavior-x contain. Sweep at 390 (simple + advanced): no
   small vertical scrollers left. Any new sideways chip row: set
   overflow-y hidden too.
+- v1.0.222 (user: "the tab says Create and you call it Compose"; "in
+  Hebrew the chords must read left to right, aligned left, like in
+  English — the bubbles are reversed too"): (1) Chord Library button =
+  "+ Create" / "+ ליצירה" (the tab's name), toast "Am added to Compose,
+  in the Create tab" / "נוסף להלחנה, בלשונית יצירה". (2) A chord
+  SEQUENCE is always LTR (time runs left to right, like the neck): the
+  Compose field (`ChordInput` dir ltr), the chord chips + Prev / Next row
+  (ChordChips), the position row + 1..N chips (PositionControls), the
+  piano inversion row, the roadmap chain (its RTL arrow mirror removed),
+  Scales' position nav and the piano clef demo's ‹ › row; only the
+  middle labels keep the language's dir. Hebrew strings: "← קודם",
+  "הבא →", "← חזרה" (arrows now point the way they go). Playwright 390
+  HE: chips Am Fm C G at x 16 / 79 / 139 / 189, arrow glyph after "הבא";
+  toast text; no errors. New UI with a chord sequence: dir="ltr".

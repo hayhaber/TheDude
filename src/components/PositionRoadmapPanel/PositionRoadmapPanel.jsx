@@ -54,7 +54,7 @@ export function PositionRoadmapPanel({ roadmap, shapesFor, onPick }) {
         {t('positionRoadmap.desc')}
         {picking ? ' ' + t('positionRoadmap.tapHint') : ''}
       </p>
-      <div className="position-roadmap-chain">
+      <div className="position-roadmap-chain" dir="ltr">
         {roadmap.steps.map((step, i) => (
           <span key={i} className="position-roadmap-step-group">
             {(() => {

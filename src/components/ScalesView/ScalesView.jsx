@@ -171,11 +171,11 @@ export function ScalesView({ lessons, scalesLesson, progress, drill, metronome, 
               )}
 
               {usesPositions && positions.length > 0 && (
-                <div className="scales-position-nav">
+                <div className="scales-position-nav" dir="ltr">
                   <button type="button" onClick={() => setPositionIndex((i) => Math.max(0, i - 1))} disabled={positionIndex <= 0}>
                     {t('positionControls.back')}
                   </button>
-                  <span className="position-label">
+                  <span className="position-label" dir="auto">
                     {t('scales.positionLabel', { index: positionIndex + 1, total: positions.length, shape: currentPosition?.shapeName })}
                   </span>
                   <button

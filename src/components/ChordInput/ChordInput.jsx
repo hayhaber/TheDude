@@ -11,6 +11,7 @@ export function ChordInput({ value, onChange, inputRef }) {
         id="chord-progression"
         ref={inputRef}
         type="text"
+        dir="ltr"
         value={value}
         onChange={(e) => onChange(sanitizeChordInput(e.target.value))}
         placeholder={t('chordInput.placeholder')}

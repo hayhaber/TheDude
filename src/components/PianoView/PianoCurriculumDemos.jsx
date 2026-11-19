@@ -281,7 +281,7 @@ export function LinesSpacesDemo({ onPreviewNotes }) {
       <p className="cbe-hint" dir="auto">
         {t(MNEMONIC_HINT_KEY[clefKey][groupKey])}
       </p>
-      <div className="cbe-fret-row">
+      <div className="cbe-fret-row" dir="ltr">
         <button type="button" className="cbe-fret-btn" onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index <= 0}>
           {t('positionControls.back')}
         </button>

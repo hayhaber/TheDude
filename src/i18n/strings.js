@@ -2688,13 +2688,13 @@ export const STRINGS = {
     'savedProgressions.delete': 'מחיקה',
     'savedProgressions.renamePrompt': 'שינוי שם הרצף',
 
-    'chordChips.prevChord': '→ קודם',
-    'chordChips.nextChord': 'הבא ←',
+    'chordChips.prevChord': '← קודם',
+    'chordChips.nextChord': 'הבא →',
     'chordChips.navLabel': 'אקורד {index} מתוך {total} — {name}',
     'chordChips.invalidTitle': '"{chord}" אינו אקורד מוכר',
 
-    'positionControls.back': '→ חזרה',
-    'positionControls.next': 'הבא ←',
+    'positionControls.back': '← חזרה',
+    'positionControls.next': 'הבא →',
     'positionControls.navLabel': 'פוזיציה {index} מתוך {total} — {shape}',
 
     'modeToggle.label': 'מצב תצוגה',

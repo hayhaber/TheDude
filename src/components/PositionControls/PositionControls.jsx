@@ -10,11 +10,11 @@ export function PositionControls({ currentIndex, positions, chordColor, onNext, 
 
   return (
     <div className="position-controls">
-      <div className="position-controls-nav" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+      <div className="position-controls-nav" dir="ltr">
         <button type="button" onClick={onBack} disabled={positions.length < 2}>
           {t('positionControls.back')}
         </button>
-        <span className="position-label">
+        <span className="position-label" dir={lang === 'he' ? 'rtl' : 'ltr'}>
           {t('positionControls.navLabel', { index: currentIndex + 1, total: positions.length, shape: current.shapeName })}
           <InfoTooltip text={t('tip.compose.position')} />
         </span>
@@ -24,7 +24,7 @@ export function PositionControls({ currentIndex, positions, chordColor, onNext, 
       </div>
 
       {positions.length > 1 && (
-        <div className="position-chips">
+        <div className="position-chips" dir="ltr">
           {positions.map((position, i) => {
             const isActive = i === currentIndex;
             return (

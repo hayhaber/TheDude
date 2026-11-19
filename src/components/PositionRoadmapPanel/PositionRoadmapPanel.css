@@ -96,11 +96,6 @@
   line-height: 1;
 }
 
-.position-roadmap-transition:dir(rtl)::before {
-  /* the chain reads right-to-left in Hebrew: the arrow points that way */
-  display: inline-block;
-  transform: scaleX(-1);
-}
 
 .position-roadmap-transition.slide {
   color: var(--danger);

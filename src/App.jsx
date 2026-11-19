@@ -671,6 +671,7 @@ function App() {
     // v1.0.215: leaving ear training ends its session (the back circle is
     // the way out; coming back starts fresh, a Timed clock never runs on).
     if (prev === 'ear-training' && earTraining.open) earTraining.exit();
+    if (prev === 'piano' && pianoPractice.open) pianoPractice.exit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practicePlace]);
 

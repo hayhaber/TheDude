@@ -3365,3 +3365,23 @@ no tools).
   earshift.cjs: y of prompt / reveal / instrument / actions / choices
   before vs 250 ms after the first answer, every mode x Standard / Timed,
   390 HE guitar + 1180 EN piano): 0 px everywhere (was +52 px).
+- v1.0.218 (user: Ear training's Chord (major / minor) mode still said
+  "Play again" on its first question; "apply the update to every
+  exercise"): (1) useEarTraining — a mode / difficulty change is a fresh
+  start too: its first question waits for Play (suppressAutoplayOnceRef
+  set in the open / mode / difficulty effect), so the key reads "Play"
+  and the Timed clock starts with that play. (2) Piano exercises
+  (`usePianoPractice` + PianoPracticePanel) get the ear-training model:
+  `heard` (Play filled -> Play again tinted), the first question of a
+  session / exercise waits, Next / Skip play the new one at once
+  (`newQuestion(autoplay)`, `playQ`), answered = filled Next (was Skip
+  only), no own title / Exit (page h1 + back circle; leaving the tool
+  ends the session, App practicePlace effect), the scoreboard at the END
+  and only once there's a score / best streak, Start = library Button,
+  note-name choices dir="ltr" (F# read #F in Hebrew). (3) Bends: the demo
+  key reads "Play" until that bend's demo played, then "Play again".
+  (4) Singing ear training's Timed Restart = the same gray round
+  RestartGlyph key. Playwright 390 HE + 1180 EN: chord mode Play -> Play
+  again; piano Play / Play again / Next, no title / board before an
+  answer, prompt moved 0 px, back + return = start card; bend Play ->
+  Play again; no errors.

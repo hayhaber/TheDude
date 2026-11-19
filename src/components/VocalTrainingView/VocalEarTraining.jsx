@@ -9,6 +9,7 @@ import { TIMED_CHALLENGE_DURATION_S, loadBestStreak, loadLifetimeStats, saveBest
 import { midiName } from '../../music/vocal/voiceRange';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { Select } from '../ui/Select';
+import { Button, RestartGlyph } from '../ui/controls';
 
 // Ear training for singers: listen on the piano, answer with a tap. The
 // last option, Sing back, is answered with the voice (the 'echo' exercise
@@ -360,9 +361,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
                   {answer ? t('earTraining.next') : t('earTraining.skip')}
                 </button>
                 {timed && (
-                  <button type="button" onClick={begin}>
-                    {t('earTraining.restart')}
-                  </button>
+                  <Button variant="gray" size="lg" iconOnly icon={<RestartGlyph />} className="vocal-ear-restart" onClick={begin} aria-label={t('earTraining.restart')} title={t('earTraining.restart')} />
                 )}
                 <InfoTooltip text={t('tip.tools.vocalEar')} />
               </div>

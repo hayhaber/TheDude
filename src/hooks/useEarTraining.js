@@ -234,8 +234,13 @@ export function useEarTraining() {
 
   // Covers both the initial question on start() and regenerating one
   // whenever mode/difficulty changes mid-session.
+  // v1.0.218: a new mode / difficulty is a fresh start too — its first
+  // question waits for Play (key "Play", not "Play again"; the Timed clock
+  // starts with that play) instead of sounding the moment the menu closes.
   useEffect(() => {
-    if (open) newQuestion();
+    if (!open) return;
+    suppressAutoplayOnceRef.current = true;
+    newQuestion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, modeKey, difficultyKey]);
 

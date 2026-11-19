@@ -8,6 +8,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import '../EarTrainingModal/EarTrainingModal.css';
 import './PianoPracticePanel.css';
 import { Select } from '../ui/Select';
+import { Button, PlayGlyph } from '../ui/controls';
 
 function choiceLabel(t, question, choice) {
   if (question.kind === 'inversionDrill') return t(choice.labelKey);
@@ -43,8 +44,10 @@ export function PianoPracticePanel({ pianoPractice }) {
     streak,
     bestStreak,
     replay,
+    heard,
     handleChoice,
     skip,
+    next,
   } = pianoPractice;
 
   const exercisesInTier = exercises.filter((e) => e.difficultyKey === difficultyKey);
@@ -55,22 +58,15 @@ export function PianoPracticePanel({ pianoPractice }) {
         <p className="piano-practice-start-copy" dir="auto">
           {t('pianoPractice.startCopy')}
         </p>
-        <button type="button" className="play-button" onClick={start}>
+        <Button variant="filled" size="lg" icon={<PlayGlyph />} onClick={start}>
           {t('vocal.start')}
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="piano-practice-panel">
-      <div className="piano-practice-header">
-        <h2 className="piano-practice-title">{t('pianoPractice.title')}</h2>
-        <button type="button" className="ear-training-exit" onClick={exit}>
-          {t('earTraining.exit')}
-        </button>
-      </div>
-
       <div className="piano-practice-controls">
         <label className="ear-training-mode-field">
           {t('pianoPractice.difficultyLabel')}
@@ -99,6 +95,58 @@ export function PianoPracticePanel({ pianoPractice }) {
         </label>
       </div>
 
+      {!exercise.available && <p className="piano-practice-coming-soon">{t('pianoPractice.comingSoonBody')}</p>}
+
+      {exercise.available && question && (
+        <>
+          <p className={'ear-training-prompt' + (feedback ? (feedback.correct ? ' correct' : ' incorrect') : '')} dir="auto">
+            {promptFor(t, exercise, question)}
+          </p>
+
+          <div className="ear-training-actions">
+            {/* Not heard yet = the one filled primary "Play"; then a quiet
+                "Play again". Answered = Next is the primary. */}
+            <Button variant={heard ? 'tinted' : 'filled'} icon={<PlayGlyph />} onClick={replay}>
+              {heard ? t('earTraining.replay').replace(/^▶\s*/, '') : t('earTraining.play')}
+            </Button>
+            <div className="ear-training-trailing">
+              {answeredChoiceKey ? (
+                <Button variant="filled" className="ear-training-next" onClick={next}>
+                  {t('earTraining.next')}
+                </Button>
+              ) : (
+                <Button variant="plain" className="ear-training-skip" onClick={skip}>
+                  {t('earTraining.skip')}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="ear-training-choices">
+            {question.choices.map((c) => {
+              const isAnswered = !!answeredChoiceKey;
+              const isCorrectChoice = c.key === question.correctChoiceKey;
+              const isPickedChoice = c.key === answeredChoiceKey;
+              const cls = isAnswered && isCorrectChoice ? 'correct' : isAnswered && isPickedChoice ? 'incorrect' : '';
+              return (
+                <button
+                  key={c.key}
+                  type="button"
+                  className={`ear-training-choice ${cls}`.trim()}
+                  onClick={() => handleChoice(c.key)}
+                  disabled={isAnswered}
+                  dir={question.kind === 'inversionDrill' ? undefined : 'ltr'}
+                >
+                  {choiceLabel(t, question, c)}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+      {/* Score at the END and only once there is one — appearing never
+          moves the question (v1.0.218, as in ear training). */}
+      {(score.total > 0 || bestStreak > 0) && (
       <div className="ear-training-scoreboard">
         <span>
           {t('earTraining.streak')} <strong>{streak}</strong>
@@ -116,44 +164,6 @@ export function PianoPracticePanel({ pianoPractice }) {
           {t('earTraining.bestStreak')} <strong>{bestStreak}</strong>
         </span>
       </div>
-
-      {!exercise.available && <p className="piano-practice-coming-soon">{t('pianoPractice.comingSoonBody')}</p>}
-
-      {exercise.available && question && (
-        <>
-          <p className={'ear-training-prompt' + (feedback ? (feedback.correct ? ' correct' : ' incorrect') : '')} dir="auto">
-            {promptFor(t, exercise, question)}
-          </p>
-
-          <div className="ear-training-actions">
-            <button type="button" className="play-button" onClick={replay}>
-              {t('earTraining.replay')}
-            </button>
-            <button type="button" className="ear-training-skip" onClick={skip}>
-              {t('earTraining.skip')}
-            </button>
-          </div>
-
-          <div className="ear-training-choices">
-            {question.choices.map((c) => {
-              const isAnswered = !!answeredChoiceKey;
-              const isCorrectChoice = c.key === question.correctChoiceKey;
-              const isPickedChoice = c.key === answeredChoiceKey;
-              const cls = isAnswered && isCorrectChoice ? 'correct' : isAnswered && isPickedChoice ? 'incorrect' : '';
-              return (
-                <button
-                  key={c.key}
-                  type="button"
-                  className={`ear-training-choice ${cls}`.trim()}
-                  onClick={() => handleChoice(c.key)}
-                  disabled={isAnswered}
-                >
-                  {choiceLabel(t, question, c)}
-                </button>
-              );
-            })}
-          </div>
-        </>
       )}
     </div>
   );

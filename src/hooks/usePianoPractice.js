@@ -36,18 +36,35 @@ export function usePianoPractice() {
     setBestStreak(best);
   }, [exerciseKey]);
 
-  const newQuestion = useCallback(() => {
-    if (!exercise.available) {
-      setQuestion(null);
-      return;
-    }
-    setQuestion(generatePianoQuestion(exercise.key));
-    setAnsweredChoiceKey(null);
-    setFeedback(null);
-  }, [exercise]);
+  // v1.0.218 (parity with ear training): the first question of a session /
+  // a new exercise waits for Play (the key reads "Play" until the sound has
+  // played, then "Play again"); Next / Skip mid-session play it at once.
+  const [heard, setHeard] = useState(false);
+  const playQ = (q) => {
+    if (!q) return;
+    const midiNotes = q.notesToPlay.map((n) => n.midi);
+    if (q.playSequential) playPianoSequence(midiNotes);
+    else playPianoChord(midiNotes);
+    setHeard(true);
+  };
+  const newQuestion = useCallback(
+    (autoplay = false) => {
+      setAnsweredChoiceKey(null);
+      setFeedback(null);
+      setHeard(false);
+      if (!exercise.available) {
+        setQuestion(null);
+        return;
+      }
+      const q = generatePianoQuestion(exercise.key);
+      setQuestion(q);
+      if (autoplay) playQ(q);
+    },
+    [exercise] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   useEffect(() => {
-    if (open) newQuestion();
+    if (open) newQuestion(false);
   }, [open, newQuestion]);
 
   function start() {
@@ -72,10 +89,7 @@ export function usePianoPractice() {
   }
 
   function replay() {
-    if (!question) return;
-    const midiNotes = question.notesToPlay.map((n) => n.midi);
-    if (question.playSequential) playPianoSequence(midiNotes);
-    else playPianoChord(midiNotes);
+    playQ(question);
   }
 
   function handleChoice(choiceKey) {
@@ -116,7 +130,9 @@ export function usePianoPractice() {
     streak,
     bestStreak,
     replay,
+    heard,
     handleChoice,
-    skip: newQuestion,
+    skip: () => newQuestion(true),
+    next: () => newQuestion(true),
   };
 }

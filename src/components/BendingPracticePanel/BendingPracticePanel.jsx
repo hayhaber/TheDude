@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BEND_STATES } from '../../music/bendingTraining';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
@@ -35,6 +36,9 @@ function quadraticBezierPoint(p0, p1, p2, t) {
 // a bend-specific rendering mode to a component many other sections depend on.
 export function BendingPracticePanel({ bending }) {
   const { t } = useLanguage();
+  // The demo key reads "Play" until this bend's demo has played (v1.0.218).
+  const [heardStep, setHeardStep] = useState(null);
+  const demoHeard = heardStep === bending.stepIndex;
   const { step } = bending;
 
   const fretWindowStart = step.startFret - 1;
@@ -87,8 +91,16 @@ export function BendingPracticePanel({ bending }) {
           <Button variant={bending.isListening ? 'gray' : 'filled'} size="lg" onClick={bending.isListening ? bending.stop : bending.start}>
             {bending.isListening ? t('vocal.stop') : t('vocal.start')}
           </Button>
-          <Button variant="gray" size="lg" icon={<PlayGlyph />} onClick={bending.playDemo}>
-            {t('earTraining.replay').replace(/^▶\s*/, '')}
+          <Button
+            variant="gray"
+            size="lg"
+            icon={<PlayGlyph />}
+            onClick={() => {
+              bending.playDemo();
+              setHeardStep(bending.stepIndex);
+            }}
+          >
+            {demoHeard ? t('earTraining.replay').replace(/^▶\s*/, '') : t('earTraining.play')}
           </Button>
         </div>
 

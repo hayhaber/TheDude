@@ -235,7 +235,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
               aria-label={t(stageCollapsed ? 'nav.stageShow' : 'nav.stageHide')}
               title={t(stageCollapsed ? 'nav.stageShow' : 'nav.stageHide')}
             >
-              <svg viewBox="0 0 24 12" width="18" height="9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg viewBox="0 0 24 12" width="20" height="10" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d={stageCollapsed ? 'M5 9l7-6 7 6' : 'M5 3l7 6 7-6'} />
               </svg>
             </button>

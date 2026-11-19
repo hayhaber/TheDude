@@ -568,12 +568,14 @@
   position: absolute;
   /* Small, mostly on the anchor's own edge: it may only graze the content
      above (the Chord Library card reaches right down to the neck). */
-  top: -8px;
+  top: -9px;
   left: 50%;
-  transform: translateX(-50%);
+  /* `translate` (not transform) so the press `scale` grows it about its
+     own centre — no sideways nudge (v1.0.219) */
+  translate: -50% 0;
   z-index: 4;
-  width: 40px;
-  height: 16px;
+  width: 44px;
+  height: 18px;
   padding: 0;
   border: none;
   border-radius: var(--radius-pill);

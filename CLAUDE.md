@@ -3385,3 +3385,12 @@ no tools).
   again; piano Play / Play again / Next, no title / board before an
   answer, prompt moved 0 px, back + return = start card; bend Play ->
   Play again; no errors.
+- v1.0.219 (user: the neck's fold handle jumped sideways when touched;
+  make it 10 % bigger): the interactive-glass press rule set `transform:
+  scale(1.07)`, which replaced the handle's `translateX(-50%)` centring —
+  liquid-glass.css now presses with the individual `scale` property (+
+  `scale` in the transition; reduced motion `scale: none`), and
+  `.app-stage-toggle` centres with `translate: -50% 0` (not transform) so
+  it grows about its own centre. Handle 40x16 -> 44x18 (top -9, chevron
+  20x10). Measured 390 + 1180: centre 195 / 590 at rest and pressed (was
+  a full jump), toggle still folds the neck; no errors.

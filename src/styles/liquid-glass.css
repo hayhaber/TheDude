@@ -191,10 +191,12 @@ html .app-topbar-nav.mode-toggle.wrap button.active {
 /* Interactive glass: a glass control answers the finger — it grows a
    little and lights up while pressed, then settles back (iOS 26). */
 html :is(.icon-circle-button, .profile-chip.is-compact, .tool-screen-done, .app-stage-toggle, .stage-perf .stage-key.is-round, .stage-perf .stage-key.is-primary, .sw-pf-round) {
-  transition: transform 0.22s var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1)), filter 0.22s ease, box-shadow 0.22s ease, background 0.15s ease;
+  transition: transform 0.22s var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1)), scale 0.22s var(--ease-ios, cubic-bezier(0.32, 0.72, 0, 1)), filter 0.22s ease, box-shadow 0.22s ease, background 0.15s ease;
 }
+/* `scale` (not `transform`) — a control centred with translate (the neck
+   handle: translateX(-50%)) kept jumping sideways while pressed (v1.0.219). */
 html :is(.icon-circle-button, .profile-chip.is-compact, .tool-screen-done, .app-stage-toggle, .stage-perf .stage-key.is-round, .stage-perf .stage-key.is-primary, .sw-pf-round):active {
-  transform: scale(1.07);
+  scale: 1.07;
   filter: brightness(1.08);
 }
 html .app-bottom-tab:active,
@@ -203,6 +205,10 @@ html .app-topbar-nav.mode-toggle.wrap button:active {
 }
 @media (prefers-reduced-motion: reduce) {
   html :is(.icon-circle-button, .profile-chip.is-compact, .tool-screen-done, .app-stage-toggle, .stage-perf .stage-key, .sw-pf-round, .app-bottom-tab):active {
+    scale: none;
+  }
+  html .app-bottom-tab:active,
+  html .app-topbar-nav.mode-toggle.wrap button:active {
     transform: none;
   }
 }

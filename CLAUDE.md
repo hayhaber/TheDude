@@ -3402,3 +3402,11 @@ no tools).
   the "Open position" label) -> App `onOpenCompose` = the Compose
   section; 4 s, a new add replaces it. Playwright 390 HE + 1180 EN: label,
   toast, Open -> Compose holds the chord; no errors.
+- v1.0.221 (user's iPhone: dragging down on the Chord Library's key /
+  type chips slid the row down inside itself and cut it): `.cl-strip`
+  (guitar + piano libraries) and Practice's `.practice-tabs` get
+  `overflow-y: hidden` (overflow-x auto made y auto, and the 44 pt hit
+  areas stick out of the 40 px chips = a vertical scroller) +
+  overscroll-behavior-x contain. Sweep at 390 (simple + advanced): no
+  small vertical scrollers left. Any new sideways chip row: set
+  overflow-y hidden too.

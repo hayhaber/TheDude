@@ -396,6 +396,11 @@
   display: flex;
   gap: 6px;
   overflow-x: auto;
+  /* Never a vertical scroller (v1.0.221, iPhone: a finger dragging down on
+     the chips slid the row down inside itself and cut it) — the 44 pt hit
+     areas stick out of the 40 px chips. */
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   padding: 2px 2px 4px;
   margin: -2px -2px -4px;

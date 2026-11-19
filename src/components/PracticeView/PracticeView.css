@@ -19,6 +19,7 @@
   flex-wrap: nowrap;
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden; /* never a vertical scroller (v1.0.221) */
   scrollbar-width: none;
   margin: 0;
 }

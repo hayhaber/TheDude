@@ -33,6 +33,7 @@ import { Segmented } from '../ui/controls';
 import { openBandLink } from '../../music/sheets/bandLink';
 import { LyricsSheet } from './LyricsSheet';
 import { SuggestionsView } from './SuggestionsView';
+import { cleanLink, serviceOf } from '../../music/sheets/songLink';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -142,6 +143,82 @@ function Sheet({ title, onClose, children, dir, t }) {
         {children}
       </div>
     </div>
+  );
+}
+
+const SEARCH_URL = {
+  youtube: (q) => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q),
+  spotify: (q) => 'https://open.spotify.com/search/' + encodeURIComponent(q),
+  apple: (q) => 'https://music.apple.com/search?term=' + encodeURIComponent(q),
+};
+
+function ListenGlyph({ size = 18 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M10 8.3v7.4l6-3.7z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** The song's listening link (v1.0.227): a round key at the row's end. */
+function ListenKey({ link, t }) {
+  const url = cleanLink(link);
+  if (!url) return null;
+  const svc = serviceOf(url);
+  const label = t('stage.listen.on.' + svc);
+  return (
+    <a className={'stg-listen is-' + svc} href={url} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
+      <ListenGlyph />
+    </a>
+  );
+}
+
+/** Add / change / remove a song's listening link. */
+function ListenSheet({ name, link, onSave, onClose, dir, t }) {
+  const [v, setV] = useState(link || '');
+  const url = cleanLink(v);
+  const bad = !!v.trim() && !url;
+  const svc = url ? serviceOf(url) : null;
+  return (
+    <Sheet title={t('stage.listen.title')} onClose={onClose} dir={dir} t={t}>
+      <p className="stg-sheet-sub" dir="auto">{name}</p>
+      <label className="stg-field">
+        <span>{t('stage.listen.label')}</span>
+        <input
+          autoFocus
+          dir="ltr"
+          type="url"
+          inputMode="url"
+          autoCapitalize="off"
+          autoCorrect="off"
+          maxLength={500}
+          value={v}
+          placeholder="https://"
+          onChange={(e) => setV(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && !bad && (url || link) && onSave(url)}
+        />
+      </label>
+      {bad ? <p className="stg-err">{t('stage.listen.bad')}</p> : svc && <p className="stg-listen-found">{t('stage.listen.on.' + svc)}</p>}
+      <p className="stg-listen-find">
+        <span>{t('stage.listen.find')}</span>
+        {['youtube', 'spotify', 'apple'].map((k) => (
+          <a key={k} href={SEARCH_URL[k](name)} target="_blank" rel="noopener noreferrer">
+            {t('stage.listen.svc.' + k)}
+          </a>
+        ))}
+      </p>
+      <div className="stg-sheet-foot">
+        {link && (
+          <button type="button" className="stg-capsule is-danger" onClick={() => onSave(null)}>
+            {t('stage.listen.remove')}
+          </button>
+        )}
+        <button type="button" className="stg-capsule is-primary" onClick={() => onSave(url)} disabled={bad || !url}>
+          {t('stage.listen.save')}
+        </button>
+      </div>
+    </Sheet>
   );
 }
 
@@ -496,6 +573,15 @@ export function StageView({ onAccount, start = null }) {
     return last?.id ?? null;
   }); // setlist id
   const [words, setWords] = useState(null); // {id?, name, text, pdf} — the words editor
+  const [listen, setListen] = useState(null); // {id, name, link} — the link sheet
+  const [, setLinkTick] = useState(0);
+  const linkOf = (id) => sheetPrefs(id).link || '';
+  const openListen = (id, name) => setListen({ id, name, link: linkOf(id) });
+  const saveListen = (url) => {
+    setSheetPrefs(listen.id, { link: url || '' });
+    setListen(null);
+    setLinkTick((n) => n + 1);
+  };
   const [perform, setPerform] = useState(null); // {songs, at, setId?}
   // a reorder on stage (v1.0.189) is saved to the setlist; songs missing on
   // this device keep their place at the end
@@ -785,6 +871,7 @@ export function StageView({ onAccount, start = null }) {
   };
   const dialogs = (
     <>
+      {listen && <ListenSheet name={listen.name} link={listen.link} onSave={saveListen} onClose={() => setListen(null)} dir={dir} t={t} />}
       {words && <LyricsSheet songId={words.id} name={words.name} text={words.text} hasPdf={words.pdf} onSave={saveWords} onClose={() => setWords(null)} />}
       {dialog === 'link' && (
         <AskSheet
@@ -954,10 +1041,16 @@ export function StageView({ onAccount, start = null }) {
                 </span>
                 {!s.missing && durOf(s.id) && <span className="stg-detail">{durOf(s.id)}</span>}
               </button>
+              {!s.missing && <ListenKey link={linkOf(s.id)} t={t} />}
               <MoreMenu label={t('stage.more')}>
                 {!s.missing && (
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {byId.get(s.id)?.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
+                  </button>
+                )}
+                {!s.missing && (
+                  <button type="button" className="more-menu-item" onClick={() => openListen(s.id, s.name)}>
+                    {linkOf(s.id) ? t('stage.listen.edit') : t('stage.listen.add')}
                   </button>
                 )}
                 {i > 0 && (
@@ -1212,12 +1305,16 @@ export function StageView({ onAccount, start = null }) {
                     )}
                   </button>
                 )}
+                {renaming !== s.id && <ListenKey link={linkOf(s.id)} t={t} />}
                 <MoreMenu label={t('stage.more')}>
                   <button type="button" className="more-menu-item" onClick={() => setRenaming(s.id)}>
                     {t('stage.rename')}
                   </button>
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {s.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
+                  </button>
+                  <button type="button" className="more-menu-item" onClick={() => openListen(s.id, s.name)}>
+                    {linkOf(s.id) ? t('stage.listen.edit') : t('stage.listen.add')}
                   </button>
                   {!band &&
                     cloud.bands.map((b) => (

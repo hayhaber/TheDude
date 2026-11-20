@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useVocalMic } from '../../hooks/useVocalMic';
 import { EXERCISES, buildReps, dailyWorkout, exerciseById } from '../../music/vocal/exercises';
@@ -19,6 +19,7 @@ import { LineIcon } from '../LineIcon/LineIcon';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { RangeTest } from './RangeTest';
 import { RangeBar } from './RangeBar';
+import { MicMeter } from './MicMeter';
 import { VocalEarTraining } from './VocalEarTraining';
 import './VocalTrainingView.css';
 
@@ -62,6 +63,10 @@ export function VocalTrainingView({ initialScreen = 'home' }) {
   const [skipped, setSkipped] = useState(false);
   const [level, setLevelState] = useState(loadLevel);
   const [progress, setProgress] = useState(loadProgress);
+  const [checking, setChecking] = useState(false);
+  useEffect(() => {
+    if (screen.name !== 'home') setChecking(false);
+  }, [screen.name]);
   const useRange = range ?? DEFAULT_RANGE;
 
   const workout = useMemo(() => dailyWorkout(level), [level]);
@@ -242,6 +247,26 @@ export function VocalTrainingView({ initialScreen = 'home' }) {
             {range && (
               <div className="vocal-range-row">
                 <RangeBar low={range.low} high={range.high} comfortLow={comfort.low} comfortHigh={comfort.high} compact />
+              </div>
+            )}
+            <LibraryRow
+              color="#FF2D55"
+              icon="vocal"
+              title={t('vocal.mic.check')}
+              desc={checking ? t('vocal.mic.checkOn') : t('vocal.mic.checkDesc')}
+              onClick={() => {
+                if (checking) {
+                  mic.stop();
+                  setChecking(false);
+                } else {
+                  setChecking(true);
+                  mic.start();
+                }
+              }}
+            />
+            {checking && (
+              <div className="vocal-range-row">
+                <MicMeter mic={mic} />
               </div>
             )}
           </div>

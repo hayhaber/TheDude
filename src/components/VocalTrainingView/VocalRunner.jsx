@@ -7,6 +7,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { targetAt } from '../../music/vocal/exercises';
 import { getAudioContext } from '../../audio/audioContext';
 import { PitchRoll } from './PitchRoll';
+import { MicMeter } from './MicMeter';
 import { Select } from '../ui/Select';
 
 const TEMPOS = [
@@ -181,12 +182,10 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
                 {liveCents}¢
               </span>
             )}
-            <span className="vocal-level">
-              <span style={{ width: `${Math.round(mic.live.level * 100)}%` }} />
-            </span>
             <InfoTooltip text={t('tip.tools.vocalLive')} />
           </div>
         </div>
+        <MicMeter mic={mic} paused={run.phase === 'cue'} onTest={running ? null : () => mic.start()} />
         <div className="vocal-roll-wrap" dir="ltr">
           <PitchRoll viewRef={run.viewRef} framesRef={mic.framesRef} level={level} />
           <CountIn viewRef={run.viewRef} t={t} />

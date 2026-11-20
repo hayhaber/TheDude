@@ -16,6 +16,7 @@ import { getAudioContext, prepareAudioOutput, reviveAudioOutput } from '../../au
 import { playPianoNote, preparePiano, schedulePianoNotes } from '../../audio/pianoPlayer';
 import { IS_IOS, CYCLE_MIC, LOUDNESS, loadLoudnessKey, loadCountClick, countTick } from '../../hooks/useVocalExercise';
 import { RangeBar } from './RangeBar';
+import { MicMeter } from './MicMeter';
 
 // Guided range test, the way a voice teacher (or a voice clinic's "voice
 // range profile") does it: 1) speak normally -> the comfortable speaking
@@ -326,6 +327,7 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
         <h2>{t('vocal.range.title')}</h2>
       </div>
 
+      {phase !== 'result' && <MicMeter mic={mic} onTest={phase === 'intro' ? () => mic.start() : null} />}
       {mic.error && <p className="vocal-error">{t('vocal.micError', { message: mic.error })}</p>}
       {mic.listening && mic.deadInput && <p className="vocal-warning">{t('vocal.noSignal')}</p>}
       {/* iPhone / iPad: what the mic path is doing, while nothing is heard
@@ -369,9 +371,6 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
             <div>
               <span className="vocal-eyebrow">{t('vocal.range.now')}</span>
               <strong className="vocal-big-note">{liveMidi != null ? midiName(liveMidi) : '–'}</strong>
-              <span className="vocal-level">
-                <span style={{ width: `${Math.round(mic.live.level * 100)}%` }} />
-              </span>
             </div>
           </div>
           {speakFail && (
@@ -447,9 +446,6 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
             <div>
               <span className="vocal-eyebrow">{t('vocal.range.now')}</span>
               <strong className="vocal-big-note">{sirenOn && liveMidi != null ? midiName(liveMidi) : '–'}</strong>
-              <span className="vocal-level">
-                <span style={{ width: `${Math.round((sirenOn ? mic.live.level : 0) * 100)}%` }} />
-              </span>
             </div>
           </div>
           <div className="vocal-actions">

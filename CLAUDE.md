@@ -3503,3 +3503,33 @@ no tools).
   move, mixer opens, tap a pad -> edit -> save -> "My patterns" style,
   no errors, drawer needs no zoom. Not added: swing (the engine has no
   swing control).
+- v1.0.227 (user, iPad: singing isn't heard and he can't tell if it's him
+  or the mic; + a listening link per song in the Band's setlists).
+  (1) `VocalTrainingView/MicMeter.jsx` (`.vocal-mic-meter`): mic glyph +
+  16 LEDs of the RAW input (-72..-12 dBFS; useVocalMic `live` gained `db`
+  and `voiced` = above the room gate) + one line: Mic off / resting while
+  the piano plays (cue) / No sound at all (deadInput, red) / Mic on · hum
+  to check / Hearing you (· G4 with a pitch). It moves for any hum, even
+  below the gate. Shown in the runner (every exercise, above the roll;
+  replaces the 64x6 `.vocal-level`, with a Test key when idle), in the
+  range test (every step but the result; Test on the intro) and as a
+  "Mic check" row on the Vocal home (tap = mic on + meter, tap = off).
+  Playwright fake mic 390 HE + 1180 EN: off -> Test -> hearing · G4.
+  NOT verified on the iPad. (2) LISTENING LINK on the SONG (not the
+  setlist entry, so every setlist + the band get it): sheet prefs `link`;
+  pure `music/sheets/songLink.js` (`cleanLink` = https only, http
+  upgraded, bare host accepted, <= 500; `serviceOf` youtube / spotify /
+  apple / web). StageView: a 44 pt round listen key `.stg-listen.is-<svc>`
+  (play-in-circle, tinted red / green / pink, label "Listen on …"; opens
+  the link — iOS hands YouTube / Spotify / Apple Music links to their
+  apps) at the end of setlist rows and Songs rows; ••• "Add / Edit
+  listening link" -> `ListenSheet` (field, detected service, "Find it on:
+  YouTube · Spotify · Apple Music" search links with the song's name,
+  Remove, Save). Picking a band suggestion copies its link to the new
+  song; shareChart copies it. Cloud: column `charts.link` =
+  `supabase/migrations/006_stage_link.sql` — THE USER RUNS IT; until then
+  `hasLink` falls back (42703 / PGRST204 mentioning link) and the link
+  stays on his own devices (prefs sync with the profile). Pushed with the
+  other prefs (onSheetPrefs), pulled unless a send is pending. Fake
+  Supabase: A adds a youtu.be link -> server row -> B (390 HE) sees the
+  key in the setlist; no errors.

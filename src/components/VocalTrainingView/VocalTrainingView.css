@@ -1361,3 +1361,83 @@
   font-size: var(--type-subhead, 15px);
   color: var(--text-secondary);
 }
+
+/* ---- mic meter (v1.0.227): is the voice reaching the app at all? ---- */
+.vocal-mic-meter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--fill-tertiary);
+  text-align: start;
+}
+.vocal-mic-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+}
+.vocal-mic-meter.is-voice .vocal-mic-icon,
+.vocal-mic-meter.is-pitch .vocal-mic-icon {
+  color: #fff;
+  background: #34c759;
+}
+.vocal-mic-meter.is-dead .vocal-mic-icon {
+  color: #fff;
+  background: var(--danger);
+}
+.vocal-mic-bars {
+  flex: 1 1 120px;
+  display: flex;
+  gap: 3px;
+  height: 14px;
+  min-width: 120px;
+  max-width: 260px;
+}
+.vocal-mic-bars i {
+  flex: 1;
+  border-radius: 2px;
+  background: var(--fill-secondary);
+  transition: background-color 60ms linear;
+}
+.vocal-mic-bars i.is-on { background: #34c759; }
+.vocal-mic-bars i.is-amber { background: #ff9f0a; }
+.vocal-mic-bars i.is-red { background: #ff3b30; }
+.vocal-mic-text {
+  flex: 1 1 140px;
+  min-width: 0;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.vocal-mic-meter.is-pitch .vocal-mic-text,
+.vocal-mic-meter.is-voice .vocal-mic-text {
+  color: var(--text);
+}
+.vocal-mic-meter.is-dead .vocal-mic-text {
+  color: var(--danger);
+}
+html .vocal-mic-meter .vocal-mic-test {
+  flex: none;
+  min-height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vocal-mic-meter.is-compact {
+  padding: 4px 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vocal-mic-bars i { transition: none; }
+}

@@ -1886,3 +1886,54 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
 .stg-sg .ph-section + .ph-section {
   margin-top: 24px;
 }
+
+/* ---- a song's listening link (v1.0.227) ---- */
+.stg-listen {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  align-self: center;
+  border-radius: 50%;
+  color: var(--accent);
+  -webkit-tap-highlight-color: transparent;
+}
+.stg-listen:active {
+  background: var(--fill-tertiary);
+}
+.stg-listen.is-youtube { color: #e5281f; }
+.stg-listen.is-spotify { color: #1aa34a; }
+.stg-listen.is-apple { color: #e5243f; }
+:root[data-theme='dark'] .stg-listen.is-youtube { color: #ff453a; }
+:root[data-theme='dark'] .stg-listen.is-spotify { color: #30d158; }
+:root[data-theme='dark'] .stg-listen.is-apple { color: #ff375f; }
+.stg-sheet-sub {
+  margin: 0 0 10px;
+  font-size: var(--type-subhead, 15px);
+  color: var(--text-secondary);
+}
+.stg-listen-found {
+  margin: 6px 2px 0;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.stg-listen-find {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 14px 2px 0;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.stg-listen-find a {
+  color: var(--accent);
+  text-decoration: none;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+.stg-capsule.is-danger {
+  color: var(--danger);
+}

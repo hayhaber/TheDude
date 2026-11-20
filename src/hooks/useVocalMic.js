@@ -174,7 +174,7 @@ export function useVocalMic() {
     framesRef.current.push({ ct, midi: smooth });
     if (framesRef.current.length > 6000) framesRef.current.splice(0, 2000);
     tickCount.current += 1;
-    if (tickCount.current % 2 === 0) setLive({ midi: smooth, level: levelOf(rms) });
+    if (tickCount.current % 2 === 0) setLive({ midi: smooth, level: levelOf(rms), db: 20 * Math.log10(Math.max(rms, 1e-6)), voiced: rms >= minRms });
     if (smooth != null) heardAt.current = nowMs;
     if (tickCount.current % 15 === 0) {
       const q = nowMs - heardAt.current > 3000;

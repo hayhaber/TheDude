@@ -71,6 +71,12 @@ let hasSong = true;
 const SONG = (rec, p) => (hasSong ? { lyrics: rec.lyrics || null, start_note: p.start ?? null } : {});
 const missingSongCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /lyrics|start_note/i.test(e.message || '');
 
+// the listening link comes with migration 006 (v1.0.227); before it the link
+// stays on this device / my own devices (sheet prefs sync with the profile).
+let hasLink = true;
+const LINK = (p) => (hasLink ? { link: p.link || null } : {});
+const missingLinkCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\blink\b/i.test(e.message || '');
+
 const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
 const suggestionOf = (x) => ({
   id: x.id,
@@ -110,7 +116,11 @@ export async function syncWith(sb, uid, local) {
     }
     const p = local.sheetPrefs(rec.id);
     const row = { id: rec.id, band_id: rec.band ?? null, name: rec.name, size: rec.size ?? null, path, dur: p.dur ?? null, tr: p.tr ?? null, deleted: false };
-    let { error } = await sb.from('charts').upsert({ ...row, ...META(p), ...SONG(rec, p) });
+    let { error } = await sb.from('charts').upsert({ ...row, ...META(p), ...SONG(rec, p), ...LINK(p) });
+    if (error && hasLink && missingLinkCol(error)) {
+      hasLink = false;
+      ({ error } = await sb.from('charts').upsert({ ...row, ...META(p), ...SONG(rec, p) }));
+    }
     if (error && hasSong && missingSongCol(error)) {
       hasSong = false;
       if (!rec.blob) continue;
@@ -126,8 +136,12 @@ export async function syncWith(sb, uid, local) {
 
   // 2) every chart this user may see
   const cols = 'id,band_id,name,size,path,dur,tr,deleted,updated_at';
-  const pick = () => cols + (hasMeta ? ',bpm,notes' : '') + (hasSong ? ',lyrics,start_note' : '');
+  const pick = () => cols + (hasMeta ? ',bpm,notes' : '') + (hasSong ? ',lyrics,start_note' : '') + (hasLink ? ',link' : '');
   let { data: rows, error } = await sb.from('charts').select(pick());
+  if (error && hasLink && missingLinkCol(error)) {
+    hasLink = false;
+    ({ data: rows, error } = await sb.from('charts').select(pick()));
+  }
   if (error && hasSong && missingSongCol(error)) {
     hasSong = false;
     ({ data: rows, error } = await sb.from('charts').select(pick()));
@@ -168,6 +182,7 @@ export async function syncWith(sb, uid, local) {
     if (r.bpm != null && r.bpm !== p.bpm) patch.bpm = r.bpm;
     if (r.notes != null && r.notes !== (p.note ?? '')) patch.note = r.notes;
     if (r.start_note != null && r.start_note !== p.start) patch.start = r.start_note;
+    if (hasLink && 'link' in r && (r.link ?? '') !== (p.link ?? '') && !pendingMeta.has(r.id) && !sendingLink.has(r.id)) patch.link = r.link ?? '';
     if (Object.keys(patch).length) local.setSheetPrefs(r.id, patch, { quiet: true });
   }
   // cloud charts nobody shows us any more (a band left / removed us)
@@ -219,14 +234,16 @@ export function syncCharts() {
 // A chart's song length / key changed (the Performer): send it, so the band
 // and my other devices get it.
 const pendingMeta = new Map();
+const sendingLink = new Set();
 let metaTimer = null;
 onSheetPrefs((id, patch) => {
-  if (!signedIn() || !('dur' in patch || 'tr' in patch || 'bpm' in patch || 'note' in patch || 'start' in patch)) return;
+  if (!signedIn() || !('dur' in patch || 'tr' in patch || 'bpm' in patch || 'note' in patch || 'start' in patch || 'link' in patch)) return;
   pendingMeta.set(id, { ...(pendingMeta.get(id) ?? {}), ...patch });
   clearTimeout(metaTimer);
   metaTimer = setTimeout(async () => {
     const all = [...pendingMeta.entries()];
     pendingMeta.clear();
+    for (const [cid, p] of all) if ('link' in p) sendingLink.add(cid);
     try {
       const sb = await client();
       for (const [cid, p] of all) {
@@ -238,8 +255,15 @@ onSheetPrefs((id, patch) => {
         if (hasMeta && 'bpm' in p) row.bpm = p.bpm ?? null;
         if (hasMeta && 'note' in p) row.notes = p.note || null;
         if (hasSong && 'start' in p) row.start_note = p.start ?? null;
+        if (hasLink && 'link' in p) row.link = p.link || null;
         if (!Object.keys(row).length) continue;
-        const { error } = await sb.from('charts').update(row).eq('id', cid);
+        let { error } = await sb.from('charts').update(row).eq('id', cid);
+        if (error && missingLinkCol(error)) {
+          hasLink = false;
+          delete row.link;
+          if (!Object.keys(row).length) continue;
+          ({ error } = await sb.from('charts').update(row).eq('id', cid));
+        }
         if (error && missingSongCol(error)) {
           hasSong = false;
           delete row.start_note;
@@ -254,6 +278,7 @@ onSheetPrefs((id, patch) => {
     } catch {
       /* next sync uploads nothing for meta — the local value stays */
     }
+    for (const [cid] of all) sendingLink.delete(cid);
   }, 1500);
 });
 
@@ -325,9 +350,9 @@ export async function renameChart(id, name) {
 }
 
 /** A new song with words only (v1.0.206), to my songs or a band's. */
-export async function addTextSong({ name, lyrics, band = null, start = null }) {
+export async function addTextSong({ name, lyrics, band = null, start = null, link = null }) {
   const rec = await saveTextSheet({ name, lyrics, band });
-  if (start != null) setSheetPrefs(rec.id, { start }, { quiet: true });
+  if (start != null || link) setSheetPrefs(rec.id, { ...(start != null ? { start } : {}), ...(link ? { link } : {}) }, { quiet: true });
   if (signedIn()) syncCharts();
   return rec.id;
 }
@@ -345,7 +370,7 @@ export async function shareChart(id, band) {
     copy = (await saveTextSheet({ name: rec.name, lyrics: rec.lyrics, band })).id;
   }
   const p = sheetPrefs(id);
-  if (copy && (p.dur || p.tr || p.bpm || p.note || p.start != null)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr, bpm: p.bpm, note: p.note, start: p.start }, { quiet: true });
+  if (copy && (p.dur || p.tr || p.bpm || p.note || p.start != null || p.link)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr, bpm: p.bpm, note: p.note, start: p.start, link: p.link }, { quiet: true });
   if (signedIn()) syncCharts();
   return copy;
 }

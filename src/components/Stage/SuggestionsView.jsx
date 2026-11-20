@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
+import { cleanLink } from '../../music/sheets/songLink';
+import { setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
 import { addSuggestion, addTextSong, removeSuggestion, updateSuggestion, voteSuggestion } from '../../music/sheets/chartCloud';
 
 // A band's song suggestions (v1.0.212; user: "building a cover band's
@@ -104,7 +106,8 @@ export function SuggestionsView({ band, uid, suggestions, ready, songIds, sets, 
   const pick = async (s) => {
     try {
       let song = s.song && songIds.has(s.song) ? s.song : null;
-      if (!song) song = await addTextSong({ name: songName(s), lyrics: '', band: band.id });
+      if (!song) song = await addTextSong({ name: songName(s), lyrics: '', band: band.id, link: cleanLink(s.link) });
+      else if (cleanLink(s.link) && !sheetPrefs(song).link) setSheetPrefs(song, { link: cleanLink(s.link) });
       await updateSuggestion(s.id, { status: 'picked', song });
       say(t('stage.sg.pickedToast', { name: s.title }));
     } catch {

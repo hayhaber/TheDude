@@ -42,6 +42,11 @@ export const ARPS = {
   // Finger independence: 1-2-3-4 on the high E string, frets 1-4, and back.
   'spider-1': { root: 0, type: 'major', strings: true, gap: 0.45, notes: [[1, 1, 1], [1, 2, 2], [1, 3, 3], [1, 4, 4]], seq: [0, 1, 2, 3, 2, 1, 0] },
 
+  // ---- Level 3 (g3-power-chords): the natural notes on strings 6 and 5 —
+  // the map that names every movable shape (power chords, barre chords).
+  'notes-6': { root: 0, type: 'major', frets: true, gap: 0.5, notes: [[6, 0], [6, 1], [6, 3], [6, 5], [6, 7], [6, 8], [6, 10], [6, 12]] },
+  'notes-5': { root: 0, type: 'major', frets: true, gap: 0.5, notes: [[5, 0], [5, 2], [5, 3], [5, 5], [5, 7], [5, 8], [5, 10], [5, 12]] },
+
   // ---- Tapping (lesson g4-tapping, Lick Trainer genre 'tapping') ----------
   // notes: [stringNumber, fret, finger] — finger 'T' = TAPPED by the picking
   // hand's middle finger, 1-4 = fretting hand. `seq` = play order (indices

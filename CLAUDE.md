@@ -3433,3 +3433,31 @@ no tools).
   closes. Settings -> "Home screen" stays as the visible way. Playwright
   390 HE (CDP touch long press on a shortcut: menu, still home, sheet
   opens) + 1180 EN (right click, outside click closes); no errors.
+- LEVEL 3 CONTINUED (v1.0.224, 2026-11-20; user: "keep writing lessons,
+  I'll review them all together"): four lessons after `g3-small-F`, in
+  JustinGuitar's order from the small F to the full barre (RSL Grade 2):
+  `g3-sevenths` (A7 / D7 / E7 open, the ♭7 vs Fmaj7's major 7th, A7–D7
+  changes 30, the 12-bar blues in 7ths with E7 -> A7 voice leading),
+  `g3-power-chords` (E5 open, movable G5, the natural notes on strings 6
+  and 5 as arp + play steps — ARPS `notes-6` / `notes-5`, palm muting +
+  our riff E5 E5 G5 A5, the blues shuffle root–5th / root–6th on A D E),
+  `g3-barre-E` (E fingered 2-3-4, the barre learned at fret 5 first, then
+  F at 1, technique checklist, minor = lift the middle finger, Am–F
+  changes 20, Am – F – G – Am with one shape = i ♭VI ♭VII i), `g3-barre-A`
+  (B at fret 2 with a ring-finger mini barre, named from string 5, Bm,
+  D–Bm changes 20, D – A – Bm – G = I V vi IV, quiz: C in both shapes).
+  SHAPES may carry `name` (internal keys barA5 / barF1 / barBm2 … ->
+  `shapeName()` for the box caption, chart labels, the ✓ message). The
+  lesson ChordBox now starts at the lowest fret when the shape goes past
+  fret 5 and draws the barre bar (finger 1 on 2+ strings at that fret).
+  ChordStep rivals drop open chords with the SAME notes (a barre A = open
+  A's notes — it could never pass). `.cl-box { direction: ltr }`: in
+  Hebrew the diagram's names read "♯C" and the fret label flipped (all
+  ChordBoxes). mastery: intake 'open' also covers the open 7ths
+  (`skill.open`), 'barre' covers `skill.barre` chords. TRY_IN rows for
+  the four. Checks: pure (every shape's notes = its chord, fingers match
+  frets, skills / arps / changes chords valid, path some-player:
+  sevenths -> power -> barre E -> barre A -> arpeggios), synthetic chroma:
+  every new chord step passes, a missing finger fails, the small F does
+  not pass the full F; Playwright walked all four HE 390 + EN 390, no
+  errors. NOT verified with a real guitar; the USER reviews them.

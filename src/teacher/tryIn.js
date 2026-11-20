@@ -30,6 +30,19 @@ export const TRY_IN = {
     { tool: 'minuteChanges', chords: ['C', 'F'] },
     { tool: 'chordChanges', chords: ['C', 'Am', 'F', 'G'], bpm: 70 },
   ],
+  'g3-sevenths': [
+    { tool: 'minuteChanges', chords: ['A7', 'D7'] },
+    { tool: 'chordChanges', chords: ['A7', 'D7', 'E7'], bpm: 80 },
+  ],
+  'g3-power-chords': [{ tool: 'chordLibrary', root: 7, type: 'power', name: 'G5' }],
+  'g3-barre-E': [
+    { tool: 'minuteChanges', chords: ['Am', 'F'] },
+    { tool: 'chordLibrary', root: 5, type: 'major', name: 'F' },
+  ],
+  'g3-barre-A': [
+    { tool: 'minuteChanges', chords: ['D', 'Bm'] },
+    { tool: 'chordChanges', chords: ['D', 'A', 'Bm', 'G'], bpm: 70 },
+  ],
   'g3-arpeggios': [
     { tool: 'lick', lickId: 'arp-pop-1564', kind: 'arp' },
     { tool: 'chordLibrary', root: 0, type: 'major', name: 'C' },

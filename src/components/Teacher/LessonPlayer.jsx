@@ -16,7 +16,7 @@ import { ARPS, arpGap, arpNotes, playOrder } from '../../teacher/arpeggios';
 import { logPerf } from '../../coach/perfLog';
 import { judgeShape, STD_TUNING } from '../../music/chordBuilder';
 import { chordTones, toPosition } from '../../music/chordLibrary';
-import { FINGERS, SHAPES, skillById } from '../../teacher/curriculum/guitar';
+import { FINGERS, SHAPES, shapeName, skillById } from '../../teacher/curriculum/guitar';
 import { finishLesson, reachStep, recordPass, useTeacher } from '../../teacher/teacherState';
 import { homeworkStatus } from '../../teacher/mastery';
 import '../ChordLibrary/ChordLibraryView.css';
@@ -40,7 +40,15 @@ function boxData(name) {
     names[s] = tone?.name ?? '';
     roles[s] = tone?.role ?? '';
   });
-  return { frets: sh.frets, fingers: FINGERS[name], names, roles };
+  // a shape above fret 5 starts the diagram at its lowest fret; finger 1 on
+  // several strings at that fret = a barre bar
+  const fretted = sh.frets.filter((f) => f > 0);
+  const low = fretted.length ? Math.min(...fretted) : 0;
+  const position = fretted.length && Math.max(...fretted) > 5 ? low : 0;
+  const fingers = FINGERS[name];
+  const onBar = fingers ? sh.frets.map((f, s) => (fingers[s] === 1 && f === low ? s : -1)).filter((s) => s >= 0) : [];
+  const barre = onBar.length >= 2 ? { fret: low, from: onBar[0], to: onBar[onBar.length - 1] } : null;
+  return { frets: sh.frets, fingers, names, roles, position, barre };
 }
 
 export function stageFor(name) {
@@ -55,8 +63,8 @@ function Shape({ name, leftHanded }) {
   const d = boxData(name);
   return (
     <figure className="tc-shape">
-      <ChordBox frets={d.frets} fingers={d.fingers} roles={d.roles} names={d.names} position={0} leftHanded={leftHanded} />
-      <figcaption dir="ltr">{name}</figcaption>
+      <ChordBox frets={d.frets} fingers={d.fingers} barre={d.barre} roles={d.roles} names={d.names} position={d.position} leftHanded={leftHanded} />
+      <figcaption dir="ltr">{shapeName(name)}</figcaption>
     </figure>
   );
 }
@@ -229,8 +237,10 @@ function QuizStep({ step, tx, picked, setPicked }) {
 // pressing or a string muted by the next finger).
 function rivalsFor(name) {
   const sh = SHAPES[name].frets;
+  const pcs = (frets) => [...new Set(frets.map((f, s) => (f == null ? null : (STD_TUNING[s] + f) % 12)).filter((x) => x != null))].sort().join();
+  const own = pcs(sh);
   const out = Object.entries(SHAPES)
-    .filter(([k]) => k !== name && ['D', 'A', 'E'].includes(k))
+    .filter(([k, v]) => k !== name && ['D', 'A', 'E'].includes(k) && pcs(v.frets) !== own)
     .map(([, v]) => v.frets);
   sh.forEach((f, s) => {
     if (f > 0) out.push(sh.map((x, i) => (i === s ? 0 : x)));
@@ -291,7 +301,7 @@ export function ChordStep({ step, tx, leftHanded, passed, onPass }) {
           </span>
           <p className={'tc-mic-state is-' + (result ?? 'idle')} aria-live="polite">
             {result === 'listening' && t('teacher.step.listening')}
-            {result === 'ok' && '✓ ' + t('teacher.step.ok', { chord: '⁦' + step.chord + '⁩' })}
+            {result === 'ok' && '✓ ' + t('teacher.step.ok', { chord: '⁦' + shapeName(step.chord) + '⁩' })}
             {result === 'notYet' && t('teacher.step.notYet')}
             {mic.error && <span className="tc-error">{String(mic.error)}</span>}
           </p>

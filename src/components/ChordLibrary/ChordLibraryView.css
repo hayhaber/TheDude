@@ -274,6 +274,9 @@
   width: 100%;
   max-width: 132px;
   height: auto;
+  /* SVG text follows the page's direction: in Hebrew "C♯" drew as "♯C" and
+     the "5" fret label's end-anchor flipped (v1.0.224) */
+  direction: ltr;
 }
 
 .cl-string {

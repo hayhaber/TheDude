@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { playMidis } from '../../audio/chordPlayer';
 import { STD_TUNING } from '../../music/chordBuilder';
-import { SHAPES } from '../../teacher/curriculum/guitar';
+import { SHAPES, shapeName } from '../../teacher/curriculum/guitar';
 
 // Level-1 rhythm pictures for the teacher's lessons (v1.0.156):
 //   StrumPattern — one bar as 8 slots (1 & 2 & 3 & 4 &): ↓ down, ↑ up,
@@ -89,7 +89,7 @@ export function ChordChart({ bars, pattern = 'D-D-D-D-', bpm = 70 }) {
         {bars.map((c, b) => (
           <li key={b} className={pl.at?.bar === b ? 'is-on' : ''}>
             <span className="tc-chart-n">{b + 1}</span>
-            <span className="tc-chart-chord">{c}</span>
+            <span className="tc-chart-chord">{shapeName(c)}</span>
           </li>
         ))}
       </ol>

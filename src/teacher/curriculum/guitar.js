@@ -56,7 +56,29 @@ export const SHAPES = {
   C: { root: 0, type: 'major', frets: [null, 3, 2, 0, 1, 0] },
   Fmaj7: { root: 5, type: 'maj7', frets: [null, null, 3, 2, 1, 0] },
   F: { root: 5, type: 'major', frets: [null, null, 3, 2, 1, 1] }, // the small F (mini barre on 1–2)
+  // level 3 (v1.0.224): open dominant 7ths
+  A7: { root: 9, type: 'dom7', frets: [null, 0, 2, 0, 2, 0] },
+  D7: { root: 2, type: 'dom7', frets: [null, null, 0, 2, 1, 2] },
+  E7: { root: 4, type: 'dom7', frets: [0, 2, 0, 1, 0, 0] },
+  // power chords (root + 5th + octave); A5o / D5o = the shuffle's open root + 5th
+  E5: { root: 4, type: 'power', frets: [0, 2, 2, null, null, null] },
+  G5: { root: 7, type: 'power', frets: [3, 5, 5, null, null, null] },
+  A5: { root: 9, type: 'power', frets: [5, 7, 7, null, null, null] },
+  C5: { root: 0, type: 'power', frets: [null, 3, 5, 5, null, null] },
+  A5o: { root: 9, type: 'power', name: 'A5', frets: [null, 0, 2, null, null, null] },
+  D5o: { root: 2, type: 'power', name: 'D5', frets: [null, null, 0, 2, null, null] },
+  // barre chords — the key is internal, `name` is what the student reads
+  E234: { root: 4, type: 'major', name: 'E', frets: [0, 2, 2, 1, 0, 0] }, // E fingered 2-3-4 (the index free)
+  barA5: { root: 9, type: 'major', name: 'A', frets: [5, 7, 7, 6, 5, 5] },
+  barG3: { root: 7, type: 'major', name: 'G', frets: [3, 5, 5, 4, 3, 3] },
+  barF1: { root: 5, type: 'major', name: 'F', frets: [1, 3, 3, 2, 1, 1] },
+  barAm5: { root: 9, type: 'minor', name: 'Am', frets: [5, 7, 7, 5, 5, 5] },
+  barB2: { root: 11, type: 'major', name: 'B', frets: [null, 2, 4, 4, 4, 2] },
+  barC3: { root: 0, type: 'major', name: 'C', frets: [null, 3, 5, 5, 5, 3] },
+  barBm2: { root: 11, type: 'minor', name: 'Bm', frets: [null, 2, 4, 4, 3, 2] },
 };
+/** The chord name a student reads for a shape key ('barF1' -> 'F'). */
+export const shapeName = (key) => SHAPES[key]?.name ?? key;
 // Fingers per string for the shapes above (low E first; 0 = open / none).
 export const FINGERS = {
   D: [0, 0, 0, 1, 3, 2],
@@ -69,6 +91,23 @@ export const FINGERS = {
   C: [0, 3, 2, 0, 1, 0],
   Fmaj7: [0, 0, 3, 2, 1, 0],
   F: [0, 0, 3, 2, 1, 1],
+  A7: [0, 0, 1, 0, 2, 0],
+  D7: [0, 0, 0, 2, 1, 3],
+  E7: [0, 2, 0, 1, 0, 0],
+  E5: [0, 1, 2, 0, 0, 0],
+  G5: [1, 3, 4, 0, 0, 0],
+  A5: [1, 3, 4, 0, 0, 0],
+  C5: [0, 1, 3, 4, 0, 0],
+  A5o: [0, 0, 1, 0, 0, 0],
+  D5o: [0, 0, 0, 1, 0, 0],
+  E234: [0, 3, 4, 2, 0, 0],
+  barA5: [1, 3, 4, 2, 1, 1],
+  barG3: [1, 3, 4, 2, 1, 1],
+  barF1: [1, 3, 4, 2, 1, 1],
+  barAm5: [1, 3, 4, 1, 1, 1],
+  barB2: [0, 1, 3, 3, 3, 1],
+  barC3: [0, 1, 3, 3, 3, 1],
+  barBm2: [0, 1, 3, 4, 2, 1],
 };
 
 // ---------------------------------------------------------------------------
@@ -117,6 +156,31 @@ export const SKILLS = [
   { id: 'chord-F', domain: 'fretting', level: 3, after: ['chord-Fmaj7'], title: L('The small F (first barre)', `${H('F')} הקטן (ברה ראשון)`), check: { kind: 'chord', chord: 'F' } },
   { id: 'changes-CF', domain: 'fretting', level: 3, after: ['chord-C', 'chord-F'], title: L('C–F changes, 30 a minute', `החלפות ${H('C–F')}, 30 בדקה`), check: { kind: 'changes', pair: ['C', 'F'], min: 30 } },
   { id: 'song-CAmFG', domain: 'repertoire', level: 3, after: ['changes-CF'], title: L('A song in C: C, Am, F, G', `שיר ב־${H('C')}: ${H('C, Am, F, G')}`), check: { kind: 'self' } },
+  // level 3, v1.0.224: 7ths + blues, power chords, the two barre shapes
+  { id: 'chord-A7', domain: 'fretting', level: 3, open: true, after: ['chord-A'], title: L('A7 chord', `אקורד ${H('A7')}`), check: { kind: 'chord', chord: 'A7' } },
+  { id: 'chord-D7', domain: 'fretting', level: 3, open: true, after: ['chord-D'], title: L('D7 chord', `אקורד ${H('D7')}`), check: { kind: 'chord', chord: 'D7' } },
+  { id: 'chord-E7', domain: 'fretting', level: 3, open: true, after: ['chord-E'], title: L('E7 chord', `אקורד ${H('E7')}`), check: { kind: 'chord', chord: 'E7' } },
+  { id: 'dom7-tones', domain: 'fretboard', level: 3, title: L('What the ♭7 is', `מהי ה־${H('♭7')}`), check: { kind: 'quiz', id: 'dom7-tones' } },
+  { id: 'changes-A7D7', domain: 'fretting', level: 3, after: ['chord-A7', 'chord-D7'], title: L('A7–D7 changes, 30 a minute', `החלפות ${H('A7–D7')}, 30 בדקה`), check: { kind: 'changes', pair: ['A7', 'D7'], min: 30 } },
+  { id: 'song-blues7', domain: 'repertoire', level: 3, after: ['changes-A7D7'], title: L('The 12-bar blues in 7ths', 'הבלוז של 12 תיבות בספטימות'), check: { kind: 'self' } },
+  { id: 'chord-G5', domain: 'fretting', level: 3, title: L('Movable power chord', 'אקורד פאוור נע'), check: { kind: 'chord', chord: 'G5' } },
+  { id: 'notes-string6', domain: 'fretboard', level: 3, title: L('The notes on string 6', 'הצלילים על מיתר 6'), check: { kind: 'play', arp: 'notes-6' } },
+  { id: 'notes-string5', domain: 'fretboard', level: 3, title: L('The notes on string 5', 'הצלילים על מיתר 5'), check: { kind: 'play', arp: 'notes-5' } },
+  { id: 'power-names', domain: 'fretboard', level: 3, title: L('Name a power chord by its root', 'שם לאקורד פאוור לפי היסוד'), check: { kind: 'quiz', id: 'power-names' } },
+  { id: 'palm-mute', domain: 'picking', level: 3, after: ['chord-G5'], title: L('Palm muting', 'השתקה בכף היד'), check: { kind: 'self' } },
+  { id: 'blues-shuffle', domain: 'rhythm', level: 3, title: L('The blues shuffle', 'שאפל הבלוז'), check: { kind: 'self' } },
+  { id: 'chord-A-barre', domain: 'fretting', level: 3, barre: true, after: ['notes-string6'], title: L('E-shape barre (A at fret 5)', `ברה בצורת ${H('E')} (${H('A')} בשריג 5)`), check: { kind: 'chord', chord: 'barA5' } },
+  { id: 'chord-F-barre', domain: 'fretting', level: 3, barre: true, after: ['chord-A-barre'], title: L('F as a full barre', `${H('F')} בברה מלא`), check: { kind: 'chord', chord: 'barF1' } },
+  { id: 'barre-names', domain: 'fretboard', level: 3, title: L('Name an E-shape barre', `שם לברה בצורת ${H('E')}`), check: { kind: 'quiz', id: 'barre-names' } },
+  { id: 'chord-Am-barre', domain: 'fretting', level: 3, barre: true, after: ['chord-A-barre'], title: L('Minor E-shape barre', `ברה מינורי בצורת ${H('E')}`), check: { kind: 'chord', chord: 'barAm5' } },
+  { id: 'changes-AmF', domain: 'fretting', level: 3, after: ['chord-F-barre'], title: L('Am–F (barre) changes, 20 a minute', `החלפות ${H('Am–F')} (ברה), 20 בדקה`), check: { kind: 'changes', pair: ['Am', 'F'], min: 20 } },
+  { id: 'song-barre', domain: 'repertoire', level: 3, after: ['chord-Am-barre'], title: L('A song with one barre shape', 'שיר בצורת ברה אחת'), check: { kind: 'self' } },
+  { id: 'chord-B', domain: 'fretting', level: 3, barre: true, after: ['notes-string5'], title: L('A-shape barre (B)', `ברה בצורת ${H('A')} (${H('B')})`), check: { kind: 'chord', chord: 'barB2' } },
+  { id: 'barreA-names', domain: 'fretboard', level: 3, title: L('Name an A-shape barre', `שם לברה בצורת ${H('A')}`), check: { kind: 'quiz', id: 'barreA-names' } },
+  { id: 'chord-Bm', domain: 'fretting', level: 3, barre: true, after: ['chord-B'], title: L('Bm chord', `אקורד ${H('Bm')}`), check: { kind: 'chord', chord: 'barBm2' } },
+  { id: 'changes-DBm', domain: 'fretting', level: 3, after: ['chord-Bm'], title: L('D–Bm changes, 20 a minute', `החלפות ${H('D–Bm')}, 20 בדקה`), check: { kind: 'changes', pair: ['D', 'Bm'], min: 20 } },
+  { id: 'song-DABmG', domain: 'repertoire', level: 3, after: ['changes-DBm'], title: L('A song in D: D, A, Bm, G', `שיר ב־${H('D')}: ${H('D, A, Bm, G')}`), check: { kind: 'self' } },
+  { id: 'two-shapes', domain: 'fretboard', level: 3, title: L('Every chord in two places', 'כל אקורד בשני מקומות'), check: { kind: 'quiz', id: 'two-shapes' } },
   { id: 'arp-tones', domain: 'fretboard', level: 3, title: L('Chord tones: root, 3rd, 5th', 'צלילי האקורד: יסוד, טרצה, קווינטה'), check: { kind: 'quiz', id: 'arp-tones' } },
   { id: 'arp-C-open', domain: 'picking', level: 3, title: L('Open C arpeggio', `ארפג׳יו ${H('C')} פתוח`), check: { kind: 'play', arp: 'C-open' } },
   { id: 'arp-G-E', domain: 'lead', level: 3, title: L('Arpeggio, root on string 6', 'ארפג׳יו, יסוד על מיתר 6'), check: { kind: 'play', arp: 'G-E' } },
@@ -1656,6 +1720,476 @@ const lessonSmallF = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// LEVEL 3 continued (RSL Grade 2), written 2026-11-20. Method: JustinGuitar's
+// order from the small F to the full barre — the open dominant 7th chords
+// (A7, D7, E7) and the 12-bar blues in 7ths; power chords (root + 5th) with
+// the natural notes on strings 6 and 5 (the map every movable shape needs),
+// palm muting and the blues shuffle (root–5th / root–6th); then the E-shape
+// barre (learned at fret 5 first, where the strings are softer, then down to
+// F), its minor form, and the A-shape barre with its minor (Bm) in the
+// I–V–vi–IV song. Text is our own.
+// ---------------------------------------------------------------------------
+
+const lessonSevenths = {
+  id: 'g3-sevenths',
+  level: 3,
+  title: L('Seventh chords and the blues', 'אקורדי ספטימה והבלוז'),
+  objective: L(
+    'Play A7, D7 and E7, know what the ♭7 adds, change A7–D7 at 30 a minute and play the 12-bar blues in 7ths.',
+    `לנגן ${H('A7')}, ${H('D7')} ו־${H('E7')}, לדעת מה ה־${H('♭7')} מוסיף, להחליף ${H('A7–D7')} ב־30 בדקה ולנגן את הבלוז של 12 תיבות בספטימות.`
+  ),
+  minutes: 25,
+  skills: ['chord-A7', 'chord-D7', 'chord-E7', 'dom7-tones', 'changes-A7D7', 'song-blues7'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('One note more', 'צליל אחד נוסף'),
+      shape: 'A7',
+      text: L(
+        'A dominant 7th chord is a major chord plus one note: the minor 7th (♭7), a whole tone below the next root. A7 = A (root), C♯ (3rd), E (5th) and G (♭7). That G makes the chord restless — it wants to move on. It is the sound of the blues. The shape: index on string 4 fret 2, middle on string 2 fret 2; strings 5, 3 and 1 open, string 6 not played. The open G string is the ♭7.',
+        `אקורד ספטימה דומיננטי הוא אקורד מז׳ור ועוד צליל אחד: הספטימה הקטנה (${H('♭7')}), טון שלם מתחת ליסוד הבא. ${H('A7')} = ${H('A')} (יסוד), ${H('C♯')} (טרצה), ${H('E')} (קווינטה) ו־${H('G')} (${H('♭7')}). ה־${H('G')} הזה הופך את האקורד לחסר מנוחה — הוא רוצה להמשיך. זה הצליל של הבלוז. הצורה: מורה על מיתר 4 שריג 2, אמה על מיתר 2 שריג 2; מיתרים 5, 3 ו־1 פתוחים, מיתר 6 לא מנוגן. מיתר ${H('G')} הפתוח הוא ה־${H('♭7')}.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'A7',
+      title: L('Play A7', `נגן ${H('A7')}`),
+      text: L('Strum from string 5. The open G and E strings must ring between your fingers.', `פרוט ממיתר 5. מיתרי ${H('G')} ו־${H('E')} הפתוחים חייבים לצלצל בין האצבעות.`),
+    },
+    {
+      kind: 'explain',
+      title: L('D7', `${H('D7')}`),
+      shape: 'D7',
+      text: L(
+        'D7 = D (root), F♯ (3rd), A (5th) and C (♭7). Compare with D: the triangle turns over. Middle on string 3 fret 2 (A), index on string 2 fret 1 (C — the ♭7), ring on string 1 fret 2 (F♯). Strum strings 4 to 1.',
+        `${H('D7')} = ${H('D')} (יסוד), ${H('F♯')} (טרצה), ${H('A')} (קווינטה) ו־${H('C')} (${H('♭7')}). השווה ל־${H('D')}: המשולש מתהפך. אמה על מיתר 3 שריג 2 (${H('A')}), מורה על מיתר 2 שריג 1 (${H('C')} — ה־${H('♭7')}), קמיצה על מיתר 1 שריג 2 (${H('F♯')}). פורטים מיתרים 4 עד 1.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'D7',
+      title: L('Play D7', `נגן ${H('D7')}`),
+      text: L('Four strings only. The index on fret 1 must not touch string 1.', 'ארבעה מיתרים בלבד. המורה בשריג 1 לא נוגעת במיתר 1.'),
+    },
+    {
+      kind: 'explain',
+      title: L('E7: lift one finger', `${H('E7')}: מרימים אצבע אחת`),
+      shape: 'E7',
+      text: L(
+        'Play E, then lift the ring finger off string 4: the open D that rings now is the ♭7. E7 = E (root), G♯ (3rd), B (5th) and D (♭7). Middle on string 5 fret 2, index on string 3 fret 1, the rest open.',
+        `נגן ${H('E')} והרם את הקמיצה ממיתר 4: ה־${H('D')} הפתוח שמצלצל עכשיו הוא ה־${H('♭7')}. ${H('E7')} = ${H('E')} (יסוד), ${H('G♯')} (טרצה), ${H('B')} (קווינטה) ו־${H('D')} (${H('♭7')}). אמה על מיתר 5 שריג 2, מורה על מיתר 3 שריג 1, השאר פתוחים.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'E7',
+      title: L('Play E7', `נגן ${H('E7')}`),
+      text: L('All six strings. If the teacher hears E, string 4 is still pressed.', `כל ששת המיתרים. אם המורה שומע ${H('E')}, מיתר 4 עדיין לחוץ.`),
+    },
+    {
+      kind: 'quiz',
+      id: 'dom7-tones',
+      skill: 'dom7-tones',
+      title: L('Which 7th?', 'איזו ספטימה?'),
+      question: L('In E7, the open D string is the chord’s…', `ב־${H('E7')}, מיתר ${H('D')} הפתוח הוא באקורד…`),
+      options: [L('♭7 — the minor 7th', `${H('♭7')} — הספטימה הקטנה`), L('Major 7th', 'הספטימה הגדולה'), L('Root', 'היסוד')],
+      answer: 0,
+      why: L(
+        'D is a whole tone below the next E — the minor 7th. In Fmaj7 (the last lesson) the 7th was a semitone below the root — the major 7th, soft and dreamy. The ♭7 is the restless, bluesy one.',
+        `${H('D')} נמצא טון שלם מתחת ל־${H('E')} הבא — הספטימה הקטנה. ב־${H('Fmaj7')} (השיעור הקודם) הספטימה הייתה חצי טון מתחת ליסוד — הספטימה הגדולה, רכה וחולמנית. ה־${H('♭7')} היא חסרת המנוחה, הבלוזית.`
+      ),
+    },
+    {
+      kind: 'changes',
+      pair: ['A7', 'D7'],
+      title: L('One-minute changes: A7 and D7', `החלפות בדקה: ${H('A7')} ו־${H('D7')}`),
+      text: L('The blues’ first change, I7 to IV7. Goal: 30.', `ההחלפה הראשונה של הבלוז, ${H('I7')} ל־${H('IV7')}. היעד: 30.`),
+    },
+    {
+      kind: 'explain',
+      title: L('The blues in 7ths', 'הבלוז בספטימות'),
+      text: L(
+        'In the blues every chord is a dominant 7th: A7 (I7), D7 (IV7), E7 (V7) — the same 12 bars you know, a much bluesier sound. And E7 → A7 is the strongest pull there is: E7’s G♯ (its 3rd) rises a semitone to A, its D (the ♭7) falls a semitone to C♯ (A’s 3rd). Hear it.',
+        `בבלוז כל אקורד הוא ספטימה דומיננטית: ${H('A7')} (${H('I7')}), ${H('D7')} (${H('IV7')}), ${H('E7')} (${H('V7')}) — אותן 12 תיבות שאתה מכיר, בצליל הרבה יותר בלוזי. ו־${H('E7')} ← ${H('A7')} הוא המשיכה החזקה ביותר שיש: ה־${H('G♯')} של ${H('E7')} (הטרצה שלו) עולה חצי טון ל־${H('A')}, וה־${H('D')} שלו (ה־${H('♭7')}) יורד חצי טון ל־${H('C♯')} (הטרצה של ${H('A')}). שמע.`
+      ),
+      chart: { bars: ['A7', 'A7', 'A7', 'A7', 'D7', 'D7', 'A7', 'A7', 'E7', 'D7', 'A7', 'E7'], bpm: 80 },
+    },
+    {
+      kind: 'checklist',
+      skill: 'song-blues7',
+      metronome: 80,
+      groove: 'blues',
+      title: L('Play the blues in 7ths', 'נגן את הבלוז בספטימות'),
+      text: L('The common pattern, with the drums. Count the bars in your head.', 'הדפוס הנפוץ, עם התופים. ספור את התיבות בראש.'),
+      chart: { bars: ['A7', 'A7', 'A7', 'A7', 'D7', 'D7', 'A7', 'A7', 'E7', 'D7', 'A7', 'E7'], pattern: 'D-DU-UDU' },
+      items: [
+        L('Twelve bars without getting lost.', 'שתים־עשרה תיבות בלי ללכת לאיבוד.'),
+        L('Two rounds in a row.', 'שני סיבובים ברצף.'),
+        L('Every 7th rings: the open G in A7, the open D in E7.', `כל ספטימה מצלצלת: ה־${H('G')} הפתוח ב־${H('A7')}, ה־${H('D')} הפתוח ב־${H('E7')}.`),
+      ],
+    },
+  ],
+  homework: [
+    { id: 'a7d7-hw', kind: 'changes', pair: ['A7', 'D7'], min: 30, perDay: 1, text: L('One-minute changes A7–D7, once a day. Goal: 30.', `החלפות בדקה ${H('A7–D7')}, פעם ביום. יעד: 30.`) },
+    { id: 'blues7-hw', kind: 'self', text: L('Once a day: the blues in 7ths, twice through with the drums.', 'פעם ביום: הבלוז בספטימות, פעמיים ברצף עם התופים.') },
+  ],
+};
+
+const lessonPower = {
+  id: 'g3-power-chords',
+  level: 3,
+  title: L('Power chords and the shuffle', 'אקורדי פאוור והשאפל'),
+  objective: L(
+    'Play movable power chords, name them from the notes on strings 6 and 5, palm-mute a rock riff and play the blues shuffle.',
+    `לנגן אקורדי פאוור נעים, לתת להם שם לפי הצלילים במיתרים 6 ו־5, לנגן ריף רוק בהשתקת כף יד ולנגן את שאפל הבלוז.`
+  ),
+  minutes: 30,
+  skills: ['chord-G5', 'notes-string6', 'notes-string5', 'power-names', 'palm-mute', 'blues-shuffle'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Root and 5th, nothing else', 'יסוד וקווינטה, ותו לא'),
+      shape: 'E5',
+      text: L(
+        'A power chord is just the root and the 5th, often with the root again an octave up. There is no 3rd, so it is neither major nor minor — it fits both, and stays clear under distortion. It is written with a 5: E5 = E (root), B (5th), E (octave). Open E5: string 6 open, index on string 5 fret 2, middle on string 4 fret 2. Strum only those three strings.',
+        `אקורד פאוור הוא רק היסוד והקווינטה, ולעיתים שוב היסוד אוקטבה מעל. אין בו טרצה, ולכן הוא לא מז׳ור ולא מינור — מתאים לשניהם, ונשאר צלול גם עם דיסטורשן. כותבים אותו עם 5: ${H('E5')} = ${H('E')} (יסוד), ${H('B')} (קווינטה), ${H('E')} (אוקטבה). ${H('E5')} פתוח: מיתר 6 פתוח, מורה על מיתר 5 שריג 2, אמה על מיתר 4 שריג 2. פורטים רק את שלושת המיתרים האלה.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('A shape you can move', 'צורה שאפשר להזיז'),
+      shape: 'G5',
+      text: L(
+        'Now with no open string: index on string 6 fret 3 (G, the root), ring on string 5 fret 5 (D, the 5th), pinky on string 4 fret 5 (G, the octave). The undersides of the fingers lightly touch strings 3–1 so they stay silent. That is G5 — and the same hand shape works on every fret.',
+        `עכשיו בלי מיתר פתוח: מורה על מיתר 6 שריג 3 (${H('G')}, היסוד), קמיצה על מיתר 5 שריג 5 (${H('D')}, הקווינטה), זרת על מיתר 4 שריג 5 (${H('G')}, האוקטבה). צד האצבעות נוגע קלות במיתרים 3–1 כדי שישתקו. זה ${H('G5')} — ואותה צורת יד עובדת בכל שריג.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'G5',
+      title: L('Play G5', `נגן ${H('G5')}`),
+      text: L('Three strings, a short firm strum. Only these three should sound.', 'שלושה מיתרים, פריטה קצרה ונחושה. רק השלושה האלה צריכים להישמע.'),
+    },
+    {
+      kind: 'arp',
+      arp: 'notes-6',
+      labels: 'note',
+      title: L('The notes on string 6', 'הצלילים על מיתר 6'),
+      text: L(
+        'A movable shape takes its name from the note under the index on string 6, so learn the natural notes there: E (open), F 1, G 3, A 5, B 7, C 8, D 10, E 12. Two frets between each — except E–F and B–C, one fret apart (the semitones from the first lessons).',
+        `צורה נעה מקבלת את שמה מהצליל שמתחת למורה על מיתר 6, אז לומדים את הצלילים הטבעיים שם: ${H('E')} (פתוח), ${H('F')} 1, ${H('G')} 3, ${H('A')} 5, ${H('B')} 7, ${H('C')} 8, ${H('D')} 10, ${H('E')} 12. בין כל שניים שני שריגים — חוץ מ־${H('E–F')} ו־${H('B–C')}, שריג אחד בלבד (חצאי הטון מהשיעורים הראשונים).`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'notes-6',
+      skill: 'notes-string6',
+      title: L('Play them, saying the names', 'נגן אותם ואמור את השמות'),
+      text: L('From E open to E at fret 12. The teacher listens and moves on with each right note.', `מ־${H('E')} פתוח עד ${H('E')} בשריג 12. המורה מקשיב ומתקדם עם כל צליל נכון.`),
+    },
+    {
+      kind: 'arp',
+      arp: 'notes-5',
+      labels: 'note',
+      title: L('String 5: the second map', 'מיתר 5: המפה השנייה'),
+      text: L(
+        'The same shape one string higher has its root on string 5: index on string 5, ring and pinky on strings 4 and 3, two frets up. At fret 3 that is C5. The natural notes on string 5: A (open), B 2, C 3, D 5, E 7, F 8, G 10, A 12.',
+        `אותה צורה מיתר אחד גבוה יותר — היסוד על מיתר 5: מורה על מיתר 5, קמיצה וזרת על מיתרים 4 ו־3, שני שריגים מעל. בשריג 3 זה ${H('C5')}. הצלילים הטבעיים על מיתר 5: ${H('A')} (פתוח), ${H('B')} 2, ${H('C')} 3, ${H('D')} 5, ${H('E')} 7, ${H('F')} 8, ${H('G')} 10, ${H('A')} 12.`
+      ),
+    },
+    {
+      kind: 'play',
+      arp: 'notes-5',
+      skill: 'notes-string5',
+      title: L('Play string 5', 'נגן את מיתר 5'),
+      text: L('From A open to A at fret 12.', `מ־${H('A')} פתוח עד ${H('A')} בשריג 12.`),
+    },
+    {
+      kind: 'quiz',
+      id: 'power-names',
+      skill: 'power-names',
+      title: L('Name the chord', 'מה שם האקורד'),
+      question: L('A power chord with the index on string 5, fret 7, is…', 'אקורד פאוור עם המורה על מיתר 5, שריג 7, הוא…'),
+      options: [L('E5', `${H('E5')}`), L('D5', `${H('D5')}`), L('B5', `${H('B5')}`)],
+      answer: 0,
+      why: L('String 5, fret 7 is E — the root names the chord. (On string 6, fret 7 would be B5.)', `מיתר 5, שריג 7 הוא ${H('E')} — היסוד נותן את השם. (על מיתר 6, שריג 7 היה ${H('B5')}.)`),
+    },
+    {
+      kind: 'explain',
+      title: L('Palm muting', 'השתקה בכף היד'),
+      shape: 'E5',
+      text: L(
+        'Rest the edge of the picking hand on the strings right where they leave the bridge. Too far in and the notes die; right at the saddles they “chug” — tight, dark and rhythmic, the sound of rock rhythm guitar. Lift the hand a little and the chord rings open again. Down strokes only for now.',
+        'הנח את צד כף היד הפורטת על המיתרים בדיוק במקום שבו הם יוצאים מהגשר. רחוק מדי פנימה — הצלילים מתים; בדיוק על הגשר הם "צ׳אגים" — הדוקים, כהים וקצביים, הצליל של גיטרת קצב ברוק. מרים מעט את היד — והאקורד מצלצל פתוח שוב. בינתיים רק פריטות למטה.'
+      ),
+    },
+    {
+      kind: 'checklist',
+      skill: 'palm-mute',
+      metronome: 100,
+      groove: 'rock',
+      title: L('A rock riff', 'ריף רוק'),
+      text: L(
+        'Our riff: two bars of E5 in eighths, palm-muted; then G5 and A5 (root on string 6, frets 3 and 5), one bar each, ringing open.',
+        `הריף שלנו: שתי תיבות של ${H('E5')} בשמיניות, בהשתקת כף יד; ואז ${H('G5')} ו־${H('A5')} (יסוד על מיתר 6, שריגים 3 ו־5), תיבה לכל אחד, מצלצלים פתוח.`
+      ),
+      chart: { bars: ['E5', 'E5', 'G5', 'A5'], pattern: 'DDDDDDDD' },
+      items: [
+        L('The muted bars chug, not thud: the notes are still there.', 'התיבות המושתקות עושות "צ׳אג", לא חבטה: הצלילים עדיין נשמעים.'),
+        L('G5 and A5 land on the “1” of their bars.', `${H('G5')} ו־${H('A5')} נוחתים ב"1" של התיבה שלהם.`),
+        L('Four rounds without stopping.', 'ארבעה סיבובים בלי לעצור.'),
+      ],
+    },
+    {
+      kind: 'explain',
+      title: L('The blues shuffle', 'שאפל הבלוז'),
+      shape: 'A5o',
+      text: L(
+        'The rhythm behind a thousand blues and rock ’n’ roll songs: open string 5 (A) with the index on string 4 fret 2 (E, the 5th) — twice — then the ring finger reaches fret 4 (F♯, the 6th) — twice. Root–5th, root–6th, in a swung “long–short” feel. For D move it to strings 4 and 3, for E to strings 6 and 5 — same frets.',
+        `הקצב שמאחורי אלף שירי בלוז ורוקנרול: מיתר 5 פתוח (${H('A')}) עם המורה על מיתר 4 שריג 2 (${H('E')}, הקווינטה) — פעמיים — ואז הקמיצה מגיעה לשריג 4 (${H('F♯')}, הסקסטה) — פעמיים. יסוד–קווינטה, יסוד–סקסטה, בתחושה מסווינגת "ארוך–קצר". ל־${H('D')} מעבירים למיתרים 4 ו־3, ל־${H('E')} למיתרים 6 ו־5 — אותם שריגים.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      skill: 'blues-shuffle',
+      metronome: 90,
+      groove: 'blues',
+      title: L('The 12-bar shuffle', 'השאפל של 12 תיבות'),
+      text: L('The shuffle on A, D and E through the 12-bar blues, with the drums.', `השאפל על ${H('A')}, ${H('D')} ו־${H('E')} לאורך הבלוז של 12 תיבות, עם התופים.`),
+      chart: { bars: ['A5o', 'A5o', 'A5o', 'A5o', 'D5o', 'D5o', 'A5o', 'A5o', 'E5', 'D5o', 'A5o', 'E5'], pattern: 'DDDDDDDD' },
+      items: [
+        L('Swung eighths: long–short, long–short.', 'שמיניות מסווינגות: ארוך–קצר, ארוך–קצר.'),
+        L('The 5th–6th movement on every chord.', 'תנועת הקווינטה–סקסטה בכל אקורד.'),
+        L('Two rounds without getting lost.', 'שני סיבובים בלי ללכת לאיבוד.'),
+      ],
+    },
+  ],
+  homework: [
+    { id: 'notes6-hw', kind: 'play', arp: 'notes-6', skill: 'notes-string6', text: L('The notes on string 6, once a day, saying the names.', 'הצלילים על מיתר 6, פעם ביום, עם השמות.') },
+    { id: 'riff-hw', kind: 'self', text: L('Once a day: the riff palm-muted, and the 12-bar shuffle twice through.', 'פעם ביום: הריף בהשתקת כף יד, והשאפל של 12 תיבות פעמיים ברצף.') },
+  ],
+};
+
+const lessonBarreE = {
+  id: 'g3-barre-E',
+  level: 3,
+  title: L('The E-shape barre chord', 'אקורד ברה בצורת E'),
+  objective: L(
+    'Play the full E-shape barre, major and minor, name it on any fret and use it in a song.',
+    `לנגן ברה מלא בצורת ${H('E')}, מז׳ור ומינור, לתת לו שם בכל שריג ולנגן אותו בשיר.`
+  ),
+  minutes: 30,
+  skills: ['chord-A-barre', 'chord-F-barre', 'barre-names', 'chord-Am-barre', 'changes-AmF', 'song-barre'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('E with other fingers', `${H('E')} באצבעות אחרות`),
+      shape: 'E234',
+      text: L(
+        'Play E with a new fingering: middle on string 3 fret 1, ring on string 5 fret 2, pinky on string 4 fret 2. It sounds the same — but the index is free. In the next step it becomes the nut.',
+        `נגן ${H('E')} באצבעות חדשות: אמה על מיתר 3 שריג 1, קמיצה על מיתר 5 שריג 2, זרת על מיתר 4 שריג 2. זה נשמע אותו דבר — אבל המורה פנויה. בצעד הבא היא תהפוך לאוכף.`
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('Slide it up: A at fret 5', `מזיזים למעלה: ${H('A')} בשריג 5`),
+      shape: 'barA5',
+      text: L(
+        'Move that shape up four frets and lay the index flat across all six strings at fret 5. The index does the nut’s job: this is E moved up five frets — A. A (root) on string 6, E (5th), A, C♯ (3rd), E, A. Its name is the note under the index on string 6 — you learned them last lesson. We start at fret 5 on purpose: the frets are narrower and the strings softer than near the nut.',
+        `הזז את הצורה ארבעה שריגים למעלה והשכב את המורה על כל ששת המיתרים בשריג 5. המורה עושה את העבודה של האוכף: זה ${H('E')} שזז חמישה שריגים למעלה — ${H('A')}. ${H('A')} (יסוד) על מיתר 6, ${H('E')} (קווינטה), ${H('A')}, ${H('C♯')} (טרצה), ${H('E')}, ${H('A')}. השם שלו הוא הצליל שמתחת למורה על מיתר 6 — למדת אותם בשיעור הקודם. מתחילים בשריג 5 בכוונה: השריגים צרים יותר והמיתרים רכים יותר מאשר ליד האוכף.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      title: L('Barre technique', 'טכניקת ברה'),
+      text: L('Pick the six strings one at a time. A dead or buzzing string tells you what to fix.', 'פרוט את ששת המיתרים אחד אחד. מיתר מת או מזמזם אומר לך מה לתקן.'),
+      items: [
+        L('Index straight and close to the fret, rolled slightly onto its bony side.', 'המורה ישרה וצמודה לשריג, מגולגלת מעט על הצד הגרמי שלה.'),
+        L('Thumb behind the neck, opposite the index; let the arm’s weight pull back, don’t squeeze with the thumb.', 'האגודל מאחורי הצוואר, מול המורה; תן למשקל היד למשוך אחורה, אל תלחץ עם האגודל.'),
+        L('Only strings 6, 2 and 1 need the index — the others are under your fingers.', 'רק מיתרים 6, 2 ו־1 צריכים את המורה — את השאר לוחצות האצבעות האחרות.'),
+        L('No pain: press less, move closer to the fret, rest after a minute.', 'בלי כאב: לחץ פחות, התקרב לשריג, נוח אחרי דקה.'),
+      ],
+    },
+    {
+      kind: 'chord',
+      chord: 'barA5',
+      title: L('Play the A barre', `נגן את ברה ${H('A')}`),
+      text: L('All six strings at fret 5.', 'כל ששת המיתרים בשריג 5.'),
+    },
+    {
+      kind: 'explain',
+      title: L('Same shape, any fret', 'אותה צורה, בכל שריג'),
+      shape: 'barF1',
+      text: L(
+        'Fret 3 is G, fret 1 is F — the hardest, because the strings are tightest near the nut. If F won’t ring yet, play G and A for a week and come back down. The small F you know still works meanwhile.',
+        `שריג 3 הוא ${H('G')}, שריג 1 הוא ${H('F')} — הקשה ביותר, כי המיתרים הכי מתוחים ליד האוכף. אם ${H('F')} עוד לא מצלצל, נגן ${H('G')} ו־${H('A')} שבוע וחזור למטה. ה־${H('F')} הקטן שאתה מכיר עדיין עובד בינתיים.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'barF1',
+      title: L('Play F as a full barre', `נגן ${H('F')} בברה מלא`),
+      text: L('Aim for all six strings. If it doesn’t pass yet, play G at fret 3 and try again tomorrow.', `כוון לכל ששת המיתרים. אם זה עוד לא עובר, נגן ${H('G')} בשריג 3 ונסה שוב מחר.`),
+    },
+    {
+      kind: 'quiz',
+      id: 'barre-names',
+      skill: 'barre-names',
+      title: L('Name the barre', 'מה שם הברה'),
+      question: L('An E-shape barre with the index at fret 7 is…', `ברה בצורת ${H('E')} עם המורה בשריג 7 הוא…`),
+      options: [L('B', `${H('B')}`), L('A', `${H('A')}`), L('C', `${H('C')}`)],
+      answer: 0,
+      why: L('String 6, fret 7 is B — the note under the index names the chord.', `מיתר 6, שריג 7 הוא ${H('B')} — הצליל שמתחת למורה נותן לאקורד את שמו.`),
+    },
+    {
+      kind: 'explain',
+      title: L('The minor barre', 'הברה המינורי'),
+      shape: 'barAm5',
+      text: L(
+        'E becomes Em when you lift the finger on the 3rd. Same here: lift the middle finger and the barre itself presses the minor 3rd on string 3. Am at fret 5 = A (root), E (5th), A, C (minor 3rd), E, A. Ring and pinky stay.',
+        `${H('E')} הופך ל־${H('Em')} כשמרימים את האצבע מהטרצה. כך גם כאן: הרם את האמה, והברה עצמו לוחץ את הטרצה הקטנה על מיתר 3. ${H('Am')} בשריג 5 = ${H('A')} (יסוד), ${H('E')} (קווינטה), ${H('A')}, ${H('C')} (טרצה קטנה), ${H('E')}, ${H('A')}. הקמיצה והזרת נשארות.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'barAm5',
+      title: L('Play the Am barre', `נגן את ברה ${H('Am')}`),
+      text: L('String 3 is now under the index — check that it rings.', 'מיתר 3 נמצא עכשיו מתחת למורה — ודא שהוא מצלצל.'),
+    },
+    {
+      kind: 'changes',
+      pair: ['Am', 'F'],
+      title: L('One-minute changes: Am and the F barre', `החלפות בדקה: ${H('Am')} וברה ${H('F')}`),
+      text: L('Open Am to the barre F at fret 1. Goal: 20 for now — barre changes take weeks.', `${H('Am')} פתוח לברה ${H('F')} בשריג 1. היעד: 20 בינתיים — החלפות ברה לוקחות שבועות.`),
+    },
+    {
+      kind: 'checklist',
+      skill: 'song-barre',
+      metronome: 70,
+      groove: 'rock',
+      title: L('One shape, a whole song', 'צורה אחת, שיר שלם'),
+      text: L(
+        'Am – F – G – Am with one shape only: minor at fret 5, major at frets 1 and 3. In A minor these are i – ♭VI – ♭VII – i, the sound of the rock ballad.',
+        `${H('Am – F – G – Am')} בצורה אחת בלבד: מינור בשריג 5, מז׳ור בשריגים 1 ו־3. בלה מינור אלה ${H('i – ♭VI – ♭VII – i')}, הצליל של בלדת הרוק.`
+      ),
+      chart: { bars: ['barAm5', 'barF1', 'barG3', 'barAm5'], pattern: 'D-DU-UDU' },
+      items: [
+        L('The hand slides without lifting the barre off the neck.', 'היד מחליקה בלי להרים את הברה מהצוואר.'),
+        L('Each chord lands on the “1”.', 'כל אקורד נוחת ב"1".'),
+        L('Four rounds without stopping.', 'ארבעה סיבובים בלי לעצור.'),
+      ],
+    },
+  ],
+  homework: [
+    { id: 'amf-hw', kind: 'changes', pair: ['Am', 'F'], min: 20, perDay: 1, text: L('One-minute changes Am–F (barre), once a day. Goal: 20.', `החלפות בדקה ${H('Am–F')} (ברה), פעם ביום. יעד: 20.`) },
+    { id: 'barre-hw', kind: 'self', text: L('Once a day: the barre at frets 5, 3 and 1, each string ringing; then Am – F – G – Am.', `פעם ביום: הברה בשריגים 5, 3 ו־1, כל מיתר מצלצל; ואז ${H('Am – F – G – Am')}.`) },
+  ],
+};
+
+const lessonBarreA = {
+  id: 'g3-barre-A',
+  level: 3,
+  title: L('The A-shape barre chord', 'אקורד ברה בצורת A'),
+  objective: L(
+    'Play the A-shape barre, major and minor, name it from string 5 and play D – A – Bm – G.',
+    `לנגן ברה בצורת ${H('A')}, מז׳ור ומינור, לתת לו שם לפי מיתר 5 ולנגן ${H('D – A – Bm – G')}.`
+  ),
+  minutes: 30,
+  skills: ['chord-B', 'barreA-names', 'chord-Bm', 'changes-DBm', 'song-DABmG', 'two-shapes'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('The second movable shape', 'הצורה הנעה השנייה'),
+      shape: 'barB2',
+      text: L(
+        'This one comes from open A. Index across strings 5 to 1 at fret 2; then the A shape two frets higher — the ring finger flat over strings 4, 3 and 2 at fret 4 (a small barre), string 1 ringing under the index. That is B: B (root), F♯ (5th), B, D♯ (3rd), F♯. The index tip touches string 6 to keep it silent. If string 1 won’t ring under the ring finger, let it be muted — many players do — or use fingers 2, 3 and 4 instead.',
+        `הצורה הזו באה מ־${H('A')} הפתוח. מורה על מיתרים 5 עד 1 בשריג 2; ואז צורת ${H('A')} שני שריגים מעל — הקמיצה שטוחה על מיתרים 4, 3 ו־2 בשריג 4 (ברה קטן), ומיתר 1 מצלצל מתחת למורה. זה ${H('B')}: ${H('B')} (יסוד), ${H('F♯')} (קווינטה), ${H('B')}, ${H('D♯')} (טרצה), ${H('F♯')}. קצה המורה נוגע במיתר 6 כדי שישתוק. אם מיתר 1 לא מצלצל מתחת לקמיצה, תן לו להיות מושתק — נגנים רבים עושים כך — או השתמש באצבעות 2, 3 ו־4 במקום.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'barB2',
+      title: L('Play B', `נגן ${H('B')}`),
+      text: L('Strum from string 5.', 'פרוט ממיתר 5.'),
+    },
+    {
+      kind: 'explain',
+      title: L('Named by string 5', 'השם לפי מיתר 5'),
+      shape: 'barC3',
+      text: L(
+        'The name is the note under the index on string 5: fret 1 B♭, fret 2 B, fret 3 C, fret 5 D, fret 7 E. Here is C at fret 3.',
+        `השם הוא הצליל שמתחת למורה על מיתר 5: שריג 1 ${H('B♭')}, שריג 2 ${H('B')}, שריג 3 ${H('C')}, שריג 5 ${H('D')}, שריג 7 ${H('E')}. הנה ${H('C')} בשריג 3.`
+      ),
+    },
+    {
+      kind: 'quiz',
+      id: 'barreA-names',
+      skill: 'barreA-names',
+      title: L('Name the barre', 'מה שם הברה'),
+      question: L('An A-shape barre with the index at fret 5 is…', `ברה בצורת ${H('A')} עם המורה בשריג 5 הוא…`),
+      options: [L('D', `${H('D')}`), L('E', `${H('E')}`), L('C', `${H('C')}`)],
+      answer: 0,
+      why: L('String 5, fret 5 is D.', `מיתר 5, שריג 5 הוא ${H('D')}.`),
+    },
+    {
+      kind: 'explain',
+      title: L('The minor A shape', `צורת ${H('A')} המינורית`),
+      shape: 'barBm2',
+      text: L(
+        'From open Am: index across strings 5 to 1 at fret 2, middle on string 2 fret 3, ring on string 4 fret 4, pinky on string 3 fret 4. Bm = B (root), F♯ (5th), B, D (minor 3rd), F♯. The 3rd sits on string 2 — one fret lower than in B.',
+        `מ־${H('Am')} הפתוח: מורה על מיתרים 5 עד 1 בשריג 2, אמה על מיתר 2 שריג 3, קמיצה על מיתר 4 שריג 4, זרת על מיתר 3 שריג 4. ${H('Bm')} = ${H('B')} (יסוד), ${H('F♯')} (קווינטה), ${H('B')}, ${H('D')} (טרצה קטנה), ${H('F♯')}. הטרצה יושבת על מיתר 2 — שריג אחד נמוך יותר מאשר ב־${H('B')}.`
+      ),
+    },
+    {
+      kind: 'chord',
+      chord: 'barBm2',
+      title: L('Play Bm', `נגן ${H('Bm')}`),
+      text: L('Strum from string 5; string 1 rings under the index.', 'פרוט ממיתר 5; מיתר 1 מצלצל מתחת למורה.'),
+    },
+    {
+      kind: 'changes',
+      pair: ['D', 'Bm'],
+      title: L('One-minute changes: D and Bm', `החלפות בדקה: ${H('D')} ו־${H('Bm')}`),
+      text: L('Goal: 20 for now.', 'היעד: 20 בינתיים.'),
+    },
+    {
+      kind: 'checklist',
+      skill: 'song-DABmG',
+      metronome: 70,
+      groove: 'rock',
+      title: L('A song in D', `שיר ב־${H('D')}`),
+      text: L(
+        'D – A – Bm – G: in D these are I (tonic), V (dominant), vi (the relative minor) and IV (subdominant) — the same four-chord loop as G – D – Em – C from level 2, now in D, with Bm as your barre.',
+        `${H('D – A – Bm – G')}: ב־${H('D')} אלה ${H('I')} (טוניקה), ${H('V')} (דומיננטה), ${H('vi')} (המינור המקביל) ו־${H('IV')} (סובדומיננטה) — אותה לולאת ארבעה אקורדים כמו ${H('G – D – Em – C')} מרמה 2, עכשיו ב־${H('D')}, עם ${H('Bm')} כברה שלך.`
+      ),
+      chart: { bars: ['D', 'A', 'barBm2', 'G'], pattern: 'D-DU-UDU' },
+      items: [L('Four rounds without stopping.', 'ארבעה סיבובים בלי לעצור.'), L('Bm rings on five strings inside the song.', `${H('Bm')} מצלצל בחמישה מיתרים גם בתוך השיר.`)],
+    },
+    {
+      kind: 'quiz',
+      id: 'two-shapes',
+      skill: 'two-shapes',
+      title: L('Two places for every chord', 'שני מקומות לכל אקורד'),
+      question: L('With the two barre shapes, where can you play C major?', `עם שתי צורות הברה, איפה אפשר לנגן ${H('C')} מז׳ור?`),
+      options: [
+        L('E shape at fret 8, A shape at fret 3', `צורת ${H('E')} בשריג 8, צורת ${H('A')} בשריג 3`),
+        L('E shape at fret 3, A shape at fret 8', `צורת ${H('E')} בשריג 3, צורת ${H('A')} בשריג 8`),
+        L('E shape at fret 1, A shape at fret 5', `צורת ${H('E')} בשריג 1, צורת ${H('A')} בשריג 5`),
+      ],
+      answer: 0,
+      why: L(
+        'String 6, fret 8 is C; string 5, fret 3 is C. With the two shapes and the two string maps you can now play every major and minor chord in two places on the neck. Next: arpeggios, which connect those places.',
+        `מיתר 6, שריג 8 הוא ${H('C')}; מיתר 5, שריג 3 הוא ${H('C')}. עם שתי הצורות ושתי מפות המיתרים אפשר עכשיו לנגן כל אקורד מז׳ור ומינור בשני מקומות על הצוואר. הבא: ארפג׳יו, שמחברים בין המקומות האלה.`
+      ),
+    },
+  ],
+  homework: [
+    { id: 'dbm-hw', kind: 'changes', pair: ['D', 'Bm'], min: 20, perDay: 1, text: L('One-minute changes D–Bm, once a day. Goal: 20.', `החלפות בדקה ${H('D–Bm')}, פעם ביום. יעד: 20.`) },
+    { id: 'dabmg-hw', kind: 'self', text: L('Once a day: D – A – Bm – G, four rounds with the drums.', `פעם ביום: ${H('D – A – Bm – G')}, ארבעה סיבובים עם התופים.`) },
+  ],
+};
+
 export const LESSONS = [
   lessonBasics,
   lessonFirstNote,
@@ -1669,6 +2203,10 @@ export const LESSONS = [
   lessonGC,
   lessonMinorPent,
   lessonSmallF,
+  lessonSevenths,
+  lessonPower,
+  lessonBarreE,
+  lessonBarreA,
   lessonArpeggios,
   lessonTapping,
 ];

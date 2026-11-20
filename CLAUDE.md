@@ -3479,3 +3479,27 @@ no tools).
   its own full screen are gone. Playwright 390 / 820 / 1180 HE + EN: icon,
   × left + title centred on all 3 drawers, arpeggio in simple + advanced,
   GuitarPro PDF -> Performer scrolls, Escape back; no errors.
+- DRUM MACHINE, the Apple way (v1.0.226; user: "redesign it as Apple
+  would, same functionality"): the 808 face (DR-8 plate, LCDs, keys) is
+  gone. `DrumMachine.jsx` now = `.dmx` (styles in `Metronome/
+  DrumMachine.css`; WoodMetronome.css lost every `.dm-*` rule): a tempo
+  card (big 46 px number between round − / + via BpmField, BPM caption,
+  Tap, a dot per beat lit from the playhead, beat 1 orange) · an inset
+  list Style / Sound / Time = `<Select>` pop-ups, Fills = `Switch` (+ ⓘ)
+  · the pattern card: Segmented "In use | All drums" (was the Kit latch)
+  + plain Edit / New; a GarageBand-style beat sequencer (rounded pads in
+  Apple system colours per group — kick red, drums orange, cymbals
+  yellow, perc teal; soft = 42 % tint; every other beat a shade darker;
+  playhead column ringed in accent; grid always LTR; row name = colour
+  dot + name, tap = hear); editing = name field + Grid pop-up, hint,
+  Delete (plain red) · Clear · Cancel · Save (tinted) · levels: master
+  volume row always, "Mixer" disclosure row (device key
+  `dudestar-dm-mixer-open`) with the 4 channels (dot, ui-slider, speaker
+  mute key, red when muted) · ONE filled Start (gray red Stop). The
+  strings' leading ▶ / ■ are stripped (the Button has its glyph). Tool
+  screen gets the grouped grey ground (`.tool-screen:has(.dmx)`).
+  Engine / patterns / saved beats untouched. Playwright 390 HE, 820 HE
+  dark (drawer), 1180 EN (drawer + tool screen): playhead + beat dot
+  move, mixer opens, tap a pad -> edit -> save -> "My patterns" style,
+  no errors, drawer needs no zoom. Not added: swing (the engine has no
+  swing control).

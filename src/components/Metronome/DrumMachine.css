@@ -1,0 +1,403 @@
+/* Drum machine, the Apple way (v1.0.226, user's request): GarageBand's
+   Beat Sequencer inside an iOS screen — the tempo big, the settings as an
+   inset list, the pattern as rounded pads in the drums' colours, levels
+   folded under "Mixer", ONE filled Start. Light / dark follow the theme. */
+
+.dmx {
+  --dmx-kick: #ff3b30;
+  --dmx-drums: #ff9500;
+  --dmx-cymbals: #ffcc00;
+  --dmx-perc: #30b0c7;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  color: var(--text);
+  text-align: start;
+}
+:root[data-theme='dark'] .dmx {
+  --dmx-kick: #ff453a;
+  --dmx-drums: #ff9f0a;
+  --dmx-cymbals: #ffd60a;
+  --dmx-perc: #40c8e0;
+}
+
+.dmx-card,
+.dmx-group {
+  background: var(--surface);
+  border-radius: 14px;
+  min-width: 0;
+}
+.dmx-card {
+  padding: 14px 14px 12px;
+}
+.dmx-group {
+  padding: 0 16px;
+}
+.dmx-group > .ui-row + .ui-row {
+  border-top: 0.5px solid var(--separator);
+}
+
+/* a pop-up in a row never pushes into its label */
+.dmx-group .ui-row-control {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 64%;
+}
+.dmx-group .ui-row-control .ui-select {
+  max-width: 100%;
+}
+
+/* ---- tempo ---- */
+.dmx-tempo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dmx-tempo-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  flex: 1 1 auto;
+}
+html .dmx .bpm-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: auto;
+  background: transparent;
+  border-radius: 0;
+}
+html .dmx .bpm-field .bpm-field-step {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--fill-tertiary);
+  color: var(--accent);
+  font-size: 24px;
+  font-weight: 500;
+}
+html .dmx .bpm-field .bpm-field-step:active {
+  background: var(--fill-secondary);
+}
+html .dmx .bpm-field .bpm-field-value,
+html .dmx .bpm-field .bpm-field-input {
+  height: 52px;
+  min-width: 3.2ch;
+  width: 3.2ch;
+  padding: 0;
+  border: 0;
+  font-size: 46px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 52px;
+}
+html .dmx .bpm-field .bpm-field-input {
+  border-radius: 8px;
+  background: var(--fill-tertiary);
+}
+.dmx-unit {
+  margin-top: -4px;
+  font-size: var(--type-footnote, 13px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+.dmx-tap {
+  flex: none;
+  min-width: 64px;
+}
+
+/* a dot per beat; the one that sounds lights */
+.dmx-beats {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.dmx-beat {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fill-secondary);
+  transition: background-color 0.08s linear, transform 0.08s linear;
+}
+.dmx-beat.is-now {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+.dmx-beat.is-one.is-now {
+  background: var(--dmx-drums);
+}
+
+.dmx-label-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---- pattern ---- */
+.dmx-pattern-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+.dmx-seg {
+  flex: 0 1 220px;
+  min-width: 0;
+}
+.dmx-head-actions {
+  display: inline-flex;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+.dmx-pattern-head.is-edit .ui-select {
+  flex: none;
+}
+.dmx-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--fill-tertiary);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.dmx-name:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dmx-seq-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  margin-inline: -4px;
+  padding: 0 4px 2px;
+}
+.dmx-seq {
+  display: grid;
+  grid-template-columns: 84px repeat(var(--steps), minmax(18px, 1fr));
+  gap: 4px;
+  align-items: center;
+  min-width: max-content;
+  width: 100%;
+}
+.dmx-seq-corner {
+  height: 16px;
+}
+.dmx-seq-num {
+  height: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  border-radius: 4px;
+}
+.dmx-seq-num.is-head {
+  background: var(--accent-fill);
+  color: #fff;
+}
+
+html .dmx .dmx-row-name {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 4px 0 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.12s ease;
+}
+.dmx-row-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dmx-row-name i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+}
+html .dmx .dmx-row-name.is-hit {
+  color: var(--text);
+}
+.dmx-row-name.is-hit i {
+  transform: scale(1.5);
+}
+
+.g-kick { --c: var(--dmx-kick); }
+.g-drums { --c: var(--dmx-drums); }
+.g-cymbals { --c: var(--dmx-cymbals); }
+.g-perc { --c: var(--dmx-perc); }
+
+html .dmx .dmx-cell {
+  height: 28px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: var(--fill-tertiary);
+  cursor: pointer;
+  transition: background-color 0.06s linear, transform 0.1s var(--ease-ios, ease);
+}
+/* every other beat a shade darker, so the beats read */
+html .dmx .dmx-cell.is-alt {
+  background: var(--fill-secondary);
+}
+html .dmx .dmx-cell.is-on {
+  background: var(--c);
+}
+html .dmx .dmx-cell.is-soft {
+  background: color-mix(in srgb, var(--c) 42%, transparent);
+}
+html .dmx .dmx-cell:active {
+  transform: scale(0.9);
+}
+html .dmx .dmx-cell.is-head {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+html .dmx .dmx-cell.is-head.is-on {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--c);
+}
+@media (prefers-reduced-motion: reduce) {
+  html .dmx .dmx-cell,
+  .dmx-beat {
+    transition: none;
+  }
+}
+
+.dmx-note {
+  margin: 10px 2px 0;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+
+.dmx-edit-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dmx-grow {
+  flex: 1 1 0;
+}
+
+/* ---- levels ---- */
+.dmx-level {
+  gap: 10px;
+}
+.dmx-slider {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+html .dmx .dmx-speaker {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+html .dmx .dmx-speaker.is-muted {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.dmx-ch-name {
+  flex: 0 0 92px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dmx-ch-name::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+html .dmx .dmx-disclose {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.dmx-disclose .ui-row-label {
+  color: var(--text);
+}
+.dmx-chev {
+  color: var(--text-tertiary, var(--text-secondary));
+  transition: transform 0.25s var(--ease-ios, ease);
+}
+.dmx-disclose[aria-expanded='true'] .dmx-chev {
+  transform: rotate(90deg);
+}
+[dir='rtl'] .dmx-disclose[aria-expanded='false'] .dmx-chev {
+  transform: scaleX(-1);
+}
+
+/* ---- the one primary ---- */
+html .dmx .dmx-start {
+  width: 100%;
+}
+
+@media (max-width: 400px) {
+  .dmx-seq {
+    grid-template-columns: 68px repeat(var(--steps), minmax(16px, 1fr));
+    gap: 3px;
+  }
+  html .dmx .dmx-cell {
+    height: 26px;
+    border-radius: 6px;
+  }
+  html .dmx .bpm-field .bpm-field-value,
+  html .dmx .bpm-field .bpm-field-input {
+    font-size: 40px;
+  }
+}
+
+/* On its own screen the page is the grouped background, so the cards read
+   (iOS Settings: grey ground, white cells). */
+.tool-screen:has(.dmx) {
+  background: var(--bg);
+}

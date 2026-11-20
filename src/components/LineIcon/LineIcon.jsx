@@ -238,7 +238,8 @@ export const ICON_PATHS = {
   // the Band card's Rehearse shortcut (v1.0.208, the user's pick)
   // Tools menu (metronome · drums · tuner), v1.0.225: a wrench — the menu is
   // tools, not only a metronome (Lucide "wrench", ISC)
-  tools: <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />,
+  // a tuning fork (v1.0.228, user's pick of 5): the music tools
+  tools: <path d="M8.5 2.5v8.5a3.5 3.5 0 0 0 7 0V2.5M12 14.5v7" />,
   waveform: <path d="M3 12h1M6.5 8.5v7M10 5v14M13.5 9v6M17 6.5v11M20.5 11v2" />,
   setlist: (
     <>

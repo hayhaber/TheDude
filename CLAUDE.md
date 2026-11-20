@@ -3533,3 +3533,6 @@ no tools).
   other prefs (onSheetPrefs), pulled unless a send is pending. Fake
   Supabase: A adds a youtu.be link -> server row -> B (390 HE) sees the
   key in the setlist; no errors.
+- v1.0.228 (user picked option 1 of 5): the Tools button's icon is a
+  TUNING FORK (LineIcon `tools`: two tines joined in a U + the stem) — it
+  says "music tools"; the wrench (v1.0.225) read as generic settings.

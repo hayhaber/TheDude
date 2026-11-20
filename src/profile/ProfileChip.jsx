@@ -224,8 +224,8 @@ export function ProfileChip({ onSettings, compact = false }) {
                   <span className="profile-pop-me-name" dir="auto">
                     {nameOf(active)}
                   </span>
-                  <span className="profile-pop-hint" dir="auto">
-                    {email ? t('settings.account.synced', { email }) : t('profile.local')}
+                  <span className="profile-pop-hint" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+                    {email ? t('settings.account.synced', { email: '\u2066' + email + '\u2069' }) : t('profile.local')}
                   </span>
                 </span>
               </div>

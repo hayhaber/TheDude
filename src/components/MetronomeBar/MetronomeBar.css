@@ -237,3 +237,52 @@
 .metronome-drawer-body .wood-metronome {
   width: min(276px, 76%);
 }
+
+/* Tool drawers (metronome / drums / tuner), v1.0.225 — the iPad: the ×
+   sat at the top right, under the status bar's battery, hard to tap.
+   iOS 26 sheet header: × on the LEFT, the title centred, and the whole
+   drawer starts below the status bar. */
+html .metronome-drawer,
+html .tuner-drawer {
+  padding-top: calc(var(--space-2) + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 480px) {
+  html .metronome-drawer,
+  html .tuner-drawer {
+    padding-top: var(--space-2);
+  }
+}
+html .metronome-drawer-header,
+html .tuner-drawer-header {
+  direction: ltr;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  grid-template-areas: 'close title .';
+  align-items: center;
+  min-height: 44px;
+}
+html .metronome-drawer-title,
+html .tuner-drawer-title {
+  grid-area: title;
+  text-align: center;
+  font-size: var(--type-headline, 17px);
+  font-weight: 600;
+}
+html .metronome-drawer-close,
+html .tuner-drawer-close {
+  grid-area: close;
+  position: relative;
+  width: 30px;
+  height: 30px;
+  justify-self: start;
+  background: var(--fill-tertiary, rgba(118, 118, 128, 0.12));
+  color: var(--text-secondary);
+  font-size: 19px;
+  font-weight: 600;
+}
+html .metronome-drawer-close::before,
+html .tuner-drawer-close::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+}

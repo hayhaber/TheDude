@@ -243,6 +243,9 @@ export function PianoChordLibraryView({ onStage, onAddToCompose, onOpenCompose, 
           <button type="button" className="cl-btn is-primary" onClick={play}>
             {t('pchord.play')}
           </button>
+          <button type="button" className="cl-btn" onClick={arpeggio}>
+            {t('chordlib.pick')}
+          </button>
           <AutoPlayToggle on={prefs.autoPlay !== false} onChange={(v) => set({ autoPlay: v })} label={t('chordlib.autoPlay')} />
         </div>
         <div className="pc-hands" aria-hidden="true">

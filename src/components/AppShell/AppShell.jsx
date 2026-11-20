@@ -111,7 +111,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
       aria-expanded={toolsOpen}
       onClick={() => setToolsOpen((v) => !v)}
     >
-      <LineIcon name="metronome" size={19} strokeWidth={1.7} />
+      <LineIcon name="tools" size={19} strokeWidth={1.7} />
     </button>
   );
 

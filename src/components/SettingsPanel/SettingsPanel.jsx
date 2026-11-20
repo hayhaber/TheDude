@@ -395,9 +395,9 @@ export function SettingsBody({
                 <span className="set-account-name" dir="auto">
                   {profileName}
                 </span>
-                <span className="set-row-sub" dir="auto">
+                <span className="set-row-sub" dir={lang === "he" ? "rtl" : "ltr"}>
                   {email
-                    ? t("settings.account.synced", { email })
+                    ? t("settings.account.synced", { email: "\u2066" + email + "\u2069" })
                     : t("settings.account.signedOut")}
                 </span>
               </span>

@@ -3461,3 +3461,21 @@ no tools).
   every new chord step passes, a missing finger fails, the small F does
   not pass the full F; Playwright walked all four HE 390 + EN 390, no
   errors. NOT verified with a real guitar; the USER reviews them.
+- v1.0.225 (user's iPad round): (1) the Tools button's icon = a wrench
+  (LineIcon `tools`, Lucide ISC) — the menu holds drums + tuner too, not
+  only a metronome. (2) Tool drawers (metronome / drums / tuner): the ×
+  sat top-right under the iPad's battery — now an iOS 26 sheet header:
+  gray 30 px × (44 pt hit area) on the LEFT, the title centred, the
+  drawer padded by the top safe area (`html .metronome-drawer` /
+  `.tuner-drawer` rules at the end of MetronomeBar.css). (3) Profile
+  popover + Settings account row: "{email} · Synced" (was "Synced ·
+  {email}"), the email isolated (LRI/PDI) and the line in the language's
+  direction. (4) Chord Library "Pick" is an arpeggio -> "Arpeggio" /
+  "ארפג׳יו" (`chordlib.pick`), and now also in the SIMPLE view beside
+  Strum / Play (guitar + piano). (5) GuitarPro PDF sheets scroll with the
+  Band's Performer: the inline view = a preview with ‹ n/N ›; its Scroll
+  key (and Space) opens `<Performer songs=[{id, name}]>` (song length,
+  reading guide, zoom, key, count-in); the old per-page speed select and
+  its own full screen are gone. Playwright 390 / 820 / 1180 HE + EN: icon,
+  × left + title centred on all 3 drawers, arpeggio in simple + advanced,
+  GuitarPro PDF -> Performer scrolls, Escape back; no errors.

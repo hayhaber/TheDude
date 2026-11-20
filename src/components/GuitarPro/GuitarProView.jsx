@@ -333,7 +333,7 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
       )}
 
       {sheet ? (
-        <PdfSheetView key={sheet.id} sheetId={sheet.id} t={t} />
+        <PdfSheetView key={sheet.id} sheetId={sheet.id} name={sheet.name} t={t} />
       ) : !solo ? (
         <p className="lt-muted">{t('lickTrainer.noSolos')}</p>
       ) : (

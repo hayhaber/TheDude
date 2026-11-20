@@ -234,6 +234,9 @@ export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPra
               <button type="button" className="cl-btn is-primary" onClick={() => play(voicing, 0.035)}>
                 {t('chordlib.strum')}
               </button>
+              <button type="button" className="cl-btn" onClick={() => play(voicing, 0.32)}>
+                {t('chordlib.pick')}
+              </button>
               <AutoPlayToggle on={prefs.autoPlay !== false} onChange={(v) => set({ autoPlay: v })} label={t('chordlib.autoPlay')} />
             </div>
           )}

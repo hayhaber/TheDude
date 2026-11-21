@@ -2123,3 +2123,27 @@ html .stg-ss-row:active { background: var(--fill-tertiary); }
   font-size: 11px;
   color: var(--text-secondary);
 }
+
+/* a suggestion that already exists (v1.0.232): an inline note under the
+   song field with the one useful action */
+.stg-twin {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -4px 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warning, #ff9500) 14%, transparent);
+}
+.stg-twin-text {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text);
+}
+.stg-twin .stg-capsule {
+  flex: none;
+}
+.stg-sg-row .stg-listen {
+  flex: none;
+}

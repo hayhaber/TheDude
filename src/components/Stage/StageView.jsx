@@ -1254,11 +1254,12 @@ export function StageView({ onAccount, start = null }) {
           uid={uid}
           suggestions={cloud.suggestions}
           ready={cloud.suggestReady}
-          songIds={new Set(scoped.map((x) => x.id))}
+          songs={scoped}
           sets={sets}
           onOpenSet={setOpenSet}
           say={setMsg}
           Sheet={Sheet}
+          ListenKey={ListenKey}
           dir={dir}
           t={t}
         />

@@ -18,6 +18,37 @@ import { addSuggestion, addTextSong, removeSuggestion, updateSuggestion, voteSug
 // Data: band_suggestions (supabase/migrations/005_band_suggestions.sql).
 
 const songName = (s) => (s.artist ? `${s.title} – ${s.artist}` : s.title);
+
+// Same song? (v1.0.232) Titles compared without case, niqqud, punctuation
+// or a leading "the"; when both sides name an artist, the artists must
+// match too (two different songs may share a name).
+const norm = (x) =>
+  String(x || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f\u0591-\u05c7]/g, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/^the /, '')
+    .trim();
+const splitName = (name) => {
+  const m = String(name || '').split(/\s+[–—-]\s+/);
+  return { title: m[0], artist: m.slice(1).join(' ') };
+};
+const sameSong = (a, b) => {
+  const ta = norm(a.title);
+  if (!ta || ta !== norm(b.title)) return false;
+  const aa = norm(a.artist);
+  const ab = norm(b.artist);
+  return !aa || !ab || aa === ab;
+};
+/** The first existing suggestion / band song that is this song. */
+function findTwin(v, { suggestions, songs, selfId }) {
+  if (!norm(v.title)) return null;
+  const sg = suggestions.find((s) => s.id !== selfId && sameSong(v, s));
+  if (sg) return { kind: 'sg', item: sg };
+  const song = songs.find((x) => sameSong(v, splitName(x.name)));
+  return song ? { kind: 'song', item: song } : null;
+}
 const safeLink = (l) => (/^https?:\/\//i.test(l || '') ? l : null);
 
 function ThumbGlyph({ on }) {
@@ -36,7 +67,7 @@ function ThumbGlyph({ on }) {
 }
 
 /** The suggest / edit sheet. `item` null = a new suggestion. */
-function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
+function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t, suggestions, songs, uid, onLikeTwin, onReopenTwin }) {
   const [v, setV] = useState({ title: item?.title ?? '', artist: item?.artist ?? '', link: item?.link ?? '', note: item?.note ?? '' });
   const [busy, setBusy] = useState(false);
   const [finding, setFinding] = useState(false);
@@ -55,6 +86,29 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
       setBusy(false);
     }
   };
+  const twin = findTwin(v, { suggestions, songs, selfId: item?.id });
+  const twinNote = () => {
+    if (!twin) return null;
+    if (twin.kind === 'song') return <p className="stg-twin-text">{t('stage.sg.twinSong', { name: twin.item.name })}</p>;
+    const s = twin.item;
+    const voted = uid && s.votes.includes(uid);
+    const key = s.status === 'picked' ? 'stage.sg.twinPicked' : s.status === 'dropped' ? 'stage.sg.twinDropped' : 'stage.sg.twinOpen';
+    return (
+      <>
+        <p className="stg-twin-text">{t(key, { name: s.byName || '—', n: s.votes.length })}</p>
+        {s.status === 'open' && !voted && (
+          <button type="button" className="stg-capsule is-tint" onClick={() => (onLikeTwin(s), onClose())}>
+            {t('stage.sg.twinLike')}
+          </button>
+        )}
+        {s.status === 'dropped' && (
+          <button type="button" className="stg-capsule is-tint" onClick={() => (onReopenTwin(s), onClose())}>
+            {t('stage.sg.twinReopen')}
+          </button>
+        )}
+      </>
+    );
+  };
   return (
     <Sheet
       title={item ? t('stage.sg.editTitle') : t('stage.sg.newTitle')}
@@ -68,6 +122,7 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
         value={v.title}
         placeholder={t('stage.sg.songPh')}
         autoFocus={!item}
+        onEnter={go}
         onChange={(title) => setV((o) => ({ ...o, title: title.slice(0, 120) }))}
         onPick={async (song) => {
           setV((o) => ({ ...o, title: song.title, artist: song.artist, link: song.apple || o.link }));
@@ -77,6 +132,11 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
           setFinding(false);
         }}
       />
+      {twin && (
+        <div className="stg-twin" role="status">
+          {twinNote()}
+        </div>
+      )}
       <label className="stg-field">
         <span>{t('stage.sg.artist')}</span>
         <input dir="auto" value={v.artist} maxLength={120} placeholder={t('stage.sg.artistPh')} onChange={ch('artist')} onKeyDown={(e) => e.key === 'Enter' && go()} />
@@ -97,7 +157,8 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
   );
 }
 
-export function SuggestionsView({ band, uid, suggestions, ready, songIds, sets, onOpenSet, say, Sheet, dir, t }) {
+export function SuggestionsView({ band, uid, suggestions, ready, songs = [], sets, onOpenSet, say, Sheet, ListenKey, dir, t }) {
+  const songIds = new Set(songs.map((x) => x.id));
   const [editing, setEditing] = useState(null); // null | 'new' | suggestion
   const [sure, setSure] = useState(null);
   const [showDropped, setShowDropped] = useState(false);
@@ -170,12 +231,8 @@ export function SuggestionsView({ band, uid, suggestions, ready, songIds, sets, 
             )}
           </span>
         </button>
+        {link && ListenKey && <ListenKey link={link} name={songName(s)} t={t} />}
         <MoreMenu label={t('stage.more')}>
-          {link && (
-            <a className="more-menu-item" href={link} target="_blank" rel="noopener noreferrer">
-              {t('stage.sg.listen')}
-            </a>
-          )}
           {s.status !== 'picked' && (
             <button type="button" className="more-menu-item" onClick={() => pick(s)}>
               {t('stage.sg.pick')}
@@ -278,6 +335,11 @@ export function SuggestionsView({ band, uid, suggestions, ready, songIds, sets, 
           voters={editing === 'new' ? [] : editing.votes.map((v) => nameOf.get(v) || '—')}
           onSave={(v) => (editing === 'new' ? addSuggestion(band.id, v) : updateSuggestion(editing.id, v))}
           onClose={() => setEditing(null)}
+          suggestions={mine}
+          songs={songs}
+          uid={uid}
+          onLikeTwin={(x) => voteSuggestion(x.id)}
+          onReopenTwin={(x) => setStatus(x, 'open')}
           Sheet={Sheet}
           dir={dir}
           t={t}

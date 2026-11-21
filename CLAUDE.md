@@ -3600,3 +3600,22 @@ no tools).
   songs, photos) keep Done. Strings `stage.cancel`, `stage.sg.addBtn`.
   Playwright sugg.cjs + ss.cjs (390 HE + 1180 EN): add / edit / link
   flows pass, no errors.
+- v1.0.232 (user: "build 1, 2, 3"): Band suggestions — (1) TWINS: the
+  Suggest sheet checks the typed song against the band's suggestions and
+  songs (`findTwin` in SuggestionsView: titles without case / niqqud /
+  punctuation / a leading "the"; artists must match only when both are
+  given; band songs split at " – ") and shows an inline note under the
+  song field (`.stg-twin`): open -> "Already suggested by X (likes: n)" +
+  Like (if not voted; votes and closes), picked -> "Already chosen for
+  rehearsal", dropped -> "Suggested before … not chosen" + Bring back
+  (reopens), a band song -> "Already in the band's songs". Add stays
+  enabled (could be another version). (2) LISTEN IN THE APP: a suggestion
+  with a link has the same round listen key as songs (StageView passes
+  `ListenKey`; YouTube / Spotify / Apple Music play in the dock); the
+  ••• "Listen" item (opened outside) is gone. SuggestionsView now takes
+  `songs` (the scoped sheets) instead of `songIds`. (3) Enter in the
+  song field submits (SongSearchField `onEnter`). Strings
+  `stage.sg.twin*`. Playwright sugg.cjs: zombie / "The Zombie!" ->
+  chosen, Hebrew dropped -> Bring back reopens, Africa -> open,
+  unknown -> none; listen key -> dock; Enter saves. (The test's only
+  pageerror is its own init script inside the embed's iframe.)

@@ -151,28 +151,27 @@
 
 /* Dark mode: the same floating card (and darker page) as the home screen. */
 :root[data-theme='dark'] .tool-screen {
-  background:
-    radial-gradient(60% 55% at 50% 40%, rgba(120, 140, 190, 0.1) 0%, rgba(120, 140, 190, 0) 70%),
-    #0b0b0d;
+  background: #000;
 }
 
 :root[data-theme='dark'] .tool-screen-card {
-  background: linear-gradient(180deg, #2a2a2f 0%, #1e1e22 50%, #161619 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.13),
-    0 0 0 1px rgba(170, 195, 255, 0.1),
-    0 0 44px rgba(140, 170, 255, 0.16),
-    0 32px 70px rgba(0, 0, 0, 0.8),
-    0 10px 22px rgba(0, 0, 0, 0.5);
+  /* Apple's dark content card: a solid secondary surface, no lit rim and
+     no glow (the blue-white halo read as a white shadow under the card). */
+  background: #1c1c1e;
+  box-shadow: none;
 }
 
 :root[data-theme='dark'] .tool-screen-title {
-  color: #ececf0;
-  text-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.12),
-    0 1px 0 rgba(0, 0, 0, 0.95),
-    0 4px 9px rgba(0, 0, 0, 0.6);
+  color: var(--text);
+  text-shadow: none;
+}
+
+/* The drum machine draws its own inset groups — no card around them. */
+.tool-screen-card:has(.dmx),
+:root[data-theme='dark'] .tool-screen-card:has(.dmx) {
+  padding: 0;
+  background: none;
+  box-shadow: none;
 }
 
 /* Settings: the iOS grouped list on the grey ground — no card around it. */

@@ -11,5 +11,5 @@ export const INSTRUMENT_ART = {
   "teacher": "<img src=\"/home/teacher-3.webp\" alt=\"\" width=\"900\" height=\"663\" decoding=\"async\" draggable=\"false\">",
   "stage": "<img src=\"/home/stage.svg\" alt=\"\" width=\"900\" height=\"760\" decoding=\"async\" draggable=\"false\">",
   "songwriter": "<img src=\"/home/songwriter-notebook.webp\" alt=\"\" width=\"1000\" height=\"744\" decoding=\"async\" draggable=\"false\">",
-  "tools": "<img src=\"/home/tools-studio.webp\" alt=\"\" width=\"900\" height=\"750\" decoding=\"async\" draggable=\"false\">",
+  "tools": "<img src=\"/home/tools-studio2.webp\" alt=\"\" width=\"900\" height=\"750\" decoding=\"async\" draggable=\"false\">",
 };

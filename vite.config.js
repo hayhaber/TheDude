@@ -60,7 +60,7 @@ export default defineConfig({
         // for ~2 s on the iPad). A changed picture gets a new revision.
         globPatterns: [
           '**/*.{js,css,html}',
-          'home/{guitar-lp,piano-grand,bass-pb2,vocal-mic4,songwriter-notebook,tools-studio}.webp',
+          'home/{guitar-lp,piano-grand,bass-pb2,vocal-mic4,songwriter-notebook,tools-studio2}.webp',
           'home/stage.svg',
         ],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,

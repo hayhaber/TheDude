@@ -3714,3 +3714,20 @@ no tools).
   Liquid Glass. Left on purpose: the metronome's wood-face tiles (device
   face). After: no hairline left outside device faces; no 2 filled
   primaries, no bare select, no overflow.
+- v1.0.237 (user: "in dark mode a white shadow suddenly shows under the
+  tool cards"): (1) the Tools card's photo still held the studio's white
+  floor / backdrop between the cables and stands — invisible on the light
+  card, a white smear on the dark one. Re-keyed to
+  `public/home/tools-studio2.webp` (new name: /home/* is cached 7 days):
+  light neutral pixels (lum > 140, sat < 0.15) connected to the
+  transparent background and holding real white (> 215) -> black with
+  alpha = darkness x 0.6 (soft floor shadow); protected rects: cymbals /
+  everything above y 275, toms, floor tom, hi-hat, bass-drum head, tape
+  deck, the clear pedal box (one-off script in the scratchpad, not in
+  scripts/). index.html preload + vite globPatterns + instrumentArt
+  updated; the old file removed. (2) Dark home cards (`.home-card.is-active`)
+  and the dark tool-screen card lost the blue-white halo (0 0 44px glow +
+  blue ring) — it read as a light shadow under the card; tool-screen dark =
+  solid #1c1c1e card on a black page, no lit title; the drum machine has
+  no card around its own groups. Checked 1180 + 390 HE dark: home card +
+  every Tools shortcut screen.

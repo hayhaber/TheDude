@@ -3775,3 +3775,9 @@ no tools).
   (`sets.setItems`); Back also commits; Add songs hidden while editing;
   Up / Down left the row's •••. Playwright 390 HE + 1180 EN dark: tags,
   drag 0 -> 2, remove, Done saved; no errors.
+- v1.0.241 (user: "why isn't Edit inside the ••• menu?" — right: on a
+  screen that already has a •••, Apple puts Edit in it, as Music does
+  for a playlist): the setlist header = Start + ••• only; Edit is the
+  menu's first item (Rename, Delete after it); while editing, Done
+  stays the one visible key. Playwright 390 HE + 1180 EN: ••• -> Edit
+  -> drag / remove -> Done saved.

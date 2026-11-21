@@ -1249,12 +1249,12 @@ export function StageView({ onAccount, start = null }) {
                 {t('stage.start')}
               </button>
             )}
-            {songs.length > 0 && (
-              <button type="button" className="stg-edit-key" onClick={() => (setEditItems([...set.items]), setRemoveAt(null))}>
-                {t('stage.edit')}
-              </button>
-            )}
             <MoreMenu label={t('stage.more')}>
+              {songs.length > 0 && (
+                <button type="button" className="more-menu-item" onClick={() => (setEditItems([...set.items]), setRemoveAt(null))}>
+                  {t('stage.edit')}
+                </button>
+              )}
               <button type="button" className="more-menu-item" onClick={() => setRenaming(set.id)}>
                 {t('stage.rename')}
               </button>

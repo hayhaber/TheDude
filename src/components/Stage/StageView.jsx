@@ -554,45 +554,22 @@ function fmtShow(sec, t) {
   return m >= 60 ? t('stage.len.hm', { h: Math.floor(m / 60), m: m % 60 }) : t('stage.len.min', { m });
 }
 
-/** The row's readiness mark: the band's share ready (a ring) or my own state. */
+/** The row's readiness tag (v1.0.240): a word on a soft tinted capsule —
+    iOS status-badge style — never a bare shape to decode. Band songs = how
+    many members are ready; my own songs = my state. */
 function ReadyMark({ k, n, mine, t }) {
   if (n != null) {
     if (!n) return null;
-    const p = k / n;
-    const tone = k === n ? 'is-all' : k ? 'is-some' : 'is-none';
-    const C = 2 * Math.PI * 7;
+    const tone = k === n ? 'is-know' : k ? 'is-learning' : 'is-not';
+    const label = k === n ? t('stage.rd.allReady') : t('stage.rd.tag', { k, n });
     return (
-      <span className={'stg-ready ' + tone} role="img" aria-label={t('stage.rd.of', { k, n })} title={t('stage.rd.of', { k, n })}>
-        <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
-          <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2.2" />
-          {k > 0 && <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeDasharray={`${C * p} ${C}`} transform="rotate(-90 9 9)" />}
-          {k === n && <path d="M5.8 9.2l2.2 2.2 4.2-4.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />}
-        </svg>
-        <span>{k}/{n}</span>
+      <span className={'stg-ready ' + tone} title={t('stage.rd.of', { k, n })}>
+        {label}
       </span>
     );
   }
   if (!mine) return null;
-  const label = t('stage.rd.' + mine);
-  return (
-    <span className={'stg-ready is-me is-' + mine} role="img" aria-label={label} title={label}>
-      <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
-        {mine === 'know' && (
-          <>
-            <circle cx="9" cy="9" r="8" fill="currentColor" />
-            <path d="M5.6 9.2l2.3 2.3 4.4-4.6" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          </>
-        )}
-        {mine === 'learning' && (
-          <>
-            <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
-            <path d="M9 2a7 7 0 0 1 0 14z" fill="currentColor" />
-          </>
-        )}
-        {mine === 'not' && <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="2" />}
-      </svg>
-    </span>
-  );
+  return <span className={'stg-ready is-' + mine}>{t('stage.rd.' + mine)}</span>;
 }
 
 /** Before the show: who still needs which songs of this setlist. */
@@ -761,14 +738,14 @@ export function StageView({ onAccount, start = null }) {
   };
   const readyItems = (id) =>
     canReady
-      ? READY_STATES.map((st) => (
+      ? [<span key="h" className="more-menu-head">{t('stage.rd.myStatus')}</span>].concat(READY_STATES.map((st) => (
           <button key={st} type="button" className={'more-menu-item stg-ready-item' + (myReady(id) === st ? ' is-on' : '')} onClick={() => markReady(id, st)}>
             <span className="stg-check" aria-hidden="true">
               {myReady(id) === st ? '✓' : ''}
             </span>
             {t('stage.rd.' + st)}
           </button>
-        ))
+        )))
       : null;
   // a show's length: every song's length (3:30 when unset) + the pauses
   const showLength = (list, songsHere) => {
@@ -805,6 +782,17 @@ export function StageView({ onAccount, start = null }) {
   const [busy, setBusy] = useState(false);
   const [renaming, setRenaming] = useState(null); // id of a sheet / setlist
   const [sureDelete, setSureDelete] = useState(null);
+  // Setlist EDIT mode (v1.0.240, the iOS list pattern): Edit -> a red ⊖ to
+  // remove and a ≡ grip to drag each row; Done saves the new order once.
+  const [editItems, setEditItems] = useState(null); // the items being edited, or null
+  const [removeAt, setRemoveAt] = useState(null); // the row whose ⊖ was tapped
+  const editRef = useRef(null);
+  const [dragAt, setDragAt] = useState(null);
+  useEffect(() => {
+    setEditItems(null);
+    setRemoveAt(null);
+  }, [openSet]);
+  editRef.current = editItems;
   const [picking, setPicking] = useState(false);
   const [query, setQuery] = useState('');
   const [pickQuery, setPickQuery] = useState('');
@@ -1192,13 +1180,48 @@ export function StageView({ onAccount, start = null }) {
 
   // ---- a setlist ----
   if (set) {
-    const songs = songsOf(set.items);
+    const editing = editItems != null;
+    const songs = songsOf(editing ? editItems : set.items);
+    const finishEdit = () => {
+      if (editItems && editItems.join('\u0001') !== set.items.join('\u0001')) sets.setItems(set.id, editItems);
+      setEditItems(null);
+      setRemoveAt(null);
+    };
+    const startRowDrag = (e, from0) => {
+      e.preventDefault();
+      const rowH = e.currentTarget.closest('.stg-row')?.offsetHeight || 52;
+      let y0 = e.clientY;
+      let from = from0;
+      setRemoveAt(null);
+      setDragAt(from);
+      const move = (ev) => {
+        const list = editRef.current;
+        if (!list) return;
+        const dy = ev.clientY - y0;
+        const to = Math.max(0, Math.min(list.length - 1, from + (dy > rowH / 2 ? 1 : dy < -rowH / 2 ? -1 : 0)));
+        if (to !== from) {
+          setEditItems(moveItem(list, from, to));
+          y0 += (to - from) * rowH;
+          from = to;
+          setDragAt(to);
+        }
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointercancel', up);
+        setDragAt(null);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', up);
+    };
     const notIn = scoped.filter((s) => !set.items.includes(s.id));
     const len = showLength(set, songs);
     const mineReadyN = songs.filter((s) => !s.missing && myReady(s.id) === 'know').length;
     return (
       <div className="stg" dir={dir}>
-        <BackButton label={band ? band.name : t('stage.back')} onClick={() => setOpenSet(null)} />
+        <BackButton label={band ? band.name : t('stage.back')} onClick={() => (finishEdit(), setOpenSet(null))} />
         <header className="stg-head">
           <div className="stg-head-title">
             {renaming === set.id ? (
@@ -1214,10 +1237,21 @@ export function StageView({ onAccount, start = null }) {
             </p>
           </div>
           <div className="stg-head-actions">
+            {editing ? (
+              <button type="button" className="stg-edit-key is-done" onClick={finishEdit}>
+                {t('stage.done')}
+              </button>
+            ) : (
+              <>
             {!band && songs.some((s) => !s.missing) && (
               <button type="button" className="stg-capsule is-primary" onClick={() => setPerform({ songs: songs.filter((s) => !s.missing), at: 0, setId: set.id })}>
                 <PlayGlyph />
                 {t('stage.start')}
+              </button>
+            )}
+            {songs.length > 0 && (
+              <button type="button" className="stg-edit-key" onClick={() => (setEditItems([...set.items]), setRemoveAt(null))}>
+                {t('stage.edit')}
               </button>
             )}
             <MoreMenu label={t('stage.more')}>
@@ -1234,6 +1268,8 @@ export function StageView({ onAccount, start = null }) {
                 </button>
               )}
             </MoreMenu>
+              </>
+            )}
           </div>
         </header>
 
@@ -1263,8 +1299,44 @@ export function StageView({ onAccount, start = null }) {
           </div>
         )}
 
-        <div className="ph-group stg-group">
-          {songs.map((s, i) => (
+        <div className={'ph-group stg-group' + (editing ? ' is-editing' : '')}>
+          {editing && songs.map((s, i) => (
+            <div key={s.id + i} className={'stg-row is-edit' + (dragAt === i ? ' is-dragging' : '')}>
+              <button type="button" className={'stg-minus' + (removeAt === i ? ' is-open' : '')} aria-label={t('stage.remove') + ' · ' + s.name} onClick={() => setRemoveAt(removeAt === i ? null : i)}>
+                <span aria-hidden="true" />
+              </button>
+              <span className="stg-num">{i + 1}</span>
+              <span className="ph-text">
+                <span className="ph-title" dir="auto">
+                  {s.name}
+                </span>
+              </span>
+              {removeAt === i ? (
+                <button type="button" className="stg-remove-key" onClick={() => (setEditItems(editItems.filter((_, k) => k !== i)), setRemoveAt(null))}>
+                  {t('stage.removeShort')}
+                </button>
+              ) : (
+                <span
+                  className="stg-grip"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={t('stage.drag') + ' · ' + s.name}
+                  onPointerDown={(e) => startRowDrag(e, i)}
+                  onKeyDown={(e) => {
+                    const to = e.key === 'ArrowUp' ? i - 1 : e.key === 'ArrowDown' ? i + 1 : null;
+                    if (to == null || to < 0 || to >= editItems.length) return;
+                    e.preventDefault();
+                    setEditItems(moveItem(editItems, i, to));
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
+                    <path d="M5 8h14M5 12h14M5 16h14" />
+                  </svg>
+                </span>
+              )}
+            </div>
+          ))}
+          {!editing && songs.map((s, i) => (
             <div key={s.id + i} className={'stg-row' + (s.missing ? ' is-missing' : '')}>
               <button
                 type="button"
@@ -1298,26 +1370,18 @@ export function StageView({ onAccount, start = null }) {
                     {linkOf(s.id) ? t('stage.listen.edit') : t('stage.listen.add')}
                   </button>
                 )}
-                {i > 0 && (
-                  <button type="button" className="more-menu-item" onClick={() => sets.setItems(set.id, moveItem(set.items, i, i - 1))}>
-                    {t('stage.up')}
-                  </button>
-                )}
-                {i < songs.length - 1 && (
-                  <button type="button" className="more-menu-item" onClick={() => sets.setItems(set.id, moveItem(set.items, i, i + 1))}>
-                    {t('stage.down')}
-                  </button>
-                )}
                 <button type="button" className="more-menu-item is-danger" onClick={() => sets.setItems(set.id, set.items.filter((_, k) => k !== i))}>
                   {t('stage.remove')}
                 </button>
               </MoreMenu>
             </div>
           ))}
+          {!editing && (
           <button type="button" className="ph-row stg-add-row" onClick={() => setPicking(true)}>
             <span className="stg-plus" aria-hidden="true">+</span>
             <span className="ph-title">{t('stage.addSongs')}</span>
           </button>
+          )}
         </div>
 
         {len.n > 1 && (

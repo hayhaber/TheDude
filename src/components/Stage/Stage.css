@@ -2148,41 +2148,44 @@ html .stg-ss-row:active { background: var(--fill-tertiary); }
   flex: none;
 }
 
-/* ---- readiness + show length (v1.0.233) ---- */
+/* ---- readiness + show length (v1.0.233; tag v1.0.240) ----
+   A word on a soft tinted capsule (iOS status badge), never a bare shape. */
 .stg-ready {
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: var(--type-footnote, 13px);
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: var(--type-caption1, 12px);
   font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
+  background: var(--fill-tertiary, rgba(118, 118, 128, 0.12));
 }
-.stg-ready.is-all,
 .stg-ready.is-know {
-  color: #248a3d;
+  color: #1f7a35;
+  background: rgba(52, 199, 89, 0.16);
 }
-.stg-ready.is-some,
 .stg-ready.is-learning {
-  color: #c93400;
+  color: #b34700;
+  background: rgba(255, 149, 0, 0.18);
 }
-.stg-ready.is-not {
-  color: var(--text-secondary);
-}
-:root[data-theme='dark'] .stg-ready.is-all,
 :root[data-theme='dark'] .stg-ready.is-know {
   color: #30d158;
+  background: rgba(48, 209, 88, 0.18);
 }
-:root[data-theme='dark'] .stg-ready.is-some,
 :root[data-theme='dark'] .stg-ready.is-learning {
-  color: #ff9f0a;
+  color: #ffb340;
+  background: rgba(255, 159, 10, 0.2);
 }
-.stg-ready svg {
+.more-menu-head {
   display: block;
-}
-.stg-ready span {
-  direction: ltr;
+  padding: 6px 12px 2px;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
 }
 .stg-check {
   display: inline-block;
@@ -2243,4 +2246,119 @@ html .stg-ss-row:active { background: var(--fill-tertiary); }
 }
 .stg-len-group {
   padding: 0 16px;
+}
+
+/* ---- setlist Edit mode (v1.0.240, the iOS list pattern) ---- */
+.stg-edit-key {
+  flex: none;
+  position: relative;
+  min-height: 44px;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--type-body, 17px);
+  cursor: pointer;
+}
+.stg-edit-key.is-done {
+  font-weight: 600;
+}
+.stg-row.is-edit {
+  min-height: 56px;
+  gap: 4px;
+  padding-inline-start: 6px;
+  background: var(--surface);
+  transition: box-shadow var(--dur-fast, 0.15s) ease, scale var(--dur-fast, 0.15s) ease;
+}
+.stg-row.is-edit .ph-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stg-row.is-edit .ph-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: match-parent;
+  font-size: var(--type-body, 17px);
+}
+.stg-row.is-dragging {
+  z-index: 3;
+  scale: 1.02;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+.stg-row.is-dragging::before,
+.stg-row.is-dragging + .stg-row::before {
+  opacity: 0;
+}
+/* the red ⊖ (iOS delete control); turns 90° when its Remove key shows */
+.stg-minus {
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.stg-minus span {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff3b30;
+  display: grid;
+  place-items: center;
+  transition: rotate var(--dur-fast, 0.15s) var(--ease-ios, ease);
+}
+.stg-minus span::after {
+  content: '';
+  width: 11px;
+  height: 2.4px;
+  border-radius: 2px;
+  background: #fff;
+}
+.stg-minus.is-open span {
+  rotate: -90deg;
+}
+.stg-remove-key {
+  flex: none;
+  position: relative;
+  min-height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: #d70015;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stg-grip {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--text-tertiary, #aeaeb2);
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.stg-grip:active {
+  cursor: grabbing;
+}
+.stg-grip:focus-visible {
+  outline: 2px solid var(--accent);
+  border-radius: 10px;
+}
+.stg-group.is-editing .stg-row + .stg-row::before {
+  inset-inline-start: 86px;
 }

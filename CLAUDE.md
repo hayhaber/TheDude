@@ -120,7 +120,7 @@ Liquid Glass"):
      under data-theme dark); the Performer's material = Stage.css
      `--sg-*`.
 
-**13. Design as Apple would, always** (user's standing rule 2026-11-06 —
+**13. Design as Apple would, always — FROM THE FIRST BUILD** (2026-11-21, user, again: "you should have built it as Apple would from the start; not the first time I remark on it" — every design / UI decision in THIS and EVERY project is decided the way Apple would decide it before it ships, never fixed after he points it out) (user's standing rule 2026-11-06 —
 "I don't want to repeat it every time"): every visual / UI / UX decision,
 new or touched, follows Apple's HIG thinking (clarity, deference, one
 primary action that doesn't shout, quiet secondary ones, system colours,
@@ -3762,3 +3762,16 @@ no tools).
   the dark one). index.html preload, vite globPatterns, instrumentArt +
   Onboarding updated; old file removed. All 8 home cards screenshotted in
   dark at 390: no light floor left (bass / piano / others were fine).
+- v1.0.240 (user: "Learning / Not yet aren't clear; would Apple reorder
+  a setlist like this?" -> no): (1) READINESS = word tags on tinted
+  capsules (`.stg-ready`, iOS status badge): mine Ready green /
+  Learning orange / Not yet grey; band songs "k/n ready" (orange,
+  grey at 0) / "All ready" green; the song's ••• has a "My status"
+  header over the three choices. (2) SETLIST REORDER = iOS Edit mode:
+  "Edit" plain accent text beside Start (only with songs) -> rows get a
+  red ⊖ at the start (tap = a red "Remove" key), ≡ grip at the end
+  (pointer drag, a row per half-height; arrow keys move too), the row
+  lifts while dragged; "Done" (bold) commits the order once
+  (`sets.setItems`); Back also commits; Add songs hidden while editing;
+  Up / Down left the row's •••. Playwright 390 HE + 1180 EN dark: tags,
+  drag 0 -> 2, remove, Done saved; no errors.

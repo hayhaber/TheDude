@@ -895,7 +895,7 @@ function DictateSheet({ onAdd, onClose }) {
             <p className="sw-sheet-line">{t('sw.dict.sub')}</p>
           </div>
           <span className="sw-dict-actions">
-            <button type="button" className="sw-btn" onClick={onClose}>
+            <button type="button" className="sw-btn is-plain" onClick={onClose}>
               {t('sw.cancel')}
             </button>
             <button type="button" className="sw-btn is-primary" disabled={!text.trim()} onClick={() => onAdd(text)}>

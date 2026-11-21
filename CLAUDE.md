@@ -3685,3 +3685,19 @@ no tools).
   primaries, no bare select, no overflow; contrast left = only
   device-face engravings. Accepted: pop-up buttons 36 px (HIG form
   size), tab-bar labels 10 px (HIG), device faces untouched.
+- APPLE DESIGN AUDIT, pass 2 (v1.0.235; user: "continue"): deeper
+  screens (scratchpad s8/deep.cjs: a lesson's steps, ear-training
+  session, lick player, a Theory course, songwriter meta / ••• / chord
+  wizard, drum edit, GuitarPro practice / chords, vocal start; 390 HE +
+  1180 EN dark). Fixed: (1) GuitarPro song view hides alphaTab's score
+  header (title / artist / album / credits — NotationElement Score*): the
+  file picker already names the song, and on a phone the serif title was
+  cut on both sides; (2) desktop / iPad: the group's segmented control
+  (Teacher | Theory …) is centred under the tab capsule (it hugged the
+  left edge); (3) sheet Cancels in the songwriter (chord wizard, chord
+  suggestions, dictation) = plain accent text (`.sw-btn.is-plain`), not
+  a gray pill; (4) Compose's "Try:" example chords = gray chips with
+  accent labels (were dashed outlines); Improvise's lick rows = white
+  inset rows (no hairline, gray on hover); (5) singing ear training: the
+  score row appears only once a session runs (it showed 0/0 · 0 · 0
+  before Start). No page errors on either device.

@@ -265,6 +265,8 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
         </div>
       ) : (
         <div className="vocal-card vocal-ear-play">
+          {/* the score shows once a session runs — not a row of zeros before Start (v1.0.235) */}
+          {(question || timeUp) && (
           <div className="vocal-ear-score" dir="ltr">
             <span>
               <b>
@@ -292,6 +294,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
               </span>
             )}
           </div>
+          )}
 
           {timeUp ? (
             <div className="vocal-ear-summary">

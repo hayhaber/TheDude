@@ -2697,3 +2697,10 @@ html .sw-add-section select.ui-select {
   height: auto;
   font-weight: 600;
 }
+
+/* a sheet's Cancel: plain accent text, as in an iOS sheet header (v1.0.235) */
+.sw-btn.is-plain {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 400;
+}

@@ -160,7 +160,7 @@ export function ChordSuggest({ song, line, onApply, onPrefs, onClose }) {
       <p className="sw-harm-note">{t('sw.harm.hint')}</p>
 
       <div className="sw-harm-actions">
-        <button type="button" className="sw-btn" onClick={onClose}>
+        <button type="button" className="sw-btn is-plain" onClick={onClose}>
           {t('sw.cancel')}
         </button>
         <button type="button" className={'sw-btn' + (playing === 'all' ? ' is-on' : '')} onClick={() => (playing === 'all' ? stop() : play('all'))}>

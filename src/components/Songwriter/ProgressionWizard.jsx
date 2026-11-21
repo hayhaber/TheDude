@@ -186,7 +186,7 @@ export function ProgressionWizard({ song, audio, onApply, onClose, onPreview }) 
                 {done ? t('sw.pw.change') : t('sw.pw.back')}
               </button>
             )}
-            <button type="button" className="sw-btn" onClick={close}>
+            <button type="button" className="sw-btn is-plain" onClick={close}>
               {t('sw.cancel')}
             </button>
           </span>

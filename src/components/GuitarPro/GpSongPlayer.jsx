@@ -524,6 +524,12 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile, view = 'so
     // No swing ("triplet feel") sign: it's drawn on every staff of the first
     // line and makes it far taller than the rest — the feel is still played.
     api.settings.notation.elements.set(alphaTab.NotationElement.EffectTripletFeel, false);
+    // No score header (title / artist / album / credits): the file picker
+    // above already names the song, and on a phone the big serif title was
+    // wider than the box and got cut on both sides (v1.0.235).
+    for (const el of ['ScoreTitle', 'ScoreSubTitle', 'ScoreArtist', 'ScoreAlbum', 'ScoreWords', 'ScoreMusic', 'ScoreWordsAndMusic', 'ScoreCopyright']) {
+      if (alphaTab.NotationElement[el] != null) api.settings.notation.elements.set(alphaTab.NotationElement[el], false);
+    }
     api.masterVolume = GP_MASTER_VOLUME;
     loadGpSoundFont(api).catch((err) => setError(err?.message ?? String(err)));
     let lastSystem = -1;

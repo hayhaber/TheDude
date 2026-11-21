@@ -719,3 +719,12 @@ html[lang='he'] .app-tools-popover.is-open {
   left: 16px;
   transform-origin: top left;
 }
+
+/* Desktop / iPad landscape: the group's segmented control sits centred
+   under the centred tab capsule, like a toolbar's segmented control
+   (it hugged the left edge while the screen below was centred, v1.0.235). */
+@media (min-width: 900px) {
+  .app-group-switch.mode-toggle.is-inline {
+    margin-inline: auto;
+  }
+}

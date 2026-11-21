@@ -2,7 +2,8 @@
 // the song's page (StageView) — and the Performer's record key.
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { addNote, canDelete, notesOf, notesReady, updateNote, useNotesVersion } from '../../music/sheets/songNotes';
-import { deleteTake, listTakes, onRehearsal, onTakesChange, rehearsalElapsed, rehearsalState, startRehearsal, stopRehearsal, takeAudio } from '../../audio/rehearsal';
+import { cacheTake, deleteTake, isSending, listTakes, onRehearsal, onTakesChange, rehearsalElapsed, rehearsalState, startRehearsal, stopRehearsal, takeAudio } from '../../audio/rehearsal';
+import { deleteBandTake, downloadBandTake, getChartCloud, signedIn, subscribeChartCloud } from '../../music/sheets/chartCloud';
 import { fmtDur } from '../../music/sheets/setlists';
 import { getLink } from '../../cloud/cloudState';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
@@ -175,15 +176,26 @@ function RecDot() {
   return <span className="stg-rec-dot" aria-hidden="true" />;
 }
 
-export function SongTakes({ song, t, lang }) {
+/**
+ * A song's takes, newest first. A band song's takes are the band's (every
+ * member's, from the cloud — migration 009) plus mine still going up; my own
+ * song's takes stay on this device. Takes of one day are numbered in the
+ * order they were played ("Take 2 · 21.11").
+ */
+export function SongTakes({ song, band, t, lang }) {
   const rh = useRehearsal();
-  const [takes, setTakes] = useState(null);
+  const cloud = useSyncExternalStore(subscribeChartCloud, getChartCloud, getChartCloud);
+  const [local, setLocal] = useState(null);
   const [playing, setPlaying] = useState(null); // take id
+  const [loading, setLoading] = useState(null);
   const [pos, setPos] = useState(0);
+  const [sure, setSure] = useState(null);
   const elapsed = useElapsed(rh.on);
+  const uid = getLink()?.userId;
+  const bandId = band?.id ?? null;
   useEffect(() => {
     let alive = true;
-    const load = () => listTakes(song.id).then((x) => alive && setTakes(x));
+    const load = () => listTakes(song.id).then((x) => alive && setLocal(x));
     load();
     const off = onTakesChange(load);
     return () => {
@@ -197,14 +209,48 @@ export function SongTakes({ song, t, lang }) {
     },
     []
   );
+  const shared = !!bandId && signedIn() && cloud.takesOk;
+  const rows = shared ? cloud.takes.filter((x) => x.chart === song.id) : [];
+  const rowIds = new Set(rows.map((r) => r.id));
+  const localById = new Map((local ?? []).map((x) => [x.id, x]));
+  // mine not up yet + (not shared) everything here; a shared take deleted by
+  // the band is gone from the cloud rows and so from here
+  const pending = (local ?? []).filter((x) => !rowIds.has(x.id) && !(shared && x.cloud));
+  const items = [
+    ...rows.map((r) => ({ ...r, shared: true, here: localById.has(r.id) })),
+    ...pending.map((x) => ({ ...x, chart: x.song, shared: false, here: true, waiting: !!(bandId && !x.cloud) })),
+  ].sort((x, y) => y.at - x.at);
+  // number per day, oldest first
+  const num = new Map();
+  const perDay = new Map();
+  for (const it of [...items].sort((x, y) => x.at - y.at)) {
+    const day = new Date(it.at).toDateString();
+    perDay.set(day, (perDay.get(day) ?? 0) + 1);
+    num.set(it.id, perDay.get(day));
+  }
   const stopPlay = () => {
     player?.pause();
     setPlaying(null);
   };
-  const play = async (tk) => {
-    if (playing === tk.id) return stopPlay();
+  const blobOf = async (it) => {
+    let blob = it.here ? await takeAudio(it.id) : null;
+    if (!blob && it.shared) {
+      setLoading(it.id);
+      try {
+        blob = await downloadBandTake(it.path);
+        cacheTake(it, blob);
+      } catch {
+        blob = null;
+      } finally {
+        setLoading(null);
+      }
+    }
+    return blob;
+  };
+  const play = async (it) => {
+    if (playing === it.id) return stopPlay();
     player?.pause();
-    const blob = await takeAudio(tk.id);
+    const blob = await blobOf(it);
     if (!blob) return;
     if (playerUrl) URL.revokeObjectURL(playerUrl);
     playerUrl = URL.createObjectURL(blob);
@@ -212,14 +258,14 @@ export function SongTakes({ song, t, lang }) {
     player.ontimeupdate = () => setPos(player.duration ? player.currentTime / player.duration : 0);
     player.onended = () => setPlaying(null);
     setPos(0);
-    setPlaying(tk.id);
+    setPlaying(it.id);
     player.play().catch(() => setPlaying(null));
   };
-  const share = async (tk) => {
-    const blob = await takeAudio(tk.id);
+  const share = async (it) => {
+    const blob = await blobOf(it);
     if (!blob) return;
     const ext = blob.type === 'audio/mpeg' ? 'mp3' : 'wav';
-    const file = new File([blob], `${song.name} – ${dateOf(tk.at, 'en').replace(/[/:]/g, '.')}.${ext}`, { type: blob.type });
+    const file = new File([blob], `${song.name} – ${t('stage.rh.takeN', { n: num.get(it.id), d: dateOf(it.at, 'en') }).replace(/[\u2066\u2069]/g, '').replace(/[/:]/g, '.')}.${ext}`, { type: blob.type });
     try {
       if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: song.name });
       else {
@@ -233,9 +279,17 @@ export function SongTakes({ song, t, lang }) {
       /* cancelled */
     }
   };
+  const remove = (it) => {
+    if (playing === it.id) stopPlay();
+    setSure(null);
+    if (it.shared) deleteBandTake(it).catch(() => {});
+    if (it.here) deleteTake(it.id);
+  };
+  const mayDelete = (it) => !it.shared || it.by === uid || (band && band.owner === uid);
   const here = rh.on && rh.song === song.id;
   const elsewhere = rh.on && !here;
   const canShare = typeof navigator !== 'undefined' && !!navigator.share;
+  const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
   return (
     <>
       <div className="ph-group stg-group stg-takes">
@@ -253,55 +307,62 @@ export function SongTakes({ song, t, lang }) {
             <span className="ph-title">{elsewhere ? t('stage.rh.elsewhere', { name: rh.name }) : t('stage.rh.record')}</span>
           </button>
         )}
-        {(takes ?? []).map((tk) => (
-          <div key={tk.id} className={'stg-row stg-take' + (playing === tk.id ? ' is-playing' : '')}>
-            <span className="ph-row stg-row-main">
-              <button
-                type="button"
-                className="stg-take-play"
-                onClick={() => play(tk)}
-                aria-label={playing === tk.id ? t('stage.rh.pause') : t('stage.rh.play')}
-                title={playing === tk.id ? t('stage.rh.pause') : t('stage.rh.play')}
-              >
-                {playing === tk.id ? (
-                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                    <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                    <path d="M8 5v14l11-7z" fill="currentColor" />
-                  </svg>
-                )}
-              </button>
-              <span className="ph-text">
-                <span className="ph-title">{t('stage.rh.take', { d: dateOf(tk.at, lang) })}</span>
-                <span className="stg-take-wave" aria-hidden="true">
-                  {tk.peaks?.map((p, i) => (
-                    <i key={i} style={{ height: `${Math.max(8, p * 100)}%` }} className={playing === tk.id && i / tk.peaks.length < pos ? 'is-past' : ''} />
-                  ))}
-                </span>
-              </span>
-              <span className="stg-detail">{mmss(tk.duration)}</span>
-            </span>
-            <MoreMenu label={t('stage.more')}>
-              {canShare && (
-                <button type="button" className="more-menu-item" onClick={() => share(tk)}>
-                  {t('stage.rh.share')}
+        {items.map((it) => {
+          const who = it.shared ? (it.by && it.by === uid ? t('stage.nt.you') : it.byName || t('stage.band.someone')) : '';
+          const state = it.waiting ? (isSending(it.id) ? t('stage.rh.uploading') : offline || !signedIn() ? t('stage.rh.later') : t('stage.rh.uploading')) : '';
+          return (
+            <div key={it.id} className={'stg-row stg-take' + (playing === it.id ? ' is-playing' : '')}>
+              <span className="ph-row stg-row-main">
+                <button
+                  type="button"
+                  className={'stg-take-play' + (loading === it.id ? ' is-loading' : '')}
+                  onClick={() => play(it)}
+                  aria-label={playing === it.id ? t('stage.rh.pause') : t('stage.rh.play')}
+                  title={playing === it.id ? t('stage.rh.pause') : t('stage.rh.play')}
+                >
+                  {playing === it.id ? (
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                      <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" fill="currentColor" />
+                    </svg>
+                  )}
                 </button>
-              )}
-              <button
-                type="button"
-                className="more-menu-item is-danger"
-                onClick={() => {
-                  if (playing === tk.id) stopPlay();
-                  deleteTake(tk.id);
-                }}
-              >
-                {t('stage.rh.delete')}
-              </button>
-            </MoreMenu>
-          </div>
-        ))}
+                <span className="ph-text">
+                  <span className="ph-title">{t('stage.rh.takeN', { n: iso(String(num.get(it.id))), d: dateOf(it.at, lang) })}</span>
+                  {(who || state) && <span className="ph-desc">{[who, state].filter(Boolean).join(' · ')}</span>}
+                  {it.peaks && (
+                    <span className="stg-take-wave" aria-hidden="true">
+                      {it.peaks.map((p, i) => (
+                        <i key={i} style={{ height: `${Math.max(8, p * 100)}%` }} className={playing === it.id && i / it.peaks.length < pos ? 'is-past' : ''} />
+                      ))}
+                    </span>
+                  )}
+                </span>
+                <span className="stg-detail">{mmss(it.duration)}</span>
+              </span>
+              <MoreMenu label={t('stage.more')}>
+                {canShare && (
+                  <button type="button" className="more-menu-item" onClick={() => share(it)}>
+                    {t('stage.rh.share')}
+                  </button>
+                )}
+                {mayDelete(it) &&
+                  (it.shared && sure !== it.id ? (
+                    <button type="button" className="more-menu-item is-danger" data-keep="1" onClick={() => setSure(it.id)}>
+                      {t('stage.rh.deleteAll')}
+                    </button>
+                  ) : (
+                    <button type="button" className="more-menu-item is-danger" onClick={() => remove(it)}>
+                      {it.shared ? t('stage.deleteSure') : t('stage.rh.delete')}
+                    </button>
+                  ))}
+              </MoreMenu>
+            </div>
+          );
+        })}
         {rh.saving > 0 && (
           <div className="ph-row stg-take-saving" role="status">
             <span className="ph-desc">{t('stage.rh.saving')}</span>
@@ -309,7 +370,11 @@ export function SongTakes({ song, t, lang }) {
         )}
       </div>
       <p className="stg-fine is-under">
-        {rh.error === 'denied' ? t('stage.rh.denied') : rh.error === 'failed' ? t('stage.rh.failed') : (takes?.length ? '' : t('stage.rh.empty') + ' ') + t('stage.rh.local')}
+        {rh.error === 'denied'
+          ? t('stage.rh.denied')
+          : rh.error === 'failed'
+            ? t('stage.rh.failed')
+            : (items.length ? '' : t('stage.rh.empty') + ' ') + (bandId ? (shared ? t('stage.rh.band') : signedIn() ? t('stage.rh.setup') : t('stage.rh.local')) : t('stage.rh.local'))}
       </p>
     </>
   );

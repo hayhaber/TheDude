@@ -2,12 +2,16 @@
 // lands on its song: in the Performer, moving to the next song closes the take
 // on the song that was playing and opens the next one at once (the mic stays
 // open between them, so nothing is lost but a few milliseconds).
-// Takes are MP3 (lamejs, 128 kbps mono — a 4-minute song ≈ 4 MB; WAV would be
-// 23 MB) in IndexedDB, on THIS device only, like every recording in the app.
+// Takes are MP3 (lamejs, 96 kbps mono — a 4-minute song ≈ 3 MB; WAV would be
+// 23 MB) in IndexedDB. A take of a BAND song also goes up to the band
+// (v1.0.245, migration 009) so every member can listen afterwards; a take
+// that couldn't go up (offline) is sent with the next sync (retryUploads).
 import { createLiveContext, openLiveInput } from './amp/liveInput';
 import { createCapture, computePeaks, encodeWav } from './recorder';
 import { encodeMp3 } from './studio/mp3';
 import { activeProfile } from '../profile/profileStorage';
+import { getSheet } from '../music/sheets/sheetStore';
+import { signedIn, uploadBandTake } from '../music/sheets/chartCloud';
 
 const IS_IOS =
   typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
@@ -200,11 +204,12 @@ async function save(song, res) {
     if (gain > 1.12) for (let i = 0; i < res.samples.length; i += 1) res.samples[i] *= gain;
     let blob;
     try {
-      blob = await encodeMp3({ numberOfChannels: 1, sampleRate: res.sampleRate, getChannelData: () => res.samples }, 128);
+      blob = await encodeMp3({ numberOfChannels: 1, sampleRate: res.sampleRate, getChannelData: () => res.samples }, 96);
     } catch {
       blob = encodeWav(res.samples, res.sampleRate);
     }
-    await putTake({
+    const band = (await getSheet(song.id))?.band ?? null;
+    const rec = {
       id: 'rh-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       song: song.id,
       name: song.name,
@@ -212,11 +217,53 @@ async function save(song, res) {
       duration: res.samples.length / res.sampleRate,
       peaks: computePeaks(res.samples, 60).map((v) => Math.round(v * 100) / 100),
       blob,
+      band,
+      cloud: false,
       profileId: profileId(),
-    });
+    };
+    await putTake(rec);
+    if (band) sendUp(rec);
   } catch {
     setSt({ error: 'save' });
   } finally {
     setSt({ saving: Math.max(0, st.saving - 1) });
+  }
+}
+
+// ---- band takes: up to the band, down to listen ------------------------------------
+
+const sending = new Set();
+async function sendUp(rec) {
+  if (sending.has(rec.id) || !signedIn()) return;
+  sending.add(rec.id);
+  try {
+    if (await uploadBandTake(rec, rec.band)) await putTake({ ...rec, cloud: true });
+  } catch {
+    /* offline / not set up: the next sync tries again */
+  } finally {
+    sending.delete(rec.id);
+    told();
+  }
+}
+export const isSending = (id) => sending.has(id);
+
+/** Band takes recorded here that haven't gone up yet: send them now. */
+export async function retryUploads() {
+  if (!signedIn()) return;
+  try {
+    const d = await db();
+    const all = await done(d.transaction('takes').objectStore('takes').getAll());
+    for (const rec of all) if (rec.band && !rec.cloud && rec.blob) await sendUp(rec);
+  } catch {
+    /* next time */
+  }
+}
+
+/** Keep a band take downloaded to listen to on this device (offline later). */
+export async function cacheTake(t, blob) {
+  try {
+    await putTake({ id: t.id, song: t.chart, name: '', at: t.at, duration: t.duration, peaks: t.peaks, blob, band: t.band, cloud: true, profileId: profileId() });
+  } catch {
+    /* quota */
   }
 }

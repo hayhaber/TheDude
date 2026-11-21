@@ -3843,3 +3843,30 @@ no tools).
   record across 3 songs = 3 takes on their songs, key +2 -> change note;
   fake Supabase 2 members: B's note + B's key change reach A, owner menu,
   done synced. NOT verified on devices / real Supabase.
+- BAND TAKES (v1.0.245; user: "at a band rehearsal record the song being
+  played so every member can listen afterwards and improve; sometimes
+  several takes of the same song"): a take of a BAND song now goes up to
+  the band. NEW `supabase/migrations/009_song_takes.sql` (THE USER RUNS
+  IT): table song_takes (who / when / path / duration / peaks / size,
+  everything fixed after insert, deleted only by who recorded it or the
+  band owner, no undelete; path must be in the band's folder) + private
+  bucket `takes` (60 MB, audio/mpeg + audio/wav, path
+  b/<band>/<song>/<take>.mp3; `take_band(path)` -> members read / add;
+  delete = the uploader or the band owner). Checked on local Postgres 16
+  twice + RLS (outsider sees no row / file, other band's folder and junk
+  paths refused, fields immutable, member can't delete the owner's take).
+  Client: rehearsal.js saves locally, then `uploadBandTake` (chartCloud:
+  storage upload + row, state `takes` / `takesOk`, sync step 7);
+  offline / failed = `retryUploads()` after every Band-screen sync; MP3
+  now 96 kbps (~3 MB / 4 min). SongTakes merges the band's takes (all
+  members) + mine still going up ("Sending to the band…" / "Goes to the
+  band when you're online"); rows "Take n · time" numbered per day in
+  playing order + who recorded it; play downloads once and keeps a copy
+  (`cacheTake`, offline later); ••• Share / "Delete for the whole band"
+  (two taps; only the recorder or the band owner). Footnote: "Every take
+  goes to the band — all members can listen" / setup line before 009 /
+  "stay on this device" for my own songs. Privacy page updated. Playwright
+  fake Supabase + fake mic: B (390 HE) records Zombie twice -> 2 MP3s +
+  rows; A (1180 EN) sees "Take 2 / Take 1 · Dana", plays (download),
+  deletes one for the band -> row deleted + file removed; B after sync
+  sees 1; no errors. NOT verified with the real Supabase / devices.

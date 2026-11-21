@@ -19,15 +19,15 @@ const CACHE = (uid) => `dudestar-stage-cloud:${uid}`; // device
 
 // ---- store -----------------------------------------------------------------
 
-let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, notes: [], notesOk: true, lastSync: null };
+let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, notes: [], notesOk: true, takes: [], takesOk: true, lastSync: null };
 const subs = new Set();
 function set(patch) {
   state = { ...state, ...patch };
   for (const fn of subs) fn();
   const uid = getLink()?.userId;
-  if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.ready || patch.notes || patch.lastSync)) {
+  if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.ready || patch.notes || patch.takes || patch.lastSync)) {
     try {
-      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, ready: state.ready, notes: state.notes, lastSync: state.lastSync }));
+      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, ready: state.ready, notes: state.notes, takes: state.takes, lastSync: state.lastSync }));
     } catch {
       /* quota */
     }
@@ -47,7 +47,7 @@ function restoreCache() {
   if (!uid) return;
   try {
     const c = JSON.parse(localStorage.getItem(CACHE(uid)));
-    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], ready: c.ready ?? [], notes: c.notes ?? [], lastSync: c.lastSync ?? null };
+    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], ready: c.ready ?? [], notes: c.notes ?? [], takes: c.takes ?? [], lastSync: c.lastSync ?? null };
   } catch {
     /* none */
   }
@@ -81,7 +81,7 @@ const missingLinkCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204')
 let hasGap = true;
 const missingGapCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\bgap\b/i.test(e.message || '');
 
-const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions|band_ready|song_notes/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
+const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions|band_ready|song_notes|song_takes/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
 const suggestionOf = (x) => ({
   id: x.id,
   band: x.band_id,
@@ -108,6 +108,19 @@ const noteOf = (x) => ({
   data: x.data || null,
   done: !!x.done,
   at: x.created_at || null,
+});
+
+const takeOf = (x) => ({
+  id: x.id,
+  band: x.band_id,
+  chart: x.chart_id,
+  by: x.by_user || null,
+  byName: x.by_name || '',
+  path: x.path,
+  duration: x.duration ?? 0,
+  peaks: Array.isArray(x.peaks) ? x.peaks : null,
+  size: x.size ?? 0,
+  at: Date.parse(x.created_at) || Date.now(),
 });
 
 const pathFor = (uid, rec) => (rec.band ? `b/${rec.band}/${rec.id}.pdf` : `u/${uid}/${rec.id}.pdf`);
@@ -235,7 +248,11 @@ export async function syncWith(sb, uid, local) {
   const sn = await sb.from('song_notes').select('id,band_id,chart_id,by_user,by_name,kind,body,data,done,deleted,created_at');
   if (sn.error && !missingTable(sn.error)) throw sn.error;
   const notes = sn.error ? [] : sn.data.filter((x) => !x.deleted).map(noteOf);
-  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error, notes, notesOk: !sn.error };
+  // 7) the band songs' rehearsal recordings (migration 009; before it: not ready)
+  const tk = await sb.from('song_takes').select('id,band_id,chart_id,by_user,by_name,path,duration,peaks,size,deleted,created_at');
+  if (tk.error && !missingTable(tk.error)) throw tk.error;
+  const takes = tk.error ? [] : tk.data.filter((x) => !x.deleted).map(takeOf);
+  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error, notes, notesOk: !sn.error, takes, takesOk: !tk.error };
 }
 
 const LOCAL = { listSheets, getSheet, patchSheet, putSheet, deleteSheet, sheetPrefs, setSheetPrefs };
@@ -629,4 +646,45 @@ export async function updateBandNote(id, patch) {
   if ('deleted' in patch) row.deleted = !!patch.deleted;
   const sb = await client();
   await sent(sb.from('song_notes').update(row).eq('id', id));
+}
+
+// ---- a band song's rehearsal recordings (v1.0.245; migration 009) ---------------
+// The audio goes to the private bucket "takes" (b/<band>/<song>/<take>.mp3),
+// a row to song_takes; every member lists and plays them.
+const TAKES = 'takes';
+
+/** Send one take up. rec = {id, song, at, duration, peaks, blob}. */
+export async function uploadBandTake(rec, band) {
+  if (!signedIn() || !state.takesOk) return false;
+  const sb = await client();
+  const ext = rec.blob.type === 'audio/mpeg' ? 'mp3' : 'wav';
+  const path = `b/${band}/${rec.song}/${rec.id}.${ext}`;
+  const up = await sb.storage.from(TAKES).upload(path, rec.blob, { upsert: true, contentType: rec.blob.type || 'audio/mpeg' });
+  if (up.error) {
+    if (/bucket not found/i.test(up.error.message || '')) set({ takesOk: false });
+    throw up.error;
+  }
+  const row = { id: rec.id, band_id: band, chart_id: rec.song, by_name: myName() || null, path, duration: Math.round(rec.duration * 10) / 10, peaks: rec.peaks ?? null, size: rec.blob.size };
+  const { error } = await sb.from('song_takes').upsert(row);
+  if (error) {
+    if (missingTable(error)) set({ takesOk: false });
+    throw error;
+  }
+  const x = takeOf({ ...row, by_user: getLink()?.userId ?? null, created_at: new Date(rec.at).toISOString() });
+  set({ takes: [...state.takes.filter((t) => t.id !== x.id), x] });
+  return true;
+}
+
+export async function downloadBandTake(path) {
+  const sb = await client();
+  const { data, error } = await sb.storage.from(TAKES).download(path);
+  if (error || !data) throw error || new Error('no file');
+  return data;
+}
+
+export async function deleteBandTake(take) {
+  set({ takes: state.takes.filter((t) => t.id !== take.id) });
+  const sb = await client();
+  await sent(sb.from('song_takes').update({ deleted: true }).eq('id', take.id));
+  await sb.storage.from(TAKES).remove([take.path]).catch(() => {});
 }

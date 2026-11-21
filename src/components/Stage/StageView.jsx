@@ -34,6 +34,7 @@ import { ControlRow, Segmented } from '../ui/controls';
 import { openBandLink } from '../../music/sheets/bandLink';
 import { LyricsSheet } from './LyricsSheet';
 import { SongNotes, SongTakes } from './SongExtras';
+import { retryUploads } from '../../audio/rehearsal';
 import { openCount, useNotesVersion } from '../../music/sheets/songNotes';
 import { SuggestionsView } from './SuggestionsView';
 import { cleanLink, embedOf, serviceOf } from '../../music/sheets/songLink';
@@ -894,8 +895,9 @@ export function StageView({ onAccount, start = null }) {
   // comes back to the front.
   useEffect(() => {
     if (!isIn) return undefined;
-    syncCharts();
-    const onVis = () => document.visibilityState === 'visible' && syncCharts();
+    const go = () => syncCharts().then(retryUploads);
+    go();
+    const onVis = () => document.visibilityState === 'visible' && go();
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [isIn, account.email]);
@@ -1237,7 +1239,7 @@ export function StageView({ onAccount, start = null }) {
         </section>
         <section className="ph-section">
           <h2 className="ph-section-title">{t('stage.sp.takes')}</h2>
-          <SongTakes song={pageSong} t={t} lang={lang} />
+          <SongTakes song={pageSong} band={songBand} t={t} lang={lang} />
         </section>
         {toast}
         {perform && performer}

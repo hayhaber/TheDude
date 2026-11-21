@@ -3731,3 +3731,24 @@ no tools).
   solid #1c1c1e card on a black page, no lit title; the drum machine has
   no card around its own groups. Checked 1180 + 390 HE dark: home card +
   every Tools shortcut screen.
+- BAND INVITE LINK (v1.0.238; user: "does the member get the invite? the
+  message text is wrong, the code can't be copied alone — make the message
+  lead him through joining as clearly as possible"). The old text pointed
+  to Play › Stage › Band (gone since v1.0.206). Now the invite = a LINK
+  `https://the-dude.vercel.app/?band=CODE` (`music/sheets/joinLink.js`:
+  `captureJoinCode()` in main.jsx keeps the code in device key
+  `dudestar-join-code` for 7 days and takes it out of the address — it
+  survives a Google sign-in redirect and the first-run screens; App opens
+  the Band screen with `start: 'join'` once onboarding is done). StageView
+  `openJoinFromLink()`: already a member -> that band; else the join sheet
+  (`BandJoinSheet initialCode`): headline "You're invited to a band", no
+  Create | I have a code switch, the code typed in, one Join; signed out =
+  "sign in (Google or email), the code waits here" + Sign in — the sheet
+  opens again by itself when the sign-in lands (`wasInRef`); the code is
+  cleared on Join or when a signed-in user closes the sheet. Message
+  (`stage.band.inviteText`): invited line · "tap to join:" + the link on
+  its own line · "sign in, tap Join" · the code ALONE on the last line
+  (fallback: Band card › Members › I have a code). Playwright (fake
+  Supabase): signed out /?band=code1xy -> address cleaned, sheet asks to
+  sign in, code kept; signed in -> field CODE1XY, Join -> member, code
+  cleared; no errors.

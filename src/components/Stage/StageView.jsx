@@ -39,6 +39,7 @@ import { openListen } from '../../music/sheets/listenStore';
 import { ListenDock } from './ListenDock';
 import { SongSearchField } from './SongSearchField';
 import { linkFor, songLabel } from '../../music/sheets/songSearch';
+import { clearJoinCode, inviteUrl, pendingJoinCode } from '../../music/sheets/joinLink';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -355,9 +356,9 @@ function LiveBanner({ person, setName, onJoin, t }) {
 }
 
 /** The band sheet: what a band gives, then create one or join with a code. */
-function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
-  const [tab, setTab] = useState('new');
-  const [v, setV] = useState('');
+function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t, initialCode = '' }) {
+  const [tab, setTab] = useState(initialCode ? 'join' : 'new');
+  const [v, setV] = useState(initialCode);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
   const go = async () => {
@@ -383,7 +384,7 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
         <span className="stg-band-tile" aria-hidden="true">
           <BandGlyph size={34} />
         </span>
-        <h2>{t('stage.band.headline')}</h2>
+        <h2>{initialCode ? t('stage.band.invitedHead') : t('stage.band.headline')}</h2>
       </div>
       <ul className="stg-perks">
         {perks.map(([d, k]) => (
@@ -400,7 +401,7 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
       </ul>
       {isIn ? (
         <>
-          <Segmented
+          {!initialCode && <Segmented
             options={[
               { value: 'new', label: t('stage.band.tabNew') },
               { value: 'join', label: t('stage.band.tabJoin') },
@@ -411,7 +412,7 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
               setV('');
               setErr(null);
             }}
-          />
+          />}
           <label className="stg-field">
             <span>{tab === 'new' ? t('stage.band.name') : t('stage.band.code')}</span>
             <input
@@ -436,7 +437,7 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
         </>
       ) : (
         <div className="stg-sheet-foot is-col">
-          <p className="stg-sheet-text">{t('stage.band.signInFirst')}</p>
+          <p className="stg-sheet-text">{initialCode ? t('stage.band.invitedSignIn') : t('stage.band.signInFirst')}</p>
           {onAccount && (
             <button
               type="button"
@@ -446,7 +447,7 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t }) {
                 onAccount();
               }}
             >
-              {t('stage.cloud.signIn')}
+              {initialCode ? t('stage.band.signInBtn') : t('stage.cloud.signIn')}
             </button>
           )}
         </div>
@@ -911,12 +912,37 @@ export function StageView({ onAccount, start = null }) {
     }
   }, [set?.id, set?.name, band?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A band invite link (?band=CODE): the join sheet with the code typed in.
+  // Signed out, the sheet asks to sign in first and the code waits — it is
+  // offered again as soon as the sign-in lands (a Google sign-in reloads the
+  // page; the code is kept on the device for that).
+  const [joinCode, setJoinCode] = useState('');
+  const openJoinFromLink = () => {
+    const c = pendingJoinCode();
+    if (!c) return;
+    const mine = isIn && cloud.bands.find((b) => (b.code || '').toUpperCase() === c);
+    if (mine) {
+      chooseScope(mine.id);
+      clearJoinCode();
+      return;
+    }
+    setJoinCode(c);
+    setDialog('band');
+  };
+  const wasInRef = useRef(isIn);
+  useEffect(() => {
+    if (isIn && !wasInRef.current && !dialog && pendingJoinCode()) openJoinFromLink();
+    wasInRef.current = isIn;
+  }, [isIn]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // The home card's shortcuts: Songs = the song list, Band = the band sheet.
   const startedRef = useRef(false);
   useEffect(() => {
     if (startedRef.current || !sheets) return;
     startedRef.current = true;
-    if (start === 'band') {
+    if (start === 'join') {
+      openJoinFromLink();
+    } else if (start === 'band') {
       if (band) setDialog('manage');
       else if (isIn && cloud.bands.length) {
         chooseScope(cloud.bands[0].id);
@@ -1041,7 +1067,7 @@ export function StageView({ onAccount, start = null }) {
 
   // ---- band dialogs ----
   const owner = band && band.owner === uid;
-  const inviteText = band ? t('stage.band.inviteText', { band: band.name, code: band.code, url: 'https://the-dude.vercel.app' }) : '';
+  const inviteText = band ? t('stage.band.inviteText', { band: band.name, code: band.code, url: inviteUrl(band.code) }) : '';
   const share = async () => {
     try {
       if (navigator.share) await navigator.share({ text: inviteText });
@@ -1103,6 +1129,8 @@ export function StageView({ onAccount, start = null }) {
       )}
       {dialog === 'band' && (
         <BandJoinSheet
+          key={joinCode || 'plain'}
+          initialCode={joinCode}
           isIn={isIn}
           onAccount={onAccount}
           onCreate={async (name) => {
@@ -1112,8 +1140,17 @@ export function StageView({ onAccount, start = null }) {
           onJoin={async (code) => {
             const b = await joinBand(code);
             if (b?.id) chooseScope(b.id);
+            clearJoinCode();
+            setJoinCode('');
           }}
-          onClose={() => setDialog(null)}
+          onClose={() => {
+            setDialog(null);
+            // signed out = the code waits for the sign-in; otherwise they chose
+            if (isIn) {
+              clearJoinCode();
+              setJoinCode('');
+            }
+          }}
           dir={dir}
           t={t}
         />

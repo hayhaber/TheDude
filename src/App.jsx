@@ -122,6 +122,7 @@ import { Onboarding } from './components/Onboarding/Onboarding';
 import { homeCardFor, loadOnboarding, needsOnboarding } from './onboarding/onboardingState';
 import { getTeacher } from './teacher/teacherState';
 import { nextLesson as teacherNextLesson } from './teacher/mastery';
+import { pendingJoinCode } from './music/sheets/joinLink';
 import './App.css';
 
 
@@ -167,6 +168,9 @@ function App() {
   const [songwriter, setSongwriter] = useState(null);
   // The Stage card's own screen (v1.0.206): {start, n}
   const [stageScreen, setStageScreen] = useState(null);
+  // A band invite link (?band=CODE) opens the Band screen with the code
+  // typed in — once the first-run screens (if any) are done.
+  const joinOpenedRef = useRef(false);
   // Which Vocal screen the Singing card opened (home / ear); n remounts it.
   const [vocalStart, setVocalStart] = useState({ screen: 'home', n: 0 });
   // The tuner's guitar/bass setting there (bass only when opened from the
@@ -183,6 +187,11 @@ function App() {
   const [homeCard, setHomeCard] = useState(() => homeCardFor(loadOnboarding()));
   // First run (once per profile): Onboarding replaces everything until done.
   const [onboarding, setOnboarding] = useState(() => needsOnboarding());
+  useEffect(() => {
+    if (onboarding || joinOpenedRef.current || !pendingJoinCode()) return;
+    joinOpenedRef.current = true;
+    setStageScreen((v) => ({ start: 'join', n: (v?.n ?? 0) + 1 }));
+  }, [onboarding]);
   // The 3 top-level destinations (Compose/Improvise/Practice) — see
   // components/AppShell for the nav shell that drives this.
   const [activeSection, setActiveSection] = useState('compose');

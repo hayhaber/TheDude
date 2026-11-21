@@ -11,6 +11,7 @@ import { InfoTooltipsProvider } from './hooks/InfoTooltipsProvider.jsx'
 import { unlockAudioContextOnFirstGesture } from './audio/audioContext.js'
 import { installMicSessionGuard } from './audio/micSession.js'
 import { captureInstallPrompt, detectPlatform } from './install/pwaInstall.js'
+import { captureJoinCode } from './music/sheets/joinLink.js'
 import { InstallPage } from './install/InstallPage.jsx'
 import { startCloud } from './cloud/cloudState.js'
 import { CloudPrompt } from './cloud/CloudPrompt.jsx'
@@ -19,6 +20,7 @@ import { PrivacyPage } from './privacy/PrivacyPage.jsx'
 // The browser's "install this app" event fires once, early: keep it for the
 // Install buttons (install/pwaInstall.js).
 captureInstallPrompt()
+captureJoinCode()
 
 // iOS: a 'playback' audio session (set by the Recorder) silences the mic —
 // every getUserMedia switches it back first (audio/micSession.js).

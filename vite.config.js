@@ -64,6 +64,16 @@ export default defineConfig({
           'home/stage.svg',
         ],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        // pdf.js's standard fonts (~800 KB) are fetched only when a PDF needs
+        // them; once fetched they are kept, so charts read right on stage
+        // without internet (v1.0.244 — the Band screen warms them).
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/pdfjs/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'pdfjs-fonts', expiration: { maxEntries: 40 } },
+          },
+        ],
         // A new service worker version now takes over immediately instead
         // of waiting for every open tab/PWA instance to fully close first
         // — critical while actively iterating on iOS-specific fixes, where

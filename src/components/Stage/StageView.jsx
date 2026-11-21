@@ -33,6 +33,8 @@ import { Select } from '../ui/Select';
 import { ControlRow, Segmented } from '../ui/controls';
 import { openBandLink } from '../../music/sheets/bandLink';
 import { LyricsSheet } from './LyricsSheet';
+import { SongNotes, SongTakes } from './SongExtras';
+import { openCount, useNotesVersion } from '../../music/sheets/songNotes';
 import { SuggestionsView } from './SuggestionsView';
 import { cleanLink, embedOf, serviceOf } from '../../music/sheets/songLink';
 import { openListen } from '../../music/sheets/listenStore';
@@ -683,6 +685,9 @@ function SearchField({ value, onChange, t }) {
   );
 }
 
+let fontsWarmed = false;
+const PDF_FONTS = ['FoxitDingbats.pfb', 'FoxitFixed.pfb', 'FoxitFixedBold.pfb', 'FoxitFixedBoldItalic.pfb', 'FoxitFixedItalic.pfb', 'FoxitSerif.pfb', 'FoxitSerifBold.pfb', 'FoxitSerifBoldItalic.pfb', 'FoxitSerifItalic.pfb', 'FoxitSymbol.pfb', 'LiberationSans-Bold.ttf', 'LiberationSans-BoldItalic.ttf', 'LiberationSans-Italic.ttf', 'LiberationSans-Regular.ttf'];
+
 export function StageView({ onAccount, start = null }) {
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -709,6 +714,9 @@ export function StageView({ onAccount, start = null }) {
     return last?.id ?? null;
   }); // setlist id
   const [words, setWords] = useState(null); // {id?, name, text, pdf} — the words editor
+  const [songPage, setSongPage] = useState(null); // a song's page: notes + recordings (v1.0.244)
+  const byIdRef = useRef(new Map());
+  useNotesVersion();
   const [listen, setListen] = useState(null); // {id, name, link} — the link sheet
   const [, setLinkTick] = useState(0);
   const linkOf = (id) => sheetPrefs(id).link || '';
@@ -752,6 +760,23 @@ export function StageView({ onAccount, start = null }) {
           </button>
         )))
       : null;
+  // open rehearsal notes on a song (v1.0.244): a small count on its row
+  const notesBadge = (id) => {
+    const n = openCount(id, byIdRef.current.get(id)?.band ?? null);
+    return n ? (
+      <span className="stg-notes-badge" aria-label={t('stage.nt.count', { n })} title={t('stage.nt.count', { n })}>
+        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+          <path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        </svg>
+        {n}
+      </span>
+    ) : null;
+  };
+  const songItem = (id) => (
+    <button type="button" className="more-menu-item" onClick={() => setSongPage(id)}>
+      {t('stage.sp.open')}
+    </button>
+  );
   // a show's length: every song's length (3:30 when unset) + the pauses
   const showLength = (list, songsHere) => {
     const playable = songsHere.filter((s) => !s.missing);
@@ -890,6 +915,7 @@ export function StageView({ onAccount, start = null }) {
 
   const scoped = (sheets ?? []).filter((s) => (s.band ?? null) === bandId);
   const byId = new Map((sheets ?? []).map((s) => [s.id, s]));
+  byIdRef.current = byId;
   const set = sets.lists.find((l) => l.id === openSet) ?? null;
   const setOpenSet = setOpenSetRaw;
   useEffect(() => {
@@ -904,6 +930,24 @@ export function StageView({ onAccount, start = null }) {
       /* private mode */
     }
   }, [set?.id, set?.name, band?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Offline (v1.0.244): a setlist says whether every song is on this device;
+  // pdf.js's fonts are fetched once while online (the service worker keeps
+  // them), so the charts read right on a stage with no internet.
+  const [getting, setGetting] = useState(false);
+  useEffect(() => {
+    if (!set || fontsWarmed || navigator.onLine === false) return;
+    fontsWarmed = true;
+    for (const f of PDF_FONTS) fetch('/pdfjs/standard_fonts/' + f).catch(() => {});
+  }, [set?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const download = async () => {
+    setGetting(true);
+    try {
+      await syncCharts();
+    } finally {
+      setGetting(false);
+    }
+  };
 
   // A band invite link (?band=CODE): the join sheet with the code typed in.
   // Signed out, the sheet asks to sign in first and the code waits — it is
@@ -1168,6 +1212,39 @@ export function StageView({ onAccount, start = null }) {
     <LiveBanner person={leaderHere} setName={sets.lists.find((l) => l.id === leaderHere.set)?.name} onJoin={joinLeader} t={t} />
   );
 
+  // ---- a song's page: rehearsal notes + recordings (v1.0.244) ----
+  const pageSong = songPage ? byId.get(songPage) : null;
+  if (songPage && pageSong) {
+    const songBand = pageSong.band ? (cloud.bands.find((b) => b.id === pageSong.band) ?? { id: pageSong.band }) : null;
+    return (
+      <div className="stg" dir={dir}>
+        <BackButton label={set ? set.name : band ? band.name : t('stage.back')} onClick={() => setSongPage(null)} />
+        <header className="stg-head">
+          <div className="stg-head-title">
+            <h1 dir="auto">{pageSong.name}</h1>
+            {durOf(pageSong.id) && <p className="subtitle">{durOf(pageSong.id)}</p>}
+          </div>
+          <div className="stg-head-actions">
+            <button type="button" className="stg-capsule is-primary" onClick={() => setPerform({ songs: [{ id: pageSong.id, name: pageSong.name }], at: 0 })}>
+              <PlayGlyph />
+              {t('stage.start')}
+            </button>
+          </div>
+        </header>
+        <section className="ph-section">
+          <h2 className="ph-section-title">{t('stage.sp.notes')}</h2>
+          <SongNotes chart={pageSong.id} band={songBand} t={t} lang={lang} />
+        </section>
+        <section className="ph-section">
+          <h2 className="ph-section-title">{t('stage.sp.takes')}</h2>
+          <SongTakes song={pageSong} t={t} lang={lang} />
+        </section>
+        {toast}
+        {perform && performer}
+      </div>
+    );
+  }
+
   // ---- the band's page (members, invite, settings) ----
   if (dialog === 'manage' && band) {
     return (
@@ -1293,6 +1370,35 @@ export function StageView({ onAccount, start = null }) {
           </div>
         </header>
 
+        {!editing && songs.length > 0 && (() => {
+          const away = songs.filter((x) => x.missing).length;
+          if (!away)
+            return (
+              <p className="stg-offline is-ok" role="status">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" fill="currentColor" />
+                  <path d="M7.5 12.4l3 3 6-6.4" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {t('stage.off.ready')}
+              </p>
+            );
+          return (
+            <p className="stg-offline" role="status">
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M12 7.5v8M8.5 12.5L12 16l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span>{away === 1 ? t('stage.off.missing1') : t('stage.off.missing', { n: away })}</span>
+              {isIn && (navigator.onLine === false ? (
+                <span className="stg-offline-sub">{t('stage.off.offline')}</span>
+              ) : (
+                <button type="button" className="stg-offline-get" onClick={download} disabled={getting}>
+                  {getting ? t('stage.off.getting') : t('stage.off.get')}
+                </button>
+              ))}
+            </p>
+          );
+        })()}
         {liveBanner}
         {band && songs.some((s) => !s.missing) && (
           <div className="stg-start">
@@ -1373,6 +1479,7 @@ export function StageView({ onAccount, start = null }) {
                     {s.name}
                   </span>
                 </span>
+                {!s.missing && notesBadge(s.id)}
                 {!s.missing && readyMark(s.id)}
                 {!s.missing && durOf(s.id) && <span className="stg-detail">{durOf(s.id)}</span>}
               </button>
@@ -1380,6 +1487,7 @@ export function StageView({ onAccount, start = null }) {
               <MoreMenu label={t('stage.more')}>
                 {!s.missing && readyItems(s.id)}
                 {!s.missing && canReady && <span className="more-menu-sep" aria-hidden="true" />}
+                {!s.missing && songItem(s.id)}
                 {!s.missing && (
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {byId.get(s.id)?.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
@@ -1653,6 +1761,7 @@ export function StageView({ onAccount, start = null }) {
                       </span>
                       {inWords && <span className="ph-desc stg-hit" dir="auto">{t('stage.inWords')} · {inWords}</span>}
                     </span>
+                    {notesBadge(s.id)}
                     {readyMark(s.id)}
                     {(durOf(s.id) || (isIn && !s.cloud)) && (
                       <span className="stg-detail">{[durOf(s.id), isIn && !s.cloud ? t('stage.cloud.notYet') : null].filter(Boolean).join(' · ')}</span>
@@ -1663,6 +1772,7 @@ export function StageView({ onAccount, start = null }) {
                 <MoreMenu label={t('stage.more')}>
                   {readyItems(s.id)}
                   {canReady && <span className="more-menu-sep" aria-hidden="true" />}
+                  {songItem(s.id)}
                   <button type="button" className="more-menu-item" onClick={() => setRenaming(s.id)}>
                     {t('stage.rename')}
                   </button>

@@ -3802,3 +3802,44 @@ no tools).
   band's overall picture stays in the "Ready for the show" panel.
   Playwright rd.cjs (fake Supabase, 2 members): B marks Zombie Ready +
   Africa Learning -> tags "All ready" / "Learning"; panel unchanged.
+- REHEARSAL TOOLS (v1.0.244, 2026-11-21; user: "build 2, 3, 4 — notes
+  can also be a key change etc."). (1) OFFLINE: a setlist shows under
+  its title "✓ Saved on this device — works without internet" (green
+  check, like Music's downloaded mark) or "N songs aren't on this device
+  yet" + Download (= syncCharts; offline -> "connect to download").
+  pdf.js's standard fonts: workbox runtimeCaching CacheFirst `/pdfjs/`
+  (cache `pdfjs-fonts`) + StageView warms all 14 font files once per
+  session when a setlist opens online. (2) REHEARSAL NOTES: a song's
+  ••• "Notes & recordings" -> a pushed SONG PAGE (StageView `songPage`,
+  Back = where you were; Start opens it in the Performer): "Rehearsal
+  notes" group (open notes, author · time, ••• Mark as done / Delete —
+  delete only the writer or the band owner) + an inline composer row
+  ("Add a note…", Enter / Add), done ones folded ("Done · n"); a row's
+  open-note count = bubble + number (`.stg-notes-badge`). KEY / TEMPO /
+  LENGTH CHANGES are logged by themselves (`music/sheets/songNotes.js`:
+  setSheetPrefs now passes `prev` to listeners; the stepper taps of one
+  go are gathered for 4 s and logged once from-before -> after; back to
+  the start = nothing): "Changed the key: −3 semitones (was the
+  original)". Band songs = Supabase `song_notes` (NEW
+  `supabase/migrations/008_song_notes.sql` — THE USER RUNS IT; chartCloud
+  step 6, `addBandNote` / `updateBandNote`, missing table -> the setup
+  line, nothing breaks); my songs = personal key `dudestar-p-song-notes`.
+  The Performer's details sheet lists the song's open notes. (3) REHEARSAL
+  RECORDINGS (`audio/rehearsal.js`): the song page's "Record rehearsal"
+  row (red dot, Voice Memos style; "Recording · 0:42" + Stop) and a
+  record key in the Performer's top bar — moving to the next song closes
+  the take on the song that played and opens one on the next (the mic
+  stays open); closing the Performer stops. Takes = MP3 128 kbps mono
+  (lamejs; WAV fallback), quiet input brought up (≤ +24 dB), < 3 s
+  dropped, split at 12 min, IndexedDB `dudestar-rehearsals` (this device,
+  per profile); rows: play / pause, waveform with progress, length, •••
+  Share (the MP3 file) / Delete. Privacy page: band notes visible to the
+  band; recordings never uploaded. Checks: 008 on local Postgres 16 twice
+  + RLS (member adds; another member can mark done but not change the
+  text; outsider sees / adds nothing; owner deletes anyone's, a member
+  only their own; undelete ignored; anon denied). Playwright fake mic 390
+  HE + 1180 EN dark: offline line (1 missing / all saved), notes add /
+  Enter / done fold / badge, record 4 s -> MP3 take plays, Performer
+  record across 3 songs = 3 takes on their songs, key +2 -> change note;
+  fake Supabase 2 members: B's note + B's key change reach A, owner menu,
+  done synced. NOT verified on devices / real Supabase.

@@ -19,15 +19,15 @@ const CACHE = (uid) => `dudestar-stage-cloud:${uid}`; // device
 
 // ---- store -----------------------------------------------------------------
 
-let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, lastSync: null };
+let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, notes: [], notesOk: true, lastSync: null };
 const subs = new Set();
 function set(patch) {
   state = { ...state, ...patch };
   for (const fn of subs) fn();
   const uid = getLink()?.userId;
-  if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.ready || patch.lastSync)) {
+  if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.ready || patch.notes || patch.lastSync)) {
     try {
-      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, ready: state.ready, lastSync: state.lastSync }));
+      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, ready: state.ready, notes: state.notes, lastSync: state.lastSync }));
     } catch {
       /* quota */
     }
@@ -47,7 +47,7 @@ function restoreCache() {
   if (!uid) return;
   try {
     const c = JSON.parse(localStorage.getItem(CACHE(uid)));
-    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], ready: c.ready ?? [], lastSync: c.lastSync ?? null };
+    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], ready: c.ready ?? [], notes: c.notes ?? [], lastSync: c.lastSync ?? null };
   } catch {
     /* none */
   }
@@ -81,7 +81,7 @@ const missingLinkCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204')
 let hasGap = true;
 const missingGapCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\bgap\b/i.test(e.message || '');
 
-const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
+const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions|band_ready|song_notes/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
 const suggestionOf = (x) => ({
   id: x.id,
   band: x.band_id,
@@ -94,6 +94,19 @@ const suggestionOf = (x) => ({
   votes: Array.isArray(x.votes) ? x.votes : [],
   by: x.by_user || null,
   byName: x.by_name || '',
+  at: x.created_at || null,
+});
+
+const noteOf = (x) => ({
+  id: x.id,
+  band: x.band_id,
+  chart: x.chart_id,
+  by: x.by_user || null,
+  byName: x.by_name || '',
+  kind: x.kind || 'note',
+  body: x.body || '',
+  data: x.data || null,
+  done: !!x.done,
   at: x.created_at || null,
 });
 
@@ -218,7 +231,11 @@ export async function syncWith(sb, uid, local) {
   const rd = await sb.from('band_ready').select('chart_id,user_id,band_id,state');
   if (rd.error && !missingTable(rd.error)) throw rd.error;
   const ready = rd.error ? [] : rd.data.map((x) => ({ chart: x.chart_id, user: x.user_id, band: x.band_id, state: x.state }));
-  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error };
+  // 6) rehearsal notes on band songs (migration 008; before it: not ready)
+  const sn = await sb.from('song_notes').select('id,band_id,chart_id,by_user,by_name,kind,body,data,done,deleted,created_at');
+  if (sn.error && !missingTable(sn.error)) throw sn.error;
+  const notes = sn.error ? [] : sn.data.filter((x) => !x.deleted).map(noteOf);
+  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error, notes, notesOk: !sn.error };
 }
 
 const LOCAL = { listSheets, getSheet, patchSheet, putSheet, deleteSheet, sheetPrefs, setSheetPrefs };
@@ -584,4 +601,32 @@ export async function setReady(chart, band, value) {
   const sb = await client();
   if (value) await sent(sb.from('band_ready').upsert({ chart_id: chart, band_id: band, state: value }, { onConflict: 'chart_id,user_id' }));
   else await sent(sb.from('band_ready').delete().eq('chart_id', chart).eq('user_id', uid));
+}
+
+// ---- rehearsal notes on a band song (v1.0.244; migration 008) --------------------
+// Anyone in the band writes a note on a song, marks a note done; a change of
+// key / tempo / length is logged there by itself (songNotes.js). Optimistic
+// like the rest; a refused write re-syncs.
+function putNote(x) {
+  set({ notes: [...state.notes.filter((n) => n.id !== x.id), ...(x.deleted ? [] : [x])] });
+}
+
+export async function addBandNote(chart, band, { kind = 'note', body = '', data = null }) {
+  const x = { id: 'sn-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), band, chart, by: getLink()?.userId ?? null, byName: myName() || '', kind, body: body.slice(0, 1000), data, done: false, at: new Date().toISOString() };
+  putNote(x);
+  const sb = await client();
+  await sent(sb.from('song_notes').insert({ id: x.id, band_id: band, chart_id: chart, by_name: x.byName || null, kind, body: x.body || null, data }));
+  return x;
+}
+
+export async function updateBandNote(id, patch) {
+  const cur = state.notes.find((n) => n.id === id);
+  if (!cur) return;
+  putNote({ ...cur, ...patch });
+  const row = {};
+  if ('done' in patch) row.done = !!patch.done;
+  if ('body' in patch) row.body = patch.body.slice(0, 1000) || null;
+  if ('deleted' in patch) row.deleted = !!patch.deleted;
+  const sb = await client();
+  await sent(sb.from('song_notes').update(row).eq('id', id));
 }

@@ -152,6 +152,7 @@ export function sheetPrefs(id) {
 
 export function setSheetPrefs(id, patch, { quiet = false } = {}) {
   const all = readPrefs();
+  const prev = all[id] ?? {};
   if (patch === null) delete all[id];
   else all[id] = { ...(all[id] ?? {}), ...patch };
   try {
@@ -159,5 +160,5 @@ export function setSheetPrefs(id, patch, { quiet = false } = {}) {
   } catch {
     /* storage full / private mode */
   }
-  if (!quiet && patch) for (const fn of prefListeners) fn(id, patch);
+  if (!quiet && patch) for (const fn of prefListeners) fn(id, patch, prev);
 }

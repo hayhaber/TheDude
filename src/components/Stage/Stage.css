@@ -2383,3 +2383,165 @@ html .stg-ss-row:active { background: var(--fill-tertiary); }
   font-size: 17px;
   border-top: 0.5px solid var(--separator);
 }
+
+/* ---- v1.0.244: a song's page — rehearsal notes, recordings; offline ---- */
+.stg-notes-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+.stg-note .stg-note-main { align-items: flex-start; padding-block: 10px; }
+.stg-note-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--fill-tertiary);
+  color: var(--text-secondary);
+}
+.stg-note-body {
+  display: block;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.stg-note-body.is-change { font-size: 15px; }
+.stg-note.is-done .stg-note-body { color: var(--text-secondary); text-decoration: line-through; text-decoration-color: var(--separator); }
+.stg-note .ph-desc { white-space: normal; margin-top: 2px; }
+.stg .stg-note-new {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-height: 48px;
+  padding-block: 8px;
+  cursor: text;
+}
+.stg-note + .stg-note-new, .stg-row + .stg-note-new { border-top: 0.5px solid var(--separator); }
+.stg-note-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 30px;
+  max-height: 160px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.35;
+  padding: 5px 0;
+}
+.stg-note-input::placeholder { color: var(--text-secondary); }
+.stg-note-send {
+  flex: none;
+  min-height: 32px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 600;
+  position: relative;
+}
+.stg .stg-fold { justify-content: space-between; }
+.stg-fold-chev { color: var(--text-secondary); font-size: 20px; transition: rotate var(--dur-fast, 0.2s) var(--ease-ios, ease); }
+html[lang='he'] .stg-fold-chev { rotate: 180deg; }
+.stg-fold-chev.is-open, html[lang='he'] .stg-fold-chev.is-open { rotate: 90deg; }
+
+/* recordings — the red dot is the system's recording sign (Voice Memos) */
+.stg-rec-dot {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff3b30;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #ff3b30 22%, transparent);
+}
+.stg .stg-rec-row { gap: 12px; min-height: 48px; justify-content: flex-start; }
+.stg .stg-rec-row .ph-title { color: var(--danger); }
+.stg .stg-rec-row:disabled .ph-title { color: var(--text-secondary); }
+.stg-rec-row.is-on .stg-rec-dot { animation: stg-rec-pulse 1.2s ease-in-out infinite; }
+.stg-rec-time { font-variant-numeric: tabular-nums; flex: 1; }
+.stg-rec-stop {
+  flex: none;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+  font-weight: 600;
+  position: relative;
+}
+@keyframes stg-rec-pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .stg-rec-row.is-on .stg-rec-dot, .stage-rec-key.is-on .stg-rec-dot { animation: none; } }
+.stg-takes .stg-rec-row + .stg-take, .stg-take + .stg-take, .stg-take + .stg-take-saving { border-top: 0.5px solid var(--separator); }
+.stg-take-play {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: var(--fill-tertiary);
+  color: var(--accent);
+  position: relative;
+}
+.stg-take.is-playing .stg-take-play { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.stg-take-wave {
+  display: flex;
+  align-items: center;
+  gap: 1.5px;
+  height: 16px;
+  margin-top: 4px;
+  max-width: 260px;
+  direction: ltr;
+}
+.stg-take-wave i { flex: 1; min-width: 1px; border-radius: 1px; background: var(--separator); }
+.stg-take-wave i.is-past { background: var(--accent); }
+.stg-take-saving { min-height: 40px; }
+
+/* offline: like Music's "downloaded" check */
+.stg-offline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: -6px 4px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.stg-offline.is-ok svg { color: #34c759; }
+.stg-offline-get {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  min-height: 28px;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  position: relative;
+}
+.stg-offline-sub { flex-basis: 100%; }
+
+/* the Performer's record key + its open notes */
+.stage-rec-key .stg-rec-dot { width: 12px; height: 12px; box-shadow: none; }
+.stage-rec-key.is-on { gap: 6px; padding: 0 12px; font-variant-numeric: tabular-nums; }
+.stage-rec-key.is-on .stg-rec-dot { animation: stg-rec-pulse 1.2s ease-in-out infinite; }
+.stage-open-notes { margin: 2px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.stage-open-notes li { font-size: 14px; line-height: 1.35; color: rgba(255, 255, 255, 0.9); text-align: start; }
+.stage-open-notes small { color: rgba(255, 255, 255, 0.55); }
+.stg .stg-rec-row.is-on { background: transparent; }
+.stage-perf .stage-rec-key.is-on { background: rgba(255, 59, 48, 0.24); color: #fff; }
+.stage-perf .stage-rec-key.is-on .stg-rec-dot { background: #ff453a; }

@@ -16,6 +16,9 @@ import { LyricsSheet } from './LyricsSheet';
 import { setSheetLyrics } from '../../music/sheets/sheetStore';
 import { embedOf } from '../../music/sheets/songLink';
 import { hasListenHost, openListen } from '../../music/sheets/listenStore';
+import { PerformerRecKey } from './SongExtras';
+import { rehearsalState, stopRehearsal, switchRehearsal } from '../../audio/rehearsal';
+import { notesOf, useNotesVersion } from '../../music/sheets/songNotes';
 
 // The Stage's performance screen (v1.0.176): one chart of a setlist at a
 // time, full screen on black, the pages at the screen's width. Auto-scroll
@@ -181,6 +184,13 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   songsRef.current = songs;
   const idxRef = useRef(idx);
   idxRef.current = idx;
+  useNotesVersion();
+  // recording the rehearsal (v1.0.244): a new song = a new take on it; leaving
+  // the stage ends the recording (the last take is saved)
+  useEffect(() => {
+    if (song && rehearsalState().on) switchRehearsal({ id: song.id, name: song.name });
+  }, [song?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => void stopRehearsal(), []);
   const [doc, setDoc] = useState(null);
   const [sizes, setSizes] = useState([]);
   const [chords, setChords] = useState(null); // per page, null = still looking
@@ -207,6 +217,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const [scroller, setScroller] = useState(null);
   // the song's words (v1.0.206) and how THIS device shows the song
   const [rec, setRec] = useState(null); // {pdf, lyrics} once read
+  const openNotes = song ? notesOf(song.id, rec?.band ?? null).filter((n) => !n.done && n.kind === 'note') : [];
   const [viewPref, setViewPref] = useState(readView);
   const [startNote, setStartNote] = useState(null);
   const [editWords, setEditWords] = useState(false);
@@ -241,7 +252,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         const r = await getSheet(song.id);
         if (!r) throw new Error('missing');
         if (!alive) return;
-        setRec({ pdf: !!r.blob, lyrics: r.lyrics ?? '' });
+        setRec({ pdf: !!r.blob, lyrics: r.lyrics ?? '', band: r.band ?? null });
       } catch {
         if (alive) setError(true);
       }
@@ -1127,6 +1138,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
             <bdi>{next ? t('stage.next', { name: next.name }) : songs.length > 1 ? t('stage.last') : ''}</bdi>
           </span>
         </button>
+        <PerformerRecKey song={song} t={t} />
         {hasListenHost() && embedOf(sheetPrefs(song.id).link) && (
           <button
             type="button"
@@ -1254,6 +1266,19 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
               <span className="stage-field-label">{t('stage.notes')}</span>
               <textarea className="stage-notes-input" dir="auto" rows={3} maxLength={300} value={note} placeholder={t('stage.notesHint')} onChange={(e) => saveNote(e.target.value)} />
             </label>
+            {openNotes.length > 0 && (
+              <div className="stage-field is-col">
+                <span className="stage-field-label">{t('stage.sp.notes')}</span>
+                <ul className="stage-open-notes">
+                  {openNotes.slice(0, 6).map((n) => (
+                    <li key={n.id} dir="auto">
+                      {n.body}
+                      {n.byName ? <small> · {n.byName}</small> : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="stage-field">
               <span className="stage-field-label">{t('stage.click')}</span>
               <button type="button" role="switch" aria-checked={click} className={'stage-switch' + (click ? ' is-on' : '')} onClick={toggleClick} aria-label={t('stage.click')}>

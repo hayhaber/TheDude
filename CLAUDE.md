@@ -3589,3 +3589,14 @@ no tools).
   (no key -> Apple link): 3 suggestions, pick fills name + link, row key,
   listen-sheet search sets the link; no errors. Real iTunes / YouTube NOT
   reachable from here.
+- v1.0.231 (user: the Suggest sheet had "Done" on top — which only
+  closed it — and "Suggest" at the bottom; confusing): FORM sheets in
+  Band now use iOS's new-item header: Cancel (start, regular) · title
+  (centred) · Add / Save (end, bold, disabled until the form is valid),
+  no bottom button. StageView `Sheet` takes `action` {label, onClick,
+  disabled, busy}; used by the Suggest sheet (Add / Save), the
+  listening-link sheet (Save; Remove stays at the bottom, red) and
+  AskSheet (new band / join / rename). Info sheets (manage band, pick
+  songs, photos) keep Done. Strings `stage.cancel`, `stage.sg.addBtn`.
+  Playwright sugg.cjs + ss.cjs (390 HE + 1180 EN): add / edit / link
+  flows pass, no errors.

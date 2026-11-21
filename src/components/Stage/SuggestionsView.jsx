@@ -56,7 +56,13 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
     }
   };
   return (
-    <Sheet title={item ? t('stage.sg.editTitle') : t('stage.sg.newTitle')} onClose={onClose} dir={dir} t={t}>
+    <Sheet
+      title={item ? t('stage.sg.editTitle') : t('stage.sg.newTitle')}
+      onClose={onClose}
+      dir={dir}
+      t={t}
+      action={{ label: item ? t('stage.sg.save') : t('stage.sg.addBtn'), onClick: go, disabled: !v.title.trim() || linkBad, busy }}
+    >
       <SongSearchField
         label={t('stage.sg.song')}
         value={v.title}
@@ -87,11 +93,6 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
       </label>
       {item && <p className="stg-fine stg-sg-by">{[t('stage.sg.by', { name: item.byName || '—' }), voters.length ? t('stage.sg.likedBy', { names: voters.join(', ') }) : null].filter(Boolean).join(' · ')}</p>}
       {err && <p className="stg-err">{err}</p>}
-      <div className="stg-sheet-foot">
-        <button type="button" className="stg-capsule is-primary" onClick={go} disabled={!v.title.trim() || busy || linkBad}>
-          {busy ? '…' : item ? t('stage.sg.save') : t('stage.sg.suggest')}
-        </button>
-      </div>
     </Sheet>
   );
 }

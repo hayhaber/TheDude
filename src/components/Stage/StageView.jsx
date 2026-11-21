@@ -128,8 +128,11 @@ function bandErr(e, t) {
   return t('stage.cloud.failed') + (m ? ` (${m.slice(0, 140)})` : '');
 }
 
-/** A small sheet over the screen (Liquid Glass), closed by Done / a tap outside. */
-function Sheet({ title, onClose, children, dir, t }) {
+/** A small sheet over the screen (Liquid Glass), closed by Done / a tap outside.
+ *  A FORM sheet passes `action` {label, onClick, disabled, busy}: the header is
+ *  then iOS's Cancel · title · Add (bold, disabled until the form is valid) and
+ *  the sheet has no bottom button (v1.0.231). */
+function Sheet({ title, onClose, children, dir, t, action = null }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -138,12 +141,24 @@ function Sheet({ title, onClose, children, dir, t }) {
   return (
     <div className="stg-sheet-scrim" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="stg-sheet glass" role="dialog" aria-label={title} dir={dir}>
-        <header className="stg-sheet-head">
-          <strong>{title}</strong>
-          <button type="button" className="stg-done" onClick={onClose}>
-            {t('stage.done')}
-          </button>
-        </header>
+        {action ? (
+          <header className="stg-sheet-head is-form">
+            <button type="button" className="stg-done is-cancel" onClick={onClose}>
+              {t('stage.cancel')}
+            </button>
+            <strong>{title}</strong>
+            <button type="button" className="stg-done" onClick={action.onClick} disabled={action.disabled || action.busy}>
+              {action.busy ? '…' : action.label}
+            </button>
+          </header>
+        ) : (
+          <header className="stg-sheet-head">
+            <strong>{title}</strong>
+            <button type="button" className="stg-done" onClick={onClose}>
+              {t('stage.done')}
+            </button>
+          </header>
+        )}
         {children}
       </div>
     </div>
@@ -196,7 +211,7 @@ function ListenSheet({ name, link, onSave, onClose, dir, t }) {
   const bad = !!v.trim() && !url;
   const svc = url ? serviceOf(url) : null;
   return (
-    <Sheet title={t('stage.listen.title')} onClose={onClose} dir={dir} t={t}>
+    <Sheet title={t('stage.listen.title')} onClose={onClose} dir={dir} t={t} action={{ label: t('stage.listen.save'), onClick: () => onSave(url), disabled: bad || !url }}>
       <p className="stg-sheet-sub" dir="auto">{name}</p>
       <SongSearchField
         label={t('stage.ss.find')}
@@ -238,16 +253,13 @@ function ListenSheet({ name, link, onSave, onClose, dir, t }) {
           </a>
         ))}
       </p>
-      <div className="stg-sheet-foot">
-        {link && (
+      {link && (
+        <div className="stg-sheet-foot">
           <button type="button" className="stg-capsule is-danger" onClick={() => onSave(null)}>
             {t('stage.listen.remove')}
           </button>
-        )}
-        <button type="button" className="stg-capsule is-primary" onClick={() => onSave(url)} disabled={bad || !url}>
-          {t('stage.listen.save')}
-        </button>
-      </div>
+        </div>
+      )}
     </Sheet>
   );
 }
@@ -270,7 +282,7 @@ function AskSheet({ title, label, placeholder, action, onSubmit, onClose, dir, t
     }
   };
   return (
-    <Sheet title={title} onClose={onClose} dir={dir} t={t}>
+    <Sheet title={title} onClose={onClose} dir={dir} t={t} action={{ label: action, onClick: go, disabled: !v.trim(), busy }}>
       <label className="stg-field">
         <span>{label}</span>
         <input
@@ -286,11 +298,6 @@ function AskSheet({ title, label, placeholder, action, onSubmit, onClose, dir, t
         />
       </label>
       {err && <p className="stg-err">{err}</p>}
-      <div className="stg-sheet-foot">
-        <button type="button" className="stg-capsule is-primary" onClick={go} disabled={!v.trim() || busy}>
-          {busy ? '…' : action}
-        </button>
-      </div>
     </Sheet>
   );
 }

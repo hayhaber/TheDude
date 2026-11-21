@@ -246,6 +246,27 @@
   font-weight: 600;
   cursor: pointer;
 }
+/* form sheet: Cancel · title (centred) · Add (bold) — iOS's new-item sheet */
+.stg-sheet-head.is-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+}
+.stg-sheet-head.is-form strong {
+  text-align: center;
+}
+.stg-sheet-head.is-form .stg-done {
+  justify-self: end;
+}
+.stg-sheet-head.is-form .stg-done.is-cancel {
+  justify-self: start;
+  font-weight: 400;
+}
+.stg-done:disabled {
+  color: var(--text-tertiary, var(--text-secondary));
+  opacity: 0.6;
+  cursor: default;
+}
 .stg-sheet-foot {
   display: flex;
   justify-content: center;

@@ -1937,3 +1937,109 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
 .stg-capsule.is-danger {
   color: var(--danger);
 }
+
+/* v1.0.229: a row's ••• menu opens below the row — the inset group must
+   not clip it (on the iPad only the first item of a lower row showed). */
+.stg .ph-group.stg-group {
+  overflow: visible;
+}
+.stg .ph-group.stg-group > :first-child {
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+}
+.stg .ph-group.stg-group > :last-child {
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
+}
+.stg .stg-row:has(.more-menu-btn.active) {
+  position: relative;
+  z-index: 5;
+}
+
+/* ---- the in-app listening player (v1.0.229) ---- */
+.stg-dock {
+  position: fixed;
+  z-index: 260; /* above the Performer (200) */
+  inset-inline-end: max(12px, env(safe-area-inset-right));
+  bottom: calc(env(safe-area-inset-bottom) + 96px);
+  width: min(340px, calc(100vw - 24px));
+  padding: 6px 6px 8px;
+  border-radius: 20px;
+  background: var(--glass-sheet, rgba(248, 248, 250, 0.9));
+  -webkit-backdrop-filter: var(--glass-sheet-filter, blur(30px) saturate(180%));
+  backdrop-filter: var(--glass-sheet-filter, blur(30px) saturate(180%));
+  box-shadow: var(--glass-sheet-shadow, 0 18px 48px rgba(0, 0, 0, 0.2));
+  color: var(--text);
+  text-align: start;
+}
+.stg-dock-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 2px 6px 8px;
+  min-width: 0;
+}
+.stg-dock-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.stg-dock-title strong,
+.stg-dock-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stg-dock-title strong { font-size: 15px; font-weight: 600; }
+.stg-dock-title span { font-size: 12px; color: var(--text-secondary); }
+html .stg-dock .stg-dock-key {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+html .stg-dock .stg-dock-key:active { background: var(--fill-tertiary); }
+.stg-dock-frame {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+}
+.stg-dock.is-spotify .stg-dock-frame,
+.stg-dock.is-apple .stg-dock-frame { background: transparent; }
+.stg-dock-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+/* folded: smaller, never hidden (the services' players must stay visible
+   while they play) — YouTube a small video, Spotify its compact bar */
+.stg-dock.is-mini {
+  width: min(220px, calc(100vw - 24px));
+}
+.stg-dock.is-mini .stg-dock-title span { display: none; }
+.stg-dock.is-mini.is-spotify .stg-dock-frame { height: 80px !important; }
+@media (max-width: 560px) {
+  .stg-dock {
+    inset-inline: 12px;
+    width: auto;
+  }
+  .stg-dock.is-mini { inset-inline-start: auto; width: min(220px, calc(100vw - 24px)); }
+}
+
+html .stg button.stg-listen {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}

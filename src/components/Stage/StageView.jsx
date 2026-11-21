@@ -33,7 +33,9 @@ import { Segmented } from '../ui/controls';
 import { openBandLink } from '../../music/sheets/bandLink';
 import { LyricsSheet } from './LyricsSheet';
 import { SuggestionsView } from './SuggestionsView';
-import { cleanLink, serviceOf } from '../../music/sheets/songLink';
+import { cleanLink, embedOf, serviceOf } from '../../music/sheets/songLink';
+import { openListen } from '../../music/sheets/listenStore';
+import { ListenDock } from './ListenDock';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -162,11 +164,19 @@ function ListenGlyph({ size = 18 }) {
 }
 
 /** The song's listening link (v1.0.227): a round key at the row's end. */
-function ListenKey({ link, t }) {
+function ListenKey({ link, name, t }) {
   const url = cleanLink(link);
   if (!url) return null;
   const svc = serviceOf(url);
   const label = t('stage.listen.on.' + svc);
+  // YouTube / Spotify / Apple Music play INSIDE the app (the dock), the
+  // rest opens outside
+  if (embedOf(url))
+    return (
+      <button type="button" className={'stg-listen is-' + svc} onClick={() => openListen(url, name)} aria-label={label} title={label}>
+        <ListenGlyph />
+      </button>
+    );
   return (
     <a className={'stg-listen is-' + svc} href={url} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
       <ListenGlyph />
@@ -871,6 +881,7 @@ export function StageView({ onAccount, start = null }) {
   };
   const dialogs = (
     <>
+      <ListenDock />
       {listen && <ListenSheet name={listen.name} link={listen.link} onSave={saveListen} onClose={() => setListen(null)} dir={dir} t={t} />}
       {words && <LyricsSheet songId={words.id} name={words.name} text={words.text} hasPdf={words.pdf} onSave={saveWords} onClose={() => setWords(null)} />}
       {dialog === 'link' && (
@@ -1041,7 +1052,7 @@ export function StageView({ onAccount, start = null }) {
                 </span>
                 {!s.missing && durOf(s.id) && <span className="stg-detail">{durOf(s.id)}</span>}
               </button>
-              {!s.missing && <ListenKey link={linkOf(s.id)} t={t} />}
+              {!s.missing && <ListenKey link={linkOf(s.id)} name={s.name} t={t} />}
               <MoreMenu label={t('stage.more')}>
                 {!s.missing && (
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
@@ -1305,7 +1316,7 @@ export function StageView({ onAccount, start = null }) {
                     )}
                   </button>
                 )}
-                {renaming !== s.id && <ListenKey link={linkOf(s.id)} t={t} />}
+                {renaming !== s.id && <ListenKey link={linkOf(s.id)} name={s.name} t={t} />}
                 <MoreMenu label={t('stage.more')}>
                   <button type="button" className="more-menu-item" onClick={() => setRenaming(s.id)}>
                     {t('stage.rename')}

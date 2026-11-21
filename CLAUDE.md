@@ -3536,3 +3536,31 @@ no tools).
 - v1.0.228 (user picked option 1 of 5): the Tools button's icon is a
   TUNING FORK (LineIcon `tools`: two tines joined in a U + the stem) — it
   says "music tools"; the wrench (v1.0.225) read as generic settings.
+- v1.0.229 (user, iPad: the 2nd+ song's ••• had no "Add link"; "can Play
+  play the song while I keep seeing the chart?"). (1) The items were
+  there — `.ph-group`'s overflow: hidden CLIPPED the menu under a lower
+  row (only "Rename" showed). Stage.css: `.stg .ph-group.stg-group`
+  overflow visible (first / last child inherit the radius) and the row
+  with an open menu raised (`:has(.more-menu-btn.active)`, z 5).
+  (2) IN-APP LISTENING: `songLink.embedOf()` = the service's own embed —
+  YouTube (youtu.be / watch / shorts / music.youtube -> youtube-nocookie
+  embed, playsinline, t= -> start, 16:9), Spotify (track / album /
+  playlist / episode, intl-xx ok -> open.spotify.com/embed, 152 px),
+  Apple Music (album / song / playlist -> embed.music.apple.com, 175 px);
+  else null = the key opens the link outside as before. Pure store
+  `music/sheets/listenStore.js` (open / close / hosts). `Stage/ListenDock
+  .jsx` (mounted by StageView, portal, z 260 = ABOVE the Performer's
+  200): a Liquid Glass card at the bottom end corner (phones: full width
+  minus 12) — song name · service, ↗ open in the app, fold (smaller:
+  220 px wide, Spotify 80 px — never hidden, the services' players must
+  stay visible while playing), × stop; the iframe stays mounted so the
+  song plays on while the chart / words show. The list's listen key plays
+  in the dock; the Performer's top bar gets a headphones key when the
+  song has an embeddable link and a dock host exists. iOS may need one
+  tap on the player itself to start (autoplay with sound is the browser's
+  call). Spotify / Apple embeds play the full song only when signed in to
+  that service in the browser, else a 30-s preview (their rule). Privacy
+  page: listening links + embedded players (21 Nov 2026). Playwright 390
+  / 820 HE + 1180 EN (embeds route-mocked): every row's menu fully
+  visible, link -> dock with the embed URL, open the song -> Performer
+  with the dock on top + its listen key, fold, close; no errors.

@@ -15,7 +15,7 @@ const Mail = () => (
 
 const HE = {
   title: 'מדיניות פרטיות',
-  updated: 'עודכן לאחרונה: 14 בנובמבר 2026',
+  updated: 'עודכן לאחרונה: 21 בנובמבר 2026',
   back: 'חזרה',
   sections: [
     ['1. מי אנחנו', <>DudeStar (״האפליקציה״) היא אפליקציית אינטרנט ללימוד ולתרגול נגינה ושירה, בכתובת <bdi className="privacy-ltr">the-dude.vercel.app</bdi>. בכל נושא אפשר לפנות אלינו בכתובת <Mail />.</>],
@@ -33,7 +33,7 @@ const HE = {
             <b>נתוני התרגול שמסונכרנים:</b> הגדרות (כמו יד מנגנת וצלילים), התקדמות בתרגילים ובקורסים, תוצאות והיסטוריית תרגול, טווח קולי, ומהלכים ותבניות ששמרת.
           </li>
           <li>
-            <b>צ׳ארטים (קובצי ⁦PDF⁩) שתוסיף במסך ״במה״ כשאתה מחובר</b> נשמרים בענן כדי שיגיעו לכל המכשירים שלך. צ׳ארט ורשימת שירים שתוסיף ללהקה גלויים לחברי אותה להקה בלבד (מי שהצטרף עם קוד ההזמנה שלה), יחד עם השם שבחרת בפרופיל. מי שמנהל להקה יכול להסיר ממנה חברים ולמחוק אותה, וכל חבר יכול לצאת ממנה. תמונה של צ׳ארט הופכת לקובץ ⁦PDF⁩ במכשיר עצמו. צ׳ארט שמוסיפים מקישור עובר דרך השרת של האפליקציה רק כדי להוריד אותו — הקישור והקובץ לא נשמרים שם. כשמנגנים יחד (״אני מוביל״ / ״עוקב״), המכשירים של חברי הלהקה מעבירים זה לזה בזמן אמת איזה שיר מוצג, היכן הגלילה והשם שבפרופיל — דרך שירות הזמן האמת של Supabase, בלי לשמור דבר.
+            <b>צ׳ארטים (קובצי ⁦PDF⁩) שתוסיף במסך ״במה״ כשאתה מחובר</b> נשמרים בענן כדי שיגיעו לכל המכשירים שלך. צ׳ארט ורשימת שירים שתוסיף ללהקה גלויים לחברי אותה להקה בלבד (מי שהצטרף עם קוד ההזמנה שלה), יחד עם השם שבחרת בפרופיל. מי שמנהל להקה יכול להסיר ממנה חברים ולמחוק אותה, וכל חבר יכול לצאת ממנה. תמונה של צ׳ארט הופכת לקובץ ⁦PDF⁩ במכשיר עצמו. צ׳ארט שמוסיפים מקישור עובר דרך השרת של האפליקציה רק כדי להוריד אותו — הקישור והקובץ לא נשמרים שם. כשמנגנים יחד (״אני מוביל״ / ״עוקב״), המכשירים של חברי הלהקה מעבירים זה לזה בזמן אמת איזה שיר מוצג, היכן הגלילה והשם שבפרופיל — דרך שירות הזמן האמת של Supabase, בלי לשמור דבר. לשיר אפשר לצרף קישור להאזנה (YouTube‏, Spotify‏, Apple Music) — הוא נשמר עם השיר וגלוי לחברי הלהקה. כשמשמיעים אותו בתוך האפליקציה, הנגן נטען ישירות מאותו שירות, ותנאי הפרטיות שלו חלים עליו.
           </li>
           <li>
             <b>הקלטות אינן מסונכרנות</b> ונשארות במכשיר.
@@ -72,7 +72,7 @@ const HE = {
 
 const EN = {
   title: 'Privacy Policy',
-  updated: 'Last updated: 14 November 2026',
+  updated: 'Last updated: 21 November 2026',
   back: 'Back',
   sections: [
     ['1. Who we are', <>DudeStar (“the app”) is a web app for learning and practising music, at the-dude.vercel.app. For any matter, contact us at <Mail />.</>],
@@ -90,7 +90,7 @@ const EN = {
             <b>Practice data you sync:</b> settings (such as playing hand and sounds), progress in exercises and courses, results and practice history, vocal range, and saved progressions and patterns.
           </li>
           <li>
-            <b>Charts (PDF files) you add to Stage while signed in</b> are stored in the cloud so they reach all your devices. A chart or setlist you add to a band is visible only to that band’s members (people who joined with its invite code), together with the name you chose for your profile. A band’s manager can remove members and delete the band; any member can leave it. A photo of a chart is turned into a PDF on the device itself. A chart added from a link passes through the app’s server only to be downloaded — neither the link nor the file is kept there. When you play together (“I lead” / “Follow”), the band members’ devices pass each other, live, which song is shown, where the scroll is and your profile name — through Supabase’s realtime service, with nothing stored.
+            <b>Charts (PDF files) you add to Stage while signed in</b> are stored in the cloud so they reach all your devices. A chart or setlist you add to a band is visible only to that band’s members (people who joined with its invite code), together with the name you chose for your profile. A band’s manager can remove members and delete the band; any member can leave it. A photo of a chart is turned into a PDF on the device itself. A chart added from a link passes through the app’s server only to be downloaded — neither the link nor the file is kept there. When you play together (“I lead” / “Follow”), the band members’ devices pass each other, live, which song is shown, where the scroll is and your profile name — through Supabase’s realtime service, with nothing stored. A song can carry a listening link (YouTube, Spotify, Apple Music) — it is saved with the song and visible to the band’s members. When you play it inside the app, the player is loaded directly from that service, and its own privacy terms apply.
           </li>
           <li>
             <b>Recordings are not synced</b> and stay on your device.

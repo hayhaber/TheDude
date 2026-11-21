@@ -14,6 +14,8 @@ import { Segmented } from '../ui/controls';
 import { Select } from '../ui/Select';
 import { LyricsSheet } from './LyricsSheet';
 import { setSheetLyrics } from '../../music/sheets/sheetStore';
+import { embedOf } from '../../music/sheets/songLink';
+import { hasListenHost, openListen } from '../../music/sheets/listenStore';
 
 // The Stage's performance screen (v1.0.176): one chart of a setlist at a
 // time, full screen on black, the pages at the screen's width. Auto-scroll
@@ -1125,6 +1127,17 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
             <bdi>{next ? t('stage.next', { name: next.name }) : songs.length > 1 ? t('stage.last') : ''}</bdi>
           </span>
         </button>
+        {hasListenHost() && embedOf(sheetPrefs(song.id).link) && (
+          <button
+            type="button"
+            className="stage-key is-round stage-listen-key"
+            onClick={() => openListen(sheetPrefs(song.id).link, song.name)}
+            aria-label={t('stage.listen.play')}
+            title={t('stage.listen.play')}
+          >
+            <Icon d="M3 14v-2a9 9 0 0 1 18 0v2M3 14a2 2 0 0 1 2-2h1v7H5a2 2 0 0 1-2-2zM21 14a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z" size={18} />
+          </button>
+        )}
         {songs.length > 1 && (
           <button
             type="button"

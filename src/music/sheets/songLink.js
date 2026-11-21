@@ -32,3 +32,37 @@ export function serviceOf(link) {
   for (const [k, re] of HOSTS) if (re.test(host)) return k;
   return 'web';
 }
+
+/**
+ * An in-app player for the link (v1.0.229): {src, ratio | height} for a
+ * YouTube video, a Spotify track / album / playlist or an Apple Music
+ * song / album; null when the service has no embed (the link opens outside).
+ */
+export function embedOf(link) {
+  const c = cleanLink(link);
+  if (!c) return null;
+  const u = new URL(c);
+  const host = u.hostname.replace(/^www\.|^m\./, '');
+  if (host === 'youtu.be' || /(^|\.)youtube\.com$/.test(host)) {
+    let id = null;
+    if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+    else if (u.searchParams.get('v')) id = u.searchParams.get('v');
+    else {
+      const m = u.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/);
+      if (m) id = m[1];
+    }
+    if (!id || !/^[\w-]{6,20}$/.test(id)) return null;
+    const t = parseInt(u.searchParams.get('t') || '', 10);
+    return { kind: 'youtube', src: `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0&autoplay=1${t > 0 ? '&start=' + t : ''}`, ratio: 16 / 9 };
+  }
+  if (/(^|\.)spotify\.com$/.test(host)) {
+    const m = u.pathname.match(/^\/(?:intl-[a-z]{2}\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+    if (!m) return null;
+    return { kind: 'spotify', src: `https://open.spotify.com/embed/${m[1]}/${m[2]}`, height: 152 };
+  }
+  if (host === 'music.apple.com') {
+    if (!/\/(album|song|playlist)\//.test(u.pathname)) return null;
+    return { kind: 'apple', src: `https://embed.music.apple.com${u.pathname}${u.search}`, height: 175 };
+  }
+  return null;
+}

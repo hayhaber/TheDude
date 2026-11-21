@@ -3794,3 +3794,11 @@ no tools).
   cloud sync on a device that never synced (it offered "create a band"
   to a member). Playwright fake Supabase 1180 + 390 HE: no sheet on
   open, invite row shares the link text, Back -> band screen.
+- v1.0.243 (user: "in readiness, Learning and Not yet get the same
+  mark?" — yes: in a band the row tag counted only READY members, so
+  Learning and Not yet both read "0/2 ready"): the row tag is now MY
+  status in every library (Ready green / Learning orange / Not yet grey,
+  none = no tag); "All ready" green only when every member is ready. The
+  band's overall picture stays in the "Ready for the show" panel.
+  Playwright rd.cjs (fake Supabase, 2 members): B marks Zombie Ready +
+  Africa Learning -> tags "All ready" / "Learning"; panel unchanged.

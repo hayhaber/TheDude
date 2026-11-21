@@ -733,11 +733,13 @@ export function StageView({ onAccount, start = null }) {
   };
   const readyMark = (id) => {
     if (!canReady) return null;
+    // v1.0.243: the row shows MY status (the word I chose in •••), the same
+    // in every library — the band's overall picture is the "Ready for the
+    // show" panel. Only when every member is ready does it say so.
     if (!band) return <ReadyMark mine={myReady(id)} t={t} />;
-    // nothing until someone has marked the song
-    if (!band.members.some((m) => readyOf(id, m.id))) return null;
-    const k = band.members.filter((m) => readyOf(id, m.id) === 'know').length;
-    return <ReadyMark k={k} n={band.members.length} t={t} />;
+    const all = band.members.length > 1 && band.members.every((m) => readyOf(id, m.id) === 'know');
+    if (all) return <ReadyMark k={band.members.length} n={band.members.length} t={t} />;
+    return <ReadyMark mine={readyOf(id, uid)} t={t} />;
   };
   const readyItems = (id) =>
     canReady

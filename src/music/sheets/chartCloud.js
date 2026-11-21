@@ -108,7 +108,7 @@ export async function syncWith(sb, uid, local) {
     const rec = await local.getSheet(meta.id);
     if (!rec) continue;
     // a words-only song has no file; it needs migration 004's columns
-    if (!rec.blob && (!hasSong || !rec.lyrics)) continue;
+    if (!rec.blob && !hasSong) continue;
     const path = rec.blob ? pathFor(uid, rec) : '';
     if (rec.blob) {
       const up = await sb.storage.from(BUCKET).upload(path, rec.blob, { upsert: true, contentType: 'application/pdf' });

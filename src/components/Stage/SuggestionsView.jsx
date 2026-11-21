@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { cleanLink } from '../../music/sheets/songLink';
+import { SongSearchField } from './SongSearchField';
+import { linkFor } from '../../music/sheets/songSearch';
 import { setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
 import { addSuggestion, addTextSong, removeSuggestion, updateSuggestion, voteSuggestion } from '../../music/sheets/chartCloud';
 
@@ -37,6 +39,7 @@ function ThumbGlyph({ on }) {
 function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
   const [v, setV] = useState({ title: item?.title ?? '', artist: item?.artist ?? '', link: item?.link ?? '', note: item?.note ?? '' });
   const [busy, setBusy] = useState(false);
+  const [finding, setFinding] = useState(false);
   const [err, setErr] = useState(null);
   const ch = (k) => (e) => setV({ ...v, [k]: e.target.value });
   const linkBad = v.link.trim() && !safeLink(v.link.trim());
@@ -54,10 +57,20 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
   };
   return (
     <Sheet title={item ? t('stage.sg.editTitle') : t('stage.sg.newTitle')} onClose={onClose} dir={dir} t={t}>
-      <label className="stg-field">
-        <span>{t('stage.sg.song')}</span>
-        <input autoFocus={!item} dir="auto" value={v.title} maxLength={120} placeholder={t('stage.sg.songPh')} onChange={ch('title')} onKeyDown={(e) => e.key === 'Enter' && go()} />
-      </label>
+      <SongSearchField
+        label={t('stage.sg.song')}
+        value={v.title}
+        placeholder={t('stage.sg.songPh')}
+        autoFocus={!item}
+        onChange={(title) => setV((o) => ({ ...o, title: title.slice(0, 120) }))}
+        onPick={async (song) => {
+          setV((o) => ({ ...o, title: song.title, artist: song.artist, link: song.apple || o.link }));
+          setFinding(true);
+          const l = await linkFor(song);
+          if (l) setV((o) => ({ ...o, link: l }));
+          setFinding(false);
+        }}
+      />
       <label className="stg-field">
         <span>{t('stage.sg.artist')}</span>
         <input dir="auto" value={v.artist} maxLength={120} placeholder={t('stage.sg.artistPh')} onChange={ch('artist')} onKeyDown={(e) => e.key === 'Enter' && go()} />
@@ -66,6 +79,7 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t }) {
         <span>{t('stage.sg.link')}</span>
         <input dir="ltr" type="url" inputMode="url" autoCapitalize="off" autoCorrect="off" value={v.link} maxLength={500} placeholder="https://" onChange={ch('link')} />
       </label>
+      {finding && <p className="stg-ss-note">{t('stage.ss.finding')}</p>}
       {linkBad && <p className="stg-err">{t('stage.sg.linkBad')}</p>}
       <label className="stg-field">
         <span>{t('stage.sg.note')}</span>

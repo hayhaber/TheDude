@@ -5,6 +5,9 @@ import { getSheet } from '../../music/sheets/sheetStore';
 import { pdfLines, songToLyrics } from '../../music/sheets/lyricsText';
 import { loadPdfDocument } from '../../music/pdfTextExtractor';
 import { SONGS_KEY } from '../Songwriter/useSongs';
+import { SongSearchField } from './SongSearchField';
+import { linkFor, songLabel } from '../../music/sheets/songSearch';
+import { serviceOf } from '../../music/sheets/songLink';
 
 // A song's words for the singer (v1.0.206): typed / pasted, brought from a
 // song written in the Songwriter, or pulled out of the song's chart PDF
@@ -29,6 +32,8 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
   const { t, lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const [name, setName] = useState(initialName);
+  const [link, setLink] = useState(null); // from a picked search result
+  const [finding, setFinding] = useState(false);
   const [text, setText] = useState(initialText);
   const [start, setStart] = useState(null);
   const [src, setSrc] = useState('type');
@@ -73,7 +78,8 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
     }
   };
 
-  const canSave = (songId || name.trim()) && (text.trim() || songId);
+  // a new song may start as a name (+ its listening link) alone
+  const canSave = songId || name.trim();
   const options = [
     { value: 'type', label: t('stage.ly.srcType') },
     { value: 'mine', label: t('stage.ly.srcMine') },
@@ -88,16 +94,33 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
             {t('stage.ly.cancel')}
           </button>
           <strong>{songId ? t('stage.ly.title') : t('stage.ly.newTitle')}</strong>
-          <button type="button" className="stg-capsule is-primary stg-ly-save" disabled={!canSave} onClick={() => onSave({ name: name.trim(), text: text.replace(/\s+$/, ''), start })}>
+          <button type="button" className="stg-capsule is-primary stg-ly-save" disabled={!canSave} onClick={() => onSave({ name: name.trim(), text: text.replace(/\s+$/, ''), start, link })}>
             {t('stage.ly.save')}
           </button>
         </header>
 
         {!songId && (
-          <label className="stg-field">
-            <span>{t('stage.ly.name')}</span>
-            <input dir="auto" value={name} placeholder={t('stage.ly.namePh')} onChange={(e) => setName(e.target.value)} autoFocus />
-          </label>
+          <>
+            <SongSearchField
+              label={t('stage.ly.name')}
+              value={name}
+              placeholder={t('stage.ly.namePh')}
+              autoFocus
+              onChange={(v) => {
+                setName(v);
+                setLink(null);
+              }}
+              onPick={async (song) => {
+                setName(songLabel(song));
+                setLink(song.apple || null);
+                setFinding(true);
+                const l = await linkFor(song);
+                setLink(l);
+                setFinding(false);
+              }}
+            />
+            {(finding || link) && <p className="stg-ss-note">{finding ? t('stage.ss.finding') : t('stage.ss.linked', { svc: t('stage.listen.svc.' + (serviceOf(link) || 'web')) })}</p>}
+          </>
         )}
 
         <Segmented options={options} value={src} onChange={setSrc} ariaLabel={t('stage.ly.from')} />

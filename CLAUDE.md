@@ -3564,3 +3564,28 @@ no tools).
   / 820 HE + 1180 EN (embeds route-mocked): every row's menu fully
   visible, link -> dock with the embed URL, open the song -> Performer
   with the dock on top + its listen key, fold, close; no errors.
+- SONG SEARCH (v1.0.230, user: "type a song and the band + a YouTube
+  link are added; type a band and pick from its songs" + "the play key
+  by the song looks too small"). `api/song-search.js` (Vercel): `?q=&c=`
+  = Apple's public iTunes Search (no key; entity song, country IL for
+  Hebrew / US, 8 unique title+artist, art 120 px, trackViewUrl = Apple
+  Music link; cached a day) · `?yt=<title artist>` = YouTube Data API v3
+  search (1 embeddable video) ONLY when the Vercel env var
+  `YOUTUBE_API_KEY` is set (never in the browser; 100 units / pick, free
+  10,000 / day) -> `{youtube, ready}`. Client `music/sheets/songSearch.js`
+  (`searchSongs` cached, `linkFor(song)` = YouTube else Apple Music,
+  `songLabel` "Title – Artist"). `Stage/SongSearchField.jsx` = a field
+  that suggests as you type (320 ms debounce, only after the user typed —
+  a prefilled value doesn't search): iOS rows (art 40 · title · artist),
+  "Song details from Apple Music" foot; a pick -> onPick. Used in: the
+  new-song Words sheet's name (pick -> "Title – Artist" + link; a new song
+  may now be saved with a name only; words-only songs with empty words
+  upload too), the Suggest sheet (title + artist + link), the listening-
+  link sheet ("Search for the song" above the link field; the old "Find it
+  on" search links stay as a fallback). Listen key = a 30 px filled disc
+  with a white triangle (SF play.circle.fill) in the service colour, 44
+  pt target. Privacy page: searches pass through our server to Apple /
+  YouTube. Playwright (API route-mocked) 390 HE (YouTube ready) + 1180 EN
+  (no key -> Apple link): 3 suggestions, pick fills name + link, row key,
+  listen-sheet search sets the link; no errors. Real iTunes / YouTube NOT
+  reachable from here.

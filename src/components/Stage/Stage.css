@@ -2043,3 +2043,62 @@ html .stg button.stg-listen {
   background: transparent;
   cursor: pointer;
 }
+
+/* ---- song search suggestions (v1.0.230) ---- */
+.stg-search-field { position: relative; }
+.stg-ss-note {
+  margin: 4px 4px 0;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.stg-ss-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 4px 0;
+  border-radius: 12px;
+  background: var(--surface);
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+html .stg-ss-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+html .stg-ss-row:active { background: var(--fill-tertiary); }
+.stg-ss-list li + li .stg-ss-row { box-shadow: inset 0 0.5px 0 var(--separator); }
+.stg-ss-row img,
+.stg-ss-art {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: var(--fill-tertiary);
+  object-fit: cover;
+}
+.stg-ss-text { min-width: 0; display: flex; flex-direction: column; }
+.stg-ss-title,
+.stg-ss-artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stg-ss-title { font-size: 16px; }
+.stg-ss-artist { font-size: 13px; color: var(--text-secondary); }
+.stg-ss-foot {
+  padding: 6px 12px 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}

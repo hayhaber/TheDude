@@ -36,6 +36,8 @@ import { SuggestionsView } from './SuggestionsView';
 import { cleanLink, embedOf, serviceOf } from '../../music/sheets/songLink';
 import { openListen } from '../../music/sheets/listenStore';
 import { ListenDock } from './ListenDock';
+import { SongSearchField } from './SongSearchField';
+import { linkFor, songLabel } from '../../music/sheets/songSearch';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
 // chart to chart, auto-scroll"): the band's PDF charts and setlists.
@@ -154,11 +156,12 @@ const SEARCH_URL = {
   apple: (q) => 'https://music.apple.com/search?term=' + encodeURIComponent(q),
 };
 
-function ListenGlyph({ size = 18 }) {
+function ListenGlyph({ size = 30 }) {
+  // SF Symbols' play.circle.fill: a filled disc in the service's colour
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
-      <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M10 8.3v7.4l6-3.7z" fill="currentColor" />
+      <circle cx="12" cy="12" r="11" fill="currentColor" />
+      <path d="M9.6 7.6v8.8l7.2-4.4z" fill="#fff" />
     </svg>
   );
 }
@@ -187,12 +190,29 @@ function ListenKey({ link, name, t }) {
 /** Add / change / remove a song's listening link. */
 function ListenSheet({ name, link, onSave, onClose, dir, t }) {
   const [v, setV] = useState(link || '');
+  const [q, setQ] = useState(name || '');
+  const [finding, setFinding] = useState(false);
   const url = cleanLink(v);
   const bad = !!v.trim() && !url;
   const svc = url ? serviceOf(url) : null;
   return (
     <Sheet title={t('stage.listen.title')} onClose={onClose} dir={dir} t={t}>
       <p className="stg-sheet-sub" dir="auto">{name}</p>
+      <SongSearchField
+        label={t('stage.ss.find')}
+        value={q}
+        placeholder={t('stage.ss.findPh')}
+        onChange={setQ}
+        onPick={async (song) => {
+          setQ(songLabel(song));
+          if (song.apple) setV(song.apple);
+          setFinding(true);
+          const l = await linkFor(song);
+          if (l) setV(l);
+          setFinding(false);
+        }}
+      />
+      {finding && <p className="stg-ss-note">{t('stage.ss.finding')}</p>}
       <label className="stg-field">
         <span>{t('stage.listen.label')}</span>
         <input
@@ -863,7 +883,7 @@ export function StageView({ onAccount, start = null }) {
       /* cancelled */
     }
   };
-  const saveWords = async ({ name, text, start: first }) => {
+  const saveWords = async ({ name, text, start: first, link }) => {
     const w = words;
     setWords(null);
     try {
@@ -871,7 +891,7 @@ export function StageView({ onAccount, start = null }) {
         await setSheetLyrics(w.id, text);
         if (first != null && sheetPrefs(w.id).start == null) setSheetPrefs(w.id, { start: first });
       } else {
-        const id = await addTextSong({ name, lyrics: text, band: bandId, start: first });
+        const id = await addTextSong({ name, lyrics: text, band: bandId, start: first, link: link || null });
         if (set) sets.setItems(set.id, [...set.items, id]);
       }
       await reload();

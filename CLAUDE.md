@@ -3781,3 +3781,16 @@ no tools).
   menu's first item (Rename, Delete after it); while editing, Done
   stays the one visible key. Playwright 390 HE + 1180 EN: ••• -> Edit
   -> drag / remove -> Done saved.
+- v1.0.242 (user: "Band -> Members opens the screen AND a share
+  window"): Members opened the Band screen with the band's manage SHEET
+  on top (invite card with a big Share key first). Now the band is a
+  PUSHED PAGE (iOS Settings / Family Sharing): StageView renders
+  `BandManagePage` when dialog === 'manage' (the band row and the
+  Members shortcut both open it; Back = the Band screen): h1 = band
+  name, Members group with "Invite Members" (person+ icon, accent) as
+  its last row — the system share sheet opens only on that tap — the
+  code as a selectable footnote, then rename / new code / another band,
+  then leave / delete. The Members shortcut also waits for the first
+  cloud sync on a device that never synced (it offered "create a band"
+  to a member). Playwright fake Supabase 1180 + 390 HE: no sheet on
+  open, invite row shares the link text, Back -> band screen.

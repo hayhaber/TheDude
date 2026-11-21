@@ -457,27 +457,17 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t, ini
 }
 
 /** The band's own sheet: invite code + Share, members, rename / new code / leave. */
-function BandManageSheet({ band, uid, here, onShare, onNewCode, onRename, onRemove, onAnother, onLeave, onClose, dir, t }) {
+/** The band's page (v1.0.242): pushed like an iOS Settings page (Family
+    Sharing) — members first, "Invite Members" as the group's last row (the
+    system share sheet opens only when that row is tapped), the code as a
+    footnote, then the band's settings. Never a sheet over another screen. */
+function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onRemove, onAnother, onLeave, t }) {
   const owner = band.owner === uid;
   const [renaming, setRenaming] = useState(false);
   const [sure, setSure] = useState(false);
   const hereIds = new Set(here.map((p) => (p.key || '').split(':')[0]));
   return (
-    <Sheet title={band.name} onClose={onClose} dir={dir} t={t}>
-      <div className="stg-invite-card">
-        <span className="stg-fine">{t('stage.band.code')}</span>
-        <div className="stg-code" dir="ltr">
-          {band.code}
-        </div>
-        <button type="button" className="stg-capsule is-primary" onClick={onShare}>
-          <svg viewBox="0 0 24 26" width="15" height="17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M12 3v14M7 8l5-5 5 5M5 12v10h14V12" />
-          </svg>
-          {t('stage.band.share')}
-        </button>
-        <span className="stg-fine">{t('stage.band.inviteHow2')}</span>
-      </div>
-
+    <>
       <h3 className="stg-sheet-sec">{t('stage.band.members') + ' · ' + band.members.length}</h3>
       <div className="ph-group stg-group">
         {band.members.map((m) => (
@@ -503,7 +493,20 @@ function BandManageSheet({ band, uid, here, onShare, onNewCode, onRename, onRemo
             )}
           </div>
         ))}
+        <button type="button" className="ph-row stg-action stg-invite-row" onClick={onShare}>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="9" cy="8" r="3.5" />
+            <path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M19 8v6M16 11h6" />
+          </svg>
+          {t('stage.band.inviteRow')}
+        </button>
       </div>
+      <p className="stg-fine is-under">
+        {t('stage.band.codeNote')}{' '}
+        <span className="stg-code-inline" dir="ltr">
+          {band.code}
+        </span>
+      </p>
       {owner && band.members.length > 1 && <p className="stg-fine is-under">{t('stage.band.ownerOnly')}</p>}
 
       <div className="ph-group stg-group stg-actions">
@@ -538,7 +541,7 @@ function BandManageSheet({ band, uid, here, onShare, onNewCode, onRename, onRemo
           {sure ? t('stage.deleteSure') : owner ? t('stage.band.delete') : t('stage.band.leave')}
         </button>
       </div>
-    </Sheet>
+    </>
   );
 }
 
@@ -927,6 +930,10 @@ export function StageView({ onAccount, start = null }) {
   const startedRef = useRef(false);
   useEffect(() => {
     if (startedRef.current || !sheets) return;
+    // Members: a signed-in device that has never synced doesn't know its
+    // bands yet — wait for the first sync instead of offering "create a band".
+    const waitBands = start === 'band' && isIn && !cloud.bands.length && !cloud.lastSync && !['error', 'offline'].includes(cloud.status);
+    if (waitBands) return;
     startedRef.current = true;
     if (start === 'join') {
       openJoinFromLink();
@@ -937,7 +944,7 @@ export function StageView({ onAccount, start = null }) {
         setDialog('manage');
       } else setDialog('band');
     }
-  }, [sheets]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sheets, cloud.lastSync, cloud.status, isIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const songsOf = (ids) => ids.map((id) => ({ id, name: byId.get(id)?.name ?? t('stage.missing'), missing: !byId.has(id) }));
 
@@ -1143,25 +1150,6 @@ export function StageView({ onAccount, start = null }) {
           t={t}
         />
       )}
-      {dialog === 'manage' && band && (
-        <BandManageSheet
-          band={band}
-          uid={uid}
-          here={here}
-          onShare={share}
-          onNewCode={() => newInviteCode(band.id).catch(fail)}
-          onRename={(v) => renameBand(band.id, v).catch(fail)}
-          onRemove={(id) => removeMember(band.id, id).catch(fail)}
-          onAnother={() => setDialog('band')}
-          onLeave={() => {
-            setDialog(null);
-            (owner ? deleteBand(band.id) : leaveBand(band.id)).then(() => chooseScope('me')).catch(fail);
-          }}
-          onClose={() => setDialog(null)}
-          dir={dir}
-          t={t}
-        />
-      )}
     </>
   );
 
@@ -1177,6 +1165,36 @@ export function StageView({ onAccount, start = null }) {
   const liveBanner = band && leaderHere && (
     <LiveBanner person={leaderHere} setName={sets.lists.find((l) => l.id === leaderHere.set)?.name} onJoin={joinLeader} t={t} />
   );
+
+  // ---- the band's page (members, invite, settings) ----
+  if (dialog === 'manage' && band) {
+    return (
+      <div className="stg" dir={dir}>
+        <BackButton label={t('stage.back')} onClick={() => setDialog(null)} />
+        <header className="stg-head">
+          <div className="stg-head-title">
+            <h1 dir="auto">{band.name}</h1>
+          </div>
+        </header>
+        <BandManagePage
+          band={band}
+          uid={uid}
+          here={here}
+          onShare={share}
+          onNewCode={() => newInviteCode(band.id).catch(fail)}
+          onRename={(v) => renameBand(band.id, v).catch(fail)}
+          onRemove={(id) => removeMember(band.id, id).catch(fail)}
+          onAnother={() => setDialog('band')}
+          onLeave={() => {
+            setDialog(null);
+            (owner ? deleteBand(band.id) : leaveBand(band.id)).then(() => chooseScope('me')).catch(fail);
+          }}
+          t={t}
+        />
+        {toast}
+      </div>
+    );
+  }
 
   // ---- a setlist ----
   if (set) {

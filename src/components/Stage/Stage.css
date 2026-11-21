@@ -2362,3 +2362,24 @@ html .stg-ss-row:active { background: var(--fill-tertiary); }
 .stg-group.is-editing .stg-row + .stg-row::before {
   inset-inline-start: 86px;
 }
+
+/* v1.0.242 — the band's page: Invite Members = the members group's last row */
+.stg .stg-invite-row {
+  justify-content: flex-start;
+  gap: 12px;
+  color: var(--accent);
+  font-weight: 400;
+}
+.stg-code-inline {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  user-select: text;
+  -webkit-user-select: text;
+  unicode-bidi: isolate;
+}
+.stg .ph-group > .stg-invite-row {
+  min-height: 48px;
+  font-size: 17px;
+  border-top: 0.5px solid var(--separator);
+}

@@ -237,12 +237,11 @@
 }
 
 .settings-attribution {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   text-transform: none;
   letter-spacing: normal;
   color: var(--text-secondary);
-  opacity: 0.75;
   line-height: 1.4;
 }
 
@@ -273,7 +272,7 @@
   border-radius: 999px;
   border: 1px solid transparent;
   background: var(--fill-tertiary);
-  color: var(--text-h);
+  color: var(--accent); /* gray button, accent label (iOS) */
   font: inherit;
   font-weight: 600;
   text-decoration: none;
@@ -566,4 +565,36 @@
     opacity: 0;
     transform: translateY(6px);
   }
+}
+
+/* A settings PAGE with one text-led field (Account, Install): the label on
+   top, the explanation as a paragraph under it, the actions below — the
+   92 px label column squeezed the text into a narrow, gappy column on a
+   phone (v1.0.234). */
+.set-page.settings-drawer-body > .settings-field.settings-install {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8px;
+}
+.set-page.settings-drawer-body > .settings-field.settings-install > .settings-field-label {
+  flex: none;
+  font-size: 15px;
+}
+.set-page .settings-install-text {
+  flex: none;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+.set-page .settings-install-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+.set-page .settings-install > .settings-install-btn,
+.set-page .settings-install > .cloud-privacy {
+  align-self: flex-start;
 }

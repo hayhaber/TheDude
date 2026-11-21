@@ -23,7 +23,7 @@
   padding: var(--space-4);
   border-radius: 16px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   box-shadow: var(--shadow-sm);
 }
 
@@ -64,6 +64,7 @@
      against. */
   justify-content: flex-start;
   gap: 8px;
+  min-height: 44px; /* v1.0.234: a 44 pt row */
   width: 100%;
   padding: 8px 10px;
   border: none;
@@ -108,7 +109,7 @@
   padding: var(--space-5) var(--space-6);
   border-radius: 16px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   box-shadow: var(--shadow-sm);
 }
 

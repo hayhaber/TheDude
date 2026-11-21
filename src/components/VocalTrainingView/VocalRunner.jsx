@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { BackButton } from '../HomeButton/BackButton';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useVocalExercise, IS_IOS, LOUDNESS, LOUDNESS_KEY, loadLoudnessKey, COUNT_KEY, COUNT_BEATS, loadCountClick } from '../../hooks/useVocalExercise';
 import { midiName } from '../../music/vocal/voiceRange';
@@ -132,9 +133,7 @@ export function VocalRunner({ ex, range, level, mic, step, onBack, onNext, isLas
   return (
     <div className="vocal-runner">
       <div className="vocal-run-head">
-        <button type="button" className="vocal-back" onClick={onBack}>
-          {t('vocal.back')}
-        </button>
+        <BackButton label={t('vocal.title')} onClick={onBack} />
         <div className="vocal-run-title">
           <span className="vocal-eyebrow">
             {t(`vocal.cat.${ex.category}`)}

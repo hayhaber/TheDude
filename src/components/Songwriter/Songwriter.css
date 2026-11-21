@@ -231,7 +231,7 @@
 .sw-ideas,
 .sw-songs {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
   padding: 18px 20px;
@@ -634,7 +634,7 @@
 
 .sw-section {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
   padding: 12px 14px 10px;

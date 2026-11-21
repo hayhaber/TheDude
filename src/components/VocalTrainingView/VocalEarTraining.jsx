@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { BackButton } from '../HomeButton/BackButton';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { getAudioContext, prepareAudioOutput } from '../../audio/audioContext';
 import { preparePiano, schedulePianoNotes } from '../../audio/pianoPlayer';
@@ -208,9 +209,7 @@ export function VocalEarTraining({ range, onBack, onSingBack }) {
   return (
     <div className="vocal-runner vocal-ear">
       <div className="vocal-run-head">
-        <button type="button" className="vocal-back" onClick={onBack}>
-          {t('vocal.back')}
-        </button>
+        <BackButton label={t('vocal.title')} onClick={onBack} />
         <div className="vocal-run-title">
           <span className="vocal-eyebrow">{t('vocal.title')}</span>
           <h2>{t('vocal.ear.title')}</h2>

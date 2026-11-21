@@ -180,6 +180,12 @@ export function BassPracticeView({ bp, free, metronome, start = null }) {
             setChosen((ch) => ({ ...ch, [cat]: undefined }));
           }}
         />
+        {/* one header for every exercise, like the guitar's Practice (v1.0.234) */}
+        {ex && (
+          <h1 className="ph-detail-title bp-detail-title">
+            {tx(ex.title)} <span className={'bp-level is-' + ex.level}>{tx(LEVELS[ex.level])}</span>
+          </h1>
+        )}
       </div>
 
       <div className="scale-practice-controls bp-controls">
@@ -266,10 +272,6 @@ export function BassPracticeView({ bp, free, metronome, start = null }) {
 
       {ex && (
         <section className="bp-card" dir={dir}>
-          <div className="bp-card-head">
-            <h2>{tx(ex.title)}</h2>
-            <span className={'bp-level is-' + ex.level}>{tx(LEVELS[ex.level])}</span>
-          </div>
           <p>
             <b>{t('bp.how')}: </b>
             {tx(ex.how)}

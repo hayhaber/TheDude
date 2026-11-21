@@ -18,8 +18,8 @@
   gap: 2px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   min-width: 0;
   text-align: center;
 }

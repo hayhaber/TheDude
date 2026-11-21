@@ -38,7 +38,8 @@
   border-radius: 980px;
   border: 1px solid transparent;
   background: var(--fill-tertiary);
-  color: var(--text);
+  /* a gray button's label is the accent, as in iOS (v1.0.234) */
+  color: var(--accent);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
 }
@@ -87,7 +88,7 @@
 /* ---------- Shared bits ---------- */
 .vocal-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
   padding: var(--space-5);

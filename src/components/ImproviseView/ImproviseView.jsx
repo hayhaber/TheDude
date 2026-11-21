@@ -7,6 +7,7 @@ import { ARTISTS } from '../../music/licks';
 import { useLanguage } from '../../i18n/LanguageContext';
 import './ImproviseView.css';
 import { Select } from '../ui/Select';
+import { Segmented } from '../ui/controls';
 
 const TABS = [
   { key: 'lick', labelKey: 'improvise.tab.lick' },
@@ -62,6 +63,15 @@ export function ImproviseView({
         <p className="subtitle">{t('improvise.subtitle')}</p>
       </div>
 
+      {/* the view switch, right under the title (v1.0.234: a segmented control) */}
+      <Segmented
+        className="improvise-tabs"
+        ariaLabel={t('improvise.tabsLabel')}
+        value={tab}
+        onChange={setTab}
+        options={TABS.map((x) => ({ value: x.key, label: t(x.labelKey) }))}
+      />
+
       <div className="improvise-top-controls">
         <EmotionSelector emotionKey={emotionKey} onChange={handleEmotionChange} />
 
@@ -75,14 +85,6 @@ export function ImproviseView({
             ))}
           </Select>
         </label>
-      </div>
-
-      <div className="mode-toggle wrap improvise-tabs" role="group" aria-label={t('improvise.tabsLabel')}>
-        {TABS.map((tab_) => (
-          <button key={tab_.key} type="button" className={tab === tab_.key ? 'active' : ''} onClick={() => setTab(tab_.key)}>
-            {t(tab_.labelKey)}
-          </button>
-        ))}
       </div>
 
       {tab === 'lick' && (

@@ -16,7 +16,7 @@
   --divider: rgba(0, 0, 0, 0.1);
   /* Stage 7: #0071e3 was 4.3:1 as text on the grey ground; #006bd6 keeps
      AA as text on white, grey and with white text on it. */
-  --accent: #006bd6;
+  --accent: #005cb8; /* v1.0.234: AA (>= 4.5) also as the label of a tinted button */
   --accent-hover: #0074e8;
   --accent-bg: rgba(0, 107, 214, 0.1);
   /* A FILLED accent surface (white text on it). In dark mode the accent
@@ -161,7 +161,7 @@
   --surface: #1c1c1e;
   --border: rgba(255, 255, 255, 0.08);
   --divider: rgba(255, 255, 255, 0.12);
-  --accent: #0a84ff;
+  --accent: #409cff; /* v1.0.234: Apple's accessible dark blue — AA on tinted fills */
   --accent-hover: #3395ff;
   --accent-bg: rgba(10, 132, 255, 0.16);
   --accent-fill: #0a6cff;
@@ -445,7 +445,20 @@ button {
     .mode-toggle > button,
     .app-group-switch button,
     .app-topbar-nav button,
-    .cl-chip
+    .cl-chip,
+    .bp-latch,
+    .vocal-mic-test,
+    .shortcut-row-key,
+    .shortcut-row-reset,
+    .stg-done,
+    .settings-install-btn,
+    .ui-btn.is-sm,
+    .ui-btn.is-md,
+    .ui-seg > button,
+    .vocal-actions > button,
+    .bp-actions > button,
+    .bpm-field-value,
+    .gp-transport > button
   ) {
   position: relative;
 }
@@ -466,7 +479,15 @@ button {
 .dm-mute::before,
 .tn-step::before,
 .app-stage-toggle::before,
-.piano-keyboard-nav::before {
+.piano-keyboard-nav::before,
+.bp-latch::before,
+.vocal-mic-test::before,
+.shortcut-row-key::before,
+.shortcut-row-reset::before,
+.stg-done::before,
+.settings-install-btn::before,
+.ui-btn.is-sm::before,
+.ui-btn.is-md::before {
   content: '';
   position: absolute;
   top: min(0px, calc((100% - 44px) / 2));
@@ -479,7 +500,12 @@ button {
 .mode-toggle > button::before,
 .app-group-switch button::before,
 .app-topbar-nav button::before,
-.cl-chip::before {
+.cl-chip::before,
+.ui-seg > button::before,
+.vocal-actions > button::before,
+.bp-actions > button::before,
+.bpm-field-value::before,
+.gp-transport > button::before {
   content: '';
   position: absolute;
   left: 0;
@@ -507,8 +533,18 @@ button {
 html {
   text-align: justify;
 }
+/* Titles are never justified (a wrapped title got gappy, v1.0.234): they
+   sit at the reading start; a centred block's own heading class keeps its
+   centre (a class rule beats :where). */
+:where(h1, h2, h3, h4, h5, h6) {
+  text-align: start;
+}
 p {
   -webkit-hyphens: auto;
   hyphens: auto;
   text-wrap: pretty; /* fewer short / gappy lines when justified */
+}
+/* centred blocks whose heading centres with them */
+:is(.stg-band-hero, .vocal-ear-summary, .ear-training-summary) > :is(h1, h2, h3, h4) {
+  text-align: center;
 }

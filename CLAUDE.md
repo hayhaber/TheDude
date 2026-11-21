@@ -154,6 +154,15 @@ sits at the reading start), so a container that sets its own alignment
 inside; hyphens auto only on `p`. Never set `text-align: left / start` on
 running text; new centred blocks set `text-align: center` on the block.
 
+**17. Right-to-left chrome** (v1.0.234, Apple design audit): in Hebrew the
+whole top chrome mirrors as iOS does — Home + Back at the reading START
+(right), avatar + Tools at the end (left); every screen (AppShell phone
+strip + desktop top bar, tool screens, songwriter, Band) agrees. CSS keys
+on `html[lang='he']` (never `:dir()`). Titles (h1–h6) are never justified
+(`:where(h1..h6) { text-align: start }` in index.css; a centred block's
+heading gets its own centre rule). A text-led back link ("‹ Back") is
+never used: every back = the round `BackButton` circle beside Home.
+
 **12. Nothing jumps.** Shared chrome keeps its physical position across
 screens: the desktop top bar is a 3-column grid (`minmax(0,1fr) auto
 minmax(0,1fr)`) so the tabs stay centred on the bar whatever the side
@@ -3645,3 +3654,34 @@ no tools).
   rd.cjs (fake Supabase, A 1180 EN owner + B 390 HE): length 10 -> 11
   min with 30 s, server gap 30, A Ready -> 1/2, B Ready + Learning ->
   2/2, panel counts, toggle off clears; sugg / ss tests still pass.
+- APPLE DESIGN AUDIT, pass 1 (v1.0.234, 2026-11-21; user: "go over the
+  whole system in order and make sure everything meets Apple's
+  standard"). Crawler `scratchpad/s8/audit.cjs` (every home card ->
+  every shortcut -> every library row one level deep -> segmented 2nd
+  sections; phone 390 HE light + iPad 1180 EN dark, 85 screens each):
+  44 pt targets, WCAG contrast, > 1 filled primary per screen, bare
+  <select>, horizontal overflow, text < 11 px + screenshots. Fixed:
+  (1) RTL chrome mirrored (rule 17); (2) light `--accent` #005cb8 / dark
+  #409cff (Apple's accessible blues) — tinted-button labels were 4.1:1;
+  unchosen bottom-tab label #4b4b50 on light glass; bass level tags;
+  settings footnotes (opacity removed, 12 px); minute-changes idle "60";
+  (3) FirstVisit "Got it" = plain accent text (it was a 2nd filled
+  primary on 6 screens); (4) 35 content cards lost their 1 px hairline
+  (Apple inset cards: white on the grey page; the gray-on-gray start
+  cards of ear training / piano exercises / bends became white);
+  (5) Improvise: Licks | Phrases | Solo coach = a Segmented under the
+  title (was 3 wrapped chips, labels shortened); (6) vocal runner / ear
+  training / range test and the teacher's sub-screens: the "Back" pill /
+  "‹ Back" link -> BackButton beside Home; (7) songwriter: no full-width
+  glass bar (scroll edge like Band) + its "‹ Songs" link -> BackButton
+  in a back slot; (8) Settings Account / Install pages: label, text and
+  actions stacked (the 92 px label column squeezed the text); gray
+  buttons there + in Singing use accent labels; (9) bass exercise = a
+  page title (h1 + level tag) like the guitar's Practice; (10) amp preset
+  = Select; (11) 44 pt hit areas added (bass Loop / play, vocal actions,
+  mic Test, shortcut keys, sheet Done, ui-btn sm / md, segmented
+  segments, BPM value, GP transport, settings buttons; Theory lesson rows
+  min-height 44); lick tags 11 px. After: no screen with 2 filled
+  primaries, no bare select, no overflow; contrast left = only
+  device-face engravings. Accepted: pop-up buttons 36 px (HIG form
+  size), tab-bar labels 10 px (HIG), device faces untouched.

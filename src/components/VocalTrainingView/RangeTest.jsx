@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { BackButton } from '../HomeButton/BackButton';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { midiName, saveRange, voiceOf } from '../../music/vocal/voiceRange';
 import {
@@ -321,9 +322,7 @@ export function RangeTest({ mic, onDone, onCancel, onSkip, first = false }) {
   return (
     <div className="vocal-range-test">
       <div className="vocal-run-head">
-        <button type="button" className="vocal-back" onClick={cancel}>
-          {t('vocal.back')}
-        </button>
+        <BackButton label={t('vocal.title')} onClick={cancel} />
         <h2>{t('vocal.range.title')}</h2>
       </div>
 

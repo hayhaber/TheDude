@@ -126,7 +126,7 @@
 /* ---------- Shared bits ---------- */
 .coach-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
   padding: var(--space-5);

@@ -92,7 +92,7 @@
   gap: 10px;
   padding: 18px;
   border-radius: 16px;
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
@@ -1169,7 +1169,7 @@
 .lt-tab-card {
   border-radius: 14px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   overflow: hidden;
 }
 .lick-trainer.is-wide .lt-tab-card,

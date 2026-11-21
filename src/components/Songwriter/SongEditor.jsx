@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BackButton } from '../HomeButton/BackButton';
 import { VoiceKey } from './VoiceKey';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { BpmField } from '../Metronome/BpmField';
@@ -376,10 +377,7 @@ export function SongEditor({ song, update, onBack, onDelete, audio, toast }) {
     <div className={'sw-editor' + (preview ? ' is-previewing' : '')} dir={dir}>
       {performing && <PerformView song={song} audio={audio} onClose={() => setPerforming(false)} />}
       <div className="sw-editor-top">
-        <button type="button" className="sw-back" onClick={onBack}>
-          <Icon name="back" />
-          <span>{t('sw.nav.songs')}</span>
-        </button>
+        <BackButton label={t('sw.nav.songs')} onClick={onBack} />
         <div className="mode-toggle sw-view-toggle" role="group" aria-label={t('sw.view')}>
           {['write', 'score'].map((v) => (
             <button key={v} type="button" className={view === v ? 'active' : ''} onClick={() => setView(v)}>

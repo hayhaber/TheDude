@@ -100,8 +100,8 @@
 .exercise-card {
   padding: 14px;
   border-radius: 14px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
 }
 
 .exercise-card-header {

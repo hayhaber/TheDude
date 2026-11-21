@@ -161,7 +161,7 @@
   padding: 14px 16px;
   border-radius: 16px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
 }
 .pa-result.is-pass {
   border-color: rgba(52, 199, 89, 0.5);

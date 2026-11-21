@@ -11,8 +11,8 @@
   gap: var(--space-3);
   padding: var(--space-4);
   border-radius: 16px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
 }
 
 .bending-primary-actions {

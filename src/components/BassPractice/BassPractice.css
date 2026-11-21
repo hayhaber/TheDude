@@ -87,7 +87,7 @@
 .bp-card,
 .bp-result {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
   padding: 16px 20px;
@@ -127,7 +127,7 @@
 
 .bp-level.is-2 {
   background: rgba(255, 159, 10, 0.14);
-  color: #c77700;
+  color: #9a5b00;
 }
 
 .bp-level.is-3 {
@@ -276,4 +276,18 @@
     min-width: 0;
     width: 100%;
   }
+}
+
+:root[data-theme='dark'] .bp-level.is-2 {
+  color: #ffb340;
+}
+
+.bp-detail-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.bp-detail-title .bp-level {
+  font-size: 13px;
 }

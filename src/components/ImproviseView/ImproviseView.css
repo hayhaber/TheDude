@@ -15,6 +15,7 @@
 
 .improvise-tabs {
   margin: 0;
+  width: min(100%, 420px);
 }
 
 /* Matches .improvise-top-controls' own gap (var(--space-6), 24px — the

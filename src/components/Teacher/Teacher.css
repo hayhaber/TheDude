@@ -38,7 +38,7 @@
   padding: 18px;
   border-radius: var(--radius-card, 18px);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   box-shadow: var(--shadow-sm);
   min-width: 0;
 }

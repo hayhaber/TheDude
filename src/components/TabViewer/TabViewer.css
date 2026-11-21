@@ -51,6 +51,6 @@
   min-height: 200px;
   border-radius: 14px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   overflow-x: auto;
 }

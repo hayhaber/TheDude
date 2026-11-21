@@ -37,12 +37,16 @@
   padding: 0 16px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--accent-fill);
-  color: #fff;
+  /* a plain accent button: the screen's own primary stays the only fill */
+  background: transparent;
+  color: var(--accent);
   font: inherit;
   font-size: var(--type-subhead);
   font-weight: 600;
   cursor: pointer;
+}
+.first-visit-ok:active {
+  opacity: 0.5;
 }
 
 @keyframes first-visit-in {

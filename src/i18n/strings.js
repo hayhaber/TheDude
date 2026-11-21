@@ -254,8 +254,8 @@ export const STRINGS = {
     'improvise.title': 'Improvise',
     'improvise.subtitle': 'Generate licks, phrases, and get feedback over the active chord.',
     'improvise.tabsLabel': 'Improvise tool',
-    'improvise.tab.lick': 'Lick Library',
-    'improvise.tab.phrase': 'Phrase & Call-Response',
+    'improvise.tab.lick': 'Licks',
+    'improvise.tab.phrase': 'Phrases',
     'improvise.tab.coach': 'Solo Coach',
 
     'practice.title': 'Practice',
@@ -1804,8 +1804,8 @@ export const STRINGS = {
     'improvise.title': 'אלתור',
     'improvise.subtitle': 'צור ליקים, פראזות, וקבל משוב על האקורד הפעיל.',
     'improvise.tabsLabel': 'כלי אלתור',
-    'improvise.tab.lick': 'ספריית ליקים',
-    'improvise.tab.phrase': 'פראזה ותשובה־קריאה',
+    'improvise.tab.lick': 'ליקים',
+    'improvise.tab.phrase': 'פראזות',
     'improvise.tab.coach': 'מאמן סולו',
 
     'practice.title': 'תרגול',

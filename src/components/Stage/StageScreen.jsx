@@ -16,9 +16,9 @@ export function StageScreen({ start = 'sets', onBack, onAccount }) {
   const slots = useMemo(() => [slot], [slot]);
   return (
     <div className="stg-screen" dir={lang === 'he' ? 'rtl' : 'ltr'}>
-      {/* Home always at the top-left, like inside an instrument; a screen's
-          Back circle beside it. */}
-      <header className="stg-screen-top" dir="ltr">
+      {/* Home at the reading start (right in Hebrew), like every screen; a
+          screen's Back circle beside it. */}
+      <header className="stg-screen-top">
         <HomeButton className="stg-screen-home" onClick={onBack} />
         <span className="app-back-slot" ref={setSlot} />
       </header>

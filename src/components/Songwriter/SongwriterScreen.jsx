@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { HomeButton } from '../HomeButton/HomeButton';
+import { BackSlotContext } from '../HomeButton/BackButton';
 import { deleteAudio } from '../../audio/songwriter/songAudioStore';
 import { keyName, newSong, sectionsFromText } from '../../music/songwriter/song';
 import { parseLine } from '../../music/songwriter/lyrics';
@@ -79,6 +80,8 @@ export function SongwriterScreen({ start = 'list', onBack }) {
   const song = store.songs.find((s) => s.id === openId);
   const dir = lang === 'he' ? 'rtl' : 'ltr';
 
+  const [backSlot, setBackSlot] = useState(null);
+  const backSlots = useMemo(() => [backSlot], [backSlot]);
   const leave = () => {
     audio.stopAll();
     store.flush(); // (empty songs are dropped on the next visit)
@@ -89,7 +92,9 @@ export function SongwriterScreen({ start = 'list', onBack }) {
     <div className="sw-screen" dir={dir}>
       <header className="sw-top">
         <HomeButton className="sw-home" onClick={leave} />
+        <span className="app-back-slot" ref={setBackSlot} />
       </header>
+      <BackSlotContext.Provider value={backSlots}>
       <main className="sw-main">
         {song ? (
           <SongEditor
@@ -123,6 +128,7 @@ export function SongwriterScreen({ start = 'list', onBack }) {
           />
         )}
       </main>
+      </BackSlotContext.Provider>
       {toastMsg && (
         <div className="sw-toast" key={toastMsg.k} role="status">
           <span>{toastMsg.text}</span>

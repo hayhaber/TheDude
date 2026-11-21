@@ -3,6 +3,7 @@
 // and the lesson player. State: teacher/teacherState.js; mastery derived in
 // teacher/mastery.js; content in teacher/curriculum/guitar.js.
 import { useCallback, useEffect, useState } from 'react';
+import { BackButton } from '../HomeButton/BackButton';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { CoachView } from '../Coach/CoachView';
 import { RewardsView } from '../Achievements/RewardsView';
@@ -325,11 +326,8 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
   const sub = (title, body) => (
     <div className="teacher" dir={dir}>
       <div className="tc-subhead">
-        <button type="button" className="tc-back" onClick={back}>
-          <span aria-hidden="true">‹</span>
-          {t('teacher.back')}
-        </button>
-        {title && <h2>{title}</h2>}
+        <BackButton label={t('nav.teacher')} onClick={back} />
+        {title && <h1 className="tc-subtitle-h">{title}</h1>}
       </div>
       {body}
     </div>

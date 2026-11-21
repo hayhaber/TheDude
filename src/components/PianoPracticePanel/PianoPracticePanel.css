@@ -2,8 +2,8 @@
   max-width: 480px;
   padding: 24px;
   border-radius: 16px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 0; /* v1.0.234: Apple inset card — no hairline */
   display: flex;
   flex-direction: column;
   gap: 16px;

@@ -25,6 +25,7 @@ import { createLiveContext, estimateLatency, openLiveInput } from '../../audio/a
 import { createAmpEngine } from '../../audio/amp/ampEngine';
 import { prepareAudioOutput } from '../../audio/audioContext';
 import './AmpView.css';
+import { Select } from '../ui/Select';
 
 const AMP_FACE = ['gate', ...AMP_KNOBS];
 
@@ -245,7 +246,7 @@ export function AmpView() {
       <section className="amp-presets">
         <label className="amp-field">
           <span>{t('amp.preset')}</span>
-          <select value={current ? presetId : ''} onChange={(e) => choosePreset(e.target.value)}>
+          <Select value={current ? presetId : ''} onChange={(e) => choosePreset(e.target.value)}>
             {!current && <option value="">{t('amp.custom')}</option>}
             <optgroup label={t('amp.presetsBuiltin')}>
               {allPresets
@@ -267,7 +268,7 @@ export function AmpView() {
                   ))}
               </optgroup>
             )}
-          </select>
+          </Select>
         </label>
         {edited && <span className="amp-badge">{t('amp.edited')}</span>}
         <div className="amp-preset-actions">

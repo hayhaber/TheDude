@@ -687,3 +687,35 @@
   flex-shrink: 0;
   margin-bottom: 8px;
 }
+
+/* ---------- Right-to-left chrome (v1.0.234) ----------
+   In Hebrew the whole top chrome mirrors, as iOS does in a right-to-left
+   language: Home + Back sit at the reading START (right), the avatar and
+   Tools at the end (left). The tool screens, the songwriter and the Band
+   screen already put Home at the start — now every screen agrees. */
+html[lang='he'] .app-topbar {
+  direction: rtl;
+}
+@media (max-width: 899px) {
+  html[lang='he'] .app-mobile-brand {
+    left: auto;
+    right: var(--space-4);
+  }
+  html[lang='he'] .app-mobile-settings {
+    right: auto;
+    left: var(--space-4);
+    align-items: flex-start;
+  }
+  html[lang='he'] .app-mobile-settings-icons {
+    flex-direction: row-reverse;
+  }
+  html[lang='he'] .app-back-slot.is-strip {
+    left: auto;
+    right: calc(var(--space-4) + 45px);
+  }
+}
+html[lang='he'] .app-tools-popover.is-open {
+  right: auto;
+  left: 16px;
+  transform-origin: top left;
+}

@@ -80,11 +80,14 @@ html .cloud-toast {
 }
 
 /* ---- floating bars that were plain blur / a tinted card ---- */
+/* the songwriter's top: no full-width bar (rule 11) — Home + Back float
+   as glass circles over a scroll edge, like the Band screen (v1.0.234) */
 html .sw-top {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
-  box-shadow: 0 0.5px 0 var(--separator);
+  gap: 8px;
+  background: linear-gradient(to bottom, var(--bg) 35%, color-mix(in srgb, var(--bg) 0%, transparent));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 /* the teacher's live banner floats over the exercise: neutral glass
    (tint is kept for the one primary element, not for a whole bar) */
@@ -185,6 +188,10 @@ html .app-topbar-nav.mode-toggle.wrap button.active {
   }
   html .app-bottom-tab.active {
     background: var(--fill-tertiary);
+  }
+  /* an unchosen tab's label stays AA over the light glass (v1.0.234) */
+  html:not([data-theme='dark']) .app-bottom-tab:not(.active) {
+    color: #4b4b50;
   }
 }
 

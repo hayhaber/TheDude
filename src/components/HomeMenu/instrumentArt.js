@@ -4,7 +4,7 @@
 // 4-string bass, a vocal mic and (Tools) a wooden metronome with a clip-on
 // tuner. No brand marks.
 export const INSTRUMENT_ART = {
-  "guitar": "<img src=\"/home/guitar-lp.webp\" alt=\"\" width=\"640\" height=\"1059\" decoding=\"async\" draggable=\"false\">",
+  "guitar": "<img src=\"/home/guitar-lp2.webp\" alt=\"\" width=\"640\" height=\"1059\" decoding=\"async\" draggable=\"false\">",
   "piano": "<img src=\"/home/piano-grand.webp\" alt=\"\" width=\"820\" height=\"883\" decoding=\"async\" draggable=\"false\">",
   "bass": "<img src=\"/home/bass-pb2.webp\" alt=\"\" width=\"606\" height=\"1100\" decoding=\"async\" draggable=\"false\">",
   "vocal": "<img src=\"/home/vocal-mic4.webp\" alt=\"\" width=\"900\" height=\"763\" decoding=\"async\" draggable=\"false\">",

@@ -3752,3 +3752,13 @@ no tools).
   Supabase): signed out /?band=code1xy -> address cleaned, sheet asks to
   sign in, code kept; signed in -> field CODE1XY, Join -> member, code
   cleared; no errors.
+- v1.0.239 (user, iPhone dark: a white shadow under the guitar — "what
+  did you change?"): not a CSS change — the guitar photo itself
+  (`guitar-lp.webp`, since 2026-10-26) had its floor shadow baked as
+  OPAQUE light grey, which only blended on the light card. Re-keyed to
+  `public/home/guitar-lp2.webp` (new name, /home/* cache): neutral floor
+  pixels below y 975 connected to the transparent background -> black
+  with alpha = darkness (identical on a white card, a soft dark shadow on
+  the dark one). index.html preload, vite globPatterns, instrumentArt +
+  Onboarding updated; old file removed. All 8 home cards screenshotted in
+  dark at 390: no light floor left (bass / piano / others were fine).

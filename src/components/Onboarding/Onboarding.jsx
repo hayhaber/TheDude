@@ -17,7 +17,7 @@ import './Onboarding.css';
 import { Select } from '../ui/Select';
 
 const ART = {
-  guitar: '/home/guitar-lp.webp',
+  guitar: '/home/guitar-lp2.webp',
   piano: '/home/piano-grand.webp',
   bass: '/home/bass-pb2.webp',
   vocal: '/home/vocal-mic4.webp',

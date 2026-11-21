@@ -430,3 +430,46 @@ html .position-chip:not(.active) {
 html .training-handoff-open {
   border-color: transparent;
 }
+
+/* ---- Apple design audit pass 3 (v1.0.236): the last hairlines ----------
+   A white card on the grey page needs no outline (Apple's inset cards);
+   a box inside a white card = a gray fill, no outline. Device faces
+   (metronome tiles, tuner, recorder, amp, drum grid) keep their own. */
+html .bp-bpm.bpm-field,
+html .scale-practice-stepper,
+html .chord-rhythm-generated,
+html .gp-score-scroll {
+  border-color: transparent;
+}
+html .bp-bpm .bpm-field-input { border-inline-color: var(--separator, rgba(60, 60, 67, 0.18)); }
+html .guitar-chord-rhythm-lane {
+  border-color: transparent;
+  background: var(--surface);
+}
+html .room-cal,
+html .settings-drawer-body .audio-input-settings .settings-field.room-cal,
+html .set-page .room-cal,
+html .lt-library {
+  border-color: transparent;
+  background: var(--fill-tertiary, rgba(118, 118, 128, 0.12));
+}
+html .studies-complete-btn {
+  border-color: transparent;
+  background: var(--fill-tertiary, rgba(118, 118, 128, 0.12));
+  color: var(--accent);
+}
+html .studies-complete-btn.done {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+html .studies-nav button {
+  min-height: 36px;
+  border-color: transparent;
+  border-radius: 999px;
+  background: var(--fill-tertiary, rgba(118, 118, 128, 0.12));
+  color: var(--accent);
+}
+html .chord-rhythm-lane {
+  border-color: transparent;
+  background: var(--surface);
+}

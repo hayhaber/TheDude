@@ -219,3 +219,13 @@ html .app-topbar-nav.mode-toggle.wrap button:active {
     transform: none;
   }
 }
+
+/* Audit pass 3 (v1.0.236): GuitarPro's track mixer floats over the score =
+   a popover -> regular glass, no hairline. */
+html .gp-mixer-panel {
+  border-color: transparent;
+  background: var(--glass-sheet);
+  -webkit-backdrop-filter: var(--glass-sheet-filter);
+  backdrop-filter: var(--glass-sheet-filter);
+  box-shadow: var(--glass-sheet-shadow);
+}

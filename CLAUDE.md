@@ -3701,3 +3701,16 @@ no tools).
   inset rows (no hairline, gray on hover); (5) singing ear training: the
   score row appears only once a session runs (it showed 0/0 · 0 · 0
   before Start). No page errors on either device.
+- APPLE DESIGN AUDIT, pass 3 (v1.0.236): the last hairline borders
+  (scratchpad s9/hair.cjs = the audit crawler with a finder for 1 px faint
+  borders on rounded boxes; 85 screens, 390 HE light + 1180 EN dark).
+  Fixed in one block at the end of `components/ui/ui.css` (+ the mixer in
+  liquid-glass.css): white cards on the grey page lose the outline (bass
+  BPM stepper, scale stepper, piano "generated" chord box, GuitarPro score
+  box, guitar / piano chord-rhythm lanes = white); boxes inside a white
+  card = gray fill (room calibration, the lick trainer's library bar);
+  Theory's lesson ‹ › nav + "Mark complete" = gray capsules with accent
+  labels; GuitarPro's track mixer (floats over the score) = regular
+  Liquid Glass. Left on purpose: the metronome's wood-face tiles (device
+  face). After: no hairline left outside device faces; no 2 filled
+  primaries, no bare select, no overflow.

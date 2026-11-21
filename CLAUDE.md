@@ -3619,3 +3619,29 @@ no tools).
   chosen, Hebrew dropped -> Bring back reopens, Africa -> open,
   unknown -> none; listen key -> dock; Enter saves. (The test's only
   pageerror is its own init script inside the embed's iframe.)
+- READINESS + SHOW LENGTH (v1.0.233, user: "build 1, 2"). (1) Each
+  member marks each song Ready / Learning / Not yet (the song's ••• menu,
+  ✓ beside the current; choosing it again clears) — setlist rows + Songs
+  rows. Band songs: NEW table `band_ready` (chart_id, user_id, band_id,
+  state; one row per member per song; members read, each writes only
+  their own — trigger forces user_id = auth.uid(); insert only for a song
+  of that band) = `supabase/migrations/007_band_ready.sql` (THE USER
+  RUNS IT; also adds `band_setlists.gap`); chartCloud `setReady()`
+  (optimistic), state `ready` / `readyOk` (missing table -> no marks, the
+  setlist shows `stage.rd.setup`). My own songs (Mine): sheet prefs
+  `ready`. Row mark (`ReadyMark`): band = a ring k/n of members ready
+  (green ✓ when all, orange partial; hidden until someone marked the
+  song), mine = filled ✓ / half / empty circle. Band setlist: "Ready for
+  the show" (`ReadyPanel`): "k of n songs ready for everyone" + a row per
+  member (most pending first) "1 learning · 2 not marked" / "All ready",
+  tap = the songs + their state. Mine setlist subtitle adds "k of n
+  ready". (2) Show length: setlist subtitle "3 songs · about 11 min"
+  (sum of each song's length, 3:30 when unset = "about") + a "Between
+  songs" pop-up (no pause / 15 s / 30 s / 1 min / 2 min; personal
+  setlist field `gap`, band column `gap` with hasGap fallback) and a
+  footnote "Show length: 11 min." Strings `stage.rd.*`, `stage.len.*`.
+  Checked: 007 on local Postgres 16 twice + RLS (member marks own,
+  can't write another's, outsider sees / writes nothing); Playwright
+  rd.cjs (fake Supabase, A 1180 EN owner + B 390 HE): length 10 -> 11
+  min with 30 s, server gap 30, A Ready -> 1/2, B Ready + Learning ->
+  2/2, panel counts, toggle off clears; sugg / ss tests still pass.

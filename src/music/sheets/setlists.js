@@ -47,6 +47,7 @@ export function useSetlists() {
     rename: (id, name) => update((all) => all.map((l) => (l.id === id ? { ...l, name } : l))),
     remove: (id) => update((all) => all.filter((l) => l.id !== id)),
     setItems: (id, items) => update((all) => all.map((l) => (l.id === id ? { ...l, items } : l))),
+    setGap: (id, gap) => update((all) => all.map((l) => (l.id === id ? { ...l, gap } : l))),
     // a deleted chart leaves every setlist
     dropSheet: (sheetId) => update((all) => all.map((l) => ({ ...l, items: l.items.filter((x) => x !== sheetId) }))),
   };

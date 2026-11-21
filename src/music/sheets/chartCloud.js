@@ -19,15 +19,15 @@ const CACHE = (uid) => `dudestar-stage-cloud:${uid}`; // device
 
 // ---- store -----------------------------------------------------------------
 
-let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, lastSync: null };
+let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, lastSync: null };
 const subs = new Set();
 function set(patch) {
   state = { ...state, ...patch };
   for (const fn of subs) fn();
   const uid = getLink()?.userId;
-  if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.lastSync)) {
+  if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.ready || patch.lastSync)) {
     try {
-      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, lastSync: state.lastSync }));
+      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, ready: state.ready, lastSync: state.lastSync }));
     } catch {
       /* quota */
     }
@@ -47,7 +47,7 @@ function restoreCache() {
   if (!uid) return;
   try {
     const c = JSON.parse(localStorage.getItem(CACHE(uid)));
-    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], lastSync: c.lastSync ?? null };
+    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], ready: c.ready ?? [], lastSync: c.lastSync ?? null };
   } catch {
     /* none */
   }
@@ -76,6 +76,10 @@ const missingSongCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204')
 let hasLink = true;
 const LINK = (p) => (hasLink ? { link: p.link || null } : {});
 const missingLinkCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\blink\b/i.test(e.message || '');
+
+// the pause between a band setlist's songs comes with migration 007 (v1.0.233)
+let hasGap = true;
+const missingGapCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\bgap\b/i.test(e.message || '');
 
 const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
 const suggestionOf = (x) => ({
@@ -192,19 +196,29 @@ export async function syncWith(sb, uid, local) {
   const [b, mem, sl] = await Promise.all([
     sb.from('bands').select('id,name,owner,invite_code'),
     sb.from('band_members').select('band_id,user_id,display_name'),
-    sb.from('band_setlists').select('id,band_id,name,items,deleted,updated_at'),
+    sb.from('band_setlists').select('id,band_id,name,items,deleted,updated_at' + (hasGap ? ',gap' : '')),
   ]);
-  for (const x of [b, mem, sl]) if (x.error) throw x.error;
+  let sets = sl;
+  if (sets.error && hasGap && missingGapCol(sets.error)) {
+    hasGap = false;
+    sets = await sb.from('band_setlists').select('id,band_id,name,items,deleted,updated_at');
+  }
+  for (const x of [b, mem, sets]) if (x.error) throw x.error;
   const bands = b.data
     .map((band) => ({ id: band.id, name: band.name, owner: band.owner, code: band.invite_code, members: mem.data.filter((m) => m.band_id === band.id).map((m) => ({ id: m.user_id, name: m.display_name })) }))
     .sort((x, y) => x.name.localeCompare(y.name));
-  const setlists = sl.data.filter((s) => !s.deleted).map((s) => ({ id: s.id, band: s.band_id, name: s.name, items: Array.isArray(s.items) ? s.items : [] }));
+  const setlists = sets.data.filter((s) => !s.deleted).map((s) => ({ id: s.id, band: s.band_id, name: s.name, items: Array.isArray(s.items) ? s.items : [], gap: s.gap ?? 0 }));
 
   // 4) the bands' song suggestions (migration 005; before it: not ready)
   const sg = await sb.from('band_suggestions').select('id,band_id,title,artist,link,note,status,song_id,votes,by_user,by_name,deleted,created_at');
   if (sg.error && !missingTable(sg.error)) throw sg.error;
   const suggestions = sg.error ? null : sg.data.filter((x) => !x.deleted).map(suggestionOf);
-  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error };
+
+  // 5) who is ready for which band song (migration 007; before it: not ready)
+  const rd = await sb.from('band_ready').select('chart_id,user_id,band_id,state');
+  if (rd.error && !missingTable(rd.error)) throw rd.error;
+  const ready = rd.error ? [] : rd.data.map((x) => ({ chart: x.chart_id, user: x.user_id, band: x.band_id, state: x.state }));
+  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error };
 }
 
 const LOCAL = { listSheets, getSheet, patchSheet, putSheet, deleteSheet, sheetPrefs, setSheetPrefs };
@@ -450,7 +464,14 @@ function newId() {
 
 async function saveSetlist(list) {
   const sb = await client();
-  const { error } = await sb.from('band_setlists').upsert({ id: list.id, band_id: list.band, name: list.name, items: list.items, deleted: !!list.deleted });
+  const row = { id: list.id, band_id: list.band, name: list.name, items: list.items, deleted: !!list.deleted };
+  if (hasGap) row.gap = list.gap || 0;
+  let { error } = await sb.from('band_setlists').upsert(row);
+  if (error && hasGap && missingGapCol(error)) {
+    hasGap = false;
+    delete row.gap;
+    ({ error } = await sb.from('band_setlists').upsert(row));
+  }
   if (error) {
     set({ error: error.message });
     syncCharts(); // back to what the band really has
@@ -474,6 +495,7 @@ export function bandSetlistApi(band) {
     rename: (id, name) => find(id) && put({ ...find(id), name }),
     remove: (id) => find(id) && put({ ...find(id), deleted: true }),
     setItems: (id, items) => find(id) && put({ ...find(id), items }),
+    setGap: (id, gap) => find(id) && put({ ...find(id), gap }),
     dropSheet: (sheetId) => {
       for (const l of state.setlists.filter((x) => x.band === band && x.items.includes(sheetId))) put({ ...l, items: l.items.filter((x) => x !== sheetId) });
     },
@@ -549,4 +571,17 @@ export async function voteSuggestion(id) {
     set({ error: e?.message || String(e) });
     syncCharts();
   }
+}
+
+// ---- who is ready for a band song (v1.0.233; migration 007) ---------------------
+// One mark per member per song: know | learning | not (null = clear mine).
+// Optimistic like the rest; a refused write re-syncs.
+export async function setReady(chart, band, value) {
+  const uid = getLink()?.userId;
+  if (!uid) return;
+  const others = state.ready.filter((r) => !(r.chart === chart && r.user === uid));
+  set({ ready: value ? [...others, { chart, user: uid, band, state: value }] : others });
+  const sb = await client();
+  if (value) await sent(sb.from('band_ready').upsert({ chart_id: chart, band_id: band, state: value }, { onConflict: 'chart_id,user_id' }));
+  else await sent(sb.from('band_ready').delete().eq('chart_id', chart).eq('user_id', uid));
 }

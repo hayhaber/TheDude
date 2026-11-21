@@ -17,6 +17,7 @@ import {
   removeMember,
   renameBand,
   renameChart,
+  setReady,
   shareChart,
   signedIn,
   subscribeChartCloud,
@@ -29,7 +30,7 @@ import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { Performer } from './Performer';
 import './Stage.css';
 import { Select } from '../ui/Select';
-import { Segmented } from '../ui/controls';
+import { ControlRow, Segmented } from '../ui/controls';
 import { openBandLink } from '../../music/sheets/bandLink';
 import { LyricsSheet } from './LyricsSheet';
 import { SuggestionsView } from './SuggestionsView';
@@ -541,6 +542,123 @@ function BandManageSheet({ band, uid, here, onShare, onNewCode, onRename, onRemo
 }
 
 // Search (v1.0.211): shown once a list is longer than this.
+// ---- readiness + show length (v1.0.233) ---------------------------------------
+const READY_STATES = ['know', 'learning', 'not'];
+const DEFAULT_DUR = 210; // a song with no length set counts as 3:30 (the Performer's default)
+const GAPS = [0, 15, 30, 60, 120];
+
+/** "42 min" / "1 h 12 min" */
+function fmtShow(sec, t) {
+  const m = Math.max(1, Math.round(sec / 60));
+  return m >= 60 ? t('stage.len.hm', { h: Math.floor(m / 60), m: m % 60 }) : t('stage.len.min', { m });
+}
+
+/** The row's readiness mark: the band's share ready (a ring) or my own state. */
+function ReadyMark({ k, n, mine, t }) {
+  if (n != null) {
+    if (!n) return null;
+    const p = k / n;
+    const tone = k === n ? 'is-all' : k ? 'is-some' : 'is-none';
+    const C = 2 * Math.PI * 7;
+    return (
+      <span className={'stg-ready ' + tone} role="img" aria-label={t('stage.rd.of', { k, n })} title={t('stage.rd.of', { k, n })}>
+        <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+          <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2.2" />
+          {k > 0 && <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeDasharray={`${C * p} ${C}`} transform="rotate(-90 9 9)" />}
+          {k === n && <path d="M5.8 9.2l2.2 2.2 4.2-4.4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />}
+        </svg>
+        <span>{k}/{n}</span>
+      </span>
+    );
+  }
+  if (!mine) return null;
+  const label = t('stage.rd.' + mine);
+  return (
+    <span className={'stg-ready is-me is-' + mine} role="img" aria-label={label} title={label}>
+      <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+        {mine === 'know' && (
+          <>
+            <circle cx="9" cy="9" r="8" fill="currentColor" />
+            <path d="M5.6 9.2l2.3 2.3 4.4-4.6" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          </>
+        )}
+        {mine === 'learning' && (
+          <>
+            <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M9 2a7 7 0 0 1 0 14z" fill="currentColor" />
+          </>
+        )}
+        {mine === 'not' && <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="2" />}
+      </svg>
+    </span>
+  );
+}
+
+/** Before the show: who still needs which songs of this setlist. */
+function ReadyPanel({ band, songs, readyOf, uid, t }) {
+  const [open, setOpen] = useState(null);
+  const ids = songs.filter((s) => !s.missing).map((s) => s.id);
+  if (!ids.length) return null;
+  const members = band.members;
+  const allReady = ids.filter((id) => members.every((m) => readyOf(id, m.id) === 'know')).length;
+  const rows = members
+    .map((m) => {
+      const pending = songs.filter((s) => !s.missing && readyOf(s.id, m.id) !== 'know').map((s) => ({ ...s, state: readyOf(s.id, m.id) || null }));
+      return { m, pending };
+    })
+    .sort((a, b) => b.pending.length - a.pending.length || (a.m.name || '').localeCompare(b.m.name || ''));
+  const count = (list, st) => list.filter((x) => x.state === st).length;
+  return (
+    <section className="ph-section stg-ready-panel">
+      <h2 className="ph-section-title">{t('stage.rd.title')}</h2>
+      <p className="stg-fine stg-ready-sum">{t('stage.rd.summary', { k: allReady, n: ids.length })}</p>
+      <div className="ph-group stg-group">
+        {rows.map(({ m, pending }) => {
+          const isOpen = open === m.id && pending.length > 0;
+          const detail = pending.length
+            ? [
+                count(pending, 'learning') && t('stage.rd.learningN', { n: count(pending, 'learning') }),
+                count(pending, 'not') && t('stage.rd.notN', { n: count(pending, 'not') }),
+                count(pending, null) && t('stage.rd.unmarkedN', { n: count(pending, null) }),
+              ]
+                .filter(Boolean)
+                .join(' · ')
+            : t('stage.rd.allReady');
+          return (
+            <div key={m.id} className="stg-ready-member">
+              <button type="button" className="ph-row stg-row-main" aria-expanded={pending.length ? isOpen : undefined} disabled={!pending.length} onClick={() => setOpen(isOpen ? null : m.id)}>
+                <MemberAvatar m={m} small />
+                <span className="ph-text">
+                  <span className="ph-title" dir="auto">
+                    {(m.name || t('stage.band.someone')) + (m.id === uid ? ' ' + t('stage.rd.you') : '')}
+                  </span>
+                </span>
+                <span className={'stg-detail' + (pending.length ? '' : ' is-ok')}>{detail}</span>
+                {pending.length > 0 && (
+                  <span className={'stg-sg-fold-chev' + (isOpen ? ' is-open' : '')} aria-hidden="true">
+                    ›
+                  </span>
+                )}
+              </button>
+              {isOpen && (
+                <ul className="stg-ready-songs">
+                  {pending.map((s) => (
+                    <li key={s.id}>
+                      <span dir="auto">{s.name}</span>
+                      <span className={'stg-ready-state is-' + (s.state || 'none')}>{s.state ? t('stage.rd.' + s.state) : t('stage.rd.unmarked')}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <p className="stg-fine is-under">{t('stage.rd.hint')}</p>
+    </section>
+  );
+}
+
 const SEARCH_FROM = 8;
 const fold = (x) =>
   String(x ?? '')
@@ -618,6 +736,51 @@ export function StageView({ onAccount, start = null }) {
     setSheetPrefs(listen.id, { link: url || '' });
     setListen(null);
     setLinkTick((n) => n + 1);
+  };
+  // readiness (v1.0.233): band songs = the band's marks (cloud), my own
+  // songs = my mark in the song's prefs
+  const readyOf = (id, who) => cloud.ready.find((r) => r.chart === id && r.user === who)?.state ?? null;
+  const canReady = band ? isIn && cloud.readyOk : true;
+  const myReady = (id) => (band ? readyOf(id, uid) : sheetPrefs(id).ready || null);
+  const markReady = (id, v) => {
+    const next = myReady(id) === v ? null : v;
+    if (band) setReady(id, band.id, next).catch(() => {});
+    else {
+      setSheetPrefs(id, { ready: next || '' });
+      setLinkTick((n) => n + 1);
+    }
+  };
+  const readyMark = (id) => {
+    if (!canReady) return null;
+    if (!band) return <ReadyMark mine={myReady(id)} t={t} />;
+    // nothing until someone has marked the song
+    if (!band.members.some((m) => readyOf(id, m.id))) return null;
+    const k = band.members.filter((m) => readyOf(id, m.id) === 'know').length;
+    return <ReadyMark k={k} n={band.members.length} t={t} />;
+  };
+  const readyItems = (id) =>
+    canReady
+      ? READY_STATES.map((st) => (
+          <button key={st} type="button" className={'more-menu-item stg-ready-item' + (myReady(id) === st ? ' is-on' : '')} onClick={() => markReady(id, st)}>
+            <span className="stg-check" aria-hidden="true">
+              {myReady(id) === st ? '✓' : ''}
+            </span>
+            {t('stage.rd.' + st)}
+          </button>
+        ))
+      : null;
+  // a show's length: every song's length (3:30 when unset) + the pauses
+  const showLength = (list, songsHere) => {
+    const playable = songsHere.filter((s) => !s.missing);
+    let guess = false;
+    let sec = 0;
+    for (const s of playable) {
+      const d = sheetPrefs(s.id).dur;
+      if (!d) guess = true;
+      sec += d || DEFAULT_DUR;
+    }
+    sec += (list.gap || 0) * Math.max(0, playable.length - 1);
+    return { sec, guess, n: playable.length };
   };
   const [perform, setPerform] = useState(null); // {songs, at, setId?}
   // a reorder on stage (v1.0.189) is saved to the setlist; songs missing on
@@ -994,6 +1157,8 @@ export function StageView({ onAccount, start = null }) {
   if (set) {
     const songs = songsOf(set.items);
     const notIn = scoped.filter((s) => !set.items.includes(s.id));
+    const len = showLength(set, songs);
+    const mineReadyN = songs.filter((s) => !s.missing && myReady(s.id) === 'know').length;
     return (
       <div className="stg" dir={dir}>
         <BackButton label={band ? band.name : t('stage.back')} onClick={() => setOpenSet(null)} />
@@ -1006,6 +1171,8 @@ export function StageView({ onAccount, start = null }) {
             )}
             <p className="subtitle">
               {songs.length === 1 ? t('stage.song1') : songs.length ? t('stage.songs', { n: songs.length }) : t('stage.noSongs')}
+              {len.n > 0 ? ' · ' + (len.guess ? t('stage.len.about', { t: fmtShow(len.sec, t) }) : fmtShow(len.sec, t)) : ''}
+              {!band && canReady && len.n > 0 && mineReadyN > 0 ? ' · ' + t('stage.rd.summaryMe', { k: mineReadyN, n: len.n }) : ''}
               {band ? ' · ' + band.name : ''}
             </p>
           </div>
@@ -1077,10 +1244,13 @@ export function StageView({ onAccount, start = null }) {
                     {s.name}
                   </span>
                 </span>
+                {!s.missing && readyMark(s.id)}
                 {!s.missing && durOf(s.id) && <span className="stg-detail">{durOf(s.id)}</span>}
               </button>
               {!s.missing && <ListenKey link={linkOf(s.id)} name={s.name} t={t} />}
               <MoreMenu label={t('stage.more')}>
+                {!s.missing && readyItems(s.id)}
+                {!s.missing && canReady && <span className="more-menu-sep" aria-hidden="true" />}
                 {!s.missing && (
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {byId.get(s.id)?.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
@@ -1112,6 +1282,29 @@ export function StageView({ onAccount, start = null }) {
             <span className="ph-title">{t('stage.addSongs')}</span>
           </button>
         </div>
+
+        {len.n > 1 && (
+          <section className="ph-section stg-len">
+            <div className="ph-group stg-group stg-len-group">
+              <ControlRow label={t('stage.len.gap')}>
+                <Select value={String(set.gap || 0)} onChange={(e) => sets.setGap(set.id, Number(e.target.value))} aria-label={t('stage.len.gap')}>
+                  {GAPS.map((g) => (
+                    <option key={g} value={g}>
+                      {t('stage.len.gap' + g)}
+                    </option>
+                  ))}
+                </Select>
+              </ControlRow>
+            </div>
+            <p className="stg-fine is-under">
+              {t('stage.len.total', { t: fmtShow(len.sec, t) })}
+              {len.guess ? ' ' + t('stage.len.defaults') : ''}
+            </p>
+          </section>
+        )}
+
+        {band && canReady && <ReadyPanel band={band} songs={songs} readyOf={readyOf} uid={uid} t={t} />}
+        {band && isIn && !cloud.readyOk && songs.length > 0 && <p className="stg-fine is-under">{t('stage.rd.setup')}</p>}
 
         {picking && (
           <Sheet title={t('stage.pick')} onClose={() => (setPicking(false), setPickQuery(''))} dir={dir} t={t}>
@@ -1339,6 +1532,7 @@ export function StageView({ onAccount, start = null }) {
                       </span>
                       {inWords && <span className="ph-desc stg-hit" dir="auto">{t('stage.inWords')} · {inWords}</span>}
                     </span>
+                    {readyMark(s.id)}
                     {(durOf(s.id) || (isIn && !s.cloud)) && (
                       <span className="stg-detail">{[durOf(s.id), isIn && !s.cloud ? t('stage.cloud.notYet') : null].filter(Boolean).join(' · ')}</span>
                     )}
@@ -1346,6 +1540,8 @@ export function StageView({ onAccount, start = null }) {
                 )}
                 {renaming !== s.id && <ListenKey link={linkOf(s.id)} name={s.name} t={t} />}
                 <MoreMenu label={t('stage.more')}>
+                  {readyItems(s.id)}
+                  {canReady && <span className="more-menu-sep" aria-hidden="true" />}
                   <button type="button" className="more-menu-item" onClick={() => setRenaming(s.id)}>
                     {t('stage.rename')}
                   </button>

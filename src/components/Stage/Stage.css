@@ -2147,3 +2147,100 @@ html .stg-ss-row:active { background: var(--fill-tertiary); }
 .stg-sg-row .stg-listen {
   flex: none;
 }
+
+/* ---- readiness + show length (v1.0.233) ---- */
+.stg-ready {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--type-footnote, 13px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+.stg-ready.is-all,
+.stg-ready.is-know {
+  color: #248a3d;
+}
+.stg-ready.is-some,
+.stg-ready.is-learning {
+  color: #c93400;
+}
+.stg-ready.is-not {
+  color: var(--text-secondary);
+}
+:root[data-theme='dark'] .stg-ready.is-all,
+:root[data-theme='dark'] .stg-ready.is-know {
+  color: #30d158;
+}
+:root[data-theme='dark'] .stg-ready.is-some,
+:root[data-theme='dark'] .stg-ready.is-learning {
+  color: #ff9f0a;
+}
+.stg-ready svg {
+  display: block;
+}
+.stg-ready span {
+  direction: ltr;
+}
+.stg-check {
+  display: inline-block;
+  width: 1em;
+  color: var(--accent);
+  font-weight: 700;
+}
+.more-menu-sep {
+  display: block;
+  height: 0.5px;
+  margin: 4px 6px;
+  background: var(--separator);
+}
+.stg-ready-panel .ph-section-title {
+  margin-bottom: 2px;
+}
+.stg-ready-sum {
+  margin: 0 4px 8px;
+  text-align: justify;
+}
+.stg-ready-member .stg-row-main:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.stg-detail.is-ok {
+  color: #248a3d;
+}
+:root[data-theme='dark'] .stg-detail.is-ok {
+  color: #30d158;
+}
+.stg-ready-member + .stg-ready-member {
+  border-top: 0.5px solid var(--separator);
+}
+.stg-ready-songs {
+  list-style: none;
+  margin: 0;
+  padding-block: 0 10px;
+  padding-inline: 46px 16px;
+}
+.stg-ready-songs li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 15px;
+  border-top: 0.5px solid var(--separator);
+}
+.stg-ready-state {
+  flex: none;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.stg-ready-state.is-learning {
+  color: #c93400;
+}
+:root[data-theme='dark'] .stg-ready-state.is-learning {
+  color: #ff9f0a;
+}
+.stg-len-group {
+  padding: 0 16px;
+}

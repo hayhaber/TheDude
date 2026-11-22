@@ -18,9 +18,13 @@ export function captureJoinCode() {
     const url = new URL(window.location.href);
     const raw = (url.searchParams.get('band') || '').trim().toUpperCase();
     if (!raw) return;
+    if (CODE_RE.test(raw)) localStorage.setItem(KEY, JSON.stringify({ code: raw, at: Date.now() }));
+    // Inside WhatsApp / Instagram's own browser the link stays as it is: the
+    // person will be told to open it in Safari / Chrome (Google won't sign in
+    // there), and that browser has its own storage — the code goes with the link.
+    if (/FBAN|FBAV|Instagram|WhatsApp|Line\/|GSA\/|Snapchat|TikTok|LinkedInApp/i.test(navigator.userAgent)) return;
     url.searchParams.delete('band');
     window.history.replaceState(window.history.state, '', url.pathname + (url.search || '') + url.hash);
-    if (CODE_RE.test(raw)) localStorage.setItem(KEY, JSON.stringify({ code: raw, at: Date.now() }));
   } catch {
     /* private mode */
   }

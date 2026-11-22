@@ -20,6 +20,8 @@ export function EmailAuth({ onDone }) {
   const [error, setError] = useState(null);
   const [info, setInfo] = useState(null);
 
+  const [suggest, setSuggest] = useState(null); // a likely typo in the address' domain
+
   const go = (m) => {
     setMode(m);
     setError(null);
@@ -54,6 +56,10 @@ export function EmailAuth({ onDone }) {
     if (busy) return;
     const em = email.trim();
     if ((mode === 'main' || mode === 'forgot') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return setError('cloud.err.email');
+    if ((mode === 'main' || mode === 'forgot') && !suggest) {
+      const fix = fixDomain(em);
+      if (fix) return setSuggest(fix); // ask once; a second tap goes ahead as typed
+    }
     if (mode === 'main' && !password) return setError('cloud.err.password');
     if (mode === 'code' && code.length < 6) return setError('cloud.err.code');
     if (mode === 'main') run('emailContinue', em, password);
@@ -84,7 +90,10 @@ export function EmailAuth({ onDone }) {
       placeholder={t('cloud.email')}
       aria-label={t('cloud.email')}
       value={email}
-      onChange={(e) => setEmail(e.target.value)}
+      onChange={(e) => {
+        setEmail(e.target.value);
+        setSuggest(null);
+      }}
     />
   );
   const passwordInput = (label, auto) => (
@@ -108,6 +117,7 @@ export function EmailAuth({ onDone }) {
     <form className="cloud-form" onSubmit={submit} noValidate>
       {mode === 'forgot' && <p className="cloud-form-text">{t('cloud.forgotText')}</p>}
       {mode === 'code' && <p className="cloud-form-text">{t(created ? 'cloud.codeSentNew' : 'cloud.codeSent', { email: email.trim() })}</p>}
+      {mode === 'code' && <p className="cloud-form-hint">{t('cloud.checkAddress')}</p>}
       {mode === 'newPassword' && <p className="cloud-form-text">{t('cloud.newPasswordText')}</p>}
 
       {(mode === 'main' || mode === 'forgot') && emailInput}
@@ -130,6 +140,22 @@ export function EmailAuth({ onDone }) {
         />
       )}
 
+      {suggest && (mode === 'main' || mode === 'forgot') && (
+        <p className="cloud-form-info">
+          {t('cloud.didYouMean')}{' '}
+          <button
+            type="button"
+            className="cloud-link"
+            dir="ltr"
+            onClick={() => {
+              setEmail(suggest);
+              setSuggest(null);
+            }}
+          >
+            {suggest}
+          </button>
+        </p>
+      )}
       {error && <p className="cloud-form-error">{t(error)}</p>}
       {info && <p className="cloud-form-info">{t(info)}</p>}
 
@@ -144,7 +170,7 @@ export function EmailAuth({ onDone }) {
         )}
         {mode !== 'main' && mode !== 'newPassword' && (
           <button type="button" className="settings-install-btn" onClick={() => go('main')}>
-            {t('cloud.back')}
+            {t(mode === 'code' ? 'cloud.changeEmail' : 'cloud.back')}
           </button>
         )}
       </div>
@@ -158,4 +184,28 @@ export function EmailAuth({ onDone }) {
       )}
     </form>
   );
+}
+
+// Common misspellings of the big mail domains -> the right one (a code sent to
+// a wrong address never arrives, and the person can't tell why).
+const DOMAINS = ['gmail.com', 'walla.co.il', 'walla.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com', 'live.com', 'me.com'];
+function dist(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j += 1) d[0][j] = j;
+  for (let i = 1; i <= a.length; i += 1)
+    for (let j = 1; j <= b.length; j += 1)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+        i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1] ? d[i - 2][j - 2] + 1 : Infinity);
+  return d[a.length][b.length];
+}
+export function fixDomain(email) {
+  const at = email.lastIndexOf('@');
+  const dom = email.slice(at + 1).toLowerCase();
+  if (DOMAINS.includes(dom)) return null;
+  let best = null;
+  for (const d of DOMAINS) {
+    const k = dist(dom, d);
+    if (k > 0 && k <= 2 && (!best || k < best.k)) best = { d, k };
+  }
+  return best ? email.slice(0, at + 1) + best.d : null;
 }

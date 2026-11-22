@@ -273,3 +273,15 @@
   color: var(--text-secondary);
   font-size: 0.9em;
 }
+
+/* Google refuses to sign in inside WhatsApp / Instagram's browser (v1.0.246) */
+.cloud-inapp {
+  flex: 1 0 100%;
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+  font-size: 0.9em;
+  line-height: 1.45;
+}

@@ -3870,3 +3870,21 @@ no tools).
   rows; A (1180 EN) sees "Take 2 / Take 1 · Dana", plays (download),
   deletes one for the band -> row deleted + file removed; B after sync
   sees 1; no errors. NOT verified with the real Supabase / devices.
+- v1.0.246 (user: an invited member gets no email and Google sign-in
+  fails): checked live — Supabase auth settings fine (Google + email on),
+  Google's account chooser opens from the app's authorize URL (no
+  redirect error), and Gmail SMTP DOES send: the dudestar365 Sent folder
+  held 3 code emails, all bounced "550 address not found" — the member
+  typed his address wrong. Google: the likely cause is WhatsApp /
+  Instagram's in-app browser (Google refuses to sign in there). Fixes:
+  (1) EmailAuth — a domain typo check (`fixDomain`: gmial.com -> gmail.com,
+  walla / hotmail / outlook / yahoo / icloud …, edit distance <= 2) shows
+  "Did you mean …" (tap = fix; submitting again goes ahead as typed); the
+  code screen says a wrong address never gets the code and its back key
+  is "Change address". (2) CloudField: inside an in-app browser
+  (`detectPlatform()` *-inapp) the Google button is replaced by a note
+  "open in Safari / Chrome (••• / ⋮), or use email". (3) joinLink: in an
+  in-app browser ?band= stays in the address, so "Open in Safari" carries
+  the invite code to the other browser's storage. Playwright 390 HE
+  (WhatsApp UA): code kept in URL, note shown, typo suggested + fixed,
+  code screen text; Safari UA strips ?band as before.

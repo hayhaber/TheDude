@@ -5,6 +5,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { getLink, loadCloud } from './cloudState';
 import { useCloud } from './useCloud';
 import { EmailAuth } from './EmailAuth';
+import { detectPlatform } from '../install/pwaInstall';
 import './Cloud.css';
 
 export function GoogleG() {
@@ -67,13 +68,19 @@ export function CloudField() {
           {signedOut ? t('cloud.expired', { email }) : cloud.error === 'signin' ? t('cloud.errorSignin') : t('cloud.intro')}
         </span>
         <EmailAuth />
-        <div className="cloud-alt">
-          <span>{t('cloud.orGoogle')}</span>
-          <button type="button" className="settings-install-btn cloud-google" onClick={signIn}>
-            <GoogleG />
-            {t('cloud.google')}
-          </button>
-        </div>
+        {/inapp/.test(detectPlatform()) ? (
+          // WhatsApp / Instagram / Facebook open links in their own browser,
+          // and Google refuses to sign in there (403 disallowed_useragent).
+          <p className="cloud-inapp">{t(/^ios/.test(detectPlatform()) ? 'cloud.inAppIos' : 'cloud.inAppAndroid')}</p>
+        ) : (
+          <div className="cloud-alt">
+            <span>{t('cloud.orGoogle')}</span>
+            <button type="button" className="settings-install-btn cloud-google" onClick={signIn}>
+              <GoogleG />
+              {t('cloud.google')}
+            </button>
+          </div>
+        )}
       </>
     );
   } else if (confirm) {

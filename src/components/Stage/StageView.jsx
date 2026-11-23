@@ -5,6 +5,7 @@ import { fmtDur, moveItem, useSetlists } from '../../music/sheets/setlists';
 import { imagesToPdf, isImage } from '../../music/sheets/imageToPdf';
 import {
   addCharts,
+  attachChart,
   addTextSong,
   bandSetlistApi,
   createBand,
@@ -1199,6 +1200,29 @@ export function StageView({ onAccount, start = null }) {
   };
   const linkError = (e) => (e?.linkError ? t('stage.link.err.' + (['bad-url', 'not-a-chart', 'too-big'].includes(e.linkError) ? e.linkError : 'fetch')) : null);
 
+  // a words-only song gets its chart: a PDF, or photos made into one
+  const attachRef = useRef(null);
+  const attachFor = useRef(null);
+  const pickChart = (id) => {
+    attachFor.current = id;
+    attachRef.current?.click();
+  };
+  const attachFiles = async (files) => {
+    const id = attachFor.current;
+    const list = [...files];
+    if (!id || !list.length) return;
+    setBusy(true);
+    try {
+      const pdf = list.find(isPdf);
+      const images = list.filter((f) => !isPdf(f) && isImage(f));
+      const file = pdf || (images.length ? await imagesToPdf(images, byId.get(id)?.name || 'Chart') : null);
+      if (file) await attachChart(id, file);
+    } catch (e) {
+      fail(e);
+    }
+    setBusy(false);
+  };
+
   const openWords = (id) => {
     const sh = byId.get(id);
     if (sh) setWords({ id, name: sh.name, text: sh.lyrics || '', pdf: sh.pdf });
@@ -1243,6 +1267,17 @@ export function StageView({ onAccount, start = null }) {
         <WordsGlyph />
         <span className="stg-cap-label">{t('stage.ly.short')}</span>
       </button>
+      <input
+        ref={attachRef}
+        type="file"
+        accept="application/pdf,.pdf,image/*"
+        multiple
+        hidden
+        onChange={(e) => {
+          attachFiles(e.target.files);
+          e.target.value = '';
+        }}
+      />
       <input
         ref={fileRef}
         type="file"
@@ -1696,6 +1731,11 @@ export function StageView({ onAccount, start = null }) {
                     {byId.get(s.id)?.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
                   </button>
                 )}
+                {!s.missing && byId.get(s.id) && !byId.get(s.id).pdf && (
+                  <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
+                    {t('stage.attach')}
+                  </button>
+                )}
                 {!s.missing && (
                   <button type="button" className="more-menu-item" onClick={() => openListen(s.id, byId.get(s.id)?.name || s.name)}>
                     {t('stage.info.item')}
@@ -2007,6 +2047,11 @@ export function StageView({ onAccount, start = null }) {
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {s.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
                   </button>
+                  {!s.pdf && (
+                    <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
+                      {t('stage.attach')}
+                    </button>
+                  )}
                   {!band &&
                     cloud.bands.map((b) => (
                       <button

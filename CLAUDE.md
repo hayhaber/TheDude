@@ -4034,3 +4034,15 @@ no tools).
   Playwright (search mocked) 390 HE + 1180 EN: type -> pick -> fields
   Yesterday / The Beatles / youtu.be, save -> row title + artist, cover,
   listen key; no errors.
+- ADD A CHART TO A WORDS SONG (v1.0.255; user: "adding a song lets me
+  paste words but not attach a file"): before, a PDF always became a
+  SEPARATE song (his list had "לראות אותה היום" twice: chart + words).
+  A words-only song's ••• (Songs rows + setlist rows) has "Add chart
+  (PDF / photo)" -> a hidden file input (PDF, or photos -> imagesToPdf)
+  -> chartCloud `attachChart(id, file)`: the SAME record gets the blob
+  (id, name, words, setlists, notes, prefs unchanged), `cloud: false`
+  so sync step 1 uploads the file + upserts the row's path; step 2 on
+  other devices: a local words-only song whose row now has a path
+  downloads the file. Playwright 390 HE + 1180 EN: words song -> Add
+  chart -> one row with the doc tile, item gone, Performer shows the 2
+  pages; no errors. Cloud path not run against a fake Supabase.

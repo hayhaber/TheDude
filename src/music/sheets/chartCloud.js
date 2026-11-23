@@ -247,6 +247,11 @@ export async function syncWith(sb, uid, local) {
       }
     } else {
       const patch = {};
+      // a words-only song here that got its chart on another device
+      if (!h.pdf && r.path) {
+        const dl = await sb.storage.from(BUCKET).download(r.path);
+        if (!dl.error && dl.data) Object.assign(patch, { blob: dl.data, size: r.size ?? dl.data.size, path: r.path });
+      }
       if (h.name !== r.name || (h.band ?? null) !== (r.band_id ?? null) || !h.cloud) Object.assign(patch, { name: r.name, band: r.band_id ?? null, cloud: true, path: r.path });
       if (hasSong && 'lyrics' in r && (r.lyrics ?? '') !== (h.lyrics ?? '') && !pendingLyrics.has(r.id)) patch.lyrics = r.lyrics ?? '';
       if (Object.keys(patch).length) await local.patchSheet(r.id, patch);
@@ -446,6 +451,21 @@ export async function addCharts(files, band = null) {
   }
   if (signedIn()) syncCharts();
   return ids;
+}
+
+/**
+ * Give a words-only song its chart (v1.0.255; user: "adding a song lets me
+ * paste words but not attach a file"): the SAME song gets the PDF (its id,
+ * name, words, setlists, notes and prefs stay), and goes up again — sync
+ * step 1 uploads the file and fills the row's path; the other devices fetch
+ * it in step 2.
+ */
+export async function attachChart(id, file) {
+  const rec = await getSheet(id);
+  if (!rec) return;
+  const blob = new Blob([await file.arrayBuffer()], { type: 'application/pdf' });
+  await patchSheet(id, { blob, size: blob.size, cloud: false });
+  if (signedIn()) syncCharts();
 }
 
 /** Delete everywhere (my devices / the band) — or just here when signed out. */

@@ -40,10 +40,74 @@ export function useWakeLock(on) {
 
 /** One page: a placeholder of the right shape; drawn when it comes near.
  *  `children` = an overlay over the page (the Stage's transposed chords). */
+// v1.0.253 (user: a Tab4u print came cut at the page's right edge, "can
+// the system check the display and fix it by itself?"): some sites print
+// their text flush against one side and use half the page (Tab4u: RTL, no
+// right margin, the left half empty). The page's TEXT tells where the
+// content really is, so each page is FRAMED to it before it's shown: the
+// window = the text's extent + a 4 % margin on each side (content that
+// spilled past the paper's edge comes back in), and the page fills the
+// screen's width with it — on a phone a half-empty chart's text comes out
+// twice as big. Pages that already use their width (> 88 %) are only
+// centred when one side touches the edge. Scans / photos have no text =
+// drawn as they are. Overlays (transposed chords) ride the same frame.
+// Returns {w, h} = the page in points + {lo, cw} = the window's start and
+// width in points (Page draws the window at the screen's width).
+export async function pageFrame(page) {
+  const v = page.getViewport({ scale: 1 });
+  const W = v.width;
+  const H = v.height;
+  let lo = 0;
+  let cw = W;
+  try {
+    const tc = await page.getTextContent();
+    let a = Infinity;
+    let b = -Infinity;
+    for (const it of tc.items) {
+      if (!it.str || !it.str.trim()) continue;
+      const x = it.transform[4];
+      a = Math.min(a, x);
+      b = Math.max(b, x + (it.width || 0));
+    }
+    if (b > a) {
+      const m = W * 0.04;
+      const want = b - a + 2 * m;
+      if (want < W * 0.88) {
+        lo = a - m;
+        cw = want;
+      } else {
+        const left = a;
+        const right = W - b;
+        if (Math.min(left, right) < m && Math.abs(left - right) > W * 0.08) lo = (left - right) / 2;
+      }
+    }
+  } catch {
+    lo = 0;
+    cw = W;
+  }
+  return { w: W, h: H, lo, cw };
+}
+
+// How big a framed page is drawn: fill the width with the window, but not
+// past ~1.8 css px per point of the screen's own width (a computer / iPad
+// would blow a half-page chart up huge), never smaller than the plain page,
+// and a zoomed width (the Size stepper) zooms as before.
+const MAX_PX_PER_PT = 1.8;
+function frameAt(size, width) {
+  const W = size.w;
+  const lo = size.lo || 0;
+  const cw = size.cw || W;
+  const screen = typeof document !== 'undefined' ? document.documentElement.clientWidth || width : width;
+  const s = Math.min(width / cw, Math.max(width / W, (MAX_PX_PER_PT * width) / Math.max(1, screen)));
+  const shown = width / s; // the window actually shown, in points (>= cw)
+  return { s, lo: lo - (shown - cw) / 2, shown };
+}
+
 export function Page({ doc, index, size, width, root, children }) {
   const ref = useRef(null);
   const canvasRef = useRef(null);
   const [near, setNear] = useState(false);
+  const f = width ? frameAt(size, width) : { s: 1, lo: 0, shown: size.w };
   useEffect(() => {
     const el = ref.current;
     if (!el || !root) return undefined;
@@ -58,15 +122,16 @@ export function Page({ doc, index, size, width, root, children }) {
     (async () => {
       const page = await doc.getPage(index + 1);
       if (cancelled) return;
-      const base = page.getViewport({ scale: 1 });
+      const { s, lo } = frameAt(size, width);
+      const cssH = size.h * s;
       // iOS draws nothing on a canvas over ~16.7 M pixels (a zoomed page)
-      const cssH = (width * base.height) / base.width;
       const dpr = Math.min(2.5, window.devicePixelRatio || 1, Math.sqrt(16e6 / Math.max(1, width * cssH)));
-      const viewport = page.getViewport({ scale: (width / base.width) * dpr });
+      const scale = s * dpr;
+      const viewport = page.getViewport({ scale, offsetX: -lo * scale });
       const canvas = canvasRef.current;
       if (!canvas) return;
-      canvas.width = Math.round(viewport.width);
-      canvas.height = Math.round(viewport.height);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(cssH * dpr);
       task = page.render({ canvasContext: canvas.getContext('2d'), viewport });
       await task.promise.catch(() => {});
     })();
@@ -74,12 +139,21 @@ export function Page({ doc, index, size, width, root, children }) {
       cancelled = true;
       task?.cancel?.();
     };
-  }, [near, width, doc, index]);
-  const h = width ? Math.round((width * size.h) / size.w) : 0;
+  }, [near, width, doc, index, size]);
+  const h = width ? Math.round(size.h * f.s) : 0;
+  const framed = Math.abs(f.lo) > 0.01 || Math.abs(f.shown - size.w) > 0.01;
   return (
     <div className="sheet-page" ref={ref} style={{ width, height: h }} data-page={index} dir="ltr">
       <canvas ref={canvasRef} aria-hidden="true" />
-      {children}
+      {children &&
+        (framed ? (
+          // laid out on the full page (width x its height), then moved + scaled onto the window
+          <div className="sheet-page-shift" style={{ width, height: (width * size.h) / size.w, transform: `scale(${size.w / f.shown}) translateX(${(-f.lo / size.w) * 100}%)` }}>
+            {children}
+          </div>
+        ) : (
+          children
+        ))}
     </div>
   );
 }
@@ -119,8 +193,7 @@ export function PdfSheetView({ sheetId, name = '', t }) {
         loaded = d;
         const out = [];
         for (let i = 1; i <= d.numPages; i += 1) {
-          const v = (await d.getPage(i)).getViewport({ scale: 1 });
-          out.push({ w: v.width, h: v.height });
+          out.push(await pageFrame(await d.getPage(i)));
         }
         if (!alive) return;
         setSizes(out);

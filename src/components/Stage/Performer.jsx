@@ -5,7 +5,7 @@ import { loadPdfDocument } from '../../music/pdfTextExtractor';
 import { getSheet, setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
 import { chordsOnPage, keyOf, transposeChord, flatsFor } from '../../music/sheets/chartChords';
 import { fmtDur } from '../../music/sheets/setlists';
-import { Page, useWakeLock } from '../GuitarPro/PdfSheetView';
+import { Page, pageFrame, useWakeLock } from '../GuitarPro/PdfSheetView';
 import { getAudioContext } from '../../audio/audioContext';
 import { openBandLink } from '../../music/sheets/bandLink';
 import { chordsOf, parseLyrics } from '../../music/sheets/lyricsText';
@@ -276,8 +276,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         loaded = d;
         const out = [];
         for (let i = 1; i <= d.numPages; i += 1) {
-          const v = (await d.getPage(i)).getViewport({ scale: 1 });
-          out.push({ w: v.width, h: v.height });
+          out.push(await pageFrame(await d.getPage(i)));
         }
         if (!alive) return;
         setSizes(out);

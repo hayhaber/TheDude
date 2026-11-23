@@ -172,3 +172,15 @@
     font-size: 14px;
   }
 }
+
+/* v1.0.253: overlays follow a page drawn shifted to the middle */
+.sheet-page-shift {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.sheet-page-shift > * {
+  pointer-events: auto;
+}

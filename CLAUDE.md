@@ -4003,3 +4003,20 @@ no tools).
   merges a chord line into one. Tab4u "תיסלם – לראות אותה היום": every
   chord on its word. Left: a chord line at a page's foot whose words start
   the next page stays a chord row.
+- PDF PAGES FRAMED TO THEIR CONTENT (v1.0.253; user's Tab4u print came
+  cut at the right edge — "can the system check the display and fix it
+  by itself?"): Tab4u prints flush against the RIGHT edge (text to
+  595.5 pt on a 595 pt page) and uses only the right half. PdfSheetView
+  `pageFrame(page)` (called where both PdfSheetView and the Performer
+  measure pages; size = {w, h, lo, cw}) reads the page's TEXT extent:
+  narrower than 88 % of the page -> the window = text + 4 % margin each
+  side; else, one side touching (< 4 %) with uneven margins -> centred.
+  No text (scans / photos) = unchanged. `Page` draws that window
+  (`frameAt`: px per pt = min(width / cw, max(width / W, 1.8 x width /
+  screen width)) — fills a phone, at most ~1.8 px/pt on a wide screen,
+  never smaller than the plain page, Size zoom unchanged), canvas at the
+  page box size with pdf.js `offsetX`, and wraps overlays in
+  `.sheet-page-shift` (laid out on the full page, scale + translateX
+  onto the window) so transposed chords stay on their chords. Tab4u
+  print: phone 390 text ~2x, iPad 820 enlarged + centred, 1180 as before
+  but nothing cut; Key +2 boxes on their chords at all three.

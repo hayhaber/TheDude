@@ -4020,3 +4020,17 @@ no tools).
   onto the window) so transposed chords stay on their chords. Tab4u
   print: phone 390 text ~2x, iPad 820 enlarged + centred, 1180 as before
   but nothing cut; Key +2 boxes on their chords at all three.
+- SONG DETAILS (v1.0.254; user: "when I add a song and rename it I can't
+  add the band too, or find a link or the album picture"): one sheet like
+  Apple Music's Get Info replaces the inline Rename + the separate
+  listening-link sheet (`SongInfoSheet` in StageView, was ListenSheet):
+  Cancel · "Song Details" · Save; the cover (SongArt 88 px, found from
+  song + artist as you type), Song = SongSearchField (a pick fills song,
+  artist, cover cache and a link: YouTube when the server has the key,
+  else Apple Music), Artist field, Listening link field (+ "find it on"
+  links while empty). Save = `renameChart(id, "Song – Artist")` + link
+  pref, only what changed. ••• item "Song Details" / "פרטי השיר" on Songs
+  rows (Rename + link items gone) and setlist rows (link item gone).
+  Playwright (search mocked) 390 HE + 1180 EN: type -> pick -> fields
+  Yesterday / The Beatles / youtu.be, save -> row title + artist, cover,
+  listen key; no errors.

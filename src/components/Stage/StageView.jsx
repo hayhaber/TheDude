@@ -214,36 +214,55 @@ function ListenKey({ link, name, t }) {
 }
 
 /** Add / change / remove a song's listening link. */
-function ListenSheet({ name, link, onSave, onClose, dir, t }) {
+// v1.0.254 (user: "when I add a song and rename it, I can't add the band
+// too, or find a link or the album picture"): one SONG DETAILS sheet, like
+// Get Info in Apple Music, in place of Rename + the separate link sheet:
+// the cover (found by itself from song + artist), Song (searches Apple as
+// you type — a pick fills the song, the artist, the cover and a listening
+// link), Artist, Listening link. Save writes the name "Song – Artist" and
+// the link in one go.
+function SongInfoSheet({ name, link, onSave, onClose, dir, t }) {
+  const start = splitName(name);
+  const [title, setTitle] = useState(start.title);
+  const [artist, setArtist] = useState(start.artist);
   const [v, setV] = useState(link || '');
-  const [q, setQ] = useState(name || '');
   const [finding, setFinding] = useState(false);
   const url = cleanLink(v);
   const bad = !!v.trim() && !url;
   const svc = url ? serviceOf(url) : null;
+  const full = title.trim() + (artist.trim() ? ' – ' + artist.trim() : '');
+  const save = () => !bad && title.trim() && onSave({ name: full, link: url || null });
+  const searchName = full || name;
   return (
-    <Sheet title={t('stage.listen.title')} onClose={onClose} dir={dir} t={t} action={{ label: t('stage.listen.save'), onClick: () => onSave(url), disabled: bad || !url }}>
-      <p className="stg-sheet-sub" dir="auto">{name}</p>
+    <Sheet title={t('stage.info.title')} onClose={onClose} dir={dir} t={t} action={{ label: t('stage.listen.save'), onClick: save, disabled: bad || !title.trim() }}>
+      <div className="stg-info-head">
+        <SongArt title={title.trim()} artist={artist.trim()} size={88} />
+      </div>
       <SongSearchField
-        label={t('stage.ss.find')}
-        value={q}
+        label={t('stage.info.song')}
+        value={title}
         placeholder={t('stage.ss.findPh')}
-        onChange={setQ}
+        onChange={setTitle}
+        onEnter={save}
         onPick={async (song) => {
-          setQ(songLabel(song));
+          setTitle(song.title);
+          setArtist(song.artist || '');
           rememberArt(song.title, song.artist, song.art);
-          if (song.apple) setV(song.apple);
+          if (song.apple && !url) setV(song.apple);
           setFinding(true);
           const l = await linkFor(song);
           if (l) setV(l);
           setFinding(false);
         }}
       />
+      <label className="stg-field">
+        <span>{t('stage.info.artist')}</span>
+        <input dir="auto" value={artist} autoComplete="off" onChange={(e) => setArtist(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && save()} />
+      </label>
       {finding && <p className="stg-ss-note">{t('stage.ss.finding')}</p>}
       <label className="stg-field">
         <span>{t('stage.listen.label')}</span>
         <input
-          autoFocus
           dir="ltr"
           type="url"
           inputMode="url"
@@ -253,24 +272,19 @@ function ListenSheet({ name, link, onSave, onClose, dir, t }) {
           value={v}
           placeholder="https://"
           onChange={(e) => setV(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && !bad && (url || link) && onSave(url)}
+          onKeyDown={(e) => e.key === 'Enter' && save()}
         />
       </label>
       {bad ? <p className="stg-err">{t('stage.listen.bad')}</p> : svc && <p className="stg-listen-found">{t('stage.listen.on.' + svc)}</p>}
-      <p className="stg-listen-find">
-        <span>{t('stage.listen.find')}</span>
-        {['youtube', 'spotify', 'apple'].map((k) => (
-          <a key={k} href={SEARCH_URL[k](name)} target="_blank" rel="noopener noreferrer">
-            {t('stage.listen.svc.' + k)}
-          </a>
-        ))}
-      </p>
-      {link && (
-        <div className="stg-sheet-foot">
-          <button type="button" className="stg-capsule is-danger" onClick={() => onSave(null)}>
-            {t('stage.listen.remove')}
-          </button>
-        </div>
+      {!url && (
+        <p className="stg-listen-find">
+          <span>{t('stage.listen.find')}</span>
+          {['youtube', 'spotify', 'apple'].map((k) => (
+            <a key={k} href={SEARCH_URL[k](searchName)} target="_blank" rel="noopener noreferrer">
+              {t('stage.listen.svc.' + k)}
+            </a>
+          ))}
+        </p>
       )}
     </Sheet>
   );
@@ -860,8 +874,10 @@ export function StageView({ onAccount, start = null }) {
   const [, setLinkTick] = useState(0);
   const linkOf = (id) => sheetPrefs(id).link || '';
   const openListen = (id, name) => setListen({ id, name, link: linkOf(id) });
-  const saveListen = (url) => {
-    setSheetPrefs(listen.id, { link: url || '' });
+  const saveInfo = ({ name, link }) => {
+    const { id, name: was } = listen;
+    if ((link || '') !== linkOf(id)) setSheetPrefs(id, { link: link || '' });
+    if (name !== was) renameChart(id, name).catch(fail);
     setListen(null);
     setLinkTick((n) => n + 1);
   };
@@ -1280,7 +1296,7 @@ export function StageView({ onAccount, start = null }) {
   const dialogs = (
     <>
       <ListenDock />
-      {listen && <ListenSheet name={listen.name} link={listen.link} onSave={saveListen} onClose={() => setListen(null)} dir={dir} t={t} />}
+      {listen && <SongInfoSheet name={listen.name} link={listen.link} onSave={saveInfo} onClose={() => setListen(null)} dir={dir} t={t} />}
       {words && <LyricsSheet songId={words.id} name={words.name} text={words.text} hasPdf={words.pdf} onSave={saveWords} onClose={() => setWords(null)} />}
       {dialog === 'link' && (
         <AskSheet
@@ -1681,8 +1697,8 @@ export function StageView({ onAccount, start = null }) {
                   </button>
                 )}
                 {!s.missing && (
-                  <button type="button" className="more-menu-item" onClick={() => openListen(s.id, s.name)}>
-                    {linkOf(s.id) ? t('stage.listen.edit') : t('stage.listen.add')}
+                  <button type="button" className="more-menu-item" onClick={() => openListen(s.id, byId.get(s.id)?.name || s.name)}>
+                    {t('stage.info.item')}
                   </button>
                 )}
                 <button type="button" className="more-menu-item is-danger" onClick={() => sets.setItems(set.id, set.items.filter((_, k) => k !== i))}>
@@ -1985,14 +2001,11 @@ export function StageView({ onAccount, start = null }) {
                   {readyItems(s.id)}
                   {canReady && <span className="more-menu-sep" aria-hidden="true" />}
                   {songItem(s.id)}
-                  <button type="button" className="more-menu-item" onClick={() => setRenaming(s.id)}>
-                    {t('stage.rename')}
+                  <button type="button" className="more-menu-item" onClick={() => openListen(s.id, s.name)}>
+                    {t('stage.info.item')}
                   </button>
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {s.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
-                  </button>
-                  <button type="button" className="more-menu-item" onClick={() => openListen(s.id, s.name)}>
-                    {linkOf(s.id) ? t('stage.listen.edit') : t('stage.listen.add')}
                   </button>
                   {!band &&
                     cloud.bands.map((b) => (

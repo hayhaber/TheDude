@@ -2634,3 +2634,14 @@ html[lang='he'] .stg-fold-chev { rotate: 180deg; }
 .stg-song-head .stg-art { border-radius: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); }
 .stg-song-head h1 { margin: 0; }
 .stg-song-head .subtitle { margin: 2px 0 0; }
+
+/* v1.0.254: Song Details sheet — the cover on top, centred */
+.stg-info-head {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0 14px;
+}
+.stg-info-head .stg-art {
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}

@@ -4106,3 +4106,38 @@ no tools).
   the lit line stay at that line for the whole song (clock or recording);
   the chart (PDF) view is unchanged. Measured 1180 + 390: span = box
   height, lit line 150–330 px from the top (bubble ends at 66) at p 0–0.4.
+- LYRICS TIMING (v1.0.260; user: "the lit words come a little late —
+  can it follow the song exactly?" -> an even pace can't: intro, solos,
+  dense / sparse verses). Each SUNG line (words view, `data-li` on
+  `.stage-w-line`, `isSung` / `sungKeys` in Performer) gets the second it
+  starts in the song's recording; sheet pref `sync` = {v, src 'lrclib' |
+  'tap', off, lines [[t, key]]} (key = start of the line's text, so the
+  times survive edits: `timesFor()` re-aligns by key). Pure
+  `music/sheets/lyricSync.js`: lineKey, parseLrc, Dice `similar`,
+  `alignKeys` (ordered DP), `timesFromLrc` (>= half the lines must match),
+  `fillTimes`, `makeSync`, `posAt` (holds on the sung line, glides to the
+  next in the last 40 % of its span). (1) AUTO: on play-along with words
+  and no sync, once per song, after the recording's length is known:
+  `fetchLrc()` (songSearch.js) -> `/api/song-search?lrc=1&t&a&d` ->
+  LRCLIB /api/search (title + artist, else q), the synced result closest
+  to the recording's length; only the TIMES are kept; flash "Found the
+  lyrics timing". (2) TAP: song details -> "Lyrics timing" block (state,
+  Sync · Find · Clear, "earlier / later" ±0.2 s offset stepper, hints;
+  "needs a YouTube link"): Sync replaces the control bubble with a tap bar
+  (× · "Tap Now as each line starts" + "Line i of n · tap a line to redo
+  from it" · ↶ back one line · filled Now · Done); the next line is
+  underlined; Space / Enter = Now, Backspace = back, Escape = stop; a tap
+  on a line = seek 1 s before the line above it and redo from there; end
+  of the recording / last line = save (tapped times win, the rest keep the
+  earlier ones). While play-along runs with timing, the words box scroll =
+  `posAt(ytTime, times, line tops)` (guide at scrollTop since v1.0.259);
+  the chart (PDF) view keeps the even pace. Cloud: column `charts.sync`
+  (JSON text) = `supabase/migrations/013_lyrics_sync.sql` (THE USER RUNS
+  IT) — its own select / update + `hasSync` fallback, so nothing else
+  waits for it; pushed with the prefs debounce, pulled unless sending.
+  Privacy page: title + artist go to LRCLIB through our server. Checked:
+  pure test (match, a line added / removed, offset), 013 twice on local
+  Postgres 16; Playwright fake YouTube (22 s) + mocked LRC with uneven
+  gaps, 390 HE + 1180 EN: every line lit at its own second, tap-sync 6
+  lines saved, the v1.0.257 PDF play-along test unchanged. LRCLIB itself
+  NOT reachable from here — coverage (Hebrew songs!) unknown.

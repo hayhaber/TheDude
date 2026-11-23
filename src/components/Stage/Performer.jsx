@@ -17,6 +17,9 @@ import { setSheetLyrics } from '../../music/sheets/sheetStore';
 import { embedOf } from '../../music/sheets/songLink';
 import { closeListen, hasListenHost, listenNow, onYt, openListen, subscribeListen, ytCommand, ytInfo, ytTime } from '../../music/sheets/listenStore';
 import { PerformerRecKey } from './SongExtras';
+import { fillTimes, lineKey, makeSync, posAt, timesFor, timesFromLrc } from '../../music/sheets/lyricSync';
+import { fetchLrc } from '../../music/sheets/songSearch';
+import { splitName } from '../../music/sheets/songArt';
 import { rehearsalState, stopRehearsal, switchRehearsal } from '../../audio/rehearsal';
 import { notesOf, useNotesVersion } from '../../music/sheets/songNotes';
 
@@ -66,7 +69,12 @@ function readWordsZoom() {
 }
 
 /** The song's words, big, a line per row (chords over the words when shown). */
+const isSung = (l) => l.kind === 'words' && l.words.some((w) => (w.text || '').trim());
+/** The sung lines' texts, in order (what the timings are matched to). */
+const sungKeys = (sections) => sections.flatMap((s) => s.lines.filter(isSung).map((l) => lineKey(l.words.map((w) => w.text).join(' '))));
+
 function Words({ sections, chords, tr, flats, dir, t }) {
+  let li = 0; // the sung line's number (data-li), for the lyrics timing
   return (
     <div className="stage-words" dir={dir}>
       {sections.map((sec, i) => (
@@ -87,7 +95,7 @@ function Words({ sections, chords, tr, flats, dir, t }) {
               ) : null;
             const withChords = chords && l.words.some((w) => w.chord);
             return (
-              <p key={k} className={'stage-w-line' + (withChords ? ' has-chords' : '')} dir="auto">
+              <p key={k} className={'stage-w-line' + (withChords ? ' has-chords' : '')} dir="auto" data-li={isSung(l) ? li++ : undefined}>
                 {l.words.map((w, j) =>
                   withChords ? (
                     <span key={j} className="stage-w-word">
@@ -199,6 +207,11 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const [atEnd, setAtEnd] = useState(false);
   // playing along with the song's recording (v1.0.257, see below)
   const [along, setAlong] = useState(false);
+  const [syncPref, setSyncPref] = useState(null); // the song's lyrics timing (v1.0.260)
+  const [tap, setTap] = useState(null); // tap-to-sync: {marks, next, base}
+  const tapRef = useRef(null);
+  tapRef.current = tap;
+  const [flash, setFlash] = useState(null); // a short message over the stage
   const alongRef = useRef(false);
   alongRef.current = along;
   const [chrome, setChrome] = useState(true);
@@ -231,6 +244,10 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const isWords = mode === 'words' || mode === 'wordsChords';
   wordsMode = isWords;
   const sectionsW = useMemo(() => (isWords ? parseLyrics(lyrics) : []), [isWords, lyrics]);
+  const keysW = useMemo(() => sungKeys(sectionsW), [sectionsW]);
+  const syncTimes = useMemo(() => (isWords ? timesFor(syncPref, keysW, dur) : null), [isWords, syncPref, keysW, dur]);
+  const syncTimesRef = useRef(null);
+  syncTimesRef.current = syncTimes;
   const ready = mode === 'chart' ? !!doc : isWords;
   useWakeLock(true);
 
@@ -244,6 +261,8 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     setBpm(prefs.bpm ?? null);
     setNote(prefs.note ?? '');
     setStartNote(prefs.start ?? null);
+    setSyncPref(prefs.sync ?? null);
+    setTap(null);
     setDoc(null);
     setSizes([]);
     setChords(null);
@@ -931,6 +950,11 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
           setAutoAt(null);
         } else if (y.state === 2) setPlaying(false);
         else if (y.state === 0) {
+          if (tapRef.current) {
+            finishTapRef.current?.();
+            setPlaying(false);
+            return;
+          }
           if (scroller) scroller.scrollTop = scroller.scrollHeight; // the reader at the end
           setPlaying(false);
           setAtEnd(true);
@@ -956,7 +980,21 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       const y = ytInfo();
       if (!h.touching && now >= h.until && y.dur > 0 && y.state !== 0) {
         const span = scroller.scrollHeight - scroller.clientHeight;
-        const want = Math.max(0, Math.min(1, ytTime(now) / y.dur)) * span;
+        const box = pagesRef.current;
+        const tp = tapRef.current;
+        const times = syncTimesRef.current;
+        let want;
+        if (box && (tp || times) && box.classList.contains('stage-words-box')) {
+          // the lines' tops in the words box (the guide sits at scrollTop)
+          const top0 = box.getBoundingClientRect().top;
+          const tops = [...box.querySelectorAll('[data-li]')].map((el) => el.getBoundingClientRect().top - top0);
+          if (tp) {
+            // tapping: the line just tapped at the guide, the next one below it
+            const goal = tp.next > 0 ? tops[tp.next - 1] ?? 0 : 0;
+            want = scroller.scrollTop + (goal - scroller.scrollTop) * 0.25;
+          } else want = posAt(ytTime(now), times, tops, box.offsetHeight);
+          want = Math.max(0, Math.min(span, want));
+        } else want = Math.max(0, Math.min(1, ytTime(now) / y.dur)) * span;
         if (Math.abs(scroller.scrollTop - want) >= 0.5) scroller.scrollTop = want;
       }
       raf = requestAnimationFrame(step);
@@ -1009,6 +1047,124 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     }
   };
 
+  // ---- lyrics timing (v1.0.260) ----
+  const say = useCallback((text) => setFlash({ text, n: Date.now() }), []);
+  useEffect(() => {
+    if (!flash) return undefined;
+    const id = setTimeout(() => setFlash(null), 2800);
+    return () => clearTimeout(id);
+  }, [flash]);
+  const saveSync = (sync) => {
+    setSheetPrefs(song.id, { sync });
+    setSyncPref(sync);
+  };
+  // automatically: LRCLIB's times matched to these words, once per song
+  const [finding, setFinding] = useState(false);
+  const triedRef = useRef(new Set());
+  const findSync = useCallback(
+    async (manual = false) => {
+      if (!song || !keysW.length) return;
+      triedRef.current.add(song.id);
+      const { title, artist } = splitName(song.name);
+      setFinding(true);
+      const lrc = await fetchLrc(title, artist, ytInfo().dur || sheetPrefs(song.id).dur || null);
+      setFinding(false);
+      const times = lrc ? timesFromLrc(keysW, lrc) : null;
+      if (times) {
+        const sync = makeSync(keysW, times, 'lrclib');
+        setSheetPrefs(song.id, { sync });
+        setSyncPref(sync);
+        say(t('stage.sync.found'));
+      } else if (manual) say(t('stage.sync.none'));
+    },
+    [song, keysW, say, t]
+  );
+  useEffect(() => {
+    if (!along || !isWords || syncPref || !keysW.length || !song || triedRef.current.has(song.id)) return undefined;
+    // wait for the recording's length (it picks the right version)
+    const go = () => {
+      if (ytInfo().dur > 0 && !triedRef.current.has(song.id)) findSync(false);
+    };
+    go();
+    return onYt(go);
+  }, [along, isWords, syncPref, keysW, song, findSync]);
+  // by hand: the recording plays, a tap as each line starts
+  const startTap = () => {
+    if (!keysW.length) return;
+    setDetails(false);
+    const off = Number(syncPref?.off) || 0;
+    const base = syncTimes ? syncTimes.map((x) => x - off) : keysW.map(() => null);
+    setTap({ base, marks: keysW.map(() => null), next: 0 });
+    if (scroller) scroller.scrollTop = 0;
+    if (along) {
+      ytCommand('seekTo', [0, true]);
+      ytCommand('playVideo');
+    } else startAlong();
+  };
+  const markNow = () => {
+    const tp = tapRef.current;
+    if (!tp) return;
+    const marks = tp.marks.slice();
+    marks[tp.next] = ytTime();
+    const next = tp.next + 1;
+    setTap({ ...tp, marks, next });
+    if (next >= keysW.length) setTimeout(() => finishTapRef.current?.(), 0);
+  };
+  const tapFrom = (i) => {
+    const tp = tapRef.current;
+    if (!tp) return;
+    const back = tp.marks[i - 1] ?? tp.base[i - 1] ?? 0;
+    ytCommand('seekTo', [Math.max(0, back - 1), true]);
+    ytCommand('playVideo');
+    setTap({ ...tp, next: i });
+  };
+  const undoTap = () => {
+    const tp = tapRef.current;
+    if (!tp || tp.next === 0) return;
+    tapFrom(tp.next - 1);
+  };
+  const finishTap = () => {
+    const tp = tapRef.current;
+    if (!tp) return;
+    setTap(null);
+    const tapped = tp.marks.filter((x) => x != null).length;
+    if (tapped < 2) return;
+    // lines tapped now win; the rest keep their earlier times; never back in time
+    const merged = tp.marks.map((m, i) => (m != null ? m : tp.base[i]));
+    const times = fillTimes(merged, dur);
+    saveSync(makeSync(keysW, times, 'tap'));
+    say(t('stage.sync.saved'));
+  };
+  const finishTapRef = useRef(null);
+  finishTapRef.current = finishTap;
+  const markNowRef = useRef(null);
+  markNowRef.current = markNow;
+  const undoTapRef = useRef(null);
+  undoTapRef.current = undoTap;
+  const nudgeSync = (d) => {
+    if (!syncPref) return;
+    const off = Math.max(-5, Math.min(5, Math.round(((Number(syncPref.off) || 0) + d) * 10) / 10));
+    saveSync({ ...syncPref, off });
+  };
+  // while tapping, the line to tap next is marked
+  useEffect(() => {
+    const box = pagesRef.current;
+    if (!box) return undefined;
+    box.querySelectorAll('.stage-w-line.is-tapnext').forEach((el) => el.classList.remove('is-tapnext'));
+    if (tap) box.querySelector(`[data-li="${tap.next}"]`)?.classList.add('is-tapnext');
+    return undefined;
+  }, [tap?.next, !!tap]); // eslint-disable-line react-hooks/exhaustive-deps
+  // a tap on a line while tapping = sync again from that line
+  useEffect(() => {
+    if (!tap || !scroller) return undefined;
+    const onClick = (e) => {
+      const el = e.target?.closest?.('[data-li]');
+      if (el) tapFrom(Number(el.dataset.li));
+    };
+    scroller.addEventListener('click', onClick);
+    return () => scroller.removeEventListener('click', onClick);
+  }, [!!tap, scroller]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // The reader at the bottom = the song is done (also when scrolled by hand).
   useEffect(() => {
     if (!scroller) return undefined;
@@ -1039,6 +1195,16 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   useEffect(() => {
     const onKey = (e) => {
       if (e.target?.closest?.('input, select, textarea')) return;
+      if (tapRef.current) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          markNowRef.current?.();
+        } else if (e.key === 'Backspace') {
+          e.preventDefault();
+          undoTapRef.current?.();
+        } else if (e.key === 'Escape') setTap(null);
+        return;
+      }
       if (['ArrowDown', 'PageDown', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         turn(1);
@@ -1093,7 +1259,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         return;
       }
       if (performance.now() - swallowTapRef.current < 700) return;
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 400) setChrome((v) => !v);
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 400 && !tapRef.current) setChrome((v) => !v);
     };
     scroller.addEventListener('touchstart', down, { passive: true });
     scroller.addEventListener('touchend', up, { passive: true });
@@ -1367,6 +1533,53 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
                 {lyrics.trim() ? t('stage.ly.editShort') : t('stage.ly.addShort')}
               </button>
             </div>
+            {lyrics.trim() && keysW.length > 0 && (
+              <div className="stage-sync-box">
+                <div className="stage-field">
+                  <span className="stage-field-label">{t('stage.sync.row')}</span>
+                  <span className="stage-sync-state">
+                    {finding ? t('stage.sync.finding') : syncPref ? t(syncPref.src === 'tap' ? 'stage.sync.byYou' : 'stage.sync.auto') : t('stage.sync.off')}
+                  </span>
+                </div>
+                {ytLink(song) ? (
+                  <>
+                    <div className="stage-sync-actions">
+                      <button type="button" className="stage-key is-text" onClick={startTap}>
+                        {t('stage.sync.tap')}
+                      </button>
+                      <button type="button" className="stage-key is-text" onClick={() => findSync(true)} disabled={finding}>
+                        {t('stage.sync.find')}
+                      </button>
+                      {syncPref && (
+                        <button type="button" className="stage-key is-text is-danger" onClick={() => saveSync(null)}>
+                          {t('stage.sync.clear')}
+                        </button>
+                      )}
+                    </div>
+                    {syncPref && (
+                      <div className="stage-field">
+                        <span className="stage-field-label">{t('stage.sync.shift')}</span>
+                        <span className="stage-stepper">
+                          <button type="button" className="stage-key is-small" onClick={() => nudgeSync(-0.2)} aria-label={t('stage.sync.earlier')}>
+                            −
+                          </button>
+                          <span className="stage-stepper-val" dir="ltr">
+                            {(Number(syncPref.off) || 0) > 0 ? '+' : ''}
+                            {(Number(syncPref.off) || 0).toFixed(1)} s
+                          </span>
+                          <button type="button" className="stage-key is-small" onClick={() => nudgeSync(0.2)} aria-label={t('stage.sync.later')}>
+                            +
+                          </button>
+                        </span>
+                      </div>
+                    )}
+                    <p className="stage-field-hint">{t(isWords ? 'stage.sync.hint' : 'stage.sync.wordsOnly')}</p>
+                  </>
+                ) : (
+                  <p className="stage-field-hint">{t('stage.sync.needsLink')}</p>
+                )}
+              </div>
+            )}
             <div className="stage-field">
               <span className="stage-field-label">{t('stage.tempo')}</span>
               <span className="stage-stepper">
@@ -1532,7 +1745,35 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         </div>
       )}
 
-      {mini ? (
+      {flash && (
+        <div key={flash.n} className="stage-flash glass" role="status" dir={dir}>
+          {flash.text}
+        </div>
+      )}
+
+      {tap ? (
+        <div className="stage-perf-bar stage-tapbar glass" dir={dir} ref={barRef}>
+          <button type="button" className="stage-key is-round is-quiet" onClick={() => setTap(null)} aria-label={t('stage.sync.cancel')} title={t('stage.sync.cancel')}>
+            <Icon d="M6 6l12 12M18 6L6 18" size={18} />
+          </button>
+          <span className="stage-tap-text">
+            <strong>{tap.next < keysW.length ? t('stage.sync.tapHint') : t('stage.sync.allDone')}</strong>
+            <small>
+              {t('stage.sync.count', { i: Math.min(tap.next + 1, keysW.length), n: keysW.length })}
+              <span className="stage-tap-fix"> · {t('stage.sync.fix')}</span>
+            </small>
+          </span>
+          <button type="button" className="stage-key is-round" onClick={undoTap} disabled={tap.next === 0} aria-label={t('stage.sync.undo')} title={t('stage.sync.undo')}>
+            <Icon d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" size={18} />
+          </button>
+          <button type="button" className="stage-key is-primary stage-tap-now" onClick={markNow} disabled={tap.next >= keysW.length}>
+            <span>{t('stage.sync.now')}</span>
+          </button>
+          <button type="button" className="stage-key is-plain" onClick={finishTap}>
+            <span>{t('stage.sync.done')}</span>
+          </button>
+        </div>
+      ) : mini ? (
         <div className="stage-perf-bar is-mini glass" dir="ltr" ref={barRef}>
           <button type="button" className={'stage-key is-round is-primary' + (playing ? ' is-on' : '')} onClick={toggleScroll} aria-label={playing ? t('stage.pause') : t('stage.scroll')} title={playing ? t('stage.pause') : t('stage.scroll')}>
             {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M7 4.5v15l13-7.5z" size={16} fill />}

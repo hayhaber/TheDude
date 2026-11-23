@@ -31,3 +31,16 @@ export async function linkFor(song) {
 }
 
 export const songLabel = (s) => (s.artist ? `${s.title} – ${s.artist}` : s.title);
+
+/** Time-stamped lyrics for a song (LRCLIB through our server), or null. */
+export async function fetchLrc(title, artist, dur) {
+  try {
+    const p = new URLSearchParams({ lrc: '1', t: title || '', a: artist || '', d: dur ? String(Math.round(dur)) : '' });
+    const r = await fetch(`/api/song-search?${p}`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    return typeof j.lrc === 'string' ? j.lrc : null;
+  } catch {
+    return null;
+  }
+}

@@ -8,6 +8,12 @@
 //     (the key never reaches the browser). One call per CHOSEN song
 //     (100 quota units; the free 10,000 / day = ~100 songs a day).
 
+//   GET /api/song-search?lrc=1&t=<title>&a=<artist>&d=<seconds>  -> {lrc: text | null, duration}
+//     Time-stamped lyrics from LRCLIB (lrclib.net, free, no key; v1.0.260):
+//     the result with synced lyrics whose length is closest to the
+//     recording's. The app keeps only the TIMES (matched to the user's own
+//     words); the text is not stored.
+
 const clean = (s, n = 120) => String(s || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
 
 async function itunes(q, country) {
@@ -55,9 +61,34 @@ async function youtube(q, key) {
   return id && /^[\w-]{6,20}$/.test(id) ? `https://youtu.be/${id}` : null;
 }
 
+async function lrclib(title, artist, dur) {
+  const ask = async (params) => {
+    const u = new URL('https://lrclib.net/api/search');
+    for (const [k, v] of Object.entries(params)) if (v) u.searchParams.set(k, v);
+    const r = await fetch(u, { headers: { accept: 'application/json', 'user-agent': 'DudeStar (https://the-dude.vercel.app)' } });
+    if (!r.ok) throw new Error('lrclib ' + r.status);
+    const data = await r.json();
+    return (Array.isArray(data) ? data : []).filter((x) => typeof x.syncedLyrics === 'string' && x.syncedLyrics.includes('['));
+  };
+  let found = await ask({ track_name: title, artist_name: artist });
+  if (!found.length && artist) found = await ask({ q: `${title} ${artist}` });
+  if (!found.length) return { lrc: null };
+  const d = Number(dur) || 0;
+  found.sort((x, y) => (d ? Math.abs((x.duration || 0) - d) - Math.abs((y.duration || 0) - d) : 0));
+  const best = found[0];
+  return { lrc: best.syncedLyrics.slice(0, 60000), duration: best.duration || null };
+}
+
 export default async function handler(req, res) {
-  const { q, yt, c } = req.query || {};
+  const { q, yt, c, lrc, t, a, d } = req.query || {};
   try {
+    if (lrc) {
+      const title = clean(t, 150);
+      if (title.length < 1) return res.status(200).json({ lrc: null });
+      const out = await lrclib(title, clean(a, 150), d);
+      res.setHeader('cache-control', 's-maxage=604800, stale-while-revalidate=86400');
+      return res.status(200).json(out);
+    }
     if (yt) {
       const key = process.env.YOUTUBE_API_KEY;
       if (!key) return res.status(200).json({ youtube: null, ready: false });

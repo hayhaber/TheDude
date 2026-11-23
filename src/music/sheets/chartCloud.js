@@ -73,6 +73,12 @@ const missingSongCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204')
 
 // the listening link comes with migration 006 (v1.0.227); before it the link
 // stays on this device / my own devices (sheet prefs sync with the profile).
+// the lyrics timing (v1.0.260) comes with migration 013 — its own column, its
+// own queries, so nothing else waits for it
+let hasSync = true;
+const missingSyncCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204' || e.code === '42P01') && /\bsync\b/i.test(e.message || '');
+const syncText = (v) => (v ? JSON.stringify(v).slice(0, 20000) : null);
+const sendingSync = new Set();
 let hasLink = true;
 const LINK = (p) => (hasLink ? { link: p.link || null } : {});
 const missingLinkCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\blink\b/i.test(e.message || '');
@@ -207,6 +213,10 @@ export async function syncWith(sb, uid, local) {
       ({ error } = await sb.from('charts').upsert({ ...row, ...SONG(rec, p) }));
     }
     if (error) throw error;
+    if (hasSync && p.sync) {
+      const r2 = await sb.from('charts').update({ sync: syncText(p.sync) }).eq('id', rec.id);
+      if (r2.error && missingSyncCol(r2.error)) hasSync = false;
+    }
     await local.patchSheet(rec.id, { cloud: true, path });
   }
 
@@ -265,6 +275,26 @@ export async function syncWith(sb, uid, local) {
     if (r.start_note != null && r.start_note !== p.start) patch.start = r.start_note;
     if (hasLink && 'link' in r && (r.link ?? '') !== (p.link ?? '') && !pendingMeta.has(r.id) && !sendingLink.has(r.id)) patch.link = r.link ?? '';
     if (Object.keys(patch).length) local.setSheetPrefs(r.id, patch, { quiet: true });
+  }
+  // the lyrics timings (shared with the band)
+  if (hasSync) {
+    const sy = await sb.from('charts').select('id,sync');
+    if (sy.error) {
+      if (missingSyncCol(sy.error)) hasSync = false;
+    } else
+      for (const r of sy.data || []) {
+        if (!have.has(r.id) && !byId.has(r.id)) continue;
+        if (pendingMeta.has(r.id) || sendingSync.has(r.id)) continue;
+        const mine = syncText(local.sheetPrefs(r.id).sync);
+        if ((r.sync ?? null) === mine) continue;
+        let v = null;
+        try {
+          v = r.sync ? JSON.parse(r.sync) : null;
+        } catch {
+          continue;
+        }
+        local.setSheetPrefs(r.id, { sync: v }, { quiet: true });
+      }
   }
   // cloud charts nobody shows us any more (a band left / removed us)
   for (const m of now) if (m.cloud && !byId.has(m.id)) await local.deleteSheet(m.id);
@@ -364,13 +394,16 @@ const pendingMeta = new Map();
 const sendingLink = new Set();
 let metaTimer = null;
 onSheetPrefs((id, patch) => {
-  if (!signedIn() || !('dur' in patch || 'tr' in patch || 'bpm' in patch || 'note' in patch || 'start' in patch || 'link' in patch)) return;
+  if (!signedIn() || !('dur' in patch || 'tr' in patch || 'bpm' in patch || 'note' in patch || 'start' in patch || 'link' in patch || 'sync' in patch)) return;
   pendingMeta.set(id, { ...(pendingMeta.get(id) ?? {}), ...patch });
   clearTimeout(metaTimer);
   metaTimer = setTimeout(async () => {
     const all = [...pendingMeta.entries()];
     pendingMeta.clear();
-    for (const [cid, p] of all) if ('link' in p) sendingLink.add(cid);
+    for (const [cid, p] of all) {
+      if ('link' in p) sendingLink.add(cid);
+      if ('sync' in p) sendingSync.add(cid);
+    }
     try {
       const sb = await client();
       for (const [cid, p] of all) {
@@ -383,6 +416,10 @@ onSheetPrefs((id, patch) => {
         if (hasMeta && 'note' in p) row.notes = p.note || null;
         if (hasSong && 'start' in p) row.start_note = p.start ?? null;
         if (hasLink && 'link' in p) row.link = p.link || null;
+        if (hasSync && 'sync' in p) {
+          const r2 = await sb.from('charts').update({ sync: syncText(p.sync) }).eq('id', cid);
+          if (r2.error && missingSyncCol(r2.error)) hasSync = false;
+        }
         if (!Object.keys(row).length) continue;
         let { error } = await sb.from('charts').update(row).eq('id', cid);
         if (error && missingLinkCol(error)) {
@@ -405,7 +442,10 @@ onSheetPrefs((id, patch) => {
     } catch {
       /* next sync uploads nothing for meta — the local value stays */
     }
-    for (const [cid] of all) sendingLink.delete(cid);
+    for (const [cid] of all) {
+      sendingLink.delete(cid);
+      sendingSync.delete(cid);
+    }
   }, 1500);
 });
 

@@ -2565,3 +2565,18 @@ html[lang='he'] .stg-fold-chev { rotate: 180deg; }
   box-shadow: inset 0 0 0 1px var(--separator);
 }
 .stg-faces .stg-avatar.is-own.is-clear { box-shadow: inset 0 0 0 1px var(--separator), 0 0 0 2px var(--surface); }
+
+/* A member's page (v1.0.248): the avatar + name, centred like a contact */
+.stg-member-row { justify-content: flex-start; width: 100%; }
+.stg-member-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 24px;
+  text-align: center;
+}
+.stg-member-head h1 { text-align: center; margin: 0; }
+.stg-member-head .stg-detail { margin: 0; }
+.stg-avatar.is-big { width: 88px; height: 88px; font-size: 38px; }
+.stg-avatar.is-big.is-own.is-emoji { font-size: 48px; }

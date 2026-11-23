@@ -333,13 +333,13 @@ function tintOf(id = '') {
 // A member's own avatar (v1.0.247: colour / emoji / clear ring from their
 // profile, migration 010) — the same look as in their profile chip; without
 // one, a letter on a colour from their id.
-function MemberAvatar({ m, small = false }) {
+function MemberAvatar({ m, small = false, big = false }) {
   const av = m.avatar;
   if (av && (Number.isFinite(av.hue) || av.emoji)) {
     const hue = Number.isFinite(av.hue) ? av.hue : 210;
     return (
       <span
-        className={'stg-avatar is-own' + (small ? ' is-small' : '') + (av.emoji ? ' is-emoji' : '') + (av.bg === 'clear' ? ' is-clear' : '')}
+        className={'stg-avatar is-own' + (small ? ' is-small' : '') + (big ? ' is-big' : '') + (av.emoji ? ' is-emoji' : '') + (av.bg === 'clear' ? ' is-clear' : '')}
         style={{ '--hue': hue }}
         aria-hidden="true"
       >
@@ -348,7 +348,7 @@ function MemberAvatar({ m, small = false }) {
     );
   }
   return (
-    <span className={'stg-avatar' + (small ? ' is-small' : '')} style={{ background: tintOf(m.id || m.key || m.name) }} aria-hidden="true">
+    <span className={'stg-avatar' + (small ? ' is-small' : '') + (big ? ' is-big' : '')} style={{ background: tintOf(m.id || m.key || m.name) }} aria-hidden="true">
       {initialOf(m.name)}
     </span>
   );
@@ -480,7 +480,7 @@ function BandJoinSheet({ isIn, onAccount, onCreate, onJoin, onClose, dir, t, ini
     Sharing) — members first, "Invite Members" as the group's last row (the
     system share sheet opens only when that row is tapped), the code as a
     footnote, then the band's settings. Never a sheet over another screen. */
-function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onRemove, onAnother, onLeave, t }) {
+function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onOpenMember, onAnother, onLeave, t }) {
   const owner = band.owner === uid;
   const [renaming, setRenaming] = useState(false);
   const [sure, setSure] = useState(false);
@@ -489,9 +489,9 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onRemov
     <>
       <h3 className="stg-sheet-sec">{t('stage.band.members') + ' · ' + band.members.length}</h3>
       <div className="ph-group stg-group">
-        {band.members.map((m) => (
-          <div key={m.id} className="stg-row">
-            <span className="ph-row stg-row-main">
+        {band.members.map((m) => {
+          const inner = (
+            <>
               <MemberAvatar m={m} />
               <span className="ph-text">
                 <span className="ph-title" dir="auto">
@@ -504,14 +504,21 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onRemov
               ) : (
                 m.id !== uid && hereIds.has(m.id) && <span className="stg-detail is-here">● {t('stage.band.here')}</span>
               )}
-            </span>
-            {owner && m.id !== uid && (
-              <button type="button" className="stg-remove" onClick={() => onRemove(m.id)}>
-                {t('stage.band.remove')}
-              </button>
-            )}
-          </div>
-        ))}
+            </>
+          );
+          // the band's manager taps a member to open their page (iOS Family
+          // Sharing: removing someone lives there, never as a key on the row)
+          return owner && m.id !== uid ? (
+            <button key={m.id} type="button" className="ph-row stg-member-row" onClick={() => onOpenMember(m.id)}>
+              {inner}
+              <Chevron />
+            </button>
+          ) : (
+            <div key={m.id} className="stg-row">
+              <span className="ph-row stg-row-main">{inner}</span>
+            </div>
+          );
+        })}
         <button type="button" className="ph-row stg-action stg-invite-row" onClick={onShare}>
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="9" cy="8" r="3.5" />
@@ -526,7 +533,6 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onRemov
           {band.code}
         </span>
       </p>
-      {owner && band.members.length > 1 && <p className="stg-fine is-under">{t('stage.band.ownerOnly')}</p>}
 
       <div className="ph-group stg-group stg-actions">
         {owner &&
@@ -560,6 +566,29 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onRemov
           {sure ? t('stage.deleteSure') : owner ? t('stage.band.delete') : t('stage.band.leave')}
         </button>
       </div>
+    </>
+  );
+}
+
+/** One member's page (v1.0.248, the band's manager only): who they are,
+    and at the foot the one destructive action, confirmed by a second tap —
+    as iOS Family Sharing does. */
+function MemberPage({ m, here, onRemove, t }) {
+  const [sure, setSure] = useState(false);
+  const name = m.name || t('stage.band.someone');
+  return (
+    <>
+      <div className="stg-member-head">
+        <MemberAvatar m={m} big />
+        <h1 dir="auto">{name}</h1>
+        {here && <p className="stg-detail is-here">● {t('stage.band.here')}</p>}
+      </div>
+      <div className="ph-group stg-group stg-actions">
+        <button type="button" className="ph-row stg-action is-danger" onClick={() => (sure ? onRemove() : setSure(true))}>
+          {sure ? t('stage.band.removeSure') : t('stage.band.removeFrom')}
+        </button>
+      </div>
+      <p className="stg-fine is-under">{t('stage.band.removeNote', { name })}</p>
     </>
   );
 }
@@ -843,6 +872,7 @@ export function StageView({ onAccount, start = null }) {
   const [picking, setPicking] = useState(false);
   const [query, setQuery] = useState('');
   const [pickQuery, setPickQuery] = useState('');
+  const [memberPage, setMemberPage] = useState(null); // a member's id, on the band's page
   const [dialog, setDialog] = useState(null); // 'newBand' | 'join' | 'invite' | 'members'
   const [msg, setMsg] = useState(null);
   const [photos, setPhotos] = useState(null); // several images: one chart or one each?
@@ -1263,11 +1293,31 @@ export function StageView({ onAccount, start = null }) {
     );
   }
 
+  // ---- one member's page (the manager's) ----
+  const shownMember = dialog === 'manage' && band && memberPage ? band.members.find((x) => x.id === memberPage) : null;
+  if (shownMember) {
+    return (
+      <div className="stg" dir={dir}>
+        <BackButton label={band.name} onClick={() => setMemberPage(null)} />
+        <MemberPage
+          m={shownMember}
+          here={here.some((p) => (p.key || '').split(':')[0] === shownMember.id)}
+          onRemove={() => {
+            setMemberPage(null);
+            removeMember(band.id, shownMember.id).catch(fail);
+          }}
+          t={t}
+        />
+        {toast}
+      </div>
+    );
+  }
+
   // ---- the band's page (members, invite, settings) ----
   if (dialog === 'manage' && band) {
     return (
       <div className="stg" dir={dir}>
-        <BackButton label={t('stage.back')} onClick={() => setDialog(null)} />
+        <BackButton label={t('stage.back')} onClick={() => (setMemberPage(null), setDialog(null))} />
         <header className="stg-head">
           <div className="stg-head-title">
             <h1 dir="auto">{band.name}</h1>
@@ -1280,7 +1330,7 @@ export function StageView({ onAccount, start = null }) {
           onShare={share}
           onNewCode={() => newInviteCode(band.id).catch(fail)}
           onRename={(v) => renameBand(band.id, v).catch(fail)}
-          onRemove={(id) => removeMember(band.id, id).catch(fail)}
+          onOpenMember={setMemberPage}
           onAnother={() => setDialog('band')}
           onLeave={() => {
             setDialog(null);

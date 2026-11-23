@@ -3906,3 +3906,15 @@ no tools).
   16 twice + a member can't move his row to another band or touch another
   member's avatar; Playwright fake Supabase A (🎸, hue 30) + B (hue 280):
   each pushed once, both see 🎸 + the purple D, name "Me" -> "Hay".
+- v1.0.248 (user: "why such a loud Remove key beside a member — is that
+  where Apple would put it?" — no): the band page's member rows lost the
+  red "Remove" capsule and the "only the creator can remove" footnote.
+  For the band's manager every OTHER member's row is a button with a
+  chevron (`.stg-member-row`) -> a pushed member page (StageView
+  `memberPage`, `MemberPage`: big avatar (`MemberAvatar big`) + name +
+  "here now", one red row "Remove from Band" -> second tap "Tap again to
+  remove", a footnote saying what removal means; Back = the band page;
+  removing returns there) — iOS Family Sharing's pattern. Others see plain
+  rows. Strings `stage.band.removeFrom / removeSure / removeNote`.
+  Playwright fake Supabase 1180 EN + 390 HE: no inline key, row -> page,
+  two taps -> member removed on the server, back on the band page.

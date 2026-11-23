@@ -25,6 +25,12 @@ export function labelOf(line) {
   return null;
 }
 
+/** A guitar-tab staff line: "e|---5-7-5---|", "B||-5-7-8--||" — not words. */
+export function isTabLine(line) {
+  const s = line.trim();
+  return /^[a-gA-G][#b]?\s*[|:]{1,2}/.test(s) && (s.match(/-/g) || []).length >= 6 && /^[a-gA-G#b\s|:\-\d~hpbrsxv/\\^().*]+$/.test(s);
+}
+
 /** A line of chords only (tab-site style), outside brackets. */
 function isBareChordLine(line) {
   if (/\[|\{/.test(line)) return false;
@@ -42,7 +48,7 @@ export function mergeChordLines(text) {
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     const next = lines[i + 1];
-    if (isBareChordLine(line) && next != null && next.trim() && !isBareChordLine(next) && !labelOf(next) && !HEBREW.test(next) && !/\[/.test(next)) {
+    if (isBareChordLine(line) && next != null && next.trim() && !isBareChordLine(next) && !labelOf(next) && !HEBREW.test(next) && !/\[/.test(next) && !isTabLine(next)) {
       const marks = [];
       const re = /\S+/g;
       let m;
@@ -122,6 +128,7 @@ export function parseLyrics(text) {
       if (cur && cur.lines.length) cur = null;
       continue;
     }
+    if (isTabLine(line)) continue;
     const label = labelOf(line);
     if (label) {
       open(label);
@@ -188,6 +195,11 @@ export function songToLyrics(song, kindName = (k) => k) {
  * top to bottom. Runs on one baseline are joined, left to right — reversed
  * for a Hebrew line (pdf.js gives a Hebrew run in reading order, but the
  * runs of a line come by their place on the page).
+ * A chord line right above a Hebrew line (Tab4u's print) is placed INTO it
+ * by the real x of every chord and word (v1.0.252): a chord goes in front of
+ * the word under its right edge (the reading start of a Hebrew word), over
+ * a gap = the next word in reading order, past the last word = at the end.
+ * A printed-by footer ("הודפס ב") is dropped.
  */
 export function pdfLines(items) {
   const runs = items
@@ -199,27 +211,80 @@ export function pdfLines(items) {
     if (line) line.runs.push(r);
     else lines.push({ y: r.y, size: r.size, runs: [r] });
   }
+  for (const l of lines) {
+    l.runs.sort((a, b) => a.x - b.x);
+    l.heb = l.runs.some((r) => HEBREW.test(r.str));
+    l.tokens = wordsOf(l.runs);
+  }
   const out = [];
   let lastY = null;
   let lastSize = 10;
-  for (const l of lines) {
-    const runsX = l.runs.sort((a, b) => a.x - b.x);
-    const heb = runsX.some((r) => HEBREW.test(r.str));
-    let s = '';
-    let end = null;
-    for (const r of heb ? [...runsX].reverse() : runsX) {
-      if (end != null) {
-        const gap = heb ? end - (r.x + r.w) : r.x - end;
-        s += ' '.repeat(Math.max(gap > r.size * 0.15 ? 1 : 0, Math.min(40, Math.round(gap / (r.size * 0.5)))));
-      }
-      s += r.str;
-      end = heb ? r.x : r.x + r.w;
-    }
+  for (let i = 0; i < lines.length; i += 1) {
+    const l = lines[i];
+    if (l.runs.some((r) => /^\s*הודפס ב/.test(r.str))) continue;
     // a wide gap between lines = a new section
     if (lastY != null && lastY - l.y > lastSize * 2.2) out.push('');
-    out.push(s.replace(/\s+$/, ''));
     lastY = l.y;
     lastSize = l.size;
+    const next = lines[i + 1];
+    if (next && next.heb && !l.heb && l.y - next.y <= l.size * 1.9 && isChordLine(l.tokens.map((t) => t.text)) && !isChordLine(next.tokens.map((t) => t.text))) {
+      out.push(placeChordsRtl(l.tokens.filter((t) => isChord(t.text)), next.tokens));
+      lastY = next.y;
+      lastSize = next.size;
+      i += 1;
+      continue;
+    }
+    out.push(joinRuns(l));
   }
   return out;
+}
+
+function joinRuns(l) {
+  let s = '';
+  let end = null;
+  for (const r of l.heb ? [...l.runs].reverse() : l.runs) {
+    if (end != null) {
+      const gap = l.heb ? end - (r.x + r.w) : r.x - end;
+      s += ' '.repeat(Math.max(gap > r.size * 0.15 ? 1 : 0, Math.min(40, Math.round(gap / (r.size * 0.5)))));
+    }
+    s += r.str;
+    end = l.heb ? r.x : r.x + r.w;
+  }
+  return s.replace(/\s+$/, '');
+}
+
+/** A line's words with their x span (a run split by its spaces, evenly). */
+function wordsOf(runs) {
+  const out = [];
+  for (const r of runs) {
+    const n = r.str.length || 1;
+    const cw = r.w / n;
+    const rtl = HEBREW.test(r.str);
+    const re = /\S+/g;
+    let m;
+    while ((m = re.exec(r.str))) {
+      const a = m.index;
+      const b = m.index + m[0].length;
+      // a Hebrew run's string is in reading order: its first char is at the right
+      const x0 = rtl ? r.x + r.w - b * cw : r.x + a * cw;
+      out.push({ text: m[0], x0, x1: x0 + (b - a) * cw });
+    }
+  }
+  return out;
+}
+
+/** Chords (above) into a Hebrew line, by x; the line in reading order. */
+function placeChordsRtl(chords, words) {
+  const ws = [...words].sort((a, b) => b.x1 - a.x1); // reading order: right to left
+  const before = ws.map(() => []);
+  const tail = [];
+  for (const c of [...chords].sort((a, b) => b.x1 - a.x1)) {
+    const at = c.x1 - 0.5;
+    let k = ws.findIndex((w) => w.x0 <= at && at <= w.x1 + 0.5);
+    if (k < 0) k = ws.findIndex((w) => w.x1 < at); // over a gap: the next word
+    if (k < 0) tail.push(c.text);
+    else before[k].push(c.text);
+  }
+  const parts = ws.map((w, k) => before[k].map((c) => `[${c}]`).join('') + w.text);
+  return (parts.join(' ') + tail.map((c) => ` [${c}]`).join('')).trim();
 }

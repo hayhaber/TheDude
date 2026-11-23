@@ -3990,3 +3990,16 @@ no tools).
   images mocked) 1180 EN + 390 HE: 2 covers + 1 note tile for "My own
   song" in Songs and the setlist, 1 on the suggestion; no errors. Real
   iTunes NOT reachable here.
+- TAB4U PDF -> WORDS + CHORDS (v1.0.252; user: Tab4u blocks copying, only
+  print-to-PDF; sent a real Tab4u print). Checked with pdf.js: the print is
+  TEXT (monospace), chordsOnPage finds all 80 chords = the Key stepper
+  works on the PDF itself. `pdfLines()` (lyricsText.js) now places a chord
+  line that sits right above a HEBREW line INTO it by real x (words split
+  from runs evenly, a Hebrew run's string is in reading order): a chord
+  goes before the word under its right edge, over a gap = the next word in
+  reading order, past the last word = at the line's end; "הודפס ב" footer
+  dropped. `isTabLine()` = guitar-tab staff lines (e|---5-7---|) dropped
+  from the words (Tab4u + Ultimate Guitar), and mergeChordLines never
+  merges a chord line into one. Tab4u "תיסלם – לראות אותה היום": every
+  chord on its word. Left: a chord line at a page's foot whose words start
+  the next page stays a chord row.

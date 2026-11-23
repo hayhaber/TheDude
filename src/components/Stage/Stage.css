@@ -2645,3 +2645,49 @@ html[lang='he'] .stg-fold-chev { rotate: 180deg; }
   border-radius: 10px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
 }
+
+/* v1.0.256: "Discard changes?" — iOS action sheet at the foot of a form sheet */
+.stg-discard {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(0, 0, 0, 0.22);
+  animation: stg-discard-in var(--dur-fast, 0.18s) var(--ease-ios, ease) both;
+}
+.stg-discard-box {
+  width: min(536px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stg-discard-box button {
+  min-height: 50px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 17px;
+  background: var(--card-bg, #fff);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  justify-content: center;
+}
+.stg-discard-go {
+  color: var(--danger);
+}
+.stg-discard-keep {
+  color: var(--accent);
+  font-weight: 600 !important;
+}
+html[data-theme='dark'] .stg-discard-box button {
+  background: #2c2c2e;
+}
+@keyframes stg-discard-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stg-discard { animation: none; }
+}

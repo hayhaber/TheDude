@@ -4046,3 +4046,15 @@ no tools).
   downloads the file. Playwright 390 HE + 1180 EN: words song -> Add
   chart -> one row with the doc tile, item gone, Performer shows the 2
   pages; no errors. Cloud path not run against a fake Supabase.
+- FORM SHEETS ASK BEFORE DISCARDING (v1.0.256; user: a tap outside
+  Song Details closed it and lost what he typed; "is Cancel the right
+  word?" — yes, iOS form sheets say Cancel · title · Save): StageView
+  `Sheet` with an `action` tracks `dirty` (any input / change event
+  inside it); not dirty = outside tap / Escape / Cancel close as before;
+  dirty = an iOS action sheet over the screen (`.stg-discard`, in the
+  scrim): "Discard Changes" (red) / "Keep Editing" (bold accent, focused;
+  a tap on the dim area or Escape = keep). Covers every form sheet in
+  Band (Song Details, Suggest, new band / join / rename, kitty sheets).
+  Info sheets (Done) unchanged. Strings `stage.discard.*`. Playwright 390
+  HE + 1180 EN: untouched -> closes; typed -> asks, keep keeps the text,
+  Cancel + Discard closes; no errors.

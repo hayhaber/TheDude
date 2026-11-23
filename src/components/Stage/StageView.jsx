@@ -144,18 +144,37 @@ function bandErr(e, t) {
  *  A FORM sheet passes `action` {label, onClick, disabled, busy}: the header is
  *  then iOS's Cancel · title · Add (bold, disabled until the form is valid) and
  *  the sheet has no bottom button (v1.0.231). */
+// A FORM sheet (one with an action: Cancel · title · Save / Add) never
+// throws typing away silently (v1.0.256; user: a tap outside the sheet
+// closed it and lost what he typed). As on iOS: with no changes, a tap
+// outside / Escape / Cancel just closes; once something was typed or
+// changed, any of them asks first — "Discard Changes" (red) / "Keep
+// Editing". Info sheets (Done) close as before.
 function Sheet({ title, onClose, children, dir, t, action = null }) {
+  const [dirty, setDirty] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const leave = useCallback(() => {
+    if (action && dirty) setAsking(true);
+    else onClose();
+  }, [action, dirty, onClose]);
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose();
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (asking) setAsking(false);
+      else leave();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [leave, asking]);
+  const touched = (e) => {
+    if (action && !dirty && e.target?.closest?.('input, textarea, select')) setDirty(true);
+  };
   return (
-    <div className="stg-sheet-scrim" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="stg-sheet glass" role="dialog" aria-label={title} dir={dir}>
+    <div className="stg-sheet-scrim" onClick={(e) => e.target === e.currentTarget && leave()}>
+      <div className="stg-sheet glass" role="dialog" aria-label={title} dir={dir} onInput={touched} onChange={touched}>
         {action ? (
           <header className="stg-sheet-head is-form">
-            <button type="button" className="stg-done is-cancel" onClick={onClose}>
+            <button type="button" className="stg-done is-cancel" onClick={leave}>
               {t('stage.cancel')}
             </button>
             <strong>{title}</strong>
@@ -173,6 +192,18 @@ function Sheet({ title, onClose, children, dir, t, action = null }) {
         )}
         {children}
       </div>
+      {asking && (
+          <div className="stg-discard" role="alertdialog" aria-label={t('stage.discard.q')} onClick={(e) => e.target === e.currentTarget && setAsking(false)}>
+            <div className="stg-discard-box">
+              <button type="button" className="stg-discard-go" onClick={onClose}>
+                {t('stage.discard.go')}
+              </button>
+              <button type="button" className="stg-discard-keep" onClick={() => setAsking(false)} autoFocus>
+                {t('stage.discard.keep')}
+              </button>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

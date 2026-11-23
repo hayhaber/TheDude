@@ -2723,3 +2723,19 @@ html .more-menu-item:disabled {
   cursor: default;
   opacity: 1;
 }
+
+/* v1.0.259 — words view = a teleprompter: the reading line stays put a
+   third of the way down (never under the title bubble) and the words move
+   up to it. Top room R + bottom room (screen − R) make the scroll span equal
+   the words' height, so the guide (offsetTop + p·height − scrollTop) sits
+   at R for the whole song, by the clock or by the recording. */
+.stage-perf.is-words {
+  --stage-read: max(30dvh, calc(150px + env(safe-area-inset-top)));
+}
+.stage-perf.is-words .stage-perf-scroll,
+.stage-perf.is-words.is-bare .stage-perf-scroll,
+.stage-perf.is-words.has-note:not(.is-bare) .stage-perf-scroll {
+  padding-top: var(--stage-read);
+  padding-bottom: calc(100dvh - var(--stage-read));
+}
+.stage-perf.is-words .stage-words-end { height: 0; }

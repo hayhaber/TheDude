@@ -4095,3 +4095,14 @@ no tools).
   opens the settings sheet (App renders it on the songwriter screen too).
   Playwright fake Supabase 1180 EN: add picked + open suggestions -> both
   in Mine, menu shows ✓; chip + settings sheet on Band / Songwriter 390 HE.
+- v1.0.259 (user's play-along screenshot: "it scrolls too fast, the title
+  covers the words"): timing was right (0:22 = "I believe in yesterday"),
+  but in the words view the reading line started at the very top and only
+  slid down slowly (guide = offsetTop + p·(height − span)), so the sung
+  line sat under the title bubble early in the song. Words view = a
+  TELEPROMPTER now: `.stage-perf.is-words` scroller padding top
+  `--stage-read` (max(30dvh, 150px + safe top)) and bottom (100dvh − it),
+  words-end 0 -> scroll span = the words' height exactly, so the guide and
+  the lit line stay at that line for the whole song (clock or recording);
+  the chart (PDF) view is unchanged. Measured 1180 + 390: span = box
+  height, lit line 150–330 px from the top (bubble ends at 66) at p 0–0.4.

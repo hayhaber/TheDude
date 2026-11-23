@@ -53,7 +53,10 @@ export function embedOf(link) {
     }
     if (!id || !/^[\w-]{6,20}$/.test(id)) return null;
     const t = parseInt(u.searchParams.get('t') || '', 10);
-    return { kind: 'youtube', src: `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0&autoplay=1${t > 0 ? '&start=' + t : ''}`, ratio: 16 / 9 };
+    // enablejsapi: the player reports its time / state by postMessage, so the
+    // chart can follow the recording (play-along, v1.0.257)
+    const origin = typeof location !== 'undefined' ? '&origin=' + encodeURIComponent(location.origin) : '';
+    return { kind: 'youtube', id, start: t > 0 ? t : 0, src: `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0&autoplay=1&enablejsapi=1${origin}${t > 0 ? '&start=' + t : ''}`, ratio: 16 / 9 };
   }
   if (/(^|\.)spotify\.com$/.test(host)) {
     const m = u.pathname.match(/^\/(?:intl-[a-z]{2}\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);

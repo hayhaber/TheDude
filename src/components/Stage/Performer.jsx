@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { loadPdfDocument } from '../../music/pdfTextExtractor';
@@ -15,7 +15,7 @@ import { Select } from '../ui/Select';
 import { LyricsSheet } from './LyricsSheet';
 import { setSheetLyrics } from '../../music/sheets/sheetStore';
 import { embedOf } from '../../music/sheets/songLink';
-import { hasListenHost, openListen } from '../../music/sheets/listenStore';
+import { closeListen, hasListenHost, listenNow, onYt, openListen, subscribeListen, ytCommand, ytInfo, ytTime } from '../../music/sheets/listenStore';
 import { PerformerRecKey } from './SongExtras';
 import { rehearsalState, stopRehearsal, switchRehearsal } from '../../audio/rehearsal';
 import { notesOf, useNotesVersion } from '../../music/sheets/songNotes';
@@ -197,6 +197,10 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const [error, setError] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [atEnd, setAtEnd] = useState(false);
+  // playing along with the song's recording (v1.0.257, see below)
+  const [along, setAlong] = useState(false);
+  const alongRef = useRef(false);
+  alongRef.current = along;
   const [chrome, setChrome] = useState(true);
   const [night, setNight] = useState(readNight);
   const [mini, setMini] = useState(() => readFlag(MINI_KEY));
@@ -575,7 +579,10 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const rootRef = useRef(null);
   const barRef = useCallback((el) => {
     if (!el) return;
-    const set = () => rootRef.current?.style.setProperty('--stage-bar-h', el.offsetHeight + 'px');
+    const set = () => {
+      rootRef.current?.style.setProperty('--stage-bar-h', el.offsetHeight + 'px');
+      document.documentElement.style.setProperty('--stage-bar-lift', el.offsetHeight + 'px'); // the listening dock sits above it
+    };
     set();
     new ResizeObserver(set).observe(el);
   }, []);
@@ -845,7 +852,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
 
   // Auto-scroll: the whole chart in the song's length.
   useEffect(() => {
-    if (!playing || !scroller) return undefined;
+    if (!playing || !scroller || along) return undefined;
     let raf;
     let last = performance.now();
     let carry = 0;
@@ -876,7 +883,131 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [playing, scroller, dur]);
+  }, [playing, scroller, dur, along]);
+
+  // PLAY-ALONG (v1.0.257; user: "a play key on the chart, and when the song
+  // ends the next one plays"): the song's YouTube recording plays in the
+  // dock and the chart follows ITS time (pause / seek in the player move the
+  // chart); at its end "Up next" counts 3 s and the next song loads into the
+  // same player. Only when started with this key — Scroll alone (the band
+  // on stage) never plays anything by itself.
+  const [autoAt, setAutoAt] = useState(null); // ms when the next song starts
+  const [autoLeft, setAutoLeft] = useState(0);
+  const listening = useSyncExternalStore(subscribeListen, listenNow, listenNow);
+  const linkOf = (s) => (s ? sheetPrefs(s.id).link : null);
+  const ytLink = (s) => (embedOf(linkOf(s))?.kind === 'youtube' ? linkOf(s) : null);
+  const stopAlong = useCallback(() => {
+    setAlong(false);
+    setAutoAt(null);
+    if (listenNow()?.along) closeListen();
+    setPlaying(false);
+  }, []);
+  // × on the dock = the recording stopped
+  useEffect(() => {
+    if (along && !listening) {
+      setAlong(false);
+      setAutoAt(null);
+      setPlaying(false);
+    }
+  }, [along, listening]);
+  // leaving the stage stops it; while open, the dock knows to sit above the bar
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.add('has-stage-perf');
+    return () => {
+      html.classList.remove('has-stage-perf');
+      html.style.removeProperty('--stage-bar-lift');
+      if (alongRef.current) closeListen();
+    };
+  }, []);
+  // the player's state -> the chart
+  useEffect(() => {
+    if (!along) return undefined;
+    return onYt((y, prev) => {
+      if (!prev || y.state !== prev.state) {
+        if (y.state === 1) {
+          setPlaying(true);
+          setAtEnd(false);
+          setAutoAt(null);
+        } else if (y.state === 2) setPlaying(false);
+        else if (y.state === 0) {
+          if (scroller) scroller.scrollTop = scroller.scrollHeight; // the reader at the end
+          setPlaying(false);
+          setAtEnd(true);
+          setChrome(true);
+          const nx = songs[idxRef.current + 1];
+          if (ytLink(nx)) setAutoAt(Date.now() + 3000);
+        }
+      }
+      if (y.dur > 0 && (!prev || Math.abs(y.dur - prev.dur) > 0.5)) {
+        const d = Math.round(y.dur);
+        setDur(d);
+        const s0 = songs[idxRef.current];
+        if (s0 && sheetPrefs(s0.id).dur == null) setSheetPrefs(s0.id, { dur: d });
+      }
+    });
+  }, [along, songs, scroller]); // eslint-disable-line react-hooks/exhaustive-deps
+  // the chart follows the recording's time
+  useEffect(() => {
+    if (!along || !scroller) return undefined;
+    let raf;
+    const step = (now) => {
+      const h = holdRef.current;
+      const y = ytInfo();
+      if (!h.touching && now >= h.until && y.dur > 0 && y.state !== 0) {
+        const span = scroller.scrollHeight - scroller.clientHeight;
+        const want = Math.max(0, Math.min(1, ytTime(now) / y.dur)) * span;
+        if (Math.abs(scroller.scrollTop - want) >= 0.5) scroller.scrollTop = want;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [along, scroller]);
+  // a new song while playing along: its recording in the same player, or stop
+  const firstSongRef = useRef(true);
+  useEffect(() => {
+    if (firstSongRef.current) {
+      firstSongRef.current = false;
+      return;
+    }
+    setAutoAt(null);
+    if (!alongRef.current) return;
+    const l = ytLink(song);
+    if (l) openListen(l, song.name, { along: true, reuse: true });
+    else stopAlong();
+  }, [song?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // "Up next" count
+  useEffect(() => {
+    if (autoAt == null) return undefined;
+    const tick = () => {
+      const left = autoAt - Date.now();
+      if (left <= 0) {
+        setAutoAt(null);
+        setIdx((i) => Math.min(songs.length - 1, i + 1));
+      } else setAutoLeft(Math.ceil(left / 1000));
+    };
+    tick();
+    const id = setInterval(tick, 200);
+    return () => clearInterval(id);
+  }, [autoAt, songs.length]);
+  const startAlong = () => {
+    const l = linkOf(song);
+    if (!embedOf(l)) return;
+    if (count != null) stopCount();
+    if (scroller && (atEnd || scroller.scrollTop > 2)) scroller.scrollTop = 0;
+    setAtEnd(false);
+    if (embedOf(l).kind === 'youtube') {
+      setPlaying(false);
+      setAlong(true);
+      openListen(l, song.name, { along: true });
+    } else {
+      // Spotify / Apple Music report nothing: the song plays, the chart
+      // scrolls on its own clock
+      openListen(l, song.name);
+      setPlaying(true);
+    }
+  };
 
   // The reader at the bottom = the song is done (also when scrolled by hand).
   useEffect(() => {
@@ -989,6 +1120,15 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   // at the end, Scroll starts the chart again from the top
   // with a tempo, Scroll from the top counts one bar in first (v1.0.189)
   const toggleScroll = () => {
+    if (along) {
+      setAutoAt(null);
+      if (playing) ytCommand('pauseVideo');
+      else {
+        if (ytInfo().state === 0 || atEnd) ytCommand('seekTo', [0, true]);
+        ytCommand('playVideo');
+      }
+      return;
+    }
     if (count != null) {
       stopCount();
       sendStateRef.current?.({ playing: false });
@@ -1138,17 +1278,6 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
           </span>
         </button>
         <PerformerRecKey song={song} t={t} />
-        {hasListenHost() && embedOf(sheetPrefs(song.id).link) && (
-          <button
-            type="button"
-            className="stage-key is-round stage-listen-key"
-            onClick={() => openListen(sheetPrefs(song.id).link, song.name)}
-            aria-label={t('stage.listen.play')}
-            title={t('stage.listen.play')}
-          >
-            <Icon d="M3 14v-2a9 9 0 0 1 18 0v2M3 14a2 2 0 0 1 2-2h1v7H5a2 2 0 0 1-2-2zM21 14a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z" size={18} />
-          </button>
-        )}
         {songs.length > 1 && (
           <button
             type="button"
@@ -1383,9 +1512,14 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       {atEnd && !playing && songs.length > 1 && (
         <div className="stage-endcard glass" dir={dir} role="status">
           <div className="stage-endcard-text">
-            <small>{next ? t('stage.upNext') : t('stage.setDone')}</small>
+            <small>{next ? (autoAt != null ? t('stage.along.in', { n: autoLeft }) : t('stage.upNext')) : t('stage.setDone')}</small>
             <strong dir="auto">{next ? next.name : t('stage.setDoneText')}</strong>
           </div>
+          {next && autoAt != null && (
+            <button type="button" className="stage-key is-plain" onClick={() => setAutoAt(null)}>
+              <span>{t('stage.along.cancel')}</span>
+            </button>
+          )}
           {next ? (
             <button type="button" className="stage-key is-primary" onClick={() => goSong(1)}>
               <span>{t('stage.nextBtn')}</span>
@@ -1423,7 +1557,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         </button>
         <button type="button" className={'stage-key is-primary' + (playing ? ' is-on' : '')} onClick={toggleScroll}>
           {playing ? <Icon d="M8 5v14M16 5v14" size={16} /> : <Icon d="M7 4.5v15l13-7.5z" size={16} fill />}
-          <span>{playing ? t('stage.pause') : t('stage.scroll')}</span>
+          <span>{playing ? t('stage.pause') : along ? t('stage.along.resume') : t('stage.scroll')}</span>
         </button>
         {started && (
           <span className="stage-left" aria-label={t('stage.left')}>
@@ -1433,6 +1567,18 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         <button type="button" className={'stage-key is-round' + (atEnd && next ? ' is-ready' : '')} onClick={() => goSong(1)} disabled={!next} aria-label={t('stage.nextSong')} title={t('stage.nextSong')}>
           <Icon d="M9 5l7 7-7 7" />
         </button>
+        {hasListenHost() && role === 'off' && embedOf(linkOf(song)) && (
+          <button
+            type="button"
+            className={'stage-key is-round stage-along-key' + (along || listening?.along ? ' is-on' : '')}
+            onClick={() => (along ? stopAlong() : startAlong())}
+            aria-pressed={along}
+            aria-label={along ? t('stage.along.stop') : t('stage.along.play')}
+            title={along ? t('stage.along.stop') : t('stage.along.play')}
+          >
+            <Icon d="M3 14v-2a9 9 0 0 1 18 0v2M3 14a2 2 0 0 1 2-2h1v7H5a2 2 0 0 1-2-2zM21 14a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z" size={18} />
+          </button>
+        )}
         </div>
         <div className="stage-group">
         <span className="stage-stepper" title={t('stage.lengthHint')}>

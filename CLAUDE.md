@@ -4058,3 +4058,27 @@ no tools).
   Info sheets (Done) unchanged. Strings `stage.discard.*`. Playwright 390
   HE + 1180 EN: untouched -> closes; typed -> asks, keep keeps the text,
   Cancel + Discard closes; no errors.
+
+- PLAY-ALONG (v1.0.257; user: "a play key on the chart page when the song
+  has a link, and when it ends the next song plays"): the Performer's
+  bottom bubble has a headphones key (`.stage-along-key`, when the song has
+  an embeddable link, a dock host exists and no band sync runs; the old
+  top-bar listen key is gone). YouTube = play-along: the recording plays
+  in ListenDock (opens FOLDED, sits above the control bubble via
+  `--stage-bar-lift` / `html.has-stage-perf`; the end card rises above it
+  via `--stage-dock-h` / `html.has-listen-dock`) and the chart's scrollTop
+  follows the PLAYER's time (`ytTime() / dur`, rAF; a finger still holds
+  it); Pause / Play drive the player (`ytCommand`); the song length takes
+  the recording's (saved only when unset); at its end "Up next · plays in
+  3" + Cancel, then the next song loads into the SAME iframe
+  (`openListen(…, {reuse: true})` -> loadVideoById, src pinned per player)
+  so iOS needn't a new tap; next song without a YouTube link = stops.
+  Scroll alone never plays anything (the band on stage). Spotify / Apple
+  Music = the dock + the clock scroll (they report nothing). YouTube iframe
+  API by postMessage, no script (`enablejsapi=1&origin`, "listening"
+  handshake, infoDelivery / onStateChange) in ListenDock; state in
+  listenStore (`ytInfo`, `onYt`, `reportYt`, `setYtSender`). Playwright
+  with a fake YouTube page, 390 HE + 1180 EN: progress 0.37 after 3 of 8 s,
+  pause holds, countdown -> song 2 in the same player, last song -> "End of
+  the setlist", stop closes the dock; no errors. NOT verified with real
+  YouTube / on iOS (autoplay with sound may need one tap on the video).

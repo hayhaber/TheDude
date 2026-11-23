@@ -2691,3 +2691,21 @@ html[data-theme='dark'] .stg-discard-box button {
 @media (prefers-reduced-motion: reduce) {
   .stg-discard { animation: none; }
 }
+
+/* v1.0.257 — play-along: the dock sits ABOVE the Performer's control
+   bubble (never over Pause / Next), and the end card above the dock */
+html.has-stage-perf .stg-dock {
+  bottom: calc(env(safe-area-inset-bottom) + 12px + var(--stage-bar-lift, 56px) + 10px);
+}
+html.has-stage-perf.has-listen-dock .stage-endcard {
+  bottom: calc(env(safe-area-inset-bottom) + 12px + var(--stage-bar-lift, 56px) + 20px + var(--stage-dock-h, 0px));
+}
+html .stage-perf .stage-key.is-plain {
+  background: none;
+  box-shadow: none;
+  color: #64b5ff;
+  font-weight: 500;
+  flex: none;
+  padding-inline: 10px;
+}
+.stage-endcard-text small { font-variant-numeric: tabular-nums; }

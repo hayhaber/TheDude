@@ -30,6 +30,8 @@ import { getLink } from '../../cloud/cloudState';
 import { useCloud } from '../../cloud/useCloud';
 import { BackButton } from '../HomeButton/BackButton';
 import { KittyView } from './KittyView';
+import { SongArt, SongName } from './SongArt';
+import { rememberArt, splitName } from '../../music/sheets/songArt';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { Performer } from './Performer';
 import './Stage.css';
@@ -229,6 +231,7 @@ function ListenSheet({ name, link, onSave, onClose, dir, t }) {
         onChange={setQ}
         onPick={async (song) => {
           setQ(songLabel(song));
+          rememberArt(song.title, song.artist, song.art);
           if (song.apple) setV(song.apple);
           setFinding(true);
           const l = await linkFor(song);
@@ -1358,9 +1361,14 @@ export function StageView({ onAccount, start = null }) {
       <div className="stg" dir={dir}>
         <BackButton label={set ? set.name : band ? band.name : t('stage.back')} onClick={() => setSongPage(null)} />
         <header className="stg-head">
-          <div className="stg-head-title">
-            <h1 dir="auto">{pageSong.name}</h1>
-            {durOf(pageSong.id) && <p className="subtitle">{durOf(pageSong.id)}</p>}
+          <div className="stg-head-title stg-song-head">
+            <SongArt name={pageSong.name} size={88} fallback={<span />} />
+            <div>
+              <h1 dir="auto">{splitName(pageSong.name).title}</h1>
+              <p className="subtitle" dir="auto">
+                {[splitName(pageSong.name).artist, durOf(pageSong.id)].filter(Boolean).join(' · ')}
+              </p>
+            </div>
           </div>
           <div className="stg-head-actions">
             <button type="button" className="stg-capsule is-primary" onClick={() => setPerform({ songs: [{ id: pageSong.id, name: pageSong.name }], at: 0 })}>
@@ -1656,11 +1664,8 @@ export function StageView({ onAccount, start = null }) {
                 }}
               >
                 <span className="stg-num">{i + 1}</span>
-                <span className="ph-text">
-                  <span className="ph-title" dir="auto">
-                    {s.name}
-                  </span>
-                </span>
+                {!s.missing && <SongArt name={s.name} size={40} />}
+                <SongName name={s.name} />
                 {!s.missing && notesBadge(s.id)}
                 {!s.missing && readyMark(s.id)}
                 {!s.missing && durOf(s.id) && <span className="stg-detail">{durOf(s.id)}</span>}
@@ -1729,9 +1734,8 @@ export function StageView({ onAccount, start = null }) {
                 {notIn.filter((s) => matchSong(s, pickQuery)).map((s) => (
                   <button key={s.id} type="button" className="ph-row" onClick={() => sets.setItems(set.id, [...set.items, s.id])}>
                     <span className="stg-plus" aria-hidden="true">+</span>
-                    <span className="ph-title" dir="auto">
-                      {s.name}
-                    </span>
+                    <SongArt name={s.name} size={36} />
+                    <SongName name={s.name} />
                   </button>
                 ))}
               </div>
@@ -1941,23 +1945,33 @@ export function StageView({ onAccount, start = null }) {
                   </span>
                 ) : (
                   <button type="button" className="ph-row stg-row-main" onClick={() => setPerform({ songs: scoped.map((x) => ({ id: x.id, name: x.name })), at: i })}>
-                    {s.pdf ? (
-                      <span className="stg-tile is-doc" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M7 3h7l4 4v14H7z" />
-                          <path d="M14 3v4h4M9.5 12h6M9.5 15.5h6" />
-                        </svg>
-                      </span>
-                    ) : (
-                      <span className="stg-tile is-words" aria-hidden="true">
-                        <WordsGlyph />
-                      </span>
-                    )}
+                    <SongArt
+                      name={s.name}
+                      size={40}
+                      fallback={
+                        s.pdf ? (
+                          <span className="stg-tile is-doc" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M7 3h7l4 4v14H7z" />
+                              <path d="M14 3v4h4M9.5 12h6M9.5 15.5h6" />
+                            </svg>
+                          </span>
+                        ) : (
+                          <span className="stg-tile is-words" aria-hidden="true">
+                            <WordsGlyph />
+                          </span>
+                        )
+                      }
+                    />
                     <span className="ph-text">
                       <span className="ph-title" dir="auto">
-                        {s.name}
+                        {splitName(s.name).title}
                       </span>
-                      {inWords && <span className="ph-desc stg-hit" dir="auto">{t('stage.inWords')} · {inWords}</span>}
+                      {inWords ? (
+                        <span className="ph-desc stg-hit" dir="auto">{t('stage.inWords')} · {inWords}</span>
+                      ) : (
+                        splitName(s.name).artist && <span className="ph-desc" dir="auto">{splitName(s.name).artist}</span>
+                      )}
                     </span>
                     {notesBadge(s.id)}
                     {readyMark(s.id)}

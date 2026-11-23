@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
+import { SongArt } from './SongArt';
+import { rememberArt } from '../../music/sheets/songArt';
 import { cleanLink } from '../../music/sheets/songLink';
 import { SongSearchField } from './SongSearchField';
 import { linkFor } from '../../music/sheets/songSearch';
@@ -125,6 +127,7 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t, suggestion
         onEnter={go}
         onChange={(title) => setV((o) => ({ ...o, title: title.slice(0, 120) }))}
         onPick={async (song) => {
+          rememberArt(song.title, song.artist, song.art);
           setV((o) => ({ ...o, title: song.title, artist: song.artist, link: song.apple || o.link }));
           setFinding(true);
           const l = await linkFor(song);
@@ -217,6 +220,7 @@ export function SuggestionsView({ band, uid, suggestions, ready, songs = [], set
           <span>{s.votes.length}</span>
         </button>
         <button type="button" className="ph-row stg-row-main" onClick={() => setEditing(s)}>
+          <SongArt title={s.title} artist={s.artist} size={40} />
           <span className="ph-text">
             <span className="ph-title" dir="auto">
               {s.title}

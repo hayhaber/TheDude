@@ -2626,3 +2626,11 @@ html[lang='he'] .stg-fold-chev { rotate: 180deg; }
 .stg-field input[type='date'] { font-size: 17px; }
 .stg-kitty-entry-amount { margin: 4px 0 8px; text-align: center; font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .stg-kitty > .ph-section { margin-top: 18px; }
+
+/* Song covers (v1.0.251), like Apple Music's list artwork */
+.stg-art { flex: none; display: block; border-radius: 6px; object-fit: cover; background: var(--fill-secondary); box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08); }
+.stg-art.is-empty { display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary); background: var(--fill-tertiary); }
+.stg-song-head { display: flex; align-items: center; gap: 14px; }
+.stg-song-head .stg-art { border-radius: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); }
+.stg-song-head h1 { margin: 0; }
+.stg-song-head .subtitle { margin: 2px 0 0; }

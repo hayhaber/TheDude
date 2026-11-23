@@ -3972,3 +3972,21 @@ no tools).
   rehearsal 120 -> ₪180, 1 more rehearsal; treasurer -> B) + B 390 HE
   (treasurer adds 120 shared by one -> ₪60, low; delete -> ₪180); no
   errors.
+- SONG COVERS (v1.0.251; user: "the search shows the album picture — why
+  not beside the song wherever it appears?"): pure `music/sheets/
+  songArt.js` — no server column: each device finds a cover from the
+  song's name "Title – Artist" (`splitName`) through /api/song-search
+  (one lookup at a time, 250 ms apart; a hit needs the same normalised
+  title AND artist — no artist = an original = no cover, never a guess),
+  device cache `dudestar-song-art` {"title|artist": url | ""}; a pick in
+  any song search (new song, listening link, suggestion) seeds it
+  (`rememberArt`); `artAt(url, px)` resizes Apple's URL. `Stage/
+  SongArt.jsx`: `SongArt` (img 6 px radius, else `fallback` or a grey note
+  tile) + `SongName` (title, artist under it — Apple Music's two lines).
+  Shown in: Songs rows (cover replaces the doc / words tile when found),
+  setlist rows (number · cover · title / artist), the Add-songs sheet,
+  suggestion rows, the song page header (88 px cover + title, "artist ·
+  length"). Privacy page: covers load from Apple. Playwright (search +
+  images mocked) 1180 EN + 390 HE: 2 covers + 1 note tile for "My own
+  song" in Songs and the setlist, 1 on the suggestion; no errors. Real
+  iTunes NOT reachable here.

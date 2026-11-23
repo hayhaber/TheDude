@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { rememberArt } from '../../music/sheets/songArt';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { Segmented } from '../ui/controls';
 import { getSheet } from '../../music/sheets/sheetStore';
@@ -112,6 +113,7 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
               }}
               onPick={async (song) => {
                 setName(songLabel(song));
+                rememberArt(song.title, song.artist, song.art);
                 setLink(song.apple || null);
                 setFinding(true);
                 const l = await linkFor(song);

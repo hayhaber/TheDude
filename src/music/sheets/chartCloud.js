@@ -19,7 +19,7 @@ const CACHE = (uid) => `dudestar-stage-cloud:${uid}`; // device
 
 // ---- store -----------------------------------------------------------------
 
-let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, notes: [], notesOk: true, takes: [], takesOk: true, lastSync: null };
+let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, notes: [], notesOk: true, takes: [], takesOk: true, ledger: [], kitties: [], kittyOk: true, lastSync: null };
 const subs = new Set();
 function set(patch) {
   state = { ...state, ...patch };
@@ -27,7 +27,7 @@ function set(patch) {
   const uid = getLink()?.userId;
   if (uid && (patch.bands || patch.setlists || patch.suggestions || patch.ready || patch.notes || patch.takes || patch.lastSync)) {
     try {
-      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, ready: state.ready, notes: state.notes, takes: state.takes, lastSync: state.lastSync }));
+      localStorage.setItem(CACHE(uid), JSON.stringify({ bands: state.bands, setlists: state.setlists, suggestions: state.suggestions, ready: state.ready, notes: state.notes, takes: state.takes, ledger: state.ledger, kitties: state.kitties, lastSync: state.lastSync }));
     } catch {
       /* quota */
     }
@@ -47,7 +47,7 @@ function restoreCache() {
   if (!uid) return;
   try {
     const c = JSON.parse(localStorage.getItem(CACHE(uid)));
-    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], ready: c.ready ?? [], notes: c.notes ?? [], takes: c.takes ?? [], lastSync: c.lastSync ?? null };
+    if (c) state = { ...state, bands: c.bands ?? [], setlists: c.setlists ?? [], suggestions: c.suggestions ?? [], ready: c.ready ?? [], notes: c.notes ?? [], takes: c.takes ?? [], ledger: c.ledger ?? [], kitties: c.kitties ?? [], lastSync: c.lastSync ?? null };
   } catch {
     /* none */
   }
@@ -111,7 +111,7 @@ function avatarOf(text) {
   }
 }
 
-const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions|band_ready|song_notes|song_takes/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
+const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions|band_ready|song_notes|song_takes|band_ledger|band_kitty/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
 const suggestionOf = (x) => ({
   id: x.id,
   band: x.band_id,
@@ -151,6 +151,22 @@ const takeOf = (x) => ({
   peaks: Array.isArray(x.peaks) ? x.peaks : null,
   size: x.size ?? 0,
   at: Date.parse(x.created_at) || Date.now(),
+});
+
+const ledgerOf = (x) => ({
+  id: x.id,
+  band: x.band_id,
+  kind: x.kind,
+  amount: x.amount,
+  member: x.member || null,
+  round: x.round_id || null,
+  note: x.note || '',
+  who: Array.isArray(x.who) && x.who.length ? x.who : null,
+  at: x.at,
+  by: x.by_user || null,
+  byName: x.by_name || '',
+  deleted: !!x.deleted,
+  created: Date.parse(x.created_at) || 0,
 });
 
 const pathFor = (uid, rec) => (rec.band ? `b/${rec.band}/${rec.id}.pdf` : `u/${uid}/${rec.id}.pdf`);
@@ -302,7 +318,15 @@ export async function syncWith(sb, uid, local) {
   const tk = await sb.from('song_takes').select('id,band_id,chart_id,by_user,by_name,path,duration,peaks,size,deleted,created_at');
   if (tk.error && !missingTable(tk.error)) throw tk.error;
   const takes = tk.error ? [] : tk.data.filter((x) => !x.deleted).map(takeOf);
-  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error, notes, notesOk: !sn.error, takes, takesOk: !tk.error };
+  // 8) the bands' kitty (migration 012; before it: not ready)
+  const [lg, kt] = await Promise.all([
+    sb.from('band_ledger').select('id,band_id,kind,amount,member,round_id,note,who,at,by_user,by_name,deleted,created_at'),
+    sb.from('band_kitty').select('band_id,treasurer,currency'),
+  ]);
+  if (lg.error && !missingTable(lg.error)) throw lg.error;
+  const ledger = lg.error ? [] : lg.data.map(ledgerOf);
+  const kitties = kt.error ? [] : kt.data.map((x) => ({ band: x.band_id, treasurer: x.treasurer || null, currency: x.currency || 'ILS' }));
+  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error, notes, notesOk: !sn.error, takes, takesOk: !tk.error, ledger, kitties, kittyOk: !lg.error };
 }
 
 const LOCAL = { listSheets, getSheet, patchSheet, putSheet, deleteSheet, sheetPrefs, setSheetPrefs };
@@ -716,6 +740,40 @@ export async function updateBandNote(id, patch) {
 // ---- a band song's rehearsal recordings (v1.0.245; migration 009) ---------------
 // The audio goes to the private bucket "takes" (b/<band>/<song>/<take>.mp3),
 // a row to song_takes; every member lists and plays them.
+// ---- the band's kitty (v1.0.250, migration 012) --------------------------------------
+
+/** Add an entry: {kind, amount, member?, round?, note?, who?, at}. Optimistic. */
+export async function addLedger(band, e) {
+  const x = { id: 'lg-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), band, kind: e.kind, amount: e.amount, member: e.member ?? null, round: e.round ?? null, note: (e.note || '').slice(0, 200), who: e.who?.length ? e.who : null, at: e.at, by: getLink()?.userId ?? null, byName: myName() || '', deleted: false, created: Date.now() };
+  set({ ledger: [...state.ledger, x] });
+  const sb = await client();
+  const { error } = await sb.from('band_ledger').insert({ id: x.id, band_id: band, kind: x.kind, amount: x.amount, member: x.member, round_id: x.round, note: x.note || null, who: x.who, at: x.at, by_name: x.byName || null });
+  if (error) {
+    set({ ledger: state.ledger.filter((y) => y.id !== x.id) });
+    throw error;
+  }
+  return x;
+}
+
+export async function removeLedger(id) {
+  const before = state.ledger;
+  set({ ledger: state.ledger.map((y) => (y.id === id ? { ...y, deleted: true } : y)) });
+  const sb = await client();
+  const { error } = await sb.from('band_ledger').update({ deleted: true }).eq('id', id);
+  if (error) {
+    set({ ledger: before });
+    throw error;
+  }
+}
+
+/** The manager names the treasurer (a member, or null). */
+export async function setTreasurer(band, user) {
+  const sb = await client();
+  const { error } = await sb.rpc('set_treasurer', { b: band, u: user });
+  if (error) throw error;
+  set({ kitties: [...state.kitties.filter((k) => k.band !== band), { band, treasurer: user, currency: 'ILS' }] });
+}
+
 const TAKES = 'takes';
 
 /** Send one take up. rec = {id, song, at, duration, peaks, blob}. */

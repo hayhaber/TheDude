@@ -2596,3 +2596,33 @@ html[lang='he'] .stg-fold-chev { rotate: 180deg; }
 .stg-act-icon.is-take { background: #ff3b30; }
 .stg-act-icon.is-note { background: #ff9500; }
 .stg-act-icon.is-idea { background: #af52de; }
+
+/* The band's kitty (v1.0.250) — a balance card like Apple Cash */
+.stg-kitty { display: flex; flex-direction: column; gap: 4px; }
+.stg-kitty-hero {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 16px 16px 18px; margin-top: 4px;
+  border-radius: 20px; background: var(--surface, #fff);
+  text-align: center;
+}
+.stg-kitty-top { align-self: stretch; display: flex; align-items: center; justify-content: center; position: relative; min-height: 32px; }
+.stg-kitty-top .more-menu { position: absolute; inset-inline-end: 0; top: 0; }
+.stg-kitty-label { font-size: 15px; color: var(--text-secondary); }
+.stg-kitty-amount { font-size: 44px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stg-kitty-caption { font-size: 15px; color: var(--text-secondary); }
+.stg-kitty-hero.is-low .stg-kitty-caption { color: #c93400; }
+:root[data-theme='dark'] .stg-kitty-hero.is-low .stg-kitty-caption { color: #ffb340; }
+.stg-kitty-keeper { font-size: 13px; color: var(--text-secondary); }
+.stg-kitty-actions { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.stg-kitty-actions .ui-btn { min-width: 120px; }
+.stg-kitty-net { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text-secondary); }
+.stg-kitty-net.is-pos { color: #248a3d; }
+.stg-kitty-net.is-neg { color: var(--danger); }
+:root[data-theme='dark'] .stg-kitty-net.is-pos { color: #30d158; }
+.stg-act-icon.is-expense { background: #ff3b30; font-size: 18px; }
+.stg-act-icon.is-deposit { background: #34c759; font-size: 18px; }
+.stg-act-icon.is-round { background: #af52de; font-size: 16px; }
+.stg-amount { font-size: 22px !important; font-variant-numeric: tabular-nums; }
+.stg-field input[type='date'] { font-size: 17px; }
+.stg-kitty-entry-amount { margin: 4px 0 8px; text-align: center; font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stg-kitty > .ph-section { margin-top: 18px; }

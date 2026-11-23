@@ -29,6 +29,7 @@ import {
 import { getLink } from '../../cloud/cloudState';
 import { useCloud } from '../../cloud/useCloud';
 import { BackButton } from '../HomeButton/BackButton';
+import { KittyView } from './KittyView';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { Performer } from './Performer';
 import './Stage.css';
@@ -970,7 +971,7 @@ export function StageView({ onAccount, start = null }) {
   // Songs (the card's two shortcuts open one each)
   const [tab, setTab] = useState(start === 'songs' ? 'songs' : start === 'ideas' ? 'ideas' : 'sets');
   useEffect(() => {
-    if (tab === 'ideas' && !band && (!isIn || cloud.lastSync)) setTab('sets');
+    if ((tab === 'ideas' || tab === 'kitty') && !band && (!isIn || cloud.lastSync)) setTab('sets');
   }, [tab, band, isIn, cloud.lastSync]);
   const [hintOff, setHintOff] = useState(() => {
     try {
@@ -1845,11 +1846,27 @@ export function StageView({ onAccount, start = null }) {
         options={[
           { value: 'sets', label: t('stage.nav.sets') },
           { value: 'songs', label: t('stage.nav.songs') },
-          ...(band ? [{ value: 'ideas', label: t('stage.nav.ideas') }] : []),
+          ...(band ? [{ value: 'ideas', label: t('stage.nav.ideas') }, { value: 'kitty', label: t('stage.nav.kitty') }] : []),
         ]}
         value={tab}
         onChange={setTab}
       />
+
+      {tab === 'kitty' && band && (
+        <KittyView
+          band={band}
+          uid={uid}
+          ledger={cloud.ledger}
+          kitty={cloud.kitties.find((x) => x.band === band.id)}
+          ready={cloud.kittyOk}
+          Sheet={Sheet}
+          Avatar={MemberAvatar}
+          say={setMsg}
+          dir={dir}
+          t={t}
+          lang={lang}
+        />
+      )}
 
       {tab === 'ideas' && band && (
         <SuggestionsView
@@ -1868,7 +1885,7 @@ export function StageView({ onAccount, start = null }) {
         />
       )}
 
-      {tab !== 'ideas' && sheets && scoped.length === 0 && (tab === 'songs' || sets.lists.length === 0) && (
+      {tab !== 'ideas' && tab !== 'kitty' && sheets && scoped.length === 0 && (tab === 'songs' || sets.lists.length === 0) && (
         <div className="stg-empty">
           <strong>{band ? t('stage.band.emptyTitle', { band: band.name }) : t('stage.emptyTitle')}</strong>
           <p className="stg-empty-text">{band ? t('stage.band.emptyText') : t('stage.emptyText')}</p>

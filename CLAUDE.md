@@ -3937,3 +3937,38 @@ no tools).
   390 HE: role subtitle in rows, B's page (1/3 ready, Learning / Not
   marked, 3 activity rows), song page + back, my roles saved to the
   server row; no errors.
+- BAND KITTY (v1.0.250; user: "a band pays for rehearsals — everyone puts
+  in e.g. 150, each rehearsal comes out of the shared kitty until it's
+  empty and everyone tops up again; equal shares, with exceptions"). Band
+  screen 4th tab "Kitty" / "קופה" (band scope only, like Suggestions).
+  A RECORD BOOK only — no money moves through the app. NEW
+  `supabase/migrations/012_band_kitty.sql` (THE USER RUNS IT): table
+  `band_kitty` (band_id pk, treasurer, currency ILS; written only via rpc
+  `set_treasurer(b, u)` — the manager, u must be a member or null) +
+  `band_ledger` (kind round / deposit / expense, amount integer agorot,
+  member, round_id, note, who uuid[] = expense sharers (null = all), at
+  date, by_user / by_name, deleted sticky); `band_cashier(b)` = owner or
+  treasurer (a member) -> insert / update; members read; anon none.
+  Checked on local Postgres 16 twice + RLS (member can't write, can't name
+  the treasurer, an outsider can't be treasurer, treasurer writes,
+  undelete ignored, outsider sees nothing). Pure `music/sheets/kitty.js`:
+  `kittyOf(entries, memberIds)` -> inKitty, per member {paid, share, net}
+  (expense split to the agora among its sharers), the newest round {paid,
+  open}, last expense, rehearsalsLeft, low; `historyOf`, `parseAmount`,
+  `money(amount, lang, currency, sign)` (Intl he-IL "150 ₪").
+  chartCloud: state `ledger` / `kitties` / `kittyOk`, sync step 8,
+  `addLedger` (optimistic) / `removeLedger` (soft) / `setTreasurer`.
+  `Stage/KittyView.jsx`: balance card like Apple Cash ("In the kitty",
+  big amount, "Enough for N more rehearsals" / orange "time to top up",
+  "Kept by <name>", ••• Record a payment / Treasurer); cashier keys
+  Rehearsal (filled; sheet: amount = last cost, what, date, "who shares
+  it" checklist = everyone) + Top-up (tinted; amount each, note); the
+  newest round "₪150 each · k of n paid" with a tinted Paid key per member
+  (= a deposit in the round); "Each member" put in · share · ± net;
+  History (tap = entry sheet with details + two-tap Delete for the
+  cashier); others read only ("Only <name> or the manager updates the
+  kitty"). Strings `stage.nav.kitty`, `stage.kt.*`. Privacy page updated.
+  Playwright fake Supabase A 1180 EN (owner: round 150, both paid,
+  rehearsal 120 -> ₪180, 1 more rehearsal; treasurer -> B) + B 390 HE
+  (treasurer adds 120 shared by one -> ₪60, low; delete -> ₪180); no
+  errors.

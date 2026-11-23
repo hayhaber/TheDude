@@ -330,7 +330,23 @@ function tintOf(id = '') {
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return AVATAR_TINTS[h % AVATAR_TINTS.length];
 }
+// A member's own avatar (v1.0.247: colour / emoji / clear ring from their
+// profile, migration 010) — the same look as in their profile chip; without
+// one, a letter on a colour from their id.
 function MemberAvatar({ m, small = false }) {
+  const av = m.avatar;
+  if (av && (Number.isFinite(av.hue) || av.emoji)) {
+    const hue = Number.isFinite(av.hue) ? av.hue : 210;
+    return (
+      <span
+        className={'stg-avatar is-own' + (small ? ' is-small' : '') + (av.emoji ? ' is-emoji' : '') + (av.bg === 'clear' ? ' is-clear' : '')}
+        style={{ '--hue': hue }}
+        aria-hidden="true"
+      >
+        {av.emoji || initialOf(m.name)}
+      </span>
+    );
+  }
   return (
     <span className={'stg-avatar' + (small ? ' is-small' : '')} style={{ background: tintOf(m.id || m.key || m.name) }} aria-hidden="true">
       {initialOf(m.name)}
@@ -1418,7 +1434,7 @@ export function StageView({ onAccount, start = null }) {
               {here.length > 0 && (
                 <span className="stg-faces" aria-hidden="true">
                   {here.slice(0, 4).map((p) => (
-                    <MemberAvatar key={p.key} m={{ id: (p.key || '').split(':')[0], name: p.name }} small />
+                    <MemberAvatar key={p.key} m={{ id: (p.key || '').split(':')[0], name: p.name, avatar: band.members.find((x) => x.id === (p.key || '').split(':')[0])?.avatar }} small />
                   ))}
                 </span>
               )}

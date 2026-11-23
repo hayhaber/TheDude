@@ -81,6 +81,29 @@ const missingLinkCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204')
 let hasGap = true;
 const missingGapCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\bgap\b/i.test(e.message || '');
 
+// each member's avatar (colour / emoji) comes with migration 010 (v1.0.247)
+let hasAvatar = true;
+const missingAvatarCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\bavatar\b/i.test(e.message || '');
+function myAvatar() {
+  try {
+    const v = localStorage.getItem('dudestar-p-profile-avatar');
+    if (!v) return null;
+    const a = JSON.parse(v);
+    return a && typeof a === 'object' ? JSON.stringify(a).slice(0, 300) : null;
+  } catch {
+    return null;
+  }
+}
+function avatarOf(text) {
+  if (!text) return null;
+  try {
+    const a = JSON.parse(text);
+    return a && typeof a === 'object' ? a : null;
+  } catch {
+    return null;
+  }
+}
+
 const missingTable = (e) => e && (e.code === '42P01' || e.code === 'PGRST205' || /band_suggestions|band_ready|song_notes|song_takes/i.test(e.message || '') && /does not exist|schema cache/i.test(e.message || ''));
 const suggestionOf = (x) => ({
   id: x.id,
@@ -221,17 +244,34 @@ export async function syncWith(sb, uid, local) {
   // 3) bands, members, band setlists
   const [b, mem, sl] = await Promise.all([
     sb.from('bands').select('id,name,owner,invite_code'),
-    sb.from('band_members').select('band_id,user_id,display_name'),
+    sb.from('band_members').select('band_id,user_id,display_name' + (hasAvatar ? ',avatar' : '')),
     sb.from('band_setlists').select('id,band_id,name,items,deleted,updated_at' + (hasGap ? ',gap' : '')),
   ]);
+  let members = mem;
+  if (members.error && hasAvatar && missingAvatarCol(members.error)) {
+    hasAvatar = false;
+    members = await sb.from('band_members').select('band_id,user_id,display_name');
+  }
+  // my own rows carry my CURRENT name + avatar, so the band sees them (v1.0.247)
+  if (!members.error && uid) {
+    const name = myName();
+    const av = myAvatar();
+    const mine = members.data.filter((m) => m.user_id === uid);
+    const stale = mine.some((m) => (name && m.display_name !== name) || (hasAvatar && (m.avatar ?? null) !== av));
+    if (stale) {
+      const patch = { ...(name ? { display_name: name } : {}), ...(hasAvatar ? { avatar: av } : {}) };
+      const up = await sb.from('band_members').update(patch).eq('user_id', uid);
+      if (!up.error) for (const m of mine) Object.assign(m, patch);
+    }
+  }
   let sets = sl;
   if (sets.error && hasGap && missingGapCol(sets.error)) {
     hasGap = false;
     sets = await sb.from('band_setlists').select('id,band_id,name,items,deleted,updated_at');
   }
-  for (const x of [b, mem, sets]) if (x.error) throw x.error;
+  for (const x of [b, members, sets]) if (x.error) throw x.error;
   const bands = b.data
-    .map((band) => ({ id: band.id, name: band.name, owner: band.owner, code: band.invite_code, members: mem.data.filter((m) => m.band_id === band.id).map((m) => ({ id: m.user_id, name: m.display_name })) }))
+    .map((band) => ({ id: band.id, name: band.name, owner: band.owner, code: band.invite_code, members: members.data.filter((m) => m.band_id === band.id).map((m) => ({ id: m.user_id, name: m.display_name, avatar: avatarOf(m.avatar) })) }))
     .sort((x, y) => x.name.localeCompare(y.name));
   const setlists = sets.data.filter((s) => !s.deleted).map((s) => ({ id: s.id, band: s.band_id, name: s.name, items: Array.isArray(s.items) ? s.items : [], gap: s.gap ?? 0 }));
 

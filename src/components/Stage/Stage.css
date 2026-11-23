@@ -2545,3 +2545,23 @@ html[lang='he'] .stg-fold-chev { rotate: 180deg; }
 .stg .stg-rec-row.is-on { background: transparent; }
 .stage-perf .stage-rec-key.is-on { background: rgba(255, 59, 48, 0.24); color: #fff; }
 .stage-perf .stage-rec-key.is-on .stg-rec-dot { background: #ff453a; }
+
+/* A member's own avatar (v1.0.247) — matches the profile chip's look */
+.stg-avatar.is-own {
+  background: linear-gradient(160deg, hsl(var(--hue) 70% 62%), hsl(var(--hue) 62% 46%));
+  color: #fff;
+  line-height: 1;
+}
+.stg-avatar.is-own.is-emoji {
+  background: hsl(var(--hue) 70% 88%);
+  font-size: 17px;
+  font-weight: 400;
+}
+.stg-avatar.is-own.is-small.is-emoji { font-size: 13px; }
+:root[data-theme='dark'] .stg-avatar.is-own.is-emoji { background: hsl(var(--hue) 35% 30%); }
+.stg-avatar.is-own.is-clear {
+  background: var(--surface, #fff);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--separator);
+}
+.stg-faces .stg-avatar.is-own.is-clear { box-shadow: inset 0 0 0 1px var(--separator), 0 0 0 2px var(--surface); }

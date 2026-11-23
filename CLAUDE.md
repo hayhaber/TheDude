@@ -3888,3 +3888,21 @@ no tools).
   the invite code to the other browser's storage. Playwright 390 HE
   (WhatsApp UA): code kept in URL, note shown, typo suggested + fixed,
   code screen text; Safari UA strips ?band as before.
+- MEMBER AVATARS IN THE BAND (v1.0.247; user: "an emoji a user sets on
+  his name should show in the band, for every member"): NEW
+  `supabase/migrations/010_member_avatar.sql` (THE USER RUNS IT):
+  `band_members.avatar` (text, the profile avatar's JSON) + trigger
+  `band_members_touch` keeping band_id / user_id / joined_at fixed on
+  update (the "own name" policy let a member move his own row into
+  another band's id). chartCloud sync step 3: selects `avatar`
+  (`hasAvatar` fallback on 42703 / PGRST204 before 010) and, when my rows
+  differ from my CURRENT profile name / avatar (`myName()`, personal key
+  `dudestar-p-profile-avatar`), updates them once — so a renamed profile
+  reaches the band too (name works even before 010). members carry
+  `avatar`; StageView `MemberAvatar` draws it like the profile chip
+  (`.stg-avatar.is-own` + is-emoji / is-clear, hue gradient, dark tint),
+  else the old letter on a colour; presence faces look the member up.
+  Privacy page: avatar visible to the band. Checked: 010 on local Postgres
+  16 twice + a member can't move his row to another band or touch another
+  member's avatar; Playwright fake Supabase A (🎸, hue 30) + B (hue 280):
+  each pushed once, both see 🎸 + the purple D, name "Me" -> "Hay".

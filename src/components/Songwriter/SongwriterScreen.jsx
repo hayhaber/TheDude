@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { HomeButton } from '../HomeButton/HomeButton';
+import { ProfileChip } from '../../profile/ProfileChip';
 import { BackSlotContext } from '../HomeButton/BackButton';
 import { deleteAudio } from '../../audio/songwriter/songAudioStore';
 import { keyName, newSong, sectionsFromText } from '../../music/songwriter/song';
@@ -22,7 +23,7 @@ import './Songwriter.css';
  * song's sheet — lyrics, chords over the words, a recorded melody per line
  * turned into notes under the syllables.
  */
-export function SongwriterScreen({ start = 'list', onBack }) {
+export function SongwriterScreen({ start = 'list', onBack, onSettings }) {
   const { lang } = useLanguage();
   const store = useSongs();
   const audio = useSongAudio();
@@ -93,6 +94,9 @@ export function SongwriterScreen({ start = 'list', onBack }) {
       <header className="sw-top">
         <HomeButton className="sw-home" onClick={leave} />
         <span className="app-back-slot" ref={setBackSlot} />
+        <span className="stg-screen-me">
+          <ProfileChip compact onSettings={onSettings} />
+        </span>
       </header>
       <BackSlotContext.Provider value={backSlots}>
       <main className="sw-main">

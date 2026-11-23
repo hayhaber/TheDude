@@ -1966,6 +1966,7 @@ export function StageView({ onAccount, start = null }) {
           suggestions={cloud.suggestions}
           ready={cloud.suggestReady}
           songs={scoped}
+          mySongs={(sheets ?? []).filter((x) => !x.band)}
           sets={sets}
           onOpenSet={setOpenSet}
           say={setMsg}

@@ -4082,3 +4082,16 @@ no tools).
   pause holds, countdown -> song 2 in the same player, last song -> "End of
   the setlist", stop closes the dock; no errors. NOT verified with real
   YouTube / on iOS (autoplay with sound may need one tap on the video).
+- v1.0.258 (user: "let me add the band's suggested songs to my own list;
+  and my user icon doesn't show anywhere in the Band screen"): (1) a
+  suggestion's ••• has "Add to My Songs" / "הוספה לשירים שלי" (Apple Music's
+  Add to Library): the band's song copied with `shareChart(id, null)` when
+  the suggestion was picked (words / chart / key / link come along), else a
+  words-only personal song "Title – Artist" + its link; toast; once the
+  song is in Mine (same `sameSong` match) the row reads "✓ In My Songs"
+  (disabled, secondary text). SuggestionsView prop `mySongs`. (2) The
+  Band screen AND the Songwriter screen had no avatar (rule 17): both top
+  bars now end with `ProfileChip compact` (`.stg-screen-me`); its Settings
+  opens the settings sheet (App renders it on the songwriter screen too).
+  Playwright fake Supabase 1180 EN: add picked + open suggestions -> both
+  in Mine, menu shows ✓; chip + settings sheet on Band / Songwriter 390 HE.

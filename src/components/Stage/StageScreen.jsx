@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { BackSlotContext } from '../HomeButton/BackButton';
 import { HomeButton } from '../HomeButton/HomeButton';
+import { ProfileChip } from '../../profile/ProfileChip';
 import { StageView } from './StageView';
 import './Stage.css';
 
@@ -21,6 +22,10 @@ export function StageScreen({ start = 'sets', onBack, onAccount }) {
       <header className="stg-screen-top">
         <HomeButton className="stg-screen-home" onClick={onBack} />
         <span className="app-back-slot" ref={setSlot} />
+        {/* who you are, at the reading end — like every inner screen */}
+        <span className="stg-screen-me">
+          <ProfileChip compact onSettings={onAccount} />
+        </span>
       </header>
       <main className="stg-screen-main">
         <BackSlotContext.Provider value={slots}>

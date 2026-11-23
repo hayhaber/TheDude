@@ -6,7 +6,7 @@ import { cleanLink } from '../../music/sheets/songLink';
 import { SongSearchField } from './SongSearchField';
 import { linkFor } from '../../music/sheets/songSearch';
 import { setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
-import { addSuggestion, addTextSong, removeSuggestion, updateSuggestion, voteSuggestion } from '../../music/sheets/chartCloud';
+import { addSuggestion, addTextSong, removeSuggestion, shareChart, updateSuggestion, voteSuggestion } from '../../music/sheets/chartCloud';
 
 // A band's song suggestions (v1.0.212; user: "building a cover band's
 // repertoire — every member suggests a few songs, one shared list everyone
@@ -160,7 +160,7 @@ function SuggestSheet({ item, voters, onSave, onClose, Sheet, dir, t, suggestion
   );
 }
 
-export function SuggestionsView({ band, uid, suggestions, ready, songs = [], sets, onOpenSet, say, Sheet, ListenKey, dir, t }) {
+export function SuggestionsView({ band, uid, suggestions, ready, songs = [], mySongs = [], sets, onOpenSet, say, Sheet, ListenKey, dir, t }) {
   const songIds = new Set(songs.map((x) => x.id));
   const [editing, setEditing] = useState(null); // null | 'new' | suggestion
   const [sure, setSure] = useState(null);
@@ -194,6 +194,19 @@ export function SuggestionsView({ band, uid, suggestions, ready, songs = [], set
     }
   };
   const setStatus = (s, status) => updateSuggestion(s.id, { status }).catch(failed);
+  // a band's suggestion into MY songs (v1.0.258; Apple Music's "Add to
+  // Library"): the band's copy when it has one (words / chart / key come
+  // along), else the song's name + its listening link
+  const inMine = (s) => mySongs.some((x) => sameSong(s, splitName(x.name)));
+  const addToMine = async (s) => {
+    try {
+      if (s.song && songIds.has(s.song)) await shareChart(s.song, null);
+      else await addTextSong({ name: songName(s), lyrics: '', band: null, link: cleanLink(s.link) });
+      say(t('stage.sg.addedMine', { name: s.title }));
+    } catch {
+      failed();
+    }
+  };
   const rehearsalSet = () => {
     const items = picked.map((s) => s.song).filter((id) => id && songIds.has(id));
     const d = new Date();
@@ -250,6 +263,15 @@ export function SuggestionsView({ band, uid, suggestions, ready, songs = [], set
           {s.status !== 'dropped' && (
             <button type="button" className="more-menu-item" onClick={() => setStatus(s, 'dropped')}>
               {t('stage.sg.drop')}
+            </button>
+          )}
+          {inMine(s) ? (
+            <button type="button" className="more-menu-item" disabled aria-disabled="true">
+              {t('stage.sg.inMine')}
+            </button>
+          ) : (
+            <button type="button" className="more-menu-item" onClick={() => addToMine(s)}>
+              {t('stage.sg.addMine')}
             </button>
           )}
           <button type="button" className="more-menu-item" onClick={() => setEditing(s)}>

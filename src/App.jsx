@@ -2364,14 +2364,22 @@ function App() {
 
   if (songwriter) {
     return (
-      <SongwriterScreen
-        key={songwriter.n}
-        start={songwriter.view}
-        onBack={() => {
-          setSongwriter(null);
-          setHomeCard('songwriter');
-        }}
-      />
+      <>
+        {settingsSheet && (
+          <div className="settings-sheet">
+            <ToolScreen tool="settings" asSheet onBack={() => setSettingsSheet(false)} settingsProps={settingsProps} metronome={metronome} drums={drums} />
+          </div>
+        )}
+        <SongwriterScreen
+          key={songwriter.n}
+          start={songwriter.view}
+          onBack={() => {
+            setSongwriter(null);
+            setHomeCard('songwriter');
+          }}
+          onSettings={() => setSettingsSheet(true)}
+        />
+      </>
     );
   }
 

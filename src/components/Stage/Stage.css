@@ -2709,3 +2709,17 @@ html .stage-perf .stage-key.is-plain {
   padding-inline: 10px;
 }
 .stage-endcard-text small { font-variant-numeric: tabular-nums; }
+
+/* v1.0.258 — the avatar at the reading end of the Band / Songwriter top
+   (Home + Back at the start), as on every inner screen (rule 17) */
+.stg-screen-me {
+  margin-inline-start: auto;
+  display: inline-flex;
+}
+.stg-screen-me:empty { display: none; }
+/* a menu row that only states something ("✓ In My Songs") reads as such */
+html .more-menu-item:disabled {
+  color: var(--text-secondary);
+  cursor: default;
+  opacity: 1;
+}

@@ -22,6 +22,9 @@ import {
   signedIn,
   subscribeChartCloud,
   syncCharts,
+  MEMBER_ROLES,
+  rolesReady,
+  setMyRoles,
 } from '../../music/sheets/chartCloud';
 import { getLink } from '../../cloud/cloudState';
 import { useCloud } from '../../cloud/useCloud';
@@ -498,6 +501,7 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onOpenM
                   {m.name || t('stage.band.someone')}
                   {m.id === uid ? ` (${t('stage.band.you')})` : ''}
                 </span>
+                {m.roles?.length > 0 && <span className="ph-desc">{rolesText(m.roles, t)}</span>}
               </span>
               {m.id === band.owner ? (
                 <span className="stg-detail">{t('stage.band.owner')}</span>
@@ -506,17 +510,13 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onOpenM
               )}
             </>
           );
-          // the band's manager taps a member to open their page (iOS Family
-          // Sharing: removing someone lives there, never as a key on the row)
-          return owner && m.id !== uid ? (
+          // every member opens their page (iOS Family Sharing): part in the
+          // band, songs still to learn, recent activity; the manager removes there
+          return (
             <button key={m.id} type="button" className="ph-row stg-member-row" onClick={() => onOpenMember(m.id)}>
               {inner}
               <Chevron />
             </button>
-          ) : (
-            <div key={m.id} className="stg-row">
-              <span className="ph-row stg-row-main">{inner}</span>
-            </div>
           );
         })}
         <button type="button" className="ph-row stg-action stg-invite-row" onClick={onShare}>
@@ -570,25 +570,114 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onOpenM
   );
 }
 
-/** One member's page (v1.0.248, the band's manager only): who they are,
-    and at the foot the one destructive action, confirmed by a second tap —
-    as iOS Family Sharing does. */
-function MemberPage({ m, here, onRemove, t }) {
+const rolesText = (roles, t) => (roles ?? []).map((r) => t('stage.role.' + r)).join(' · ');
+const shortDate = (ms, lang) => (ms ? new Date(ms).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric' }) : '');
+
+/** One member's page (v1.0.248 / v1.0.249): who they are and their part in
+    the band, the band's songs they still need, what they did lately; the
+    manager removes them at the foot (two taps) — as iOS Family Sharing. */
+function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, onRoles, onOpenSong, onOpenIdeas, onRemove, t, lang }) {
   const [sure, setSure] = useState(false);
+  const me = m.id === uid;
   const name = m.name || t('stage.band.someone');
+  const canRemove = band.owner === uid && !me;
+  const ready = songs.filter((x) => readyOf(x.id, m.id) === 'know').length;
+  const pending = songs.filter((x) => readyOf(x.id, m.id) !== 'know').map((x) => ({ ...x, state: readyOf(x.id, m.id) }));
+  const order = { learning: 0, not: 1 };
+  pending.sort((x, y) => (order[x.state] ?? 2) - (order[y.state] ?? 2));
+  const roles = m.roles ?? [];
   return (
     <>
       <div className="stg-member-head">
         <MemberAvatar m={m} big />
-        <h1 dir="auto">{name}</h1>
-        {here && <p className="stg-detail is-here">● {t('stage.band.here')}</p>}
+        <h1 dir="auto">{name + (me ? ` (${t('stage.band.you')})` : '')}</h1>
+        {roles.length > 0 && <p className="stg-member-roles">{rolesText(roles, t)}</p>}
+        {!me && here && <p className="stg-detail is-here">● {t('stage.band.here')}</p>}
       </div>
-      <div className="ph-group stg-group stg-actions">
-        <button type="button" className="ph-row stg-action is-danger" onClick={() => (sure ? onRemove() : setSure(true))}>
-          {sure ? t('stage.band.removeSure') : t('stage.band.removeFrom')}
-        </button>
-      </div>
-      <p className="stg-fine is-under">{t('stage.band.removeNote', { name })}</p>
+
+      {me && (
+        <section className="ph-section">
+          <h2 className="ph-section-title">{t('stage.role.mine')}</h2>
+          <div className="ph-group stg-group">
+            {MEMBER_ROLES.map((r) => {
+              const on = roles.includes(r);
+              return (
+                <button key={r} type="button" className="ph-row stg-check-row" aria-pressed={on} disabled={!rolesOk} onClick={() => onRoles(on ? roles.filter((x) => x !== r) : [...roles, r])}>
+                  <span className="ph-text">
+                    <span className="ph-title">{t('stage.role.' + r)}</span>
+                  </span>
+                  {on && (
+                    <svg className="stg-check" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 8.5l3.2 3.2L13 4.5" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="stg-fine is-under">{rolesOk ? t('stage.role.note') : t('stage.role.setup')}</p>
+        </section>
+      )}
+
+      {songs.length > 0 && (
+        <section className="ph-section">
+          <h2 className="ph-section-title">{t('stage.mp.songs')}</h2>
+          <p className="stg-fine stg-ready-sum">{ready === songs.length ? t('stage.mp.allReady') : t('stage.mp.readyOf', { k: ready, n: songs.length })}</p>
+          {pending.length > 0 && (
+            <div className="ph-group stg-group">
+              {pending.map((x) => (
+                <button key={x.id} type="button" className="ph-row stg-member-row" onClick={() => onOpenSong(x.id)}>
+                  <span className="ph-text">
+                    <span className="ph-title" dir="auto">
+                      {x.name}
+                    </span>
+                  </span>
+                  <span className={'stg-ready is-' + (x.state || 'none')}>{x.state ? t('stage.rd.' + x.state) : t('stage.rd.unmarked')}</span>
+                  <Chevron />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {activity.length > 0 && (
+        <section className="ph-section">
+          <h2 className="ph-section-title">{t('stage.mp.activity')}</h2>
+          <div className="ph-group stg-group">
+            {activity.map((a) => (
+              <button key={a.kind + a.id} type="button" className="ph-row stg-member-row" onClick={() => (a.kind === 'idea' ? onOpenIdeas() : onOpenSong(a.chart))}>
+                <span className={'stg-act-icon is-' + a.kind} aria-hidden="true">
+                  {a.kind === 'take' ? '●' : a.kind === 'idea' ? '♪' : '✎'}
+                </span>
+                <span className="ph-text">
+                  <span className="ph-title" dir="auto">
+                    {a.title}
+                  </span>
+                  {a.sub && (
+                    <span className="ph-desc" dir="auto">
+                      {a.sub}
+                    </span>
+                  )}
+                </span>
+                <span className="stg-detail">{shortDate(a.at, lang)}</span>
+                <Chevron />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {canRemove && (
+        <>
+          <div className="ph-group stg-group stg-actions">
+            <button type="button" className="ph-row stg-action is-danger" onClick={() => (sure ? onRemove() : setSure(true))}>
+              {sure ? t('stage.band.removeSure') : t('stage.band.removeFrom')}
+            </button>
+          </div>
+          <p className="stg-fine is-under">{t('stage.band.removeNote', { name })}</p>
+        </>
+      )}
     </>
   );
 }
@@ -1293,7 +1382,17 @@ export function StageView({ onAccount, start = null }) {
     );
   }
 
-  // ---- one member's page (the manager's) ----
+  // ---- one member's page ----
+  const songName = (id) => scoped.find((x) => x.id === id)?.name || '';
+  const memberActivity = (who) =>
+    [
+      ...cloud.takes.filter((x) => x.band === bandId && x.by === who).map((x) => ({ kind: 'take', id: x.id, chart: x.chart, at: x.at, title: songName(x.chart) || t('stage.mp.take'), sub: t('stage.mp.take') })),
+      ...cloud.notes.filter((x) => x.band === bandId && x.by === who && x.kind === 'note').map((x) => ({ kind: 'note', id: x.id, chart: x.chart, at: Date.parse(x.at) || 0, title: songName(x.chart) || t('stage.mp.note'), sub: x.body })),
+      ...cloud.suggestions.filter((x) => x.band === bandId && x.by === who).map((x) => ({ kind: 'idea', id: x.id, at: Date.parse(x.at) || 0, title: x.title, sub: t('stage.mp.suggested') + (x.artist ? ' · ' + x.artist : '') })),
+    ]
+      .filter((a) => a.kind === 'idea' || songName(a.chart))
+      .sort((x, y) => y.at - x.at)
+      .slice(0, 6);
   const shownMember = dialog === 'manage' && band && memberPage ? band.members.find((x) => x.id === memberPage) : null;
   if (shownMember) {
     return (
@@ -1301,12 +1400,26 @@ export function StageView({ onAccount, start = null }) {
         <BackButton label={band.name} onClick={() => setMemberPage(null)} />
         <MemberPage
           m={shownMember}
+          band={band}
+          uid={uid}
           here={here.some((p) => (p.key || '').split(':')[0] === shownMember.id)}
+          songs={scoped.map((x) => ({ id: x.id, name: x.name }))}
+          readyOf={readyOf}
+          activity={memberActivity(shownMember.id)}
+          rolesOk={rolesReady()}
+          onRoles={(r) => setMyRoles(band.id, r).catch(fail)}
+          onOpenSong={(id) => setSongPage(id)}
+          onOpenIdeas={() => {
+            setMemberPage(null);
+            setDialog(null);
+            setTab('ideas');
+          }}
           onRemove={() => {
             setMemberPage(null);
             removeMember(band.id, shownMember.id).catch(fail);
           }}
           t={t}
+          lang={lang}
         />
         {toast}
       </div>

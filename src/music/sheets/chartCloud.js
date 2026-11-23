@@ -84,6 +84,13 @@ const missingGapCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') 
 // each member's avatar (colour / emoji) comes with migration 010 (v1.0.247)
 let hasAvatar = true;
 const missingAvatarCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\bavatar\b/i.test(e.message || '');
+// each member's part in the band (vocals, guitar…) comes with migration 011 (v1.0.249)
+let hasRole = true;
+const missingRoleCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\brole\b/i.test(e.message || '');
+export const MEMBER_ROLES = ['vocals', 'guitar', 'bass', 'drums', 'keys', 'winds', 'other'];
+const rolesOf = (text) => (text ? String(text).split(',').filter((r) => MEMBER_ROLES.includes(r)) : []);
+export const rolesReady = () => hasRole;
+
 function myAvatar() {
   try {
     const v = localStorage.getItem('dudestar-p-profile-avatar');
@@ -242,15 +249,18 @@ export async function syncWith(sb, uid, local) {
   for (const m of now) if (m.cloud && !byId.has(m.id)) await local.deleteSheet(m.id);
 
   // 3) bands, members, band setlists
+  const memberCols = () => 'band_id,user_id,display_name' + (hasAvatar ? ',avatar' : '') + (hasRole ? ',role' : '');
   const [b, mem, sl] = await Promise.all([
     sb.from('bands').select('id,name,owner,invite_code'),
-    sb.from('band_members').select('band_id,user_id,display_name' + (hasAvatar ? ',avatar' : '')),
+    sb.from('band_members').select(memberCols()),
     sb.from('band_setlists').select('id,band_id,name,items,deleted,updated_at' + (hasGap ? ',gap' : '')),
   ]);
   let members = mem;
-  if (members.error && hasAvatar && missingAvatarCol(members.error)) {
-    hasAvatar = false;
-    members = await sb.from('band_members').select('band_id,user_id,display_name');
+  for (let i = 0; i < 2 && members.error; i += 1) {
+    if (hasRole && missingRoleCol(members.error)) hasRole = false;
+    else if (hasAvatar && missingAvatarCol(members.error)) hasAvatar = false;
+    else break;
+    members = await sb.from('band_members').select(memberCols());
   }
   // my own rows carry my CURRENT name + avatar, so the band sees them (v1.0.247)
   if (!members.error && uid) {
@@ -271,7 +281,7 @@ export async function syncWith(sb, uid, local) {
   }
   for (const x of [b, members, sets]) if (x.error) throw x.error;
   const bands = b.data
-    .map((band) => ({ id: band.id, name: band.name, owner: band.owner, code: band.invite_code, members: members.data.filter((m) => m.band_id === band.id).map((m) => ({ id: m.user_id, name: m.display_name, avatar: avatarOf(m.avatar) })) }))
+    .map((band) => ({ id: band.id, name: band.name, owner: band.owner, code: band.invite_code, members: members.data.filter((m) => m.band_id === band.id).map((m) => ({ id: m.user_id, name: m.display_name, avatar: avatarOf(m.avatar), roles: rolesOf(m.role) })) }))
     .sort((x, y) => x.name.localeCompare(y.name));
   const setlists = sets.data.filter((s) => !s.deleted).map((s) => ({ id: s.id, band: s.band_id, name: s.name, items: Array.isArray(s.items) ? s.items : [], gap: s.gap ?? 0 }));
 
@@ -511,6 +521,21 @@ export async function renameBand(id, name) {
   const { error } = await sb.from('bands').update({ name }).eq('id', id);
   if (error) throw error;
   set({ bands: state.bands.map((b) => (b.id === id ? { ...b, name } : b)) });
+}
+
+/** My part in one band (v1.0.249): ['vocals', 'guitar'] … — every member sees it. */
+export async function setMyRoles(band, roles) {
+  const uid = getLink()?.userId;
+  const clean = MEMBER_ROLES.filter((r) => roles.includes(r));
+  const before = state.bands;
+  set({ bands: state.bands.map((b) => (b.id === band ? { ...b, members: b.members.map((m) => (m.id === uid ? { ...m, roles: clean } : m)) } : b)) });
+  const sb = await client();
+  const { error } = await sb.from('band_members').update({ role: clean.join(',') || null }).eq('band_id', band).eq('user_id', uid);
+  if (error) {
+    set({ bands: before });
+    if (missingRoleCol(error)) hasRole = false;
+    throw error;
+  }
 }
 
 export async function removeMember(band, user) {

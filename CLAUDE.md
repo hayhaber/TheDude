@@ -3918,3 +3918,22 @@ no tools).
   rows. Strings `stage.band.removeFrom / removeSure / removeNote`.
   Playwright fake Supabase 1180 EN + 390 HE: no inline key, row -> page,
   two taps -> member removed on the server, back on the band page.
+- MEMBER PAGES (v1.0.249; user: "build 1-3" = part in the band, the
+  member's readiness, recent activity): every member row on the band page
+  is a button with a chevron (the manager's included) and shows the
+  member's part under the name. `MemberPage` (StageView): big avatar,
+  name, part ("Guitar · Vocals"), here-now; MY page = "My part in the
+  band" iOS checkmark list (`MEMBER_ROLES` vocals / guitar / bass / drums /
+  keys / winds / other, multi) -> `setMyRoles(band, roles)` (chartCloud,
+  optimistic; column `band_members.role` text "vocals,guitar" = NEW
+  `supabase/migrations/011_member_role.sql` — THE USER RUNS IT; `hasRole`
+  fallback, before it the list is disabled with a setup footnote); "The
+  band's songs": "Ready for k of n" + the songs not ready (Learning first,
+  then Not yet / Not marked tags), tap = the song page (Back returns to
+  the member); "Recent activity": the member's takes / notes /
+  suggestions in this band, newest 6, coloured icons, tap = song page or
+  the Suggestions tab; the manager's "Remove from Band" stays at the foot.
+  Strings `stage.role.*`, `stage.mp.*`. Playwright fake Supabase 1180 EN +
+  390 HE: role subtitle in rows, B's page (1/3 ready, Learning / Not
+  marked, 3 activity rows), song page + back, my roles saved to the
+  server row; no errors.

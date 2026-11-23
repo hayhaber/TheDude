@@ -2580,3 +2580,19 @@ html[lang='he'] .stg-fold-chev { rotate: 180deg; }
 .stg-member-head .stg-detail { margin: 0; }
 .stg-avatar.is-big { width: 88px; height: 88px; font-size: 38px; }
 .stg-avatar.is-big.is-own.is-emoji { font-size: 48px; }
+
+/* Member page, v1.0.249: part in the band, songs, activity */
+.stg-member-roles { margin: -4px 0 0; color: var(--text-secondary); font-size: var(--type-subhead, 15px); text-align: center; }
+.stg-member-row .ph-text { min-width: 0; }
+.stg-member-row .ph-desc { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stg-check-row { justify-content: flex-start; width: 100%; }
+.stg-check { color: var(--accent); flex: none; }
+.stg-ready.is-none { background: var(--fill-tertiary); color: var(--text-secondary); }
+.stg-act-icon {
+  flex: none; width: 28px; height: 28px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #fff;
+}
+.stg-act-icon.is-take { background: #ff3b30; }
+.stg-act-icon.is-note { background: #ff9500; }
+.stg-act-icon.is-idea { background: #af52de; }

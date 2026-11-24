@@ -4148,4 +4148,12 @@ no tools).
   and clears the others. Node test with a stub Supabase: null + local ->
   uploaded, '' -> cleared, a different server timing -> taken, same ->
   nothing. A timing already erased by v1.0.260: LRCLIB ones come back by
-  themselves on the next play-along; tapped ones must be tapped again.
+  themselves on the next play-along; tapped ones must be tapped again.- v1.0.262 (user: "suddenly the YouTube player doesn't open"): two
+  causes. (1) The song page (••• Notes & recordings -> Start), the member
+  page and the band page returned WITHOUT StageView's `dialogs` — so no
+  ListenDock was mounted, `hasListenHost()` was false and the Performer
+  showed no headphones key. Those three paths now render `{dialogs}` too.
+  (2) The folded control bubble (device key `dudestar-stage-bar-mini`)
+  had no headphones key: Performer `alongKey` is shared by the full bar
+  and the folded bubble. Playwright 1180: song page -> Start -> key ->
+  dock opens; folded bubble shows the key.

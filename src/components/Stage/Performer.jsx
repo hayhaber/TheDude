@@ -1377,6 +1377,20 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
 
   if (!song) return null;
 
+  // play along with the song's recording (both bar sizes)
+  const alongKey = hasListenHost() && role === 'off' && embedOf(linkOf(song)) && (
+      <button
+        type="button"
+        className={'stage-key is-round stage-along-key' + (along || listening?.along ? ' is-on' : '')}
+        onClick={() => (along ? stopAlong() : startAlong())}
+        aria-pressed={along}
+        aria-label={along ? t('stage.along.stop') : t('stage.along.play')}
+        title={along ? t('stage.along.stop') : t('stage.along.play')}
+      >
+        <Icon d="M3 14v-2a9 9 0 0 1 18 0v2M3 14a2 2 0 0 1 2-2h1v7H5a2 2 0 0 1-2-2zM21 14a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z" size={18} />
+      </button>
+  );
+
   return createPortal(
     <div className={'stage-perf' + (isWords ? ' is-words' : '') + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare') + (bpm || note ? ' has-note' : '')} role="dialog" aria-label={song.name} dir={dir} ref={rootRef}>
       <div className="stage-perf-scroll" ref={setScroller} dir="ltr">
@@ -1783,6 +1797,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
               {leftText}
             </span>
           )}
+          {alongKey}
           <button type="button" className="stage-key is-round is-quiet" onClick={toggleMini} aria-label={t('stage.expand')} title={t('stage.expand')}>
             <Icon d="M6 15l6-6 6 6" size={18} />
           </button>
@@ -1808,18 +1823,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         <button type="button" className={'stage-key is-round' + (atEnd && next ? ' is-ready' : '')} onClick={() => goSong(1)} disabled={!next} aria-label={t('stage.nextSong')} title={t('stage.nextSong')}>
           <Icon d="M9 5l7 7-7 7" />
         </button>
-        {hasListenHost() && role === 'off' && embedOf(linkOf(song)) && (
-          <button
-            type="button"
-            className={'stage-key is-round stage-along-key' + (along || listening?.along ? ' is-on' : '')}
-            onClick={() => (along ? stopAlong() : startAlong())}
-            aria-pressed={along}
-            aria-label={along ? t('stage.along.stop') : t('stage.along.play')}
-            title={along ? t('stage.along.stop') : t('stage.along.play')}
-          >
-            <Icon d="M3 14v-2a9 9 0 0 1 18 0v2M3 14a2 2 0 0 1 2-2h1v7H5a2 2 0 0 1-2-2zM21 14a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z" size={18} />
-          </button>
-        )}
+        {alongKey}
         </div>
         <div className="stage-group">
         <span className="stage-stepper" title={t('stage.lengthHint')}>

@@ -1468,6 +1468,7 @@ export function StageView({ onAccount, start = null }) {
           <SongTakes song={pageSong} band={songBand} t={t} lang={lang} />
         </section>
         {toast}
+        {dialogs}
         {perform && performer}
       </div>
     );
@@ -1513,6 +1514,7 @@ export function StageView({ onAccount, start = null }) {
           lang={lang}
         />
         {toast}
+        {dialogs}
       </div>
     );
   }
@@ -1543,6 +1545,7 @@ export function StageView({ onAccount, start = null }) {
           t={t}
         />
         {toast}
+        {dialogs}
       </div>
     );
   }

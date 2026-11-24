@@ -77,7 +77,9 @@ const missingSongCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204')
 // own queries, so nothing else waits for it
 let hasSync = true;
 const missingSyncCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204' || e.code === '42P01') && /\bsync\b/i.test(e.message || '');
-const syncText = (v) => (v ? JSON.stringify(v).slice(0, 20000) : null);
+// '' on the server = cleared on purpose; null = never sent (e.g. a timing
+// saved before migration 013 ran) -> this device uploads its own
+const syncText = (v) => (v ? JSON.stringify(v).slice(0, 20000) : '');
 const sendingSync = new Set();
 let hasLink = true;
 const LINK = (p) => (hasLink ? { link: p.link || null } : {});
@@ -285,8 +287,17 @@ export async function syncWith(sb, uid, local) {
       for (const r of sy.data || []) {
         if (!have.has(r.id) && !byId.has(r.id)) continue;
         if (pendingMeta.has(r.id) || sendingSync.has(r.id)) continue;
-        const mine = syncText(local.sheetPrefs(r.id).sync);
-        if ((r.sync ?? null) === mine) continue;
+        const own = local.sheetPrefs(r.id).sync;
+        const mine = syncText(own);
+        if (r.sync == null) {
+          // never sent: upload this device's timing, don't erase it
+          if (own) {
+            const up = await sb.from('charts').update({ sync: mine }).eq('id', r.id);
+            if (up.error && missingSyncCol(up.error)) hasSync = false;
+          }
+          continue;
+        }
+        if (r.sync === mine) continue;
         let v = null;
         try {
           v = r.sync ? JSON.parse(r.sync) : null;

@@ -4141,3 +4141,11 @@ no tools).
   gaps, 390 HE + 1180 EN: every line lit at its own second, tap-sync 6
   lines saved, the v1.0.257 PDF play-along test unchanged. LRCLIB itself
   NOT reachable from here — coverage (Hebrew songs!) unknown.
+- v1.0.261 (the user ran 013): the first pull after the migration saw
+  `charts.sync` = null for every row and ERASED the timings saved on the
+  device before it. Now the server's null = never sent -> the device
+  uploads its own timing; a deliberate Clear is sent as '' (syncText(null))
+  and clears the others. Node test with a stub Supabase: null + local ->
+  uploaded, '' -> cleared, a different server timing -> taken, same ->
+  nothing. A timing already erased by v1.0.260: LRCLIB ones come back by
+  themselves on the next play-along; tapped ones must be tapped again.

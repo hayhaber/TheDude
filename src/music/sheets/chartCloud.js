@@ -201,7 +201,12 @@ const ledgerOf = (x) => ({
   created: Date.parse(x.created_at) || 0,
 });
 
-const pathFor = (uid, rec) => (rec.band ? `b/${rec.band}/${rec.id}.pdf` : `u/${uid}/${rec.id}.pdf`);
+// a replaced chart (v1.0.285) gets a new file name, so the other devices
+// see the path change and download the new one
+const pathFor = (uid, rec) => {
+  const file = rec.ver ? `${rec.id}.${rec.ver}.pdf` : `${rec.id}.pdf`;
+  return rec.band ? `b/${rec.band}/${file}` : `u/${uid}/${file}`;
+};
 
 // ---- sync (pure enough to test with a fake client) ----------------------------
 
@@ -243,7 +248,9 @@ export async function syncWith(sb, uid, local) {
       const r2 = await sb.from('charts').update({ sync: syncText(p.sync) }).eq('id', rec.id);
       if (r2.error && missingSyncCol(r2.error)) hasSync = false;
     }
-    await local.patchSheet(rec.id, { cloud: true, path });
+    // the file a replaced chart had before (best effort)
+    if (rec.oldPath && rec.oldPath !== path) await sb.storage.from(BUCKET).remove([rec.oldPath]).catch(() => {});
+    await local.patchSheet(rec.id, { cloud: true, path, oldPath: null });
   }
 
   // 2) every chart this user may see
@@ -284,7 +291,8 @@ export async function syncWith(sb, uid, local) {
     } else {
       const patch = {};
       // a words-only song here that got its chart on another device
-      if (!h.pdf && r.path) {
+      // …or whose chart was replaced there (a new file name)
+      if (r.path && (!h.pdf || (h.path && h.path !== r.path && h.cloud))) {
         const dl = await sb.storage.from(BUCKET).download(r.path);
         if (!dl.error && dl.data) Object.assign(patch, { blob: dl.data, size: r.size ?? dl.data.size, path: r.path });
       }
@@ -555,7 +563,11 @@ export async function attachChart(id, file) {
   const rec = await getSheet(id);
   if (!rec) return;
   const blob = new Blob([await file.arrayBuffer()], { type: 'application/pdf' });
-  await patchSheet(id, { blob, size: blob.size, cloud: false });
+  // replacing a chart: a new file name (the other devices then fetch it);
+  // the old file is removed once the new one is up
+  const replace = rec.blob ? { ver: Date.now().toString(36), oldPath: rec.oldPath || rec.path || null } : {};
+  await patchSheet(id, { blob, size: blob.size, cloud: false, ...replace });
+  if (rec.blob) setSheetPrefs(id, { panX: null }, { quiet: true }); // the old sideways place doesn't fit the new pages
   await takeWords(id, blob);
   if (signedIn()) syncCharts();
 }

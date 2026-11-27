@@ -4461,3 +4461,16 @@ no tools).
   the text (the v1.0.252 Tab4u file). `stage.ly.pdfNone` now says this and
   what to do (print again with "Save as PDF", or type). Real fix for such
   files = OCR (open decision).
+- v1.0.285 (user: "a song that already has a PDF — its file can't be
+  replaced"): the song's ••• (Songs rows + setlist rows) now always has
+  the chart item: "Add chart (PDF / photo)" for a words-only song,
+  "Replace chart (PDF / photo)" / "החלפת צ׳ארט" when it has one. Same
+  record = name, words, notes, takes, setlists, key / length kept;
+  the sideways place (`panX`) is reset; words are taken from the new PDF
+  only when the song has none. Cloud: a replaced chart gets a NEW file
+  name (`<id>.<ver>.pdf`, record `ver`; pathFor), the old file is removed
+  after the new one is up (`oldPath`), and sync step 2 re-downloads when
+  a cloud row's path differs from the local one — so the band / other
+  devices get the new chart. Toast "Chart replaced — the words, notes and
+  setlists stay". Playwright 1180: 193 B PDF -> 3-page PDF, Performer
+  shows 3 pages; stub-client sync test: path change -> download.

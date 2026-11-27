@@ -1378,7 +1378,12 @@ export function StageView({ onAccount, start = null }) {
       const pdf = list.find(isPdf);
       const images = list.filter((f) => !isPdf(f) && isImage(f));
       const file = pdf || (images.length ? await imagesToPdf(images, byId.get(id)?.name || 'Chart') : null);
-      if (file) await attachChart(id, file);
+      const had = !!byId.get(id)?.pdf;
+      if (file) {
+        await attachChart(id, file);
+        await reload();
+        setMsg(t(had ? 'stage.replaced' : 'stage.attached'));
+      }
     } catch (e) {
       fail(e);
     }
@@ -1916,9 +1921,9 @@ export function StageView({ onAccount, start = null }) {
                     {byId.get(s.id)?.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
                   </button>
                 )}
-                {!s.missing && byId.get(s.id) && !byId.get(s.id).pdf && (
+                {!s.missing && byId.get(s.id) && (
                   <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
-                    {t('stage.attach')}
+                    {byId.get(s.id).pdf ? t('stage.replace') : t('stage.attach')}
                   </button>
                 )}
                 {!s.missing && (
@@ -2238,11 +2243,9 @@ export function StageView({ onAccount, start = null }) {
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {s.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
                   </button>
-                  {!s.pdf && (
-                    <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
-                      {t('stage.attach')}
-                    </button>
-                  )}
+                  <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
+                    {s.pdf ? t('stage.replace') : t('stage.attach')}
+                  </button>
                   {!band &&
                     cloud.bands.map((b) => (
                       <button

@@ -22,6 +22,8 @@ import { fetchLrc } from '../../music/sheets/songSearch';
 import { splitName } from '../../music/sheets/songArt';
 import { rehearsalState, stopRehearsal, switchRehearsal } from '../../audio/rehearsal';
 import { notesOf, useNotesVersion } from '../../music/sheets/songNotes';
+import { getChartCloud, subscribeChartCloud } from '../../music/sheets/chartCloud';
+import { getLink } from '../../cloud/cloudState';
 
 // The Stage's performance screen (v1.0.176): one chart of a setlist at a
 // time, full screen on black, the pages at the screen's width. Auto-scroll
@@ -51,12 +53,25 @@ const SHARP_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A
 const FLAT_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
 /** "G♯4"; `flats` = true / false by the song's key, undefined = the usual names */
 export const noteLabel = (m, flats) => (flats === true ? FLAT_NAMES : flats === false ? SHARP_NAMES : NOTE_NAMES)[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
-function readView() {
+// A singer gets the singer's view (v1.0.277): the words, big, no chords —
+// remembered apart from the players' choice (a part changed in the band
+// changes the view by itself).
+const SINGER_VIEW_KEY = 'dudestar-stage-view-singer'; // device: chart | words | wordsChords
+const PLAYS_CHORDS = ['guitar', 'bass', 'keys'];
+/** My part in the song's band (any band for my own songs) -> a singer only? */
+function singerFor(cloud, band) {
+  const uid = getLink()?.userId;
+  if (!uid) return false;
+  const bands = band ? cloud.bands.filter((b) => b.id === band) : cloud.bands;
+  const roles = bands.flatMap((b) => b.members?.find((m) => m.id === uid)?.roles ?? []);
+  return roles.includes('vocals') && !roles.some((r) => PLAYS_CHORDS.includes(r));
+}
+function readView(singer) {
   try {
-    const v = localStorage.getItem(VIEW_KEY);
-    return ['chart', 'words', 'wordsChords'].includes(v) ? v : 'chart';
+    const v = localStorage.getItem(singer ? SINGER_VIEW_KEY : VIEW_KEY);
+    return ['chart', 'words', 'wordsChords'].includes(v) ? v : singer ? 'words' : 'chart';
   } catch {
-    return 'chart';
+    return singer ? 'words' : 'chart';
   }
 }
 function readWordsZoom() {
@@ -77,7 +92,9 @@ const sungKeys = (sections) => sections.flatMap((s) => s.lines.filter(isSung).ma
 function Words({ sections, chords, tr, flats, dir: appDir, t }) {
   // a Hebrew song reads right to left whatever the app's language: its
   // section labels, notes and chord rows sit on the right, as in the editor
-  const dir = sections.some((s) => HEB.test(s.label || '') || s.lines.some((l) => HEB.test(l.kind === 'words' ? l.words.map((w) => w.text || '').join(' ') : l.text || ''))) ? 'rtl' : appDir;
+  // …and a song in English reads left to right, labels too, in a Hebrew app
+  const all = sections.map((s) => (s.label || '') + ' ' + s.lines.map((l) => (l.kind === 'words' ? l.words.map((w) => w.text || '').join(' ') : l.text || '')).join(' ')).join(' ');
+  const dir = HEB.test(all) ? 'rtl' : /[A-Za-z]/.test(all) ? 'ltr' : appDir;
   let li = 0; // the sung line's number (data-li), for the lyrics timing
   return (
     <div className="stage-words" dir={dir}>
@@ -242,7 +259,10 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   // the song's words (v1.0.206) and how THIS device shows the song
   const [rec, setRec] = useState(null); // {pdf, lyrics} once read
   const openNotes = song ? notesOf(song.id, rec?.band ?? null).filter((n) => !n.done && n.kind === 'note') : [];
-  const [viewPref, setViewPref] = useState(readView);
+  const cloud = useSyncExternalStore(subscribeChartCloud, getChartCloud, getChartCloud);
+  const singer = singerFor(cloud, rec?.band ?? null);
+  const [viewTick, setViewTick] = useState(0);
+  const viewPref = useMemo(() => readView(singer), [singer, viewTick]); // eslint-disable-line react-hooks/exhaustive-deps
   const [startNote, setStartNote] = useState(null);
   const [editWords, setEditWords] = useState(false);
   const hasPdf = !!rec?.pdf;
@@ -1409,12 +1429,12 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   };
   const zoomPct = Math.round(zoom * 100);
   const chooseView = (v) => {
-    setViewPref(v);
     try {
-      localStorage.setItem(VIEW_KEY, v);
+      localStorage.setItem(singer ? SINGER_VIEW_KEY : VIEW_KEY, v);
     } catch {
       /* private mode */
     }
+    setViewTick((n) => n + 1);
   };
   const changeStart = (m) => {
     setStartNote(m);
@@ -1583,6 +1603,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
               <div className="stage-field is-col">
                 <span className="stage-field-label">{t('stage.view.title')}</span>
                 <Segmented options={viewOptions} value={mode} onChange={chooseView} ariaLabel={t('stage.view.title')} className="stage-view-seg" />
+                {singer && <small className="stage-view-note">{t('stage.view.singerNote')}</small>}
               </div>
             )}
             <div className="stage-field">

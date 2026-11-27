@@ -633,6 +633,25 @@ export async function setMyRoles(band, roles) {
   }
 }
 
+/** The band's manager sets another member's part (v1.0.277; rpc in
+    014_member_role_by_manager.sql — until it runs: `managerRolesReady()`
+    turns false and the page says so). */
+let hasRoleRpc = true;
+export const managerRolesReady = () => hasRoleRpc;
+export async function setMemberRoles(band, user, roles) {
+  if (user === getLink()?.userId) return setMyRoles(band, roles);
+  const clean = MEMBER_ROLES.filter((r) => roles.includes(r));
+  const before = state.bands;
+  set({ bands: state.bands.map((b) => (b.id === band ? { ...b, members: b.members.map((m) => (m.id === user ? { ...m, roles: clean } : m)) } : b)) });
+  try {
+    await rpc('set_member_role', { b: band, u: user, r: clean.join(',') });
+  } catch (error) {
+    set({ bands: before });
+    if (error && (error.code === 'PGRST202' || error.code === '42883' || /could not find the function/i.test(error.message || ''))) hasRoleRpc = false;
+    throw error;
+  }
+}
+
 export async function removeMember(band, user) {
   const sb = await client();
   const { error } = await sb.from('band_members').delete().eq('band_id', band).eq('user_id', user);

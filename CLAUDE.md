@@ -4321,3 +4321,28 @@ no tools).
   reported video id when a new player opens. Playwright (fake YouTube)
   1180 + 390: Alpha -> close -> Beta play = Beta, close -> Alpha play =
   Alpha (before: Alpha's title over Beta's video).
+- MANAGER SETS PARTS + SINGER'S VIEW (v1.0.277; user: "let the band's
+  manager set each member's instrument; for the singer, fit the chart to
+  a singer's view"). (1) The member page's part checklist now also shows
+  for the band's OWNER on any member ("Part in the band"; note "as the
+  manager you set it; <name> sees it and can change it too"). Members
+  still write only their own row; for others the owner calls rpc
+  `set_member_role(b, u, r)` = NEW `supabase/migrations/
+  014_member_role_by_manager.sql` (THE USER RUNS IT; security definer,
+  owner of b only, u must be a member, only known parts, <= 120 chars).
+  chartCloud `setMemberRoles(band, user, roles)` (own row -> setMyRoles;
+  optimistic, reverts on error; PGRST202 / 42883 -> `managerRolesReady()`
+  false = rows disabled + "needs 014" line). Checked on local Postgres
+  16 twice: owner sets ✓, other band / non-member / junk part / plain
+  member / anon all refused. (2) SINGER'S VIEW in the Performer: my parts
+  in the song's band (all my bands for my own songs) = vocals and none of
+  guitar / bass / keys -> the view choice is kept under its own device
+  key `dudestar-stage-view-singer`, default WORDS (no chords); players
+  keep `dudestar-stage-view` (default chart). So giving someone Vocals
+  turns their Performer into the singer's view by itself; the details
+  sheet says "Singer's view — you sing in this band…". (3) Words view:
+  a song with no Hebrew reads LTR (labels too) even in the Hebrew app
+  (an English song showed its label right, lines left). Playwright with
+  a fake Supabase 1180 EN + 390 HE: vocals -> words, 0 chords; manager
+  sets Dana = guitar via rpc; me vocals + guitar -> chords shown; no rpc
+  -> toast, nothing saved.

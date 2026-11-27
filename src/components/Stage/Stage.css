@@ -1667,6 +1667,7 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
   color: rgba(255, 255, 255, 0.6);
 }
 .stage-view-seg { width: 100%; }
+.stage-view-note { color: rgba(255, 255, 255, 0.6); font-size: 12px; line-height: 1.35; }
 
 /* the words editor */
 .stg-ly-sheet { max-height: min(92svh, 760px); }

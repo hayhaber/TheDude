@@ -26,6 +26,8 @@ import {
   MEMBER_ROLES,
   rolesReady,
   setMyRoles,
+  setMemberRoles,
+  managerRolesReady,
 } from '../../music/sheets/chartCloud';
 import { getLink } from '../../cloud/cloudState';
 import { useCloud } from '../../cloud/useCloud';
@@ -657,7 +659,7 @@ const shortDate = (ms, lang) => (ms ? new Date(ms).toLocaleDateString(lang === '
 /** One member's page (v1.0.248 / v1.0.249): who they are and their part in
     the band, the band's songs they still need, what they did lately; the
     manager removes them at the foot (two taps) — as iOS Family Sharing. */
-function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, onRoles, onOpenSong, onOpenIdeas, onRemove, t, lang }) {
+function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, managerOk, onRoles, onOpenSong, onOpenIdeas, onRemove, t, lang }) {
   const [sure, setSure] = useState(false);
   const me = m.id === uid;
   const name = m.name || t('stage.band.someone');
@@ -667,6 +669,9 @@ function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, onR
   const order = { learning: 0, not: 1 };
   pending.sort((x, y) => (order[x.state] ?? 2) - (order[y.state] ?? 2));
   const roles = m.roles ?? [];
+  // my own part, or — for the band's manager — any member's part (v1.0.277)
+  const canSetRoles = me || band.owner === uid;
+  const rolesOn = rolesOk && (me || managerOk);
   return (
     <>
       <div className="stg-member-head">
@@ -676,14 +681,14 @@ function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, onR
         {!me && here && <p className="stg-detail is-here">● {t('stage.band.here')}</p>}
       </div>
 
-      {me && (
+      {canSetRoles && (
         <section className="ph-section">
-          <h2 className="ph-section-title">{t('stage.role.mine')}</h2>
+          <h2 className="ph-section-title">{me ? t('stage.role.mine') : t('stage.role.theirs')}</h2>
           <div className="ph-group stg-group">
             {MEMBER_ROLES.map((r) => {
               const on = roles.includes(r);
               return (
-                <button key={r} type="button" className="ph-row stg-check-row" aria-pressed={on} disabled={!rolesOk} onClick={() => onRoles(on ? roles.filter((x) => x !== r) : [...roles, r])}>
+                <button key={r} type="button" className="ph-row stg-check-row" aria-pressed={on} disabled={!rolesOn} onClick={() => onRoles(on ? roles.filter((x) => x !== r) : [...roles, r])}>
                   <span className="ph-text">
                     <span className="ph-title">{t('stage.role.' + r)}</span>
                   </span>
@@ -696,7 +701,7 @@ function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, onR
               );
             })}
           </div>
-          <p className="stg-fine is-under">{rolesOk ? t('stage.role.note') : t('stage.role.setup')}</p>
+          <p className="stg-fine is-under">{!rolesOk ? t('stage.role.setup') : !rolesOn ? t('stage.role.setupManager') : me ? t('stage.role.note') : t('stage.role.byManager', { name })}</p>
         </section>
       )}
 
@@ -1568,7 +1573,8 @@ export function StageView({ onAccount, start = null }) {
           readyOf={readyOf}
           activity={memberActivity(shownMember.id)}
           rolesOk={rolesReady()}
-          onRoles={(r) => setMyRoles(band.id, r).catch(fail)}
+          managerOk={managerRolesReady()}
+          onRoles={(r) => setMemberRoles(band.id, shownMember.id, r).catch(fail)}
           onOpenSong={(id) => setSongPage(id)}
           onOpenIdeas={() => {
             setMemberPage(null);

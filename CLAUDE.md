@@ -4308,3 +4308,6 @@ no tools).
   song's text"): `.stage-w-label` font-size = `--w-size` (the lyric
   lines' size, follows the Size stepper / pinch), padding + radius in em
   so the orange pill scales with it.
+- v1.0.275 (user: "put a colon after the headings"): the Performer's
+  words view shows each section label with a trailing ":" ("בית:"),
+  unless the label already ends with one.

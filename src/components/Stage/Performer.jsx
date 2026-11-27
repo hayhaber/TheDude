@@ -83,7 +83,7 @@ function Words({ sections, chords, tr, flats, dir: appDir, t }) {
     <div className="stage-words" dir={dir}>
       {sections.map((sec, i) => (
         <section key={i} className="stage-w-sec">
-          {sec.label && <span className="stage-w-label" dir="auto">{sec.label}</span>}
+          {sec.label && <span className="stage-w-label" dir="auto">{/[:：]\s*$/.test(sec.label) ? sec.label : `${sec.label}:`}</span>}
           {sec.lines.map((l, k) => {
             if (l.kind === 'note')
               return (

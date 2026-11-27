@@ -4198,3 +4198,10 @@ no tools).
   fake mic (KS: G3 C4 E4 + strum) 1180 EN + 390 HE: shape 1 passed by
   notes + strum, shape 2's G4 not taken from G3, done card -> next = F.
   NOT verified with a real guitar.
+- v1.0.265 (user: "in Band -> Songs let me add a song like Suggestions'
+  '+ Suggest a song'"): the Songs list ends with a "+ Add a song" /
+  "הוספת שיר" row (`.stg-add-row`, like Setlists' "+ New setlist"; hidden
+  while searching) -> the new-song sheet (LyricsSheet: song search fills
+  name + artist + link, words optional). A chart is attached afterwards
+  from the song's ••• "Add chart"; the header Add / Link capsules stay for
+  files. Playwright 1180: row -> sheet; no errors.

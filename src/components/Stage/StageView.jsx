@@ -2114,6 +2114,12 @@ export function StageView({ onAccount, start = null }) {
                 </MoreMenu>
               </div>
             ))}
+            {!query.trim() && (
+              <button type="button" className="ph-row stg-add-row" onClick={() => setWords({ id: null, name: '', text: '', pdf: false })} disabled={busy}>
+                <span className="stg-plus" aria-hidden="true">+</span>
+                <span className="ph-title">{t('stage.addSong')}</span>
+              </button>
+            )}
           </div>
         </section>
       )}

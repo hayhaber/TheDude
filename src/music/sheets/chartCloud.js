@@ -515,11 +515,27 @@ onSheetLyrics((id) => {
 // ---- chart actions --------------------------------------------------------------
 
 /** Add PDFs (to my charts, or a band's) and send them up. */
-export async function addCharts(files, band = null) {
+/** The words + chords of a text PDF -> the song's words (v1.0.283), unless it
+    has words already; a scan / photo / a PDF that isn't a song = nothing. */
+async function takeWords(id, file) {
+  try {
+    const rec = await getSheet(id);
+    if (!rec || (rec.lyrics || '').trim()) return;
+    const { pdfWords } = await import('./pdfWords');
+    const text = await pdfWords(file, { song: true });
+    if (text) await setSheetLyrics(id, text);
+  } catch {
+    /* a PDF pdf.js can't read: the chart alone */
+  }
+}
+
+export async function addCharts(files, band = null, { words = true } = {}) {
   const ids = [];
   for (const f of files) {
     try {
-      ids.push((await saveSheet(f, { band })).id);
+      const { id } = await saveSheet(f, { band });
+      ids.push(id);
+      if (words) await takeWords(id, f);
     } catch {
       /* storage full */
     }
@@ -540,6 +556,7 @@ export async function attachChart(id, file) {
   if (!rec) return;
   const blob = new Blob([await file.arrayBuffer()], { type: 'application/pdf' });
   await patchSheet(id, { blob, size: blob.size, cloud: false });
+  await takeWords(id, blob);
   if (signedIn()) syncCharts();
 }
 
@@ -581,7 +598,7 @@ export async function shareChart(id, band) {
   let copy;
   if (rec.blob) {
     const file = new File([rec.blob], `${rec.name}.pdf`, { type: 'application/pdf' });
-    [copy] = await addCharts([file], band);
+    [copy] = await addCharts([file], band, { words: !rec.lyrics });
     if (copy && rec.lyrics) await setSheetLyrics(copy, rec.lyrics);
   } else {
     copy = (await saveTextSheet({ name: rec.name, lyrics: rec.lyrics, band })).id;

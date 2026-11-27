@@ -4435,3 +4435,21 @@ no tools).
   start by itself). The Chord Library keeps its own auto-play toggle.
   Playwright 390 HE (sound starts counted): open 0, next + switch 0,
   tap the shape 3.
+- WORDS FROM A TEXT PDF, AUTOMATICALLY (v1.0.283; user: "recognise the
+  text + chords of an uploaded PDF chart and put them in the words
+  editor"; Claude: text PDFs now, OCR for scans / photos = a later
+  decision — Tesseract (weak on Hebrew / chords) vs AI vision (needs an
+  API key + cost)). Pure-ish `music/sheets/pdfWords.js` `pdfWords(blob,
+  {song})` = pdf.js text -> `pdfLines()` per page (the Tab4u / Hebrew
+  chord merging of v1.0.252), pages split by a blank line; `song: true`
+  = only when >= 3 lines hold words, else ''. chartCloud `takeWords()`
+  runs in `addCharts` (every Band add: files, photos, links; `{words}`
+  option, shareChart passes false when the source has words) and
+  `attachChart`, only when the song has no words yet — the words are
+  written BEFORE the sync, so the cloud row carries them. The PDF stays;
+  the Performer offers Chart | Words | Words + chords, the editor (•••
+  Edit words) has them to fix. StageView toast `stage.wordsTaken` /
+  `stage.wordsTakenN` (k of n). LyricsSheet's PDF tab uses pdfWords too.
+  Playwright 390 HE + 1180 EN: a reportlab text chart + an empty "scan"
+  -> words on the first only, toast "1 of 2", Words + chords view = Am /
+  G / F over their words, 5 chord buttons. No OCR yet.

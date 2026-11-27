@@ -3,8 +3,8 @@ import { rememberArt } from '../../music/sheets/songArt';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { Segmented } from '../ui/controls';
 import { getSheet } from '../../music/sheets/sheetStore';
-import { pdfLines, songToLyrics } from '../../music/sheets/lyricsText';
-import { loadPdfDocument } from '../../music/pdfTextExtractor';
+import { songToLyrics } from '../../music/sheets/lyricsText';
+import { pdfWords } from '../../music/sheets/pdfWords';
 import { SONGS_KEY } from '../Songwriter/useSongs';
 import { SongSearchField } from './SongSearchField';
 import { linkFor, songLabel } from '../../music/sheets/songSearch';
@@ -66,14 +66,7 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
     setPdfState('busy');
     try {
       const rec = await getSheet(songId);
-      const doc = await loadPdfDocument(rec.blob);
-      const pages = [];
-      for (let i = 1; i <= doc.numPages; i += 1) {
-        const c = await (await doc.getPage(i)).getTextContent();
-        pages.push(pdfLines(c.items).join('\n'));
-      }
-      doc.destroy?.();
-      const all = pages.join('\n\n').trim();
+      const all = await pdfWords(rec.blob);
       if (!all) {
         setPdfState('none');
         return;

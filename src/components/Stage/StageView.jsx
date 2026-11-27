@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { isPdf, listSheets, onSheetsChange, setSheetLyrics, setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
+import { getSheet, isPdf, listSheets, onSheetsChange, setSheetLyrics, setSheetPrefs, sheetPrefs } from '../../music/sheets/sheetStore';
 import { fmtDur, moveItem, useSetlists } from '../../music/sheets/setlists';
 import { imagesToPdf, isImage } from '../../music/sheets/imageToPdf';
 import {
@@ -1299,6 +1299,9 @@ export function StageView({ onAccount, start = null }) {
     await reload();
     if (set && added.length) sets.setItems(set.id, [...set.items, ...added]);
     setBusy(false);
+    // the words + chords taken out of text PDFs (v1.0.283): say so, and where to fix them
+    const withWords = (await Promise.all(added.map((id) => getSheet(id)))).filter((r) => (r?.lyrics || '').trim()).length;
+    if (withWords) setMsg(added.length === 1 ? t('stage.wordsTaken') : t('stage.wordsTakenN', { k: withWords, n: added.length }));
   };
   // a camera photo is called "image.jpg" — give it a name the list can show
   const photoName = (f) => {

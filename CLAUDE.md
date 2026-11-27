@@ -4346,3 +4346,20 @@ no tools).
   a fake Supabase 1180 EN + 390 HE: vocals -> words, 0 chords; manager
   sets Dana = guitar via rpc; me vocals + guitar -> chords shown; no rpc
   -> toast, nothing saved.
+- PLAY-ALONG TRANSPORT, the Apple way (v1.0.278; user, iPad screenshot
+  of Practice -> Scales: "Demo and Start aren't the same size — design
+  them as Apple would and fit the screen to our standards"). PlayAlong
+  (Scales, Rhythm, piano Chord rhythm / Flow) + FreePlay: the round Demo
+  key (44) and the red record circle (58) with labels UNDER them are gone.
+  Now one row of library Buttons, all lg 50: Start = the ONE filled
+  primary (PlayGlyph; running = gray danger Stop + new `StopGlyph` in
+  ui/controls), Demo = gray (speaker glyph; Stop while demoing), Speed =
+  gray (was a tinted capsule 36). Settings on their own row: the tempo
+  stepper + "Adaptive" label + ui `Switch` at its end (was the old
+  lt-switch checkbox before the label). The idle instruction is plain
+  secondary text (the gray box stays only for live states: demo / count
+  / your turn / free-play hits). Phones: Start takes the row, Demo +
+  Speed share the next. Scales' position stepper = gray fill + accent
+  chevrons (was a white card among gray controls). PlayAlong root dir =
+  the language (was "auto"). Playwright 1180 HE + 390 EN: keys 50 high,
+  Demo -> Stop / Start + Speed disabled, Free mode Start 50.

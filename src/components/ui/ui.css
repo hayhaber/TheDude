@@ -473,3 +473,11 @@ html .chord-rhythm-lane {
   border-color: transparent;
   background: var(--surface);
 }
+
+/* v1.0.278: Scales' position stepper = a form control like the pop-up
+   buttons and segmented tracks beside it (gray fill, no white card) */
+html .scale-practice-stepper {
+  background: var(--fill-tertiary);
+  box-shadow: none;
+}
+html .scale-practice-stepper-btn { color: var(--accent); }

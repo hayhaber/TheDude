@@ -142,6 +142,15 @@ export function PlayGlyph({ size = 13 }) {
   );
 }
 
+/** ■ for Stop. */
+export function StopGlyph({ size = 12 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      <rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor" />
+    </svg>
+  );
+}
+
 /** Two-arrow swap glyph (⇄). */
 export function SwapGlyph({ size = 15 }) {
   return (

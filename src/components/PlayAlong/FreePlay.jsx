@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n/LanguageContext';
+import { Button, PlayGlyph, StopGlyph } from '../ui/controls';
 import './PlayAlong.css';
 
 const MIC = (
@@ -42,10 +43,15 @@ export function FreePlay({ free, onStart, total, idleText = null }) {
         )}
       </div>
       <div className="pa-transport">
-        <button type="button" className={'pa-go' + (running ? ' is-on' : '')} onClick={running ? free.stop : onStart}>
-          <span className="pa-go-glyph" aria-hidden="true" />
-          <span>{running ? t('vocal.stop') : phase === 'done' ? t('pa.again') : t('vocal.start')}</span>
-        </button>
+        {running ? (
+          <Button variant="gray" danger size="lg" icon={<StopGlyph />} onClick={free.stop}>
+            {t('vocal.stop')}
+          </Button>
+        ) : (
+          <Button variant="filled" size="lg" icon={<PlayGlyph size={14} />} onClick={onStart}>
+            {phase === 'done' ? t('pa.again') : t('vocal.start')}
+          </Button>
+        )}
         {running && live && (
           <div className="fp-counts">
             <span className="fp-count is-ok">

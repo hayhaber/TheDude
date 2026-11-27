@@ -1,6 +1,7 @@
 import { BpmField } from '../Metronome/BpmField';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
+import { Button, PlayGlyph, StopGlyph, Switch } from '../ui/controls';
 import './PlayAlong.css';
 
 const SPEAKER = (
@@ -25,7 +26,7 @@ const MIC = (
  * tempo does next). Logic: hooks/useRhythmGame.js.
  */
 export function PlayAlong({ game, metronome, idleText = null, runText = null }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { phase, countIn, live, result, exercise } = game;
   const total = exercise?.sequence?.length ?? 0;
   const running = game.isPlaying;
@@ -39,7 +40,7 @@ export function PlayAlong({ game, metronome, idleText = null, runText = null }) 
   else status = { kind: 'idle', text: idleText ?? t('pa.idle') };
 
   return (
-    <div className="pa" dir="auto">
+    <div className="pa" dir={lang === 'he' ? 'rtl' : 'ltr'}>
       <div className={'pa-status is-' + status.kind} aria-live="polite">
         {status.kind === 'demo' && <span className="pa-ico">{SPEAKER}</span>}
         {status.kind === 'run' && <span className="pa-ico is-mic">{MIC}</span>}
@@ -52,39 +53,41 @@ export function PlayAlong({ game, metronome, idleText = null, runText = null }) 
         )}
       </div>
 
+      {/* v1.0.278: the transport the Apple way — ONE filled primary
+          (Start / Stop), the quiet actions beside it at the same height
+          (Demo, Speed), and the settings on their own row (tempo stepper,
+          Adaptive switch at the end of its label) */}
       <div className="pa-transport">
-        <button
-          type="button"
-          className="pa-demo"
-          onClick={running ? game.stop : game.demo}
-          disabled={running && !demo}
-          aria-label={t('pa.demoBtn')}
-        >
-          {SPEAKER}
-          <span>{demo ? t('vocal.stop') : t('pa.demoBtn')}</span>
-        </button>
-        <button type="button" className={'pa-go' + (running && !demo ? ' is-on' : '')} onClick={running ? game.stop : game.play} disabled={demo}>
-          <span className="pa-go-glyph" aria-hidden="true" />
-          <span>{running && !demo ? t('vocal.stop') : phase === 'done' ? t('pa.again') : t('vocal.start')}</span>
-        </button>
-        <div className="pa-tempo">
-          <BpmField
-            value={metronome.bpm}
-            onChange={metronome.setBpm}
-            min={40}
-            max={220}
-            className="pa-bpm"
-            labels={{ down: t('piano.metronome.tempoDown'), up: t('piano.metronome.tempoUp'), value: t('metronome.bpm'), edit: t('piano.metronome.editHint') }}
-          />
-          <label className="pa-auto">
-            <input type="checkbox" className="lt-switch" checked={game.autoTempo} onChange={(e) => game.setAutoTempo(e.target.checked)} />
-            <span>{t('pa.auto')}</span>
-            <InfoTooltip text={t('pa.autoTip')} />
-          </label>
-        </div>
-        <button type="button" className="pa-speed" onClick={game.startFindSpeed} disabled={running}>
+        {running && !demo ? (
+          <Button variant="gray" danger size="lg" icon={<StopGlyph />} onClick={game.stop}>
+            {t('vocal.stop')}
+          </Button>
+        ) : (
+          <Button variant="filled" size="lg" icon={<PlayGlyph size={14} />} onClick={game.play} disabled={demo}>
+            {phase === 'done' ? t('pa.again') : t('vocal.start')}
+          </Button>
+        )}
+        <Button variant="gray" size="lg" icon={demo ? <StopGlyph /> : SPEAKER} onClick={demo ? game.stop : game.demo} disabled={running && !demo}>
+          {demo ? t('vocal.stop') : t('pa.demoBtn')}
+        </Button>
+        <Button variant="gray" size="lg" onClick={game.startFindSpeed} disabled={running}>
           {t('pa.speedBtn')}
-        </button>
+        </Button>
+      </div>
+      <div className="pa-settings">
+        <BpmField
+          value={metronome.bpm}
+          onChange={metronome.setBpm}
+          min={40}
+          max={220}
+          className="pa-bpm"
+          labels={{ down: t('piano.metronome.tempoDown'), up: t('piano.metronome.tempoUp'), value: t('metronome.bpm'), edit: t('piano.metronome.editHint') }}
+        />
+        <span className="pa-auto">
+          <span>{t('pa.auto')}</span>
+          <InfoTooltip text={t('pa.autoTip')} />
+          <Switch checked={game.autoTempo} onChange={game.setAutoTempo} aria-label={t('pa.auto')} />
+        </span>
       </div>
       {phase === 'idle' && game.startWhy === 'level' && <p className="pa-note">{t('pa.fromLevel', { bpm: metronome.bpm })}</p>}
       {phase === 'idle' && game.startWhy === 'item' && <p className="pa-note">{t('pa.fromItem', { bpm: metronome.bpm })}</p>}

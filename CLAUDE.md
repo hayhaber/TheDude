@@ -4304,3 +4304,7 @@ no tools).
   not the app language: any Hebrew in the words (or a label) = rtl, so
   section labels, stage notes and chord rows sit on the right even with
   the app in English. Playwright 390 EN app + Hebrew song: labels right.
+- v1.0.274 (user: "make the verse / chorus headings the size of the
+  song's text"): `.stage-w-label` font-size = `--w-size` (the lyric
+  lines' size, follows the Size stepper / pinch), padding + radius in em
+  so the orange pill scales with it.

@@ -4270,3 +4270,7 @@ no tools).
   Playwright 1180 HE + 390 EN: every menu item opens its sheet / the file
   chooser; triad drill run (fake mic) still passes shape 1 -> done card
   -> Next F; no errors.
+- v1.0.270: the lyrics-timing state in the Performer's song details read
+  "Off" / "כבוי" — `stage.sync.off` was defined twice (timing + the old
+  play-together select; the later one won). Timing now uses
+  `stage.sync.notSet` ("Not synced" / "לא מסונכרן").

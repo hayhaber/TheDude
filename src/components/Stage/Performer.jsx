@@ -1611,7 +1611,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
                 <div className="stage-field">
                   <span className="stage-field-label">{t('stage.sync.row')}</span>
                   <span className="stage-sync-state">
-                    {finding ? t('stage.sync.finding') : syncPref ? t(syncPref.src === 'tap' ? 'stage.sync.byYou' : 'stage.sync.auto') : t('stage.sync.off')}
+                    {finding ? t('stage.sync.finding') : syncPref ? t(syncPref.src === 'tap' ? 'stage.sync.byYou' : 'stage.sync.auto') : t('stage.sync.notSet')}
                   </span>
                 </div>
                 {ytLink(song) ? (

@@ -51,6 +51,7 @@ export function ListenDock() {
     const frame = frameRef.current;
     if (!frame) return undefined;
     loadedRef.current = now.link;
+    videoRef.current = null; // a new player: nothing reported yet
     let heard = false;
     const post = (msg) => {
       try {

@@ -4311,3 +4311,13 @@ no tools).
 - v1.0.275 (user: "put a colon after the headings"): the Performer's
   words view shows each section label with a trailing ":" ("בית:"),
   unless the label already ends with one.
+- v1.0.276 (user: "left the chart, picked another song, pressed play —
+  YouTube opened the PREVIOUS song"): listenStore numbered players with
+  `n = (cur?.n ?? 0) + 1`, so after a close (cur = null) the next player
+  was n = 1 again; ListenDock keeps the iframe address per `n`
+  (`srcRef`), saw "the same player" and mounted the new iframe with the
+  OLD song's address (the title showed the new song). Now a module
+  counter `seq` that a close never resets; the dock also forgets the
+  reported video id when a new player opens. Playwright (fake YouTube)
+  1180 + 390: Alpha -> close -> Beta play = Beta, close -> Alpha play =
+  Alpha (before: Alpha's title over Beta's video).

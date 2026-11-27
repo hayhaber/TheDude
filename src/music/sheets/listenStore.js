@@ -7,6 +7,10 @@
 // follows the recording, and the next song is loaded into the SAME player
 // (`openListen(…, {reuse: true})`) so iOS plays it on without a new tap.
 let cur = null; // {link, name, n, along}
+// every player ever opened gets a new number — never reset by a close
+// (v1.0.276: after a close `n` started again at 1, the dock saw "the same
+// player" and opened the PREVIOUS song's address)
+let seq = 0;
 let hosts = 0;
 const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
@@ -19,7 +23,7 @@ export function subscribeListen(fn) {
 }
 export function openListen(link, name, opts = {}) {
   const reuse = opts.reuse && cur && sender;
-  cur = { link, name, n: reuse ? cur.n : (cur?.n ?? 0) + 1, along: !!opts.along };
+  cur = { link, name, n: reuse ? cur.n : ++seq, along: !!opts.along };
   resetYt();
   emit();
 }

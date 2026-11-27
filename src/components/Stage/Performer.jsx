@@ -939,7 +939,10 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
     return () => {
       html.classList.remove('has-stage-perf');
       html.style.removeProperty('--stage-bar-lift');
-      if (alongRef.current) closeListen();
+      // leaving the stage stops the play-along recording, whatever state
+      // the key was in (v1.0.268: an old song played on after leaving)
+      const cur = listenNow();
+      if (alongRef.current || cur?.along || (cur && cur.n === startedRef.current)) closeListen();
     };
   }, []);
   // the player's state -> the chart
@@ -1051,15 +1054,22 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   }, [along, scroller]);
   // a new song while playing along: its recording in the same player, or stop
   const firstSongRef = useRef(true);
+  const autoNextRef = useRef(false);
+  const startedRef = useRef(null); // the Spotify / Apple Music player this stage opened
   useEffect(() => {
     if (firstSongRef.current) {
       firstSongRef.current = false;
       return;
     }
     setAutoAt(null);
+    // v1.0.268: only the automatic "Up next" reuses the playing player (no
+    // tap to give iOS then); a song the reader picks gets a fresh player,
+    // so the old recording can never play on under the new chart
+    const auto = autoNextRef.current;
+    autoNextRef.current = false;
     if (!alongRef.current) return;
     const l = ytLink(song);
-    if (l) openListen(l, song.name, { along: true, reuse: true });
+    if (l) openListen(l, song.name, { along: true, reuse: auto });
     else stopAlong();
   }, [song?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   // "Up next" count
@@ -1069,6 +1079,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       const left = autoAt - Date.now();
       if (left <= 0) {
         setAutoAt(null);
+        autoNextRef.current = true;
         setIdx((i) => Math.min(songs.length - 1, i + 1));
       } else setAutoLeft(Math.ceil(left / 1000));
     };
@@ -1090,6 +1101,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
       // Spotify / Apple Music report nothing: the song plays, the chart
       // scrolls on its own clock
       openListen(l, song.name);
+      startedRef.current = listenNow()?.n ?? null;
       setPlaying(true);
     }
   };

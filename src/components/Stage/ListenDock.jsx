@@ -119,10 +119,14 @@ export function ListenDock() {
     // player with the new song (it may need one tap on iOS)
     const check = setTimeout(() => {
       const st = ytInfo().state;
-      const stuck = (videoRef.current && videoRef.current !== want) || st === -1 || st === 5 || st === 0;
-      if (!stuck) return;
+      // the player never said it holds the new video = treat it as the old
+      // one (v1.0.268: a player that doesn't report its video kept playing
+      // the previous song)
+      if (videoRef.current !== want) {
+        openListen(now.link, now.name, { along: now.along });
+        return;
+      }
       if (st === 5 || st === -1) post('playVideo', []);
-      if (videoRef.current && videoRef.current !== want) openListen(now.link, now.name, { along: now.along });
     }, 2500);
     return () => clearTimeout(check);
   }, [isYt, now?.link]); // eslint-disable-line react-hooks/exhaustive-deps

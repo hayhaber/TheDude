@@ -4230,3 +4230,18 @@ no tools).
   forwards, playing or paused. Playwright fake YouTube (60 s) 1180 wheel
   + 390 CDP touch drag: at 8 s dragged to the top -> player at ~0.4 s and
   the chart goes on from there.
+- v1.0.268 (user: "played along, left, went to another song — YouTube
+  still played the previous song"): the reuse-the-same-player trick
+  (loadVideoById over postMessage) can't be trusted on the real player.
+  Now (1) only the automatic "Up next" countdown reuses the playing
+  player (`autoNextRef`; no tap to give iOS then); a song the reader
+  picks (Next / Previous, the setlist sheet, a swipe) opens a FRESH
+  player with that song; (2) ListenDock's 2.5 s check treats a player
+  that never reported the new video id as still on the old one -> fresh
+  player; (3) leaving the Performer closes any play-along player
+  (`listenNow().along`) and the Spotify / Apple Music player the stage
+  itself opened (`startedRef`). A song played from the LIST's listen key
+  keeps playing (the reader started it there). Playwright fake YouTube
+  1180 + 390: Next -> Beta's iframe, Previous -> Alpha's, close -> no
+  dock, another song opened -> no dock; v1.0.257 / 263 / 267 tests pass.
+  NOT verified on the iPad (a fresh player may need one tap on iOS).

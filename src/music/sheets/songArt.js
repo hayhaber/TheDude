@@ -53,6 +53,12 @@ export function rememberArt(title, artist, url) {
   if (title && artist && url) write(keyOf(title, artist), url);
 }
 
+/** The cover already known for title + artist (no lookup); null = none. */
+export function cachedArt(title, artist) {
+  if (!title || !artist) return null;
+  return read()[keyOf(title, artist)] || null;
+}
+
 // one lookup at a time, gently
 const queue = [];
 const asked = new Set();

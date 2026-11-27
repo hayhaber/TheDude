@@ -616,7 +616,7 @@ export async function shareChart(id, band) {
     copy = (await saveTextSheet({ name: rec.name, lyrics: rec.lyrics, band })).id;
   }
   const p = sheetPrefs(id);
-  if (copy && (p.dur || p.tr || p.bpm || p.note || p.start != null || p.link)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr, bpm: p.bpm, note: p.note, start: p.start, link: p.link }, { quiet: true });
+  if (copy && (p.dur || p.tr || p.bpm || p.note || p.start != null || p.link || p.art)) setSheetPrefs(copy, { dur: p.dur, tr: p.tr, bpm: p.bpm, note: p.note, start: p.start, link: p.link, art: p.art }, { quiet: true });
   if (signedIn()) syncCharts();
   return copy;
 }

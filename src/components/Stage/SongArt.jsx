@@ -1,12 +1,16 @@
 import { artAt, artFor, splitName, useArtVersion } from '../../music/sheets/songArt';
+import { sheetPrefs } from '../../music/sheets/sheetStore';
 
 // A song's cover (v1.0.251), as Apple Music shows it beside a song: found
 // by the song's name "Title – Artist". Without a cover: `fallback` (the
 // row's own tile) or a grey music-note tile.
-export function SongArt({ name, title, artist, size = 40, fallback = null }) {
+// v1.0.287: a song keeps the cover it got (sheet prefs `art`, or `url`
+// given by the details sheet) even when its name / artist is edited later.
+export function SongArt({ id, url: given, name, title, artist, size = 40, fallback = null }) {
   useArtVersion();
   const parts = title ? { title, artist } : splitName(name);
-  const url = artFor(parts.title, parts.artist);
+  const kept = given !== undefined ? given : id ? sheetPrefs(id).art || null : null;
+  const url = kept || (given !== undefined ? null : artFor(parts.title, parts.artist));
   if (url) {
     return <img className="stg-art" src={artAt(url, size > 60 ? 600 : 120)} width={size} height={size} alt="" loading="lazy" decoding="async" draggable="false" style={{ width: size, height: size }} />;
   }

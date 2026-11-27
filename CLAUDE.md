@@ -4483,3 +4483,16 @@ no tools).
   animation); even the larger side too short -> `cap()` = max-height +
   scroll inside the menu. Playwright Band -> Songs (9 songs): 390 last row
   opens up (119–610 of 760), first row down; 1180 the same.
+- v1.0.287 (user: "a song found by the search saves with its picture,
+  but when I change its details — e.g. the band's name — the picture is
+  gone"): the cover was looked up by the NAME ("Title – Artist") only, so
+  an edited artist found nothing. Now a song KEEPS its cover: sheet pref
+  `art` (synced with the profile's prefs; copied by shareChart / Add to
+  My Songs), set by the New Song sheet (createSong) and by Song Details;
+  SongInfoSheet holds `art` (= the song's kept cover or the cached one of
+  its old name), shows it while you edit, a new pick from the search
+  replaces it, Save writes it. `SongArt` takes `id` (prefs art first, then
+  the name lookup) or `url`; songArt.js `cachedArt()` (no lookup). Rows,
+  setlist rows, the add-songs sheet and the song page pass the id.
+  Playwright 1180 (search + image mocked): pick Yesterday -> cover, edit
+  artist to "הביטלס" -> cover stays in the sheet, the row and after reload.

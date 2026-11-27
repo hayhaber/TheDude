@@ -37,7 +37,7 @@ import { useCloud } from '../../cloud/useCloud';
 import { BackButton } from '../HomeButton/BackButton';
 import { KittyView } from './KittyView';
 import { SongArt, SongName } from './SongArt';
-import { rememberArt, splitName } from '../../music/sheets/songArt';
+import { artFor, cachedArt, rememberArt, splitName } from '../../music/sheets/songArt';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
 import { Performer } from './Performer';
 import './Stage.css';
@@ -258,8 +258,11 @@ function ListenKey({ link, name, t }) {
 // you type — a pick fills the song, the artist, the cover and a listening
 // link), Artist, Listening link. Save writes the name "Song – Artist" and
 // the link in one go.
-function SongInfoSheet({ name, link, onSave, onClose, dir, t, isNew = false }) {
+function SongInfoSheet({ name, link, art: keptArt = null, onSave, onClose, dir, t, isNew = false }) {
   const start = splitName(name);
+  // the cover stays with the song when its details are edited; a new pick
+  // from the search replaces it (v1.0.287)
+  const [art, setArt] = useState(() => keptArt || cachedArt(start.title, start.artist));
   const [title, setTitle] = useState(start.title);
   const [artist, setArtist] = useState(start.artist);
   const [v, setV] = useState(link || '');
@@ -270,12 +273,14 @@ function SongInfoSheet({ name, link, onSave, onClose, dir, t, isNew = false }) {
   const full = title.trim() + (artist.trim() ? ' – ' + artist.trim() : '');
   const [files, setFiles] = useState([]); // a new song: its chart (PDF / photos), optional
   const fileRef = useRef(null);
-  const save = () => !bad && title.trim() && onSave({ name: full, link: url || null, files });
+  // no cover yet: look it up from what's typed (as before)
+  const shownArt = art || (title.trim() && artist.trim() ? artFor(title.trim(), artist.trim()) : null);
+  const save = () => !bad && title.trim() && onSave({ name: full, link: url || null, files, art: shownArt || null });
   const searchName = full || name;
   return (
     <Sheet title={isNew ? t('stage.new.title') : t('stage.info.title')} onClose={onClose} dir={dir} t={t} action={{ label: isNew ? t('stage.new.add') : t('stage.listen.save'), onClick: save, disabled: bad || !title.trim() }}>
       <div className="stg-info-head">
-        <SongArt title={title.trim()} artist={artist.trim()} size={88} />
+        <SongArt url={shownArt} size={88} />
       </div>
       <SongSearchField
         label={t('stage.info.song')}
@@ -287,6 +292,7 @@ function SongInfoSheet({ name, link, onSave, onClose, dir, t, isNew = false }) {
           setTitle(song.title);
           setArtist(song.artist || '');
           rememberArt(song.title, song.artist, song.art);
+          if (song.art) setArt(song.art);
           if (song.apple && !url) setV(song.apple);
           setFinding(true);
           const l = await linkFor(song);
@@ -1015,9 +1021,10 @@ export function StageView({ onAccount, start = null }) {
   const [, setLinkTick] = useState(0);
   const linkOf = (id) => sheetPrefs(id).link || '';
   const openListen = (id, name) => setListen({ id, name, link: linkOf(id) });
-  const saveInfo = ({ name, link }) => {
+  const saveInfo = ({ name, link, art }) => {
     const { id, name: was } = listen;
     if ((link || '') !== linkOf(id)) setSheetPrefs(id, { link: link || '' });
+    if (art && art !== sheetPrefs(id).art) setSheetPrefs(id, { art });
     if (name !== was) renameChart(id, name).catch(fail);
     setListen(null);
     setLinkTick((n) => n + 1);
@@ -1345,11 +1352,12 @@ export function StageView({ onAccount, start = null }) {
 
   // a words-only song gets its chart: a PDF, or photos made into one
   const [newSong, setNewSong] = useState(false);
-  const createSong = async ({ name, link, files }) => {
+  const createSong = async ({ name, link, files, art }) => {
     setNewSong(false);
     setBusy(true);
     try {
       const id = await addTextSong({ name, lyrics: '', band: bandId, link: link || null });
+      if (art) setSheetPrefs(id, { art }, { quiet: true });
       const list = [...(files || [])];
       const pdf = list.find(isPdf);
       const images = list.filter((f) => !isPdf(f) && isImage(f));
@@ -1517,7 +1525,7 @@ export function StageView({ onAccount, start = null }) {
     <>
       <ListenDock />
       {newSong && <SongInfoSheet isNew name="" link="" onSave={createSong} onClose={() => setNewSong(false)} dir={dir} t={t} />}
-      {listen && <SongInfoSheet name={listen.name} link={listen.link} onSave={saveInfo} onClose={() => setListen(null)} dir={dir} t={t} />}
+      {listen && <SongInfoSheet name={listen.name} link={listen.link} art={sheetPrefs(listen.id).art || null} onSave={saveInfo} onClose={() => setListen(null)} dir={dir} t={t} />}
       {words && <LyricsSheet songId={words.id} name={words.name} text={words.text} hasPdf={words.pdf} onSave={saveWords} onClose={() => setWords(null)} />}
       {dialog === 'link' && (
         <AskSheet
@@ -1599,7 +1607,7 @@ export function StageView({ onAccount, start = null }) {
         <BackButton label={set ? set.name : band ? band.name : t('stage.back')} onClick={() => setSongPage(null)} />
         <header className="stg-head">
           <div className="stg-head-title stg-song-head">
-            <SongArt name={pageSong.name} size={88} fallback={<span />} />
+            <SongArt id={pageSong.id} name={pageSong.name} size={88} fallback={<span />} />
             <div>
               <h1 dir="auto">{splitName(pageSong.name).title}</h1>
               <p className="subtitle" dir="auto">
@@ -1905,7 +1913,7 @@ export function StageView({ onAccount, start = null }) {
                 }}
               >
                 <span className="stg-num">{i + 1}</span>
-                {!s.missing && <SongArt name={s.name} size={40} />}
+                {!s.missing && <SongArt id={s.id} name={s.name} size={40} />}
                 <SongName name={s.name} />
                 {!s.missing && notesBadge(s.id)}
                 {!s.missing && readyMark(s.id)}
@@ -1980,7 +1988,7 @@ export function StageView({ onAccount, start = null }) {
                 {notIn.filter((s) => matchSong(s, pickQuery)).map((s) => (
                   <button key={s.id} type="button" className="ph-row" onClick={() => sets.setItems(set.id, [...set.items, s.id])}>
                     <span className="stg-plus" aria-hidden="true">+</span>
-                    <SongArt name={s.name} size={36} />
+                    <SongArt id={s.id} name={s.name} size={36} />
                     <SongName name={s.name} />
                   </button>
                 ))}
@@ -2198,6 +2206,7 @@ export function StageView({ onAccount, start = null }) {
                 ) : (
                   <button type="button" className="ph-row stg-row-main" onClick={() => setPerform({ songs: scoped.map((x) => ({ id: x.id, name: x.name })), at: i })}>
                     <SongArt
+                      id={s.id}
                       name={s.name}
                       size={40}
                       fallback={

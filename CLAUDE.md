@@ -4453,3 +4453,11 @@ no tools).
   Playwright 390 HE + 1180 EN: a reportlab text chart + an empty "scan"
   -> words on the first only, toast "1 of 2", Words + chords view = Am /
   G / F over their words, 5 chord buttons. No OCR yet.
+- v1.0.284 (user: a Tab4u PDF gave "No text in this PDF"): his file was
+  printed with "Microsoft Print to PDF" (pdffonts: no fonts at all) —
+  Windows' printer draws every letter as vector SHAPES, so the page looks
+  like text but holds none (same as a scan; the Key stepper can't move it
+  either). The PDF printed from Chrome / Edge's own "Save as PDF" keeps
+  the text (the v1.0.252 Tab4u file). `stage.ly.pdfNone` now says this and
+  what to do (print again with "Save as PDF", or type). Real fix for such
+  files = OCR (open decision).

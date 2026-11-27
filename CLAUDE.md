@@ -4205,3 +4205,14 @@ no tools).
   name + artist + link, words optional). A chart is attached afterwards
   from the song's ••• "Add chart"; the header Add / Link capsules stay for
   files. Playwright 1180: row -> sheet; no errors.
+- v1.0.266 (user: "find a song like in Suggestions, add it for myself,
+  then add a chart"): Band -> Songs' "+ Add a song" row opens a NEW SONG
+  sheet (`SongInfoSheet isNew`: Cancel · New Song · Add): Song =
+  SongSearchField (a pick fills artist, cover, listening link), Artist,
+  Link, and an optional Chart field (PDF or photos -> imagesToPdf; × to
+  clear); StageView `createSong` = addTextSong (words empty) +
+  attachChart when a file was chosen, joins the open setlist. Words are
+  still added later from the song's •••. Strings `stage.new.*`.
+  Playwright (search mocked) 1180 + 390: search -> Yesterday / The
+  Beatles / youtu.be link, PDF attached -> row with title + artist and
+  the doc tile; no errors.

@@ -253,7 +253,7 @@ function ListenKey({ link, name, t }) {
 // you type — a pick fills the song, the artist, the cover and a listening
 // link), Artist, Listening link. Save writes the name "Song – Artist" and
 // the link in one go.
-function SongInfoSheet({ name, link, onSave, onClose, dir, t }) {
+function SongInfoSheet({ name, link, onSave, onClose, dir, t, isNew = false }) {
   const start = splitName(name);
   const [title, setTitle] = useState(start.title);
   const [artist, setArtist] = useState(start.artist);
@@ -263,10 +263,12 @@ function SongInfoSheet({ name, link, onSave, onClose, dir, t }) {
   const bad = !!v.trim() && !url;
   const svc = url ? serviceOf(url) : null;
   const full = title.trim() + (artist.trim() ? ' – ' + artist.trim() : '');
-  const save = () => !bad && title.trim() && onSave({ name: full, link: url || null });
+  const [files, setFiles] = useState([]); // a new song: its chart (PDF / photos), optional
+  const fileRef = useRef(null);
+  const save = () => !bad && title.trim() && onSave({ name: full, link: url || null, files });
   const searchName = full || name;
   return (
-    <Sheet title={t('stage.info.title')} onClose={onClose} dir={dir} t={t} action={{ label: t('stage.listen.save'), onClick: save, disabled: bad || !title.trim() }}>
+    <Sheet title={isNew ? t('stage.new.title') : t('stage.info.title')} onClose={onClose} dir={dir} t={t} action={{ label: isNew ? t('stage.new.add') : t('stage.listen.save'), onClick: save, disabled: bad || !title.trim() }}>
       <div className="stg-info-head">
         <SongArt title={title.trim()} artist={artist.trim()} size={88} />
       </div>
@@ -317,6 +319,35 @@ function SongInfoSheet({ name, link, onSave, onClose, dir, t }) {
             </a>
           ))}
         </p>
+      )}
+      {isNew && (
+        <div className="stg-field stg-new-chart">
+          <span>{t('stage.new.chart')}</span>
+          {files.length ? (
+            <span className="stg-new-file">
+              <span dir="auto">{files.length === 1 ? files[0].name : t('stage.new.photos', { n: files.length })}</span>
+              <button type="button" className="stg-new-clear" onClick={() => setFiles([])} aria-label={t('stage.new.remove')} title={t('stage.new.remove')}>
+                ×
+              </button>
+            </span>
+          ) : (
+            <button type="button" className="stg-new-pick" onClick={() => fileRef.current?.click()}>
+              {t('stage.new.pick')}
+            </button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/pdf,.pdf,image/*"
+            multiple
+            hidden
+            onChange={(e) => {
+              setFiles([...e.target.files]);
+              e.target.value = '';
+            }}
+          />
+          <small className="stg-new-hint">{t('stage.new.hint')}</small>
+        </div>
       )}
     </Sheet>
   );
@@ -1232,6 +1263,25 @@ export function StageView({ onAccount, start = null }) {
   const linkError = (e) => (e?.linkError ? t('stage.link.err.' + (['bad-url', 'not-a-chart', 'too-big'].includes(e.linkError) ? e.linkError : 'fetch')) : null);
 
   // a words-only song gets its chart: a PDF, or photos made into one
+  const [newSong, setNewSong] = useState(false);
+  const createSong = async ({ name, link, files }) => {
+    setNewSong(false);
+    setBusy(true);
+    try {
+      const id = await addTextSong({ name, lyrics: '', band: bandId, link: link || null });
+      const list = [...(files || [])];
+      const pdf = list.find(isPdf);
+      const images = list.filter((f) => !isPdf(f) && isImage(f));
+      const file = pdf || (images.length ? await imagesToPdf(images, name) : null);
+      if (file) await attachChart(id, file);
+      if (set) sets.setItems(set.id, [...set.items, id]);
+      await reload();
+      setMsg(t('stage.new.added'));
+    } catch (e) {
+      fail(e);
+    }
+    setBusy(false);
+  };
   const attachRef = useRef(null);
   const attachFor = useRef(null);
   const pickChart = (id) => {
@@ -1362,6 +1412,7 @@ export function StageView({ onAccount, start = null }) {
   const dialogs = (
     <>
       <ListenDock />
+      {newSong && <SongInfoSheet isNew name="" link="" onSave={createSong} onClose={() => setNewSong(false)} dir={dir} t={t} />}
       {listen && <SongInfoSheet name={listen.name} link={listen.link} onSave={saveInfo} onClose={() => setListen(null)} dir={dir} t={t} />}
       {words && <LyricsSheet songId={words.id} name={words.name} text={words.text} hasPdf={words.pdf} onSave={saveWords} onClose={() => setWords(null)} />}
       {dialog === 'link' && (
@@ -2115,7 +2166,7 @@ export function StageView({ onAccount, start = null }) {
               </div>
             ))}
             {!query.trim() && (
-              <button type="button" className="ph-row stg-add-row" onClick={() => setWords({ id: null, name: '', text: '', pdf: false })} disabled={busy}>
+              <button type="button" className="ph-row stg-add-row" onClick={() => setNewSong(true)} disabled={busy}>
                 <span className="stg-plus" aria-hidden="true">+</span>
                 <span className="ph-title">{t('stage.addSong')}</span>
               </button>

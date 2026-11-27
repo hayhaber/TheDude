@@ -108,7 +108,7 @@ export function CloudField() {
         <span className="settings-install-text cloud-status">
           <span className="cloud-email">{t('cloud.signedAs', { email })}</span>
           <span className={'cloud-sub' + (cloud.status === 'error' ? ' is-error' : '')}>
-            {busy ? t('cloud.syncing') : cloud.status === 'error' ? t('cloud.error') : t('cloud.lastSync', { when: when(cloud.lastSync || link.lastSync) })}
+            {busy ? t('cloud.syncing') : cloud.status === 'error' ? t('cloud.error') : cloud.status === 'offline' ? t('cloud.offline') : t('cloud.lastSync', { when: when(cloud.lastSync || link.lastSync) })}
           </span>
         </span>
         <span className="settings-install-actions">

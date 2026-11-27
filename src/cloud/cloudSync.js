@@ -257,7 +257,7 @@ export async function deleteAccount() {
   return true;
 }
 
-export const syncNowFromUi = () => syncNow();
+export const syncNowFromUi = () => (resumeTimer && resumeNowFn ? resumeNowFn() : syncNow());
 
 let attached = false;
 function attach() {
@@ -285,6 +285,49 @@ async function onSession(session, { fresh: isFresh = false } = {}) {
     await syncNow({ reloadIfFresh: isFresh });
   }
 }
+
+/** The stored session (with its refresh token) is still on this device. */
+function keptSession() {
+  try {
+    const v = JSON.parse(localStorage.getItem(authStorageKey()) || 'null');
+    return !!(v && (v.refresh_token || v.currentSession?.refresh_token));
+  } catch {
+    return false;
+  }
+}
+
+/** Resume a session whose refresh failed for the network: on reconnect,
+    on return to the app, and every 20 s → 2 min until it works. */
+let resumeTimer = null;
+let resumeWait = 20000;
+function retryResume() {
+  if (resumeTimer) return;
+  const again = async () => {
+    clearTimeout(resumeTimer);
+    resumeTimer = null;
+    window.removeEventListener('online', again);
+    document.removeEventListener('visibilitychange', onShow);
+    let session = null;
+    try {
+      session = (await sb().auth.getSession()).data?.session ?? null;
+    } catch {
+      /* still offline */
+    }
+    if (session) {
+      resumeWait = 20000;
+      await onSession(session).catch((e) => setCloudState({ status: 'error', error: e?.message || 'sync' }));
+    } else if (keptSession()) {
+      resumeWait = Math.min(resumeWait * 2, 120000);
+      retryResume();
+    } else if (getLink()) setCloudState({ status: 'signedOut' }); // the server refused it: truly signed out
+  };
+  const onShow = () => document.visibilityState === 'visible' && again();
+  window.addEventListener('online', again);
+  document.addEventListener('visibilitychange', onShow);
+  resumeTimer = setTimeout(again, resumeWait);
+  resumeNowFn = again;
+}
+let resumeNowFn = null;
 
 let booted = false;
 /** Called once (cloudState.startCloud) when this profile is linked or a sign-in is returning. */
@@ -314,6 +357,16 @@ export async function boot() {
       }
     }
     const session = data?.session;
+    if (!session && getLink() && keptSession()) {
+      // v1.0.280 (a user signed in by email every time): the access token
+      // had run out while the app was closed and its refresh failed ONLY for
+      // the network (an iPhone app waking up, a weak line). auth-js keeps the
+      // session in storage then — it removes it on a real refusal — so the
+      // person is still signed in: try again, never ask for the password.
+      setCloudState({ status: 'offline' });
+      retryResume();
+      return;
+    }
     if (!session) {
       if (getLink()) setCloudState({ status: 'signedOut' }); // session expired / revoked: ask to sign in again
       else if (returning) setCloudState({ status: 'error', error: 'signin', errorDetail: reason.replace(/\+/g, ' ').slice(0, 160) || 'no session' });

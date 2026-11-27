@@ -4387,3 +4387,17 @@ no tools).
   refused, own 250 ok, 301 refused); Playwright fake Supabase 1180 EN +
   390 HE: filter "sax" -> Saxophone, "Theremin" -> custom, saved via rpc,
   uncheck removes the row, member subtitle shows the parts.
+- SIGNED OUT FOR NOTHING (v1.0.280; user: hillihaber@… has to sign in by
+  email again every time): the access token lasts 1 h; opening the app
+  later, auth-js refreshes it at boot. When that refresh fails ONLY for
+  the network (an iPhone app waking up, a weak line) auth-js KEEPS the
+  session in storage but getSession() returns null — and boot() then set
+  status 'signedOut' = "sign in again". Now boot checks `keptSession()`
+  (the stored session with its refresh token is still there — auth-js
+  removes it on a real refusal): status 'offline' (Settings: "Still signed
+  in — no connection right now…", `cloud.offline`) and `retryResume()`
+  tries again on 'online', on return to the app and every 20 s -> 2 min;
+  the Sync key retries at once. Truly refused = storage empty = signed out
+  as before. Playwright fake Supabase: expired session + aborted refresh ->
+  session kept, 'online' -> refreshed (r1 -> r2) and synced. Dashboard
+  logs NOT checked (needs the user's Supabase sign-in).

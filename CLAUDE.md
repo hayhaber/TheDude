@@ -4216,3 +4216,17 @@ no tools).
   Playwright (search mocked) 1180 + 390: search -> Yesterday / The
   Beatles / youtu.be link, PDF attached -> row with title + artist and
   the doc tile; no errors.
+- v1.0.267 (user: "if I drag the chart back while playing along, the
+  YouTube song should go on from where I stop"): play-along driver in
+  Performer — while a finger / wheel holds the sheet the player keeps
+  going and the chart stays where the reader puts it; when the hold ends
+  (finger up + glide settled) the place becomes the song's time: chart
+  (and words without timing) = scrollTop / span x song length; words with
+  lyric timing = the start of the line nearest the reading line (the
+  inverse of posAt); a move of >= 1 s -> `ytCommand('seekTo', [t, true])`
+  + `reportYt({time})`, and for 1.5 s the chart follows our own clock
+  from t (a stale player report can't pull it back). Pinch zoom (2
+  fingers) never seeks; tap-sync mode untouched. Works backwards and
+  forwards, playing or paused. Playwright fake YouTube (60 s) 1180 wheel
+  + 390 CDP touch drag: at 8 s dragged to the top -> player at ~0.4 s and
+  the chart goes on from there.

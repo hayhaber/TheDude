@@ -15,7 +15,7 @@ import { Select } from '../ui/Select';
 import { LyricsSheet } from './LyricsSheet';
 import { setSheetLyrics } from '../../music/sheets/sheetStore';
 import { embedOf } from '../../music/sheets/songLink';
-import { closeListen, hasListenHost, listenNow, onYt, openListen, subscribeListen, ytCommand, ytInfo, ytTime } from '../../music/sheets/listenStore';
+import { closeListen, hasListenHost, listenNow, onYt, openListen, reportYt, subscribeListen, ytCommand, ytInfo, ytTime } from '../../music/sheets/listenStore';
 import { PerformerRecKey } from './SongExtras';
 import { fillTimes, lineKey, makeSync, posAt, timesFor, timesFromLrc } from '../../music/sheets/lyricSync';
 import { fetchLrc } from '../../music/sheets/songSearch';
@@ -842,8 +842,9 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   useEffect(() => {
     if (!scroller) return undefined;
     const h = holdRef.current;
-    const down = () => {
+    const down = (e) => {
       h.touching = true;
+      if (e.touches?.length > 1) h.pinch = true; // a zoom, not a move
     };
     const up = (e) => {
       if (e.touches?.length) return;
@@ -981,27 +982,67 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   useEffect(() => {
     if (!along || !scroller) return undefined;
     let raf;
+    let byHand = false; // the reader moved the sheet while it followed
+    let guard = null; // {t, at, playing}: our own seek, until the player reports it
+    const timeNow = (now) => {
+      if (guard && now - guard.at < 1500) return guard.t + (guard.playing ? (now - guard.at) / 1000 : 0);
+      guard = null;
+      return ytTime(now);
+    };
     const step = (now) => {
       const h = holdRef.current;
       const y = ytInfo();
-      if (!h.touching && now >= h.until && y.dur > 0 && y.state !== 0) {
+      const held = h.touching || now < h.until;
+      if (held) byHand = true;
+      if (!held && y.dur > 0) {
         const span = scroller.scrollHeight - scroller.clientHeight;
         const box = pagesRef.current;
         const tp = tapRef.current;
         const times = syncTimesRef.current;
-        let want;
-        if (box && (tp || times) && box.classList.contains('stage-words-box')) {
+        const words = box && box.classList.contains('stage-words-box');
+        const dur = durRef.current || y.dur;
+        let tops = null;
+        if (words && (tp || times)) {
           // the lines' tops in the words box (the guide sits at scrollTop)
           const top0 = box.getBoundingClientRect().top;
-          const tops = [...box.querySelectorAll('[data-li]')].map((el) => el.getBoundingClientRect().top - top0);
-          if (tp) {
-            // tapping: the line just tapped at the guide, the next one below it
-            const goal = tp.next > 0 ? tops[tp.next - 1] ?? 0 : 0;
-            want = scroller.scrollTop + (goal - scroller.scrollTop) * 0.25;
-          } else want = posAt(ytTime(now), times, tops, box.offsetHeight);
-          want = Math.max(0, Math.min(span, want));
-        } else want = Math.max(0, Math.min(1, ytTime(now) / (durRef.current || y.dur))) * span;
-        if (Math.abs(scroller.scrollTop - want) >= 0.5) scroller.scrollTop = want;
+          tops = [...box.querySelectorAll('[data-li]')].map((el) => el.getBoundingClientRect().top - top0);
+        }
+        if (h.pinch) {
+          h.pinch = false;
+          byHand = false;
+        }
+        if (byHand) {
+          // v1.0.267: where the reader left the sheet = where the song goes on
+          byHand = false;
+          if (!tp && span > 0) {
+            const pos = scroller.scrollTop;
+            let t;
+            if (tops && times?.length) {
+              // the line nearest the reading line starts now
+              let i = 0;
+              for (let k = 0; k < Math.min(tops.length, times.length); k += 1) if (Math.abs(tops[k] - pos) < Math.abs(tops[i] - pos)) i = k;
+              t = pos < tops[0] && tops[0] > 0 ? (times[0] * pos) / tops[0] : times[i];
+            } else t = (pos / span) * dur;
+            t = Math.max(0, Math.min(y.dur - 0.5, t));
+            if (Math.abs(t - timeNow(now)) >= 1) {
+              ytCommand('seekTo', [t, true]);
+              guard = { t, at: now, playing: y.state === 1 };
+              reportYt({ time: t });
+            }
+          }
+        }
+        if (y.state !== 0) {
+          let want;
+          if (tops) {
+            if (tp) {
+              // tapping: the line just tapped at the guide, the next one below it
+              const goal = tp.next > 0 ? tops[tp.next - 1] ?? 0 : 0;
+              want = scroller.scrollTop + (goal - scroller.scrollTop) * 0.25;
+            } else want = posAt(timeNow(now), times, tops, box.offsetHeight);
+            want = Math.max(0, Math.min(span, want));
+          } else want = Math.max(0, Math.min(1, timeNow(now) / dur)) * span;
+          if (Math.abs(scroller.scrollTop - want) >= 0.5) scroller.scrollTop = want;
+        }
       }
       raf = requestAnimationFrame(step);
     };

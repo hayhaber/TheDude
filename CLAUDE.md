@@ -4401,3 +4401,30 @@ no tools).
   as before. Playwright fake Supabase: expired session + aborted refresh ->
   session kept, 'online' -> refreshed (r1 -> r2) and synced. Dashboard
   logs NOT checked (needs the user's Supabase sign-in).
+- TAP A CHORD -> ITS PICTURE (v1.0.281; user: "a tap on a chord in the
+  chart opens it — guitar for a guitarist, piano for a pianist…"). Every
+  chord in the Performer is a button (`data-chord`, role button, Enter /
+  Space): the words + chords view (over words and in chord rows) and the
+  chords found in a text PDF (`.stage-chords` now always rendered; in the
+  original key an invisible `.stage-chord.is-hit` over the PDF's own
+  chord). A chord tap never toggles the controls. Pure
+  `music/sheets/chordView.js`: `parseChartChord()` (as written: ♯/♭,
+  (add9), 7(#9), ø, °, Δ, 6/9, slash bass; unknown colour = the longest
+  known start, e.g. Cadd11 -> C) -> {rootPc, typeKey (Chord Library),
+  bassPc}; `guitarShapes` (libraryVoicings, standard tuning, open first,
+  easiest index), `pianoShapes` (close voicing + inversions; slash = one),
+  `bassShapes` (root on E: R-5-8 + the 3rd above the octave; root on A:
+  R-5-8; slash = the bass note + its octave; lower one first).
+  `Stage/ChordPop.jsx`: Liquid Glass popover beside the chord (>= 600 px;
+  a card just above the control bubble on phones): name + its notes, ×,
+  Segmented Guitar | Piano | Bass, the shape on a white tile (ChordBox /
+  KeysBox; left-handed respected; tap = hear — guitar strum, piano chord,
+  bass note by note), ‹ › + "n / N" (arrow keys too), outside tap /
+  Escape closes (without toggling the controls / closing the Performer).
+  Shows the TRANSPOSED chord when Key is moved. Instrument = the choice
+  made here before (device key `dudestar-stage-chord-inst`), else my part
+  in the song's band (keys / accordion -> piano, bass -> bass, guitar
+  parts -> guitar, a singer -> piano = the notes), else the app's
+  instrument. Playwright 390 HE + 1180 EN: 11 chord buttons, pop + next +
+  piano + bass + another chord + outside / Escape; a reportlab text PDF:
+  5 chord buttons, Am opens. Sound not judged by ear (samples blocked).

@@ -2916,3 +2916,200 @@ html .stage-perf .stage-key.is-text.is-danger { color: #ff6961; }
 .stg-check-row.stg-add-row:disabled { opacity: 0.45; }
 .stg-role-pick { margin-top: 12px; max-height: min(52vh, 420px); overflow-y: auto; }
 .stg-role-none { padding: 14px 16px; margin: 0; }
+
+/* A tapped chord's picture (v1.0.281): chords in the chart are buttons; the
+   picture = a Liquid Glass popover beside it (a card above the controls on
+   a phone), the diagram on its own white tile (content, not glass). */
+.stage-w-chord[data-chord] {
+  cursor: pointer;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.stage-w-chord[data-chord]:hover {
+  background: rgba(10, 132, 255, 0.16);
+}
+.stage-w-chord[data-chord]:focus-visible {
+  outline: 2px solid #409cff;
+  outline-offset: 1px;
+}
+.stage-w-chordline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 1.6em;
+}
+.stage-w-chord.is-row {
+  display: inline;
+}
+.stage-chords .stage-chord {
+  pointer-events: auto;
+  cursor: pointer;
+}
+/* the original key: an invisible button over the PDF's own chord */
+.stage-chord.is-hit {
+  background: transparent;
+  color: transparent;
+}
+.stage-chord.is-hit:hover {
+  background: rgba(10, 132, 255, 0.14);
+}
+
+.stage-chordpop {
+  position: fixed;
+  z-index: 240;
+  width: 300px;
+  padding: 12px 12px 10px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 55%),
+    rgba(30, 30, 34, 0.74);
+  -webkit-backdrop-filter: blur(28px) saturate(1.9);
+  backdrop-filter: blur(28px) saturate(1.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), inset 0 0 0 0.5px rgba(255, 255, 255, 0.22), 0 18px 44px rgba(0, 0, 0, 0.5);
+  text-align: start;
+  animation: stage-chordpop-in var(--dur-pop, 0.22s) var(--ease-ios, ease) both;
+}
+.stage-chordpop.is-card {
+  left: 12px;
+  right: 12px;
+  width: auto;
+  max-width: 420px;
+  margin: 0 auto;
+  bottom: calc(var(--stage-bar-h, 64px) + 22px + env(safe-area-inset-bottom));
+}
+@keyframes stage-chordpop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+.stage-chordpop-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 2px 10px;
+}
+.stage-chordpop-head strong {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.stage-chordpop-notes {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stage-chordpop-x {
+  position: relative;
+  flex: none;
+  align-self: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+}
+.stage-chordpop-x::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+}
+.stage-chordpop .stage-chordpop-seg {
+  display: grid;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.12);
+}
+.stage-chordpop .stage-chordpop-seg button {
+  color: rgba(255, 255, 255, 0.86);
+}
+.stage-chordpop .stage-chordpop-seg button.is-on {
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  box-shadow: none;
+}
+.stage-chordpop-stage {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+}
+.stage-chordpop-arrow {
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+}
+.stage-chordpop-arrow:disabled {
+  opacity: 0.25;
+}
+.stage-chordpop-diagram {
+  /* the chart's content: a solid white tile, light diagram colours */
+  --text-secondary: #636366;
+  --text-h: #1d1d1f;
+  --surface: #fff;
+  --cl-dot: #1d1d1f;
+  --cl-root: #ff6b3d;
+  display: grid;
+  place-items: center;
+  min-height: 170px;
+  padding: 10px 8px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  cursor: pointer;
+  transition: transform var(--dur-fast, 0.15s) var(--ease-ios, ease);
+}
+.stage-chordpop-diagram:active {
+  transform: scale(0.97);
+}
+.stage-chordpop-diagram .cl-box {
+  max-width: 150px;
+}
+.stage-chordpop-diagram.is-bass .cl-box {
+  max-width: 116px;
+}
+.stage-chordpop-diagram .kb-box {
+  width: 100%;
+  max-width: 250px;
+  height: auto;
+}
+.stage-chordpop-none {
+  color: #636366;
+  font-size: 14px;
+}
+.stage-chordpop-foot {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.66);
+  text-align: center;
+}
+.stage-chordpop-foot span:first-child:not(:only-child) {
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-chordpop {
+    animation: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .stage-chordpop {
+    background: #1c1c1e;
+  }
+}

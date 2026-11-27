@@ -24,6 +24,8 @@ import { rehearsalState, stopRehearsal, switchRehearsal } from '../../audio/rehe
 import { notesOf, useNotesVersion } from '../../music/sheets/songNotes';
 import { getChartCloud, subscribeChartCloud } from '../../music/sheets/chartCloud';
 import { getLink } from '../../cloud/cloudState';
+import { ChordPop, chordInstFor } from './ChordPop';
+import { useInstrument } from '../../instruments/useInstrument';
 
 // The Stage's performance screen (v1.0.176): one chart of a setlist at a
 // time, full screen on black, the pages at the screen's width. Auto-scroll
@@ -60,11 +62,15 @@ const SINGER_VIEW_KEY = 'dudestar-stage-view-singer'; // device: chart | words |
 const PLAYS_CHORDS = ['guitar', 'bass', 'keys', 'lead', 'acoustic', 'ukulele', 'mandolin', 'accordion'];
 const SINGS = ['vocals', 'backing'];
 /** My part in the song's band (any band for my own songs) -> a singer only? */
-function singerFor(cloud, band) {
+function myRoles(cloud, band) {
   const uid = getLink()?.userId;
-  if (!uid) return false;
+  if (!uid) return [];
   const bands = band ? cloud.bands.filter((b) => b.id === band) : cloud.bands;
-  const roles = bands.flatMap((b) => b.members?.find((m) => m.id === uid)?.roles ?? []);
+  return bands.flatMap((b) => b.members?.find((m) => m.id === uid)?.roles ?? []);
+}
+function singerFor(cloud, band) {
+  const roles = myRoles(cloud, band);
+  if (!roles.length) return false;
   return roles.some((r) => SINGS.includes(r)) && !roles.some((r) => PLAYS_CHORDS.includes(r));
 }
 function readView(singer) {
@@ -113,7 +119,16 @@ function Words({ sections, chords, tr, flats, dir: appDir, t }) {
               return chords ? (
                 <p key={k} className="stage-w-line stage-w-chordrow" dir={dir}>
                   {/* the row sits on the reading side (as in the editor), the chords read left to right */}
-                  <span dir="ltr">{l.chords.map((c) => transposeChord(c, tr, flats)).join('   ')}</span>
+                  <span dir="ltr" className="stage-w-chordline">
+                    {l.chords.map((c, ci) => {
+                      const name = transposeChord(c, tr, flats);
+                      return (
+                        <b key={ci} className="stage-w-chord is-row" data-chord={name} role="button" tabIndex={0}>
+                          {name}
+                        </b>
+                      );
+                    })}
+                  </span>
                 </p>
               ) : null;
             const withChords = chords && l.words.some((w) => w.chord);
@@ -122,7 +137,15 @@ function Words({ sections, chords, tr, flats, dir: appDir, t }) {
                 {l.words.map((w, j) =>
                   withChords ? (
                     <span key={j} className="stage-w-word">
-                      <b className="stage-w-chord" dir="ltr">{w.chord ? transposeChord(w.chord, tr, flats) : '\u00a0'}</b>
+                      {w.chord ? (
+                        <b className="stage-w-chord" dir="ltr" data-chord={transposeChord(w.chord, tr, flats)} role="button" tabIndex={0}>
+                          {transposeChord(w.chord, tr, flats)}
+                        </b>
+                      ) : (
+                        <b className="stage-w-chord" dir="ltr">
+                          {'\u00a0'}
+                        </b>
+                      )}
                       <span>{w.text || '\u00a0'}</span>
                     </span>
                   ) : (
@@ -262,6 +285,22 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const openNotes = song ? notesOf(song.id, rec?.band ?? null).filter((n) => !n.done && n.kind === 'note') : [];
   const cloud = useSyncExternalStore(subscribeChartCloud, getChartCloud, getChartCloud);
   const singer = singerFor(cloud, rec?.band ?? null);
+  // a tapped chord -> its picture for my instrument (v1.0.281)
+  const { instrument: appInstrument } = useInstrument();
+  const [chordPop, setChordPop] = useState(null);
+  const openChord = (e) => {
+    const el = e.target.closest?.('[data-chord]');
+    if (!el) return;
+    e.stopPropagation();
+    const r = el.getBoundingClientRect();
+    setChordPop((cur) => (cur && cur.el === el ? null : { chord: el.dataset.chord, anchor: { left: r.left, top: r.top, width: r.width, height: r.height, bottom: r.bottom }, el }));
+  };
+  const chordKey = (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-chord]')) {
+      e.preventDefault();
+      openChord(e);
+    }
+  };
   const [viewTick, setViewTick] = useState(0);
   const viewPref = useMemo(() => readView(singer), [singer, viewTick]); // eslint-disable-line react-hooks/exhaustive-deps
   const [startNote, setStartNote] = useState(null);
@@ -269,6 +308,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const hasPdf = !!rec?.pdf;
   const lyrics = rec?.lyrics ?? '';
   const mode = !rec ? null : hasPdf && (viewPref === 'chart' || !lyrics.trim()) ? 'chart' : viewPref === 'words' ? 'words' : 'wordsChords';
+  useEffect(() => setChordPop(null), [song?.id, mode, tr]);
   const isWords = mode === 'words' || mode === 'wordsChords';
   wordsMode = isWords;
   const sectionsW = useMemo(() => (isWords ? parseLyrics(lyrics) : []), [isWords, lyrics]);
@@ -1344,6 +1384,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         return;
       }
       if (performance.now() - swallowTapRef.current < 700) return;
+      if (e.target?.closest?.('[data-chord]')) return; // a chord opens its picture instead
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && dt < 400 && !tapRef.current) setChrome((v) => !v);
     };
     scroller.addEventListener('touchstart', down, { passive: true });
@@ -1478,7 +1519,21 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
 
   return createPortal(
     <div className={'stage-perf' + (isWords ? ' is-words' : '') + (night ? ' is-night' : '') + (chrome ? '' : ' is-bare') + (bpm || note ? ' has-note' : '')} role="dialog" aria-label={song.name} dir={dir} ref={rootRef}>
-      <div className="stage-perf-scroll" ref={setScroller} dir="ltr">
+      {chordPop && (
+        <ChordPop
+          key={chordPop.chord}
+          chord={chordPop.chord}
+          anchor={chordPop.anchor}
+          defaultInst={chordInstFor(myRoles(cloud, rec?.band ?? null), appInstrument)}
+          dir={dir}
+          t={t}
+          onClose={() => {
+            setChordPop(null);
+            swallowTapRef.current = performance.now(); // that tap only closes the picture
+          }}
+        />
+      )}
+      <div className="stage-perf-scroll" ref={setScroller} dir="ltr" onClick={openChord} onKeyDown={chordKey}>
         {error && <p className="stage-perf-msg">{t(song.missing ? 'stage.missing' : 'stage.error')}</p>}
         {!error && !ready && <p className="stage-perf-msg">{t('stage.loading')}</p>}
         {isWords && (
@@ -1493,12 +1548,14 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
           <div className="stage-perf-pages" ref={pagesRef}>
           {sizes.map((s, i) => (
             <Page key={song.id + ':' + i} doc={doc} index={i} size={s} width={width} root={scroller}>
-              {tr !== 0 && chords?.[i]?.length > 0 && (
-                <div className="stage-chords" aria-hidden="true">
+              {chords?.[i]?.length > 0 && (
+                <div className="stage-chords">
                   {chords[i].map((c, k) => (
                     <span
                       key={k}
-                      className="stage-chord"
+                      className={'stage-chord' + (tr === 0 ? ' is-hit' : '')}
+                      data-chord={transposeChord(c.text, tr, flats)}
+                      role="button"
                       style={{
                         left: `${c.left * 100}%`,
                         top: `${c.top * 100}%`,

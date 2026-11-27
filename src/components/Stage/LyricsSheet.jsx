@@ -36,6 +36,13 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
   const [link, setLink] = useState(null); // from a picked search result
   const [finding, setFinding] = useState(false);
   const [text, setText] = useState(initialText);
+  // v1.0.271: ONE direction for the whole text (Pages / Notes), not one per
+  // line — a line starting with a chord or a Latin word no longer jumps to
+  // the left. Hebrew in the text -> right to left; the key beside the field
+  // flips it by hand.
+  const [dirPick, setDirPick] = useState(null);
+  const autoDir = /[\u0590-\u05FF]/.test(text) ? 'rtl' : text.trim() ? 'ltr' : lang === 'he' ? 'rtl' : 'ltr';
+  const textDir = dirPick ?? autoDir;
   const [start, setStart] = useState(null);
   const [src, setSrc] = useState('type');
   const [pdfState, setPdfState] = useState(null); // null | 'busy' | 'none' | 'error'
@@ -129,9 +136,27 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
 
         {src === 'type' && (
           <>
+            <div className="stg-ly-dirrow">
+              <button
+                type="button"
+                className="stg-ly-dir"
+                onClick={() => setDirPick(textDir === 'rtl' ? 'ltr' : 'rtl')}
+                aria-label={t(textDir === 'rtl' ? 'stage.ly.dirToLtr' : 'stage.ly.dirToRtl')}
+                title={t(textDir === 'rtl' ? 'stage.ly.dirToLtr' : 'stage.ly.dirToRtl')}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                  {textDir === 'rtl' ? (
+                    <path d="M20 6H8M20 10H11M20 14H8M20 18H11M6 8l-3 4 3 4" />
+                  ) : (
+                    <path d="M4 6h12M4 10h9M4 14h12M4 18h9M18 8l3 4-3 4" />
+                  )}
+                </svg>
+                <span>{t(textDir === 'rtl' ? 'stage.ly.dirRtl' : 'stage.ly.dirLtr')}</span>
+              </button>
+            </div>
             <textarea
               className="stg-ly-text"
-              dir="auto"
+              dir={textDir}
               value={text}
               placeholder={t('stage.ly.placeholder')}
               onChange={(e) => setText(e.target.value)}

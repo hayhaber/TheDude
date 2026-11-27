@@ -1699,7 +1699,27 @@ button.stage-perf-title:active { background: rgba(255, 255, 255, 0.08); }
   line-height: 1.6;
   resize: vertical;
   text-align: start;
-  unicode-bidi: plaintext; /* each line its own direction (Hebrew words, Latin chords) */
+}
+/* v1.0.271: the whole text's direction (Hebrew = right to left) */
+.stg-ly-dirrow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -4px;
+}
+.stg-ly-dir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--fill-tertiary);
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--type-subhead, 15px);
+  cursor: pointer;
 }
 .stg-ly-hint { margin: 0; }
 .stg-ly-list { max-height: 46svh; overflow-y: auto; }

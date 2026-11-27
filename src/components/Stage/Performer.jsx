@@ -69,6 +69,7 @@ function readWordsZoom() {
 }
 
 /** The song's words, big, a line per row (chords over the words when shown). */
+const HEB = /[\u0590-\u05FF]/; // a line with Hebrew reads right to left even when it starts with a Latin word
 const isSung = (l) => l.kind === 'words' && l.words.some((w) => (w.text || '').trim());
 /** The sung lines' texts, in order (what the timings are matched to). */
 const sungKeys = (sections) => sections.flatMap((s) => s.lines.filter(isSung).map((l) => lineKey(l.words.map((w) => w.text).join(' '))));
@@ -95,7 +96,7 @@ function Words({ sections, chords, tr, flats, dir, t }) {
               ) : null;
             const withChords = chords && l.words.some((w) => w.chord);
             return (
-              <p key={k} className={'stage-w-line' + (withChords ? ' has-chords' : '')} dir="auto" data-li={isSung(l) ? li++ : undefined}>
+              <p key={k} className={'stage-w-line' + (withChords ? ' has-chords' : '')} dir={HEB.test(l.words.map((w) => w.text || '').join(' ')) ? 'rtl' : 'auto'} data-li={isSung(l) ? li++ : undefined}>
                 {l.words.map((w, j) =>
                   withChords ? (
                     <span key={j} className="stage-w-word">

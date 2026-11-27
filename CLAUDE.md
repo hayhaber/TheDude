@@ -4274,3 +4274,16 @@ no tools).
   "Off" / "כבוי" — `stage.sync.off` was defined twice (timing + the old
   play-together select; the later one won). Timing now uses
   `stage.sync.notSet` ("Not synced" / "לא מסונכרן").
+- v1.0.271 (user: "editing Hebrew words I need the whole text laid out
+  right to left"): the words editor (LyricsSheet textarea) had dir="auto"
+  + `unicode-bidi: plaintext` = each line its own direction, so a line
+  starting with a chord / Latin word / a chord-only line sat on the left.
+  Now ONE direction for the whole text (Pages / Notes): Hebrew anywhere in
+  the text -> rtl, other text -> ltr, empty -> the app language; a key
+  above the field (`.stg-ly-dir`, paragraph glyph + "Right to left" /
+  "Left to right", 44 pt gray capsule) flips it by hand for this edit.
+  The Performer's words view: a line holding Hebrew is dir="rtl" (was
+  "auto" = a line opening with a Latin word went left). Strings
+  `stage.ly.dir*`. Playwright 390 HE + 1180 EN: empty -> app dir, Hebrew
+  -> rtl, toggle -> ltr; screenshot: every line right-aligned, [Am] before
+  its Hebrew word.

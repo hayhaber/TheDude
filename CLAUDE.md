@@ -4287,3 +4287,15 @@ no tools).
   `stage.ly.dir*`. Playwright 390 HE + 1180 EN: empty -> app dir, Hebrew
   -> rtl, toggle -> ltr; screenshot: every line right-aligned, [Am] before
   its Hebrew word.
+- v1.0.272 (user, screenshots: the Performer's words view showed a
+  Hebrew song's chords as a separate left-aligned row, not over their
+  words as in the editor): `mergeChordLines` now also merges a bare
+  chord line into the HEBREW line under it (`mergeIntoRtl`): both lines
+  sit right-aligned in the RTL editor, so a chord's distance from the
+  right edge = its column counted from the chord row's end, a Hebrew
+  character's = its index; the chord goes before the word under its
+  right edge (gap = the next word, past the end = the line's end). The
+  Performer then draws them over their words, RTL. A chord row left on
+  its own (an intro) sits on the reading side (`dir` of the view), the
+  chords still reading left to right as in the editor. Latin merging and
+  the Tab4u PDF path unchanged. Node check + Playwright 390 HE.

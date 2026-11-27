@@ -90,8 +90,9 @@ function Words({ sections, chords, tr, flats, dir, t }) {
               );
             if (l.kind === 'chords')
               return chords ? (
-                <p key={k} className="stage-w-line stage-w-chordrow" dir="ltr">
-                  {l.chords.map((c) => transposeChord(c, tr, flats)).join('   ')}
+                <p key={k} className="stage-w-line stage-w-chordrow" dir={dir}>
+                  {/* the row sits on the reading side (as in the editor), the chords read left to right */}
+                  <span dir="ltr">{l.chords.map((c) => transposeChord(c, tr, flats)).join('   ')}</span>
                 </p>
               ) : null;
             const withChords = chords && l.words.some((w) => w.chord);

@@ -39,7 +39,40 @@ function isBareChordLine(line) {
 }
 
 /**
- * Tab-site text (a chord line above a Latin lyric line) -> chords in
+ * A chord line above a HEBREW line, both right-aligned (an RTL editor /
+ * page): the chord row is one LTR run sitting at the right edge, so a
+ * chord's distance from the right edge = its column counted from the
+ * row's end. A Hebrew character's distance from the right = its index.
+ * The chord goes in front of the word under its right edge (the word's
+ * reading start); over a gap = the next word; past the end = line end.
+ */
+function mergeIntoRtl(line, next) {
+  const row = line.replace(/\s+$/, '');
+  const lead = row.length - row.replace(/^\s+/, '').length;
+  const core = row.slice(lead);
+  const marks = [];
+  const re = /\S+/g;
+  let m;
+  while ((m = re.exec(core))) {
+    if (!isChord(m[0])) continue;
+    marks.push({ at: lead + core.length - m.index - m[0].length, chord: m[0] });
+  }
+  let words = next.replace(/\s+$/, '');
+  for (const mk of marks.sort((a, b) => b.at - a.at)) {
+    let at = Math.min(mk.at, words.length);
+    if (at >= words.length) at = words.length;
+    else if (words[at] === ' ') {
+      while (at < words.length && words[at] === ' ') at += 1;
+    } else {
+      while (at > 0 && words[at - 1] !== ' ') at -= 1;
+    }
+    words = words.slice(0, at) + `[${mk.chord}]` + words.slice(at);
+  }
+  return words;
+}
+
+/**
+ * Tab-site text (a chord line above a lyric line) -> chords in
  * brackets inside the lyric line, by column. Other lines are kept.
  */
 export function mergeChordLines(text) {
@@ -48,6 +81,11 @@ export function mergeChordLines(text) {
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     const next = lines[i + 1];
+    if (isBareChordLine(line) && next != null && next.trim() && !isBareChordLine(next) && !labelOf(next) && HEBREW.test(next) && !/\[/.test(next) && !isTabLine(next)) {
+      out.push(mergeIntoRtl(line, next));
+      i += 1;
+      continue;
+    }
     if (isBareChordLine(line) && next != null && next.trim() && !isBareChordLine(next) && !labelOf(next) && !HEBREW.test(next) && !/\[/.test(next) && !isTabLine(next)) {
       const marks = [];
       const re = /\S+/g;

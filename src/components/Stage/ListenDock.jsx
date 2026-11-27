@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { addListenHost, closeListen, listenNow, reportYt, setYtSender, subscribeListen } from '../../music/sheets/listenStore';
+import { addListenHost, closeListen, listenNow, openListen, reportYt, setYtSender, subscribeListen, ytInfo } from '../../music/sheets/listenStore';
 import { cleanLink, embedOf, serviceOf } from '../../music/sheets/songLink';
 
 // The in-app listening player (v1.0.229, user: "Play should play the song
@@ -37,6 +37,7 @@ export function ListenDock() {
   const emb = now ? embedOf(now.link) : null;
   const frameRef = useRef(null);
   const loadedRef = useRef(null); // the link the YouTube player holds
+  const videoRef = useRef(null); // the video the player says it holds
   const isYt = emb?.kind === 'youtube';
   // the iframe keeps the address it opened with; a reused player gets the
   // next song by loadVideoById, never by a new src (= a reload)
@@ -85,6 +86,7 @@ export function ListenDock() {
         if (typeof i.currentTime === 'number') patch.time = i.currentTime;
         if (typeof i.duration === 'number' && i.duration > 0) patch.dur = i.duration;
         if (typeof i.playerState === 'number') patch.state = i.playerState;
+        if (i.videoData?.video_id) videoRef.current = i.videoData.video_id;
         reportYt(patch);
       }
     };
@@ -102,11 +104,27 @@ export function ListenDock() {
   useEffect(() => {
     if (!isYt || !now || loadedRef.current === now.link) return;
     loadedRef.current = now.link;
-    try {
-      frameRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'loadVideoById', args: [{ videoId: emb.id, startSeconds: emb.start }] }), '*');
-    } catch {
-      /* the frame is gone */
-    }
+    const want = emb.id;
+    const post = (func, args) => {
+      try {
+        frameRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+      } catch {
+        /* the frame is gone */
+      }
+    };
+    // positional arguments: the object form isn't passed on by every
+    // player build over postMessage (v1.0.263 — the old song kept playing)
+    post('loadVideoById', [want, emb.start || 0]);
+    // still the old video (or nothing playing) after a moment: a fresh
+    // player with the new song (it may need one tap on iOS)
+    const check = setTimeout(() => {
+      const st = ytInfo().state;
+      const stuck = (videoRef.current && videoRef.current !== want) || st === -1 || st === 5 || st === 0;
+      if (!stuck) return;
+      if (st === 5 || st === -1) post('playVideo', []);
+      if (videoRef.current && videoRef.current !== want) openListen(now.link, now.name, { along: now.along });
+    }, 2500);
+    return () => clearTimeout(check);
   }, [isYt, now?.link]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!now) return null;

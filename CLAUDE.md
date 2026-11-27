@@ -4157,3 +4157,17 @@ no tools).
   had no headphones key: Performer `alongKey` is shared by the full bar
   and the folded bubble. Playwright 1180: song page -> Start -> key ->
   dock opens; folded bubble shows the key.
+- v1.0.263 (user: "changing the song length doesn't change the scroll
+  speed; when I move to another song the player stays on the old one"):
+  (1) In play-along the chart's place = recording time / the SONG LENGTH
+  (`durRef`, was the recording's length), so −/+ length changes the pace;
+  the recording's length is taken only when the song has no length of
+  its own (it used to overwrite the stepper on every report). (2) Next
+  song: ListenDock sends `loadVideoById` with POSITIONAL args [id, start]
+  (the object form may not pass over postMessage), reads the player's
+  `videoData.video_id`, and if after 2.5 s the old video is still there it
+  opens a fresh player with the new song (may need a tap on iOS); a cued
+  / unstarted player gets `playVideo`. Fake player (postMessage) 1180:
+  length 8 -> 30 s drops the place 0.32 -> 0.14; next song loads by id;
+  a player that ignores the load -> fresh iframe /embed/<new id>. NOT
+  verified with real YouTube / iOS.

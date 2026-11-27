@@ -225,6 +225,8 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
   const anchorRef = useRef(null); // keep this spot under the fingers after a zoom
   const pinchedRef = useRef(false);
   const [dur, setDur] = useState(DEFAULT_DUR);
+  const durRef = useRef(dur);
+  durRef.current = dur;
   const [tr, setTr] = useState(0);
   const [bpm, setBpm] = useState(null); // the song's tempo (count-in), null = none
   const [note, setNote] = useState(''); // stage notes: capo, who counts in…
@@ -964,10 +966,14 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
         }
       }
       if (y.dur > 0 && (!prev || Math.abs(y.dur - prev.dur) > 0.5)) {
+        // the recording's length only when the song has none of its own:
+        // a length the player set keeps the chart's pace (v1.0.263)
         const d = Math.round(y.dur);
-        setDur(d);
         const s0 = songs[idxRef.current];
-        if (s0 && sheetPrefs(s0.id).dur == null) setSheetPrefs(s0.id, { dur: d });
+        if (s0 && sheetPrefs(s0.id).dur == null) {
+          setDur(d);
+          setSheetPrefs(s0.id, { dur: d });
+        }
       }
     });
   }, [along, songs, scroller]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -994,7 +1000,7 @@ export function Performer({ songs: initialSongs, startAt = 0, onClose, onReorder
             want = scroller.scrollTop + (goal - scroller.scrollTop) * 0.25;
           } else want = posAt(ytTime(now), times, tops, box.offsetHeight);
           want = Math.max(0, Math.min(span, want));
-        } else want = Math.max(0, Math.min(1, ytTime(now) / y.dur)) * span;
+        } else want = Math.max(0, Math.min(1, ytTime(now) / (durRef.current || y.dur))) * span;
         if (Math.abs(scroller.scrollTop - want) >= 0.5) scroller.scrollTop = want;
       }
       raf = requestAnimationFrame(step);

@@ -57,14 +57,15 @@ export const noteLabel = (m, flats) => (flats === true ? FLAT_NAMES : flats === 
 // remembered apart from the players' choice (a part changed in the band
 // changes the view by itself).
 const SINGER_VIEW_KEY = 'dudestar-stage-view-singer'; // device: chart | words | wordsChords
-const PLAYS_CHORDS = ['guitar', 'bass', 'keys'];
+const PLAYS_CHORDS = ['guitar', 'bass', 'keys', 'lead', 'acoustic', 'ukulele', 'mandolin', 'accordion'];
+const SINGS = ['vocals', 'backing'];
 /** My part in the song's band (any band for my own songs) -> a singer only? */
 function singerFor(cloud, band) {
   const uid = getLink()?.userId;
   if (!uid) return false;
   const bands = band ? cloud.bands.filter((b) => b.id === band) : cloud.bands;
   const roles = bands.flatMap((b) => b.members?.find((m) => m.id === uid)?.roles ?? []);
-  return roles.includes('vocals') && !roles.some((r) => PLAYS_CHORDS.includes(r));
+  return roles.some((r) => SINGS.includes(r)) && !roles.some((r) => PLAYS_CHORDS.includes(r));
 }
 function readView(singer) {
   try {

@@ -4363,3 +4363,27 @@ no tools).
   chevrons (was a white card among gray controls). PlayAlong root dir =
   the language (was "auto"). Playwright 1180 HE + 390 EN: keys 50 high,
   Demo -> Stop / Start + Speed disabled, Free mode Start 50.
+- MORE BAND PARTS (v1.0.279; user: "instead of Other, a + to add more
+  parts — a list and/or free text"): the member page's part list = the
+  base five (Vocals, Guitar, Bass, Drums, Keys) + any other part the
+  member has, then an accent "+ Add Part…" row (iOS Contacts' add-label
+  pattern) -> `AddRoleSheet` (StageView): a field that filters the other
+  usual parts (`EXTRA_ROLES` in chartCloud: backing vocals, lead /
+  acoustic guitar, percussion, sax, trumpet, trombone, winds, violin,
+  cello, flute, harmonica, accordion, ukulele, mandolin, DJ / samples,
+  sound engineer; 'other' kept for old rows only) and, when the typed
+  words aren't a part already, a last row "Add "<words>"" = a part of its
+  own, stored as "~Words" (no commas, <= 30 chars; Enter adds). Unchecking
+  an extra / custom part removes its row. `cleanRoles()` (chartCloud) =
+  known keys + "~" tokens, no repeats, <= 300 chars; `roleLabel()` shows a
+  custom part as typed. NEW `supabase/migrations/015_more_member_roles.sql`
+  (THE USER RUNS IT): role length 120 -> 300 (constraint
+  band_members_role_check) + set_member_role accepts the new keys and "~"
+  tokens. Before it: the manager's rpc refuses a new part (22023) ->
+  `moreRolesReady()` false -> the footnote asks for 015 (own parts work
+  within 120 chars). Singer view: backing vocals sings; lead / acoustic /
+  ukulele / mandolin / accordion count as chord players. Checked: 015 on
+  local Postgres 16 twice (new parts + custom ok, junk / "~" / long
+  refused, own 250 ok, 301 refused); Playwright fake Supabase 1180 EN +
+  390 HE: filter "sax" -> Saxophone, "Theremin" -> custom, saved via rpc,
+  uncheck removes the row, member subtitle shows the parts.

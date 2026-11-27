@@ -24,6 +24,9 @@ import {
   subscribeChartCloud,
   syncCharts,
   MEMBER_ROLES,
+  EXTRA_ROLES,
+  customRole,
+  moreRolesReady,
   rolesReady,
   setMyRoles,
   setMemberRoles,
@@ -653,7 +656,63 @@ function BandManagePage({ band, uid, here, onShare, onNewCode, onRename, onOpenM
   );
 }
 
-const rolesText = (roles, t) => (roles ?? []).map((r) => t('stage.role.' + r)).join(' · ');
+const roleLabel = (r, t) => (r[0] === '~' ? r.slice(1) : t('stage.role.' + r));
+const rolesText = (roles, t) => (roles ?? []).map((r) => roleLabel(r, t)).join(' · ');
+
+/** Add a part (v1.0.279) — the iOS Contacts label picker: the other usual
+    parts, filtered as you type, and the typed words as a part of its own. */
+function AddRoleSheet({ have, onAdd, onClose, dir, t }) {
+  const [q, setQ] = useState('');
+  const fq = fold(q);
+  const free = EXTRA_ROLES.filter((r) => r !== 'other' && !have.includes(r));
+  const list = fq ? free.filter((r) => fold(t('stage.role.' + r)).includes(fq)) : free;
+  const exact = [...MEMBER_ROLES, ...EXTRA_ROLES].some((r) => fold(t('stage.role.' + r)) === fq) || have.some((r) => r[0] === '~' && fold(r.slice(1)) === fq);
+  const mine = q.trim() && !exact ? customRole(q) : null;
+  const add = (r) => {
+    onAdd(r);
+    onClose();
+  };
+  return (
+    <Sheet title={t('stage.role.addTitle')} onClose={onClose} dir={dir} t={t}>
+      <label className="stg-field">
+        <input
+          autoFocus
+          dir="auto"
+          aria-label={t('stage.role.addField')}
+          value={q}
+          placeholder={t('stage.role.addField')}
+          maxLength={30}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            if (mine) add(mine);
+            else if (list.length === 1) add(list[0]);
+          }}
+        />
+      </label>
+      <div className="ph-group stg-group stg-role-pick">
+        {list.map((r) => (
+          <button key={r} type="button" className="ph-row stg-check-row" onClick={() => add(r)}>
+            <span className="ph-text">
+              <span className="ph-title">{t('stage.role.' + r)}</span>
+            </span>
+          </button>
+        ))}
+        {mine && (
+          <button type="button" className="ph-row stg-check-row stg-add-row" onClick={() => add(mine)}>
+            <span className="ph-text">
+              <span className="ph-title" dir="auto">
+                {t('stage.role.addMine', { name: mine.slice(1) })}
+              </span>
+            </span>
+          </button>
+        )}
+        {!mine && !list.length && <p className="stg-fine stg-role-none">{t('stage.role.addNone')}</p>}
+      </div>
+      <p className="stg-fine is-under">{t('stage.role.addNote')}</p>
+    </Sheet>
+  );
+}
 const shortDate = (ms, lang) => (ms ? new Date(ms).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric' }) : '');
 
 /** One member's page (v1.0.248 / v1.0.249): who they are and their part in
@@ -661,6 +720,7 @@ const shortDate = (ms, lang) => (ms ? new Date(ms).toLocaleDateString(lang === '
     manager removes them at the foot (two taps) — as iOS Family Sharing. */
 function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, managerOk, onRoles, onOpenSong, onOpenIdeas, onRemove, t, lang }) {
   const [sure, setSure] = useState(false);
+  const [adding, setAdding] = useState(false);
   const me = m.id === uid;
   const name = m.name || t('stage.band.someone');
   const canRemove = band.owner === uid && !me;
@@ -685,12 +745,14 @@ function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, man
         <section className="ph-section">
           <h2 className="ph-section-title">{me ? t('stage.role.mine') : t('stage.role.theirs')}</h2>
           <div className="ph-group stg-group">
-            {MEMBER_ROLES.map((r) => {
+            {[...MEMBER_ROLES, ...roles.filter((r) => !MEMBER_ROLES.includes(r))].map((r) => {
               const on = roles.includes(r);
               return (
                 <button key={r} type="button" className="ph-row stg-check-row" aria-pressed={on} disabled={!rolesOn} onClick={() => onRoles(on ? roles.filter((x) => x !== r) : [...roles, r])}>
                   <span className="ph-text">
-                    <span className="ph-title">{t('stage.role.' + r)}</span>
+                    <span className="ph-title" dir="auto">
+                      {roleLabel(r, t)}
+                    </span>
                   </span>
                   {on && (
                     <svg className="stg-check" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -700,8 +762,19 @@ function MemberPage({ m, band, uid, here, songs, readyOf, activity, rolesOk, man
                 </button>
               );
             })}
+            <button type="button" className="ph-row stg-check-row stg-add-row" disabled={!rolesOn} onClick={() => setAdding(true)}>
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M8 3v10M3 8h10" />
+              </svg>
+              <span className="ph-text">
+                <span className="ph-title">{t('stage.role.add')}</span>
+              </span>
+            </button>
           </div>
-          <p className="stg-fine is-under">{!rolesOk ? t('stage.role.setup') : !rolesOn ? t('stage.role.setupManager') : me ? t('stage.role.note') : t('stage.role.byManager', { name })}</p>
+          <p className="stg-fine is-under">
+            {!rolesOk ? t('stage.role.setup') : !rolesOn ? t('stage.role.setupManager') : !moreRolesReady() ? t('stage.role.setupMore') : me ? t('stage.role.note') : t('stage.role.byManager', { name })}
+          </p>
+          {adding && <AddRoleSheet have={roles} onAdd={(r) => onRoles([...roles, r])} onClose={() => setAdding(false)} dir={lang === 'he' ? 'rtl' : 'ltr'} t={t} />}
         </section>
       )}
 

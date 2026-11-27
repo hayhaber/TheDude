@@ -95,8 +95,32 @@ const missingAvatarCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204
 // each member's part in the band (vocals, guitar…) comes with migration 011 (v1.0.249)
 let hasRole = true;
 const missingRoleCol = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /\brole\b/i.test(e.message || '');
-export const MEMBER_ROLES = ['vocals', 'guitar', 'bass', 'drums', 'keys', 'winds', 'other'];
-const rolesOf = (text) => (text ? String(text).split(',').filter((r) => MEMBER_ROLES.includes(r)) : []);
+// A member's parts (v1.0.249; v1.0.279 = more parts + the member's own words):
+// the base list always shows; EXTRA_ROLES are offered under "Add Part";
+// a part in your own words is stored as "~Words" (no commas).
+export const MEMBER_ROLES = ['vocals', 'guitar', 'bass', 'drums', 'keys'];
+export const EXTRA_ROLES = ['backing', 'lead', 'acoustic', 'percussion', 'sax', 'trumpet', 'trombone', 'winds', 'violin', 'cello', 'flute', 'harmonica', 'accordion', 'ukulele', 'mandolin', 'dj', 'sound', 'other'];
+const KNOWN_ROLES = [...MEMBER_ROLES, ...EXTRA_ROLES];
+export const customRole = (text) => {
+  const v = String(text ?? '').replace(/[,~]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30);
+  return v ? '~' + v : null;
+};
+const okRole = (r) => KNOWN_ROLES.includes(r) || (typeof r === 'string' && r.length > 1 && r.length <= 31 && r[0] === '~' && !r.includes(','));
+/** Clean, no repeats (a custom part in any case once), at most 300 chars. */
+export function cleanRoles(roles) {
+  const out = [];
+  const seen = new Set();
+  for (const r of roles ?? []) {
+    if (!okRole(r)) continue;
+    const k = r.toLowerCase();
+    if (seen.has(k)) continue;
+    if ([...out, r].join(',').length > 300) break;
+    seen.add(k);
+    out.push(r);
+  }
+  return out;
+}
+const rolesOf = (text) => (text ? cleanRoles(String(text).split(',')) : []);
 export const rolesReady = () => hasRole;
 
 function myAvatar() {
@@ -621,7 +645,7 @@ export async function renameBand(id, name) {
 /** My part in one band (v1.0.249): ['vocals', 'guitar'] … — every member sees it. */
 export async function setMyRoles(band, roles) {
   const uid = getLink()?.userId;
-  const clean = MEMBER_ROLES.filter((r) => roles.includes(r));
+  const clean = cleanRoles(roles);
   const before = state.bands;
   set({ bands: state.bands.map((b) => (b.id === band ? { ...b, members: b.members.map((m) => (m.id === uid ? { ...m, roles: clean } : m)) } : b)) });
   const sb = await client();
@@ -629,6 +653,7 @@ export async function setMyRoles(band, roles) {
   if (error) {
     set({ bands: before });
     if (missingRoleCol(error)) hasRole = false;
+    else if (error.code === '23514') hasMoreRoles = false;
     throw error;
   }
 }
@@ -638,9 +663,12 @@ export async function setMyRoles(band, roles) {
     turns false and the page says so). */
 let hasRoleRpc = true;
 export const managerRolesReady = () => hasRoleRpc;
+/** False once the server refused a new part (015_more_member_roles.sql not run). */
+let hasMoreRoles = true;
+export const moreRolesReady = () => hasMoreRoles;
 export async function setMemberRoles(band, user, roles) {
   if (user === getLink()?.userId) return setMyRoles(band, roles);
-  const clean = MEMBER_ROLES.filter((r) => roles.includes(r));
+  const clean = cleanRoles(roles);
   const before = state.bands;
   set({ bands: state.bands.map((b) => (b.id === band ? { ...b, members: b.members.map((m) => (m.id === user ? { ...m, roles: clean } : m)) } : b)) });
   try {
@@ -648,6 +676,8 @@ export async function setMemberRoles(band, user, roles) {
   } catch (error) {
     set({ bands: before });
     if (error && (error.code === 'PGRST202' || error.code === '42883' || /could not find the function/i.test(error.message || ''))) hasRoleRpc = false;
+    // before 015: the server knows only the first seven parts
+    else if (error && (error.code === '22023' || error.code === '22001' || error.code === '23514')) hasMoreRoles = false;
     throw error;
   }
 }

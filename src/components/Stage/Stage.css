@@ -2909,3 +2909,10 @@ html .stage-perf .stage-key.is-text.is-danger { color: #ff6961; }
     scale: none;
   }
 }
+
+/* Part in the band: "+ Add Part" row + its picker (v1.0.279) */
+.stg-check-row.stg-add-row { color: var(--accent); gap: 12px; }
+.stg-check-row.stg-add-row svg { flex: none; }
+.stg-check-row.stg-add-row:disabled { opacity: 0.45; }
+.stg-role-pick { margin-top: 12px; max-height: min(52vh, 420px); overflow-y: auto; }
+.stg-role-none { padding: 14px 16px; margin: 0; }

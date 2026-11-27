@@ -71,6 +71,20 @@
   color: var(--danger);
 }
 
+/* no room below (the last rows of a list): open upward */
+.more-menu-pop.is-up {
+  top: auto;
+  bottom: calc(100% + 8px);
+  animation-name: more-menu-in-up;
+}
+
+@keyframes more-menu-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+}
+
 @keyframes more-menu-in {
   from {
     opacity: 0;

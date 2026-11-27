@@ -4474,3 +4474,12 @@ no tools).
   devices get the new chart. Toast "Chart replaced — the words, notes and
   setlists stay". Playwright 1180: 193 B PDF -> 3-page PDF, Performer
   shows 3 pages; stub-client sync test: path change -> download.
+- v1.0.286 (user: "the ••• menu always opens downward, even on the last
+  song of a list — I have to scroll to see it all"): MoreMenu (every •••
+  in the app) measures before showing: the room below vs above the button
+  inside its visible band (`visibleBand()`: the nearest scrolling box,
+  above the floating tab bar / Performer bubble); not enough below and
+  more above -> `.more-menu-pop.is-up` (opens upward, own entry
+  animation); even the larger side too short -> `cap()` = max-height +
+  scroll inside the menu. Playwright Band -> Songs (9 songs): 390 last row
+  opens up (119–610 of 760), first row down; 1180 the same.

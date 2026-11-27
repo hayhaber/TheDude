@@ -60,10 +60,8 @@ export function ChordPop({ chord, anchor, defaultInst, onClose, t, dir }) {
   const shape = data.shapes[i] ?? data.shapes[0];
   const n = data.shapes.length;
 
-  // a new chord / instrument sounds once (as the Chord Library's ‹ › do)
-  useEffect(() => {
-    sound(inst, data.shapes[data.start]);
-  }, [data, inst]);
+  // silent by design (v1.0.282): on stage a picture must never make a
+  // sound by itself — only a tap on the shape plays it
 
   const choose = (v) => {
     setInst(v);
@@ -76,7 +74,6 @@ export function ChordPop({ chord, anchor, defaultInst, onClose, t, dir }) {
   const step = (d) => {
     const next = (i + d + n) % n;
     setI(next);
-    sound(inst, data.shapes[next]);
   };
 
   // close: a tap outside (not on another chord — that one opens instead), Escape

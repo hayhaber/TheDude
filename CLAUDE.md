@@ -4428,3 +4428,10 @@ no tools).
   instrument. Playwright 390 HE + 1180 EN: 11 chord buttons, pop + next +
   piano + bass + another chord + outside / Escape; a reportlab text PDF:
   5 chord buttons, Am opens. Sound not judged by ear (samples blocked).
+- v1.0.282 (user: "open the chord picture without the sample playing?"
+  -> Claude: silent by default, no setting): the Performer's ChordPop
+  makes NO sound on open, on Guitar | Piano | Bass or on ‹ › — only a
+  tap on the shape plays it (on stage / with YouTube a sound must never
+  start by itself). The Chord Library keeps its own auto-play toggle.
+  Playwright 390 HE (sound starts counted): open 0, next + switch 0,
+  tap the shape 3.

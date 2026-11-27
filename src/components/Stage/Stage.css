@@ -2839,3 +2839,51 @@ html .stage-perf .stage-key.is-text.is-danger { color: #ff6961; }
   font-size: 12px;
   color: var(--text-secondary);
 }
+
+/* v1.0.269: the Band screen's ONE add button (iOS "+") and its menu */
+.stg .more-menu-btn.stg-add-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fill-tertiary);
+  color: var(--accent);
+  transition: scale var(--dur-fast, 0.15s) var(--ease-ios), background 0.15s;
+}
+.stg .more-menu-btn.stg-add-btn:active {
+  scale: 0.94;
+}
+.stg .more-menu-btn.stg-add-btn:disabled {
+  opacity: 0.45;
+}
+.stg-add-item {
+  min-height: 44px;
+  background: transparent;
+  font-size: var(--type-body, 17px);
+}
+.stg-add-item:hover {
+  background: var(--fill-tertiary);
+}
+.stg-add-glyph {
+  display: inline-flex;
+  width: 24px;
+  justify-content: center;
+  color: var(--accent);
+  flex: none;
+}
+.stg-busy {
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+  align-self: center;
+}
+.stg .more-menu:has(.stg-add-btn) .more-menu-pop {
+  gap: 2px;
+  padding: 8px;
+  min-width: 260px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stg .more-menu-btn.stg-add-btn:active {
+    scale: none;
+  }
+}

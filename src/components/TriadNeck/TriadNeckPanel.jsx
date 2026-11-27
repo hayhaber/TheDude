@@ -5,8 +5,8 @@ import { useMicChordDetector } from '../../hooks/useMicChordDetector';
 import { judgeShape } from '../../music/chordBuilder';
 import { playMidis } from '../../audio/chordPlayer';
 import { logPerf, localDay } from '../../coach/perfLog';
-import { CYCLE, chordLabel, drillPath, itemKey, neckShapes, QUALITIES, rivalFrets, sixFrets, STRING_SETS } from '../../music/triadNeck';
-import { Button, PlayGlyph } from '../ui/controls';
+import { chordLabel, drillPath, itemKey, neckShapes, QUALITIES, rivalFrets, sixFrets, STRING_SETS } from '../../music/triadNeck';
+import { Button, ControlRow, PlayGlyph } from '../ui/controls';
 import { Select } from '../ui/Select';
 import '../Teacher/Teacher.css';
 import './TriadNeck.css';
@@ -79,8 +79,8 @@ export function TriadNeckPanel({ onStage }) {
   }, []);
   useEffect(() => () => stop(), [stop]);
 
-  const start = () => {
-    setSi(0);
+  const start = (from = 0) => {
+    setSi(from);
     setNi(0);
     setHint(null);
     setPhase('notes');
@@ -174,68 +174,66 @@ export function TriadNeckPanel({ onStage }) {
   const running = phase === 'notes' || phase === 'strum';
   const sh = shapes[si];
 
+  // a shape tile: idle = start from it; running = jump to it
+  const pickShape = (k) => {
+    if (running) {
+      setSi(k);
+      setNi(0);
+      setHint(null);
+      setPhase('notes');
+    } else start(k);
+  };
+
+  // v1.0.269 (user: "I don't understand this screen"): Apple's order —
+  // WHAT to play first (the chord + the one action), then the shapes as
+  // steps, then the live task; the choice of chord / strings and the
+  // overall progress move to a settings-style list at the foot.
   return (
     <div className="tn">
-      <section className="tn-card">
-        <div className="tn-head">
-          <span className="tn-eyebrow">
-            {t('tn.' + item.quality)} · {t('tn.set', { set: iso(setLabel(item.set)) })}
-          </span>
+      <section className="tn-card tn-hero">
+        <div className="tn-hero-text">
           <span className="tn-chord" dir="ltr">
             {label}
           </span>
-          <span className="tn-where">
-            {t('tn.where', { n: CYCLE.indexOf(item.root) + 1, s: STRING_SETS.indexOf(item.set) + 1 })}
+          <span className="tn-sub">
+            {t('tn.' + item.quality)} · {t('tn.set', { set: iso(setLabel(item.set)) })}
           </span>
         </div>
-        <div className="tn-bar" role="progressbar" aria-valuemin={0} aria-valuemax={PATH.length} aria-valuenow={doneCount}>
-          <span style={{ width: (100 * doneCount) / PATH.length + '%' }} />
-        </div>
-        <span className="tn-overall">{t('tn.overall', { done: doneCount, n: PATH.length })}</span>
-
-        <div className="tn-pick">
-          <label>
-            <span>{t('tn.type')}</span>
-            <Select value={item.quality} onChange={(e) => choose({ quality: e.target.value })} disabled={running}>
-              {QUALITIES.map((q) => (
-                <option key={q} value={q}>
-                  {t('tn.' + q)}
-                </option>
-              ))}
-            </Select>
-          </label>
-          <label>
-            <span>{t('tn.strings')}</span>
-            <Select value={item.set} onChange={(e) => choose({ set: e.target.value })} disabled={running} dir="ltr">
-              {STRING_SETS.map((s) => (
-                <option key={s} value={s}>
-                  {setLabel(s)}
-                </option>
-              ))}
-            </Select>
-          </label>
-          <label>
-            <span>{t('tn.chord')}</span>
-            <Select value={String(item.root)} onChange={(e) => choose({ root: Number(e.target.value) })} disabled={running} dir="ltr">
-              {CYCLE.map((r) => (
-                <option key={r} value={r}>
-                  {chordLabel(r, item.quality)}
-                  {store.done?.[itemKey({ ...item, root: r })] ? ' ✓' : ''}
-                </option>
-              ))}
-            </Select>
-          </label>
-        </div>
+        {phase !== 'done' &&
+          (running ? (
+            <Button variant="gray" danger onClick={() => (stop(), setPhase('idle'))}>
+              {t('tn.stop')}
+            </Button>
+          ) : (
+            <Button variant="filled" size="lg" icon={<PlayGlyph />} onClick={() => start(0)}>
+              {t('tn.start')}
+            </Button>
+          ))}
       </section>
 
-      <ol className="tn-shapes" dir="ltr" aria-label={label}>
-        {shapes.map((s, k) => (
-          <li key={k} className={(running && k === si ? 'is-now' : '') + (phase === 'done' || (running && k < si) ? ' is-past' : '')}>
-            <strong>{t('tn.inv.' + s.inversion)}</strong>
-            <small>{t('tn.fret', { n: s.low || 0 })}</small>
-          </li>
-        ))}
-      </ol>
+      <div className="tn-steps">
+        <span className="tn-steps-title">{t('tn.shapesTitle', { n: shapes.length })}</span>
+        <ol className="tn-shapes" dir="ltr" aria-label={label}>
+          {shapes.map((s, k) => {
+            const now = running && k === si;
+            const past = phase === 'done' || (running && k < si);
+            return (
+              <li key={k}>
+                <button
+                  type="button"
+                  className={'tn-shape' + (now ? ' is-now' : '') + (past ? ' is-past' : '')}
+                  onClick={() => pickShape(k)}
+                  aria-current={now ? 'step' : undefined}
+                >
+                  <span className="tn-shape-n">{past ? '✓' : k + 1}</span>
+                  <strong>{t('tn.inv.' + s.inversion)}</strong>
+                  <small>{t('tn.fret', { n: s.low || 0 })}</small>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
 
       {phase === 'done' ? (
         <section className="tn-card tn-done">
@@ -251,21 +249,19 @@ export function TriadNeckPanel({ onStage }) {
             ) : (
               <p>{t('tn.allDone')}</p>
             )}
-            <Button variant="plain" onClick={start}>
+            <Button variant="plain" onClick={() => start(0)}>
               {t('tn.again')}
             </Button>
           </div>
         </section>
       ) : (
-        <section className="tn-card">
+        <section className="tn-card tn-task">
           {running ? (
             <>
               <p className="tn-step">
-                {phase === 'notes'
-                  ? t('tn.notes', { i: si + 1, n: shapes.length, notes: iso(sh.notes.map((n) => n.noteName).join(' · ')) })
-                  : t('tn.strum')}
+                {phase === 'notes' ? t('tn.notesNow', { i: si + 1, n: shapes.length }) : t('tn.strum')}
               </p>
-              <ol className="tc-notes" dir="ltr">
+              <ol className="tc-notes tn-notes" dir="ltr">
                 {sh.notes.map((n, k) => (
                   <li key={k} className={(n.isRoot ? 'is-root' : '') + (phase === 'strum' || k < ni ? ' is-past' : k === ni ? ' is-now' : '')}>
                     <span>{n.noteName}</span>
@@ -282,15 +278,6 @@ export function TriadNeckPanel({ onStage }) {
             <p className="tn-step">{t('tn.how')}</p>
           )}
           <div className="tn-actions">
-            {running ? (
-              <Button variant="gray" danger onClick={() => (stop(), setPhase('idle'))}>
-                {t('tn.stop')}
-              </Button>
-            ) : (
-              <Button variant="filled" size="lg" icon={<PlayGlyph />} onClick={start}>
-                {t('tn.start')}
-              </Button>
-            )}
             <Button variant="gray" onClick={hear}>
               {t('tn.hear')}
             </Button>
@@ -302,6 +289,46 @@ export function TriadNeckPanel({ onStage }) {
           </div>
         </section>
       )}
+
+      <section className="tn-choose">
+        <h2 className="ph-section-title">{t('tn.chooseTitle')}</h2>
+        <div className="ph-group tn-list">
+          <ControlRow label={t('tn.type')}>
+            <Select value={item.quality} onChange={(e) => choose({ quality: e.target.value })} disabled={running}>
+              {QUALITIES.map((q) => (
+                <option key={q} value={q}>
+                  {t('tn.' + q)}
+                </option>
+              ))}
+            </Select>
+          </ControlRow>
+          <ControlRow label={t('tn.strings')}>
+            <Select value={item.set} onChange={(e) => choose({ set: e.target.value })} disabled={running} dir="ltr">
+              {STRING_SETS.map((s) => (
+                <option key={s} value={s}>
+                  {setLabel(s)}
+                </option>
+              ))}
+            </Select>
+          </ControlRow>
+          <ControlRow label={t('tn.chord')}>
+            <Select value={String(item.root)} onChange={(e) => choose({ root: Number(e.target.value) })} disabled={running} dir="ltr">
+              {PATH.filter((it) => it.quality === item.quality && it.set === item.set).map(({ root: r }) => (
+                <option key={r} value={r}>
+                  {chordLabel(r, item.quality)}
+                  {store.done?.[itemKey({ ...item, root: r })] ? ' ✓' : ''}
+                </option>
+              ))}
+            </Select>
+          </ControlRow>
+        </div>
+        <div className="tn-progress">
+          <div className="tn-bar" role="progressbar" aria-valuemin={0} aria-valuemax={PATH.length} aria-valuenow={doneCount}>
+            <span style={{ width: (100 * doneCount) / PATH.length + '%' }} />
+          </div>
+          <span className="tn-overall">{t('tn.overall', { done: doneCount, n: PATH.length })}</span>
+        </div>
+      </section>
     </div>
   );
 }

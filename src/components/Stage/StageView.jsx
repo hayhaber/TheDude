@@ -1330,24 +1330,42 @@ export function StageView({ onAccount, start = null }) {
     return d ? fmtDur(d) : null;
   };
 
-  const addCapsule = (
-    <>
-      <button type="button" className="stg-capsule" onClick={() => fileRef.current?.click()} disabled={busy}>
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+  // v1.0.269: ONE "+" (Apple's add button) instead of three capsules whose
+  // words didn't say what they add; its menu names each way in full
+  const addItem = (glyph, label, onClick) => (
+    <button type="button" className="more-menu-item stg-add-item" onClick={onClick}>
+      <span className="stg-add-glyph" aria-hidden="true">
+        {glyph}
+      </span>
+      <span>{label}</span>
+    </button>
+  );
+  const G = (d) => (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      {d}
+    </svg>
+  );
+  const addMenu = (withSet) => (
+    <MoreMenu
+      label={busy ? t('stage.adding') : t('stage.addMenu')}
+      btnClass="stg-add-btn"
+      disabled={busy}
+      icon={
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
         </svg>
-        {busy ? t('stage.adding') : t('stage.add')}
-      </button>
-      <button type="button" className="stg-capsule is-quiet" onClick={() => setDialog('link')} disabled={busy} aria-label={t('stage.link.title')} title={t('stage.link.title')}>
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-          <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-        </svg>
-        <span className="stg-cap-label">{t('stage.link')}</span>
-      </button>
-      <button type="button" className="stg-capsule is-quiet" onClick={() => setWords({ id: null, name: '', text: '', pdf: false })} disabled={busy} aria-label={t('stage.ly.newTitle')} title={t('stage.ly.newTitle')}>
-        <WordsGlyph />
-        <span className="stg-cap-label">{t('stage.ly.short')}</span>
-      </button>
+      }
+    >
+      {addItem(G(<><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></>), t('stage.addm.find'), () => setNewSong(true))}
+      {withSet && addItem(G(<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />), t('stage.addm.set'), newSet)}
+      <div className="more-menu-sep" role="separator" />
+      {addItem(G(<><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /></>), t('stage.addm.file'), () => fileRef.current?.click())}
+      {addItem(G(<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1" />), t('stage.addm.link'), () => setDialog('link'))}
+      {addItem(G(<path d="M5 6h14M5 11h14M5 16h9" />), t('stage.addm.words'), () => setWords({ id: null, name: '', text: '', pdf: false }))}
+    </MoreMenu>
+  );
+  const addCapsule = (
+    <>
       <input
         ref={attachRef}
         type="file"
@@ -1881,7 +1899,10 @@ export function StageView({ onAccount, start = null }) {
                 ))}
               </div>
             )}
-            <div className="stg-sheet-foot">{addCapsule}</div>
+            <div className="stg-sheet-foot">
+              {addMenu(false)}
+              {addCapsule}
+            </div>
           </Sheet>
         )}
 
@@ -1916,6 +1937,8 @@ export function StageView({ onAccount, start = null }) {
           <h1>{t('stage.title')}</h1>
         </div>
         <div className="stg-head-actions">
+          {busy && <span className="stg-busy">{t('stage.adding')}</span>}
+          {addMenu(true)}
           {addCapsule}
           {hintOff && !(isIn && cloud.bands.length > 0) && (
             <MoreMenu label={t('stage.more')}>

@@ -4245,3 +4245,28 @@ no tools).
   1180 + 390: Next -> Beta's iframe, Previous -> Alpha's, close -> no
   dock, another song opened -> no dock; v1.0.257 / 263 / 267 tests pass.
   NOT verified on the iPad (a fresh player may need one tap on iOS).
+- v1.0.269 (user: "the triads-across-the-neck screen isn't clear — would
+  Apple do it this way? and the Band's Add / Link / Words buttons aren't
+  intuitive"). (1) TRIAD DRILL re-laid out in Apple's order (the old one
+  led with four ways of saying "where am I" — eyebrow, "chord n of 12 ·
+  set s of 4", bar, "n of 96" — plus three pickers, and pushed the live
+  task + its keys under the neck on the iPad): a HERO card = the chord
+  big + "Major · Strings 3–2–1" + the ONE action (filled Start / gray red
+  Stop); "N shapes up the neck · tap one to start there" + the shapes as
+  numbered STEP buttons (number -> green ✓ when done, accent while
+  playing; tap = start / jump there — `start(from)`, `pickShape`); the
+  TASK card (how-to, or "Shape i of n: pick the three notes, low to high"
+  + note pills + "Next note" + Hear / Skip); at the foot "Practice" = an
+  inset list of ControlRows (Type / Strings / Chord pop-ups) + the 96-step
+  progress bar. Measured 1180x820 HE: the whole task incl. Hear / Skip is
+  above the neck. Strings `tn.shapesTitle / notesNow / chooseTitle`, new
+  `tn.how`. (2) BAND HEADER: the three capsules (Add = a file, Link,
+  Words) are ONE round "+" (iOS add button, 44 pt, MoreMenu gained `icon`
+  / `btnClass` / `disabled`) whose menu names each way in full, with
+  glyphs: Find a Song… (New Song sheet) · New Setlist · ── · Import a PDF
+  or Photo… · Import from a Link… · New Song from Words…; the Add-songs
+  sheet's foot has the same "+" (without New Setlist); "Adding…" shows
+  beside it while busy. Strings `stage.addMenu`, `stage.addm.*`.
+  Playwright 1180 HE + 390 EN: every menu item opens its sheet / the file
+  chooser; triad drill run (fake mic) still passes shape 1 -> done card
+  -> Next F; no errors.

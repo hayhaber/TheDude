@@ -4,7 +4,7 @@ import './MoreMenu.css';
 // The iOS "More" button (•••): secondary settings and actions of a screen
 // in a Liquid Glass popover, so the screen keeps one clear primary row
 // (stage 5 of the Apple-style redesign). Closes on a tap outside / Escape.
-export function MoreMenu({ label, children, align = 'end' }) {
+export function MoreMenu({ label, children, align = 'end', icon = null, btnClass = '', disabled = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const popRef = useRef(null);
@@ -36,12 +36,23 @@ export function MoreMenu({ label, children, align = 'end' }) {
   }, [open]);
   return (
     <span className={'more-menu is-' + align} ref={ref}>
-      <button type="button" className={'more-menu-btn' + (open ? ' active' : '')} aria-label={label} title={label} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-          <circle cx="5.5" cy="12" r="1.8" fill="currentColor" />
-          <circle cx="12" cy="12" r="1.8" fill="currentColor" />
-          <circle cx="18.5" cy="12" r="1.8" fill="currentColor" />
-        </svg>
+      <button
+        type="button"
+        className={'more-menu-btn' + (btnClass ? ' ' + btnClass : '') + (open ? ' active' : '')}
+        aria-label={label}
+        title={label}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        disabled={disabled}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {icon ?? (
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <circle cx="5.5" cy="12" r="1.8" fill="currentColor" />
+            <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+            <circle cx="18.5" cy="12" r="1.8" fill="currentColor" />
+          </svg>
+        )}
       </button>
       {open && (
         <div

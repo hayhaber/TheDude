@@ -1,5 +1,6 @@
-/* Practice -> Triads across the neck (v1.0.264): inset cards on the grey
-   ground, one primary action, the shapes as a row of steps. */
+/* Practice -> Triads across the neck (v1.0.264; Apple layout v1.0.269):
+   the chord + one action first, the shapes as steps, the live task, and
+   the choice / overall progress as a settings-style list at the foot. */
 .tn {
   display: flex;
   flex-direction: column;
@@ -15,25 +16,17 @@
   align-items: stretch;
   gap: 10px;
 }
-.tn-card > p {
-  width: 100%;
+.tn-hero {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
-.tn-head {
+.tn-hero-text {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 2px;
-  text-align: start;
-}
-.tn-card > p,
-.tn-overall {
-  text-align: justify;
-}
-.tn-eyebrow,
-.tn-where,
-.tn-overall {
-  font-size: var(--type-footnote, 13px);
-  color: var(--text-secondary);
+  min-width: 0;
 }
 .tn-chord {
   font-size: 40px;
@@ -43,34 +36,20 @@
   color: var(--text);
   align-self: flex-start;
 }
-html[lang='he'] .tn-chord {
-  align-self: flex-start;
-}
-.tn-bar {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--fill-tertiary);
-  overflow: hidden;
-}
-.tn-bar span {
-  display: block;
-  height: 100%;
-  background: var(--accent-fill);
-  border-radius: 2px;
-}
-.tn-pick {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 4px;
-}
-.tn-pick label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+.tn-sub,
+.tn-steps-title,
+.tn-overall {
   font-size: var(--type-footnote, 13px);
   color: var(--text-secondary);
+}
+.tn-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tn-steps-title {
+  padding-inline: 4px;
+  text-align: start;
 }
 .tn-shapes {
   display: flex;
@@ -84,30 +63,67 @@ html[lang='he'] .tn-chord {
 }
 .tn-shapes li {
   flex: 1 0 auto;
-  min-width: 108px;
+  min-width: 112px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--fill-tertiary);
-  color: var(--text);
 }
-.tn-shapes li strong {
+.tn-shape {
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: center;
+  justify-content: start;
+  justify-items: start;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  direction: inherit;
+}
+html[lang='he'] .tn-shape {
+  direction: rtl;
+}
+.tn-shape-n {
+  grid-row: 1 / 3;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fill-tertiary);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.tn-shape strong {
   font-size: var(--type-subhead, 15px);
   font-weight: 600;
 }
-.tn-shapes li small {
+.tn-shape small {
   font-size: var(--type-footnote, 13px);
   color: var(--text-secondary);
 }
-.tn-shapes li.is-now {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+.tn-shape.is-now {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface, #fff));
   color: var(--accent);
 }
-.tn-shapes li.is-past strong::before {
-  content: '✓ ';
-  color: #34c759;
+.tn-shape.is-now .tn-shape-n {
+  background: var(--accent-fill);
+  color: #fff;
+}
+.tn-shape.is-past .tn-shape-n {
+  background: #34c759;
+  color: #fff;
+}
+.tn-shape:active {
+  scale: 0.97;
 }
 .tn-step {
   margin: 0;
@@ -135,11 +151,52 @@ html[lang='he'] .tn-chord {
   margin: 0;
   color: var(--text-secondary);
 }
-@media (max-width: 480px) {
-  .tn-pick {
-    grid-template-columns: 1fr 1fr;
+.tn-choose {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.tn-choose .ph-section-title {
+  margin: 0;
+  padding-inline: 4px;
+}
+.tn-list {
+  background: var(--surface, #fff);
+  border-radius: var(--radius-lg, 14px);
+  padding-inline: 16px;
+}
+.tn-list .ui-row + .ui-row {
+  border-top: 0.5px solid var(--separator);
+}
+.tn-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 4px 0;
+}
+.tn-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fill-tertiary);
+  overflow: hidden;
+}
+.tn-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent-fill);
+  border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tn-shape:active {
+    scale: none;
   }
-  .tn-pick label:last-child {
-    grid-column: 1 / -1;
-  }
+}
+.tn-card > p,
+.tn-card > .tn-notes {
+  width: 100%;
+  align-self: stretch;
+}
+.tn-task {
+  gap: 8px;
 }

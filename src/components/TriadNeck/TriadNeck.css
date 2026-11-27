@@ -1,0 +1,145 @@
+/* Practice -> Triads across the neck (v1.0.264): inset cards on the grey
+   ground, one primary action, the shapes as a row of steps. */
+.tn {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 760px;
+}
+.tn-card {
+  background: var(--surface, #fff);
+  border-radius: var(--radius-lg, 14px);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.tn-card > p {
+  width: 100%;
+}
+.tn-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: start;
+}
+.tn-card > p,
+.tn-overall {
+  text-align: justify;
+}
+.tn-eyebrow,
+.tn-where,
+.tn-overall {
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.tn-chord {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  align-self: flex-start;
+}
+html[lang='he'] .tn-chord {
+  align-self: flex-start;
+}
+.tn-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fill-tertiary);
+  overflow: hidden;
+}
+.tn-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent-fill);
+  border-radius: 2px;
+}
+.tn-pick {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+.tn-pick label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.tn-shapes {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.tn-shapes li {
+  flex: 1 0 auto;
+  min-width: 108px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--fill-tertiary);
+  color: var(--text);
+}
+.tn-shapes li strong {
+  font-size: var(--type-subhead, 15px);
+  font-weight: 600;
+}
+.tn-shapes li small {
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+}
+.tn-shapes li.is-now {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+.tn-shapes li.is-past strong::before {
+  content: '✓ ';
+  color: #34c759;
+}
+.tn-step {
+  margin: 0;
+  color: var(--text);
+}
+.tn-state {
+  margin: 0;
+  min-height: 1.4em;
+  color: var(--text-secondary);
+  font-size: var(--type-subhead, 15px);
+}
+.tn-state.is-ok {
+  color: #248a3d;
+}
+.tn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.tn-done strong {
+  font-size: var(--type-title3, 20px);
+}
+.tn-done p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+@media (max-width: 480px) {
+  .tn-pick {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tn-pick label:last-child {
+    grid-column: 1 / -1;
+  }
+}

@@ -4171,3 +4171,30 @@ no tools).
   length 8 -> 30 s drops the place 0.32 -> 0.14; next song loads by id;
   a player that ignores the load -> fresh iframe /embed/<new id>. NOT
   verified with real YouTube / iOS.
+- TRIADS ACROSS THE NECK (v1.0.264, 2026-11-27; user: "one chord on
+  strings 1-3 in every position / inversion along the neck, then the next
+  chord … then strings 2-4"; his answers: its own practice tool + a link
+  from the course, note by note then strummed, cycle of fourths, major on
+  every set first then minor). Pure `music/triadNeck.js`: `drillPath()` =
+  96 items (major / minor x sets 321, 432, 543, 654 x roots C F B♭ E♭ A♭
+  D♭ G♭ B E A D G), `neckShapes(root, quality, set)` = every root / 1st /
+  2nd inversion placement up to fret 15 (triadShapes `placements`), sorted
+  up the neck, notes spelled by the chord's usual key (`FLAT_ROOTS`),
+  `sixFrets` + `rivalFrets` (3rd moved, a fret lower / higher) for the
+  strum check. Practice tab `triadNeck` (chords group, icon path, levels
+  1–3, featureCapabilities guitar) -> `components/TriadNeck/
+  TriadNeckPanel.jsx`: card (eyebrow type · strings, big chord, "chord n
+  of 12 · set s of 4", progress n of 96, Type / Strings / Chord pop-ups),
+  the shapes as a row (dir ltr, now / ✓), Start opens BOTH listeners in
+  the tap (usePitchDetection for each note, exact midi ±45 ¢ twice;
+  useMicChordDetector + judgeShape for the strum, 2 passing windows),
+  Hear (arpeggio + strum), Skip; done card "Next: F" / "Next: strings
+  4–3–2". Neck (App `triadNeckStage`): the whole map resting, the current
+  shape with the next note marked while running, degree labels. Progress
+  per profile `dudestar-p-triad-neck` {done: {key: day}, pick}; perfLog
+  tool 'triadNeck'. Theory -> Triads has a row "Across the neck" ->
+  launch({tool:'triadNeck'}). Text `i18n/tips/triadneck.js`. Checks: pure
+  — 96 items, 3–4 shapes each, every shape = its 3 chord tones ascending;
+  fake mic (KS: G3 C4 E4 + strum) 1180 EN + 390 HE: shape 1 passed by
+  notes + strum, shape 2's G4 not taken from G3, done card -> next = F.
+  NOT verified with a real guitar.

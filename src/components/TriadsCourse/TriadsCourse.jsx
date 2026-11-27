@@ -4,6 +4,7 @@ import { LibraryRow } from '../PracticeView/PracticeHome';
 import { LessonPlayer } from '../Teacher/LessonPlayer';
 import { TRIAD_LESSONS } from '../../teacher/curriculum/triads';
 import { useTeacher } from '../../teacher/teacherState';
+import { launch } from '../../coach/launchBus';
 import '../PracticeView/PracticeHome.css';
 import '../Teacher/Teacher.css';
 import '../ModeToggle/ModeToggle.css';
@@ -56,6 +57,7 @@ export function TriadsCourse({ onStage, metro }) {
           desc={tx(next.title)}
           onClick={() => setOpenId(next.id)}
         />
+        <LibraryRow color="#AF52DE" icon="path" title={t('tn.course')} desc={t('tn.courseDesc')} onClick={() => launch({ tool: 'triadNeck' })} />
       </div>
       <h2 className="ph-section-title">{t('triads.units', { done: doneCount, n: TRIAD_LESSONS.length })}</h2>
       <div className="ph-group">

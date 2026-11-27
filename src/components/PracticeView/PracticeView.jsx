@@ -17,6 +17,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { PracticeHome, BackButton } from './PracticeHome';
 import { itemFor, rememberPracticeTab } from './practiceLibrary';
 import { useEffect } from 'react';
+import { TriadNeckPanel } from '../TriadNeck/TriadNeckPanel';
 import './PracticeView.css';
 
 // `feature` is the featureCapabilities.js key gating this tab (null = works
@@ -35,6 +36,7 @@ const TABS = [
   { key: 'chordRhythm', labelKey: 'practice.tab.chordRhythm', feature: 'chordRhythm' },
   { key: 'guitarChordRhythm', labelKey: 'practice.tab.guitarChordRhythm', feature: 'guitarChordRhythm' },
   { key: 'minuteChanges', labelKey: 'minute.tab', feature: 'minuteChanges' },
+  { key: 'triadNeck', labelKey: 'ph.ex.triadNeck.title', feature: 'triadNeck' },
   { key: 'scalePractice', labelKey: 'practice.tab.scalePractice', feature: 'scalePractice' },
 ];
 
@@ -58,6 +60,7 @@ export function PracticeView({
   scaleFree,
   scalePracticeSeed,
   minuteSeed,
+  onTriadNeckStage,
   onScalePracticeSeedConsumed,
   scalePracticeLabelMode,
   onScalePracticeLabelModeChange,
@@ -130,6 +133,8 @@ export function PracticeView({
       {activeTab === 'minuteChanges' && (
         <MinuteChanges key={minuteSeed?.n ?? 'free'} initialChords={minuteSeed?.chords} />
       )}
+
+      {activeTab === 'triadNeck' && <TriadNeckPanel onStage={onTriadNeckStage} />}
 
       {activeTab === 'scalePractice' && (
         <ScalePracticePanel

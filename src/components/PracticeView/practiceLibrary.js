@@ -21,6 +21,7 @@ export const PRACTICE_GROUPS = [
 // in the detail view (the tool has no heading of its own).
 export const PRACTICE_ITEMS = [
   { tab: 'minuteChanges', group: 'chords', icon: 'stopwatch', feature: 'minuteChanges', min: 0, max: 1 },
+  { tab: 'triadNeck', group: 'chords', icon: 'path', feature: 'triadNeck', min: 1, max: 3 },
   { tab: 'guitarChordRhythm', group: 'chords', icon: 'changes', feature: 'guitarChordRhythm', min: 0, max: 2 },
   { tab: 'chordRhythm', group: 'chords', icon: 'changes', feature: 'chordRhythm', min: 0, max: 2 },
   { tab: 'rhythm', group: 'rhythm', icon: 'metronome', feature: 'rhythmGame', min: 0, max: 3 },

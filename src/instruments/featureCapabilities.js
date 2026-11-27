@@ -39,6 +39,7 @@ export const FEATURE_CAPABILITIES = {
   guitarChordRhythm: ['guitar'], // metronome-timed chord-changing practice, judged via mic chroma chord detection — guitar-only
   teacher: ['guitar'], // the guitar teacher: lessons, homework, measured mastery (Coach inside)
   coach: ['guitar'], // goal-based practice coach — plans built from the guitar practice tools
+  triadNeck: ['guitar'], // triads across the neck, note by note + strummed (mic)
   minuteChanges: ['guitar'], // one-minute chord changes test (mic chord detection)
   scalePractice: ['guitar'], // metronome-timed scale-run practice (box position / single-string linear run / position-to-position transition), judged via mic pitch detection — real-fretboard-position pedagogy, guitar-only
   pianoPractice: ['piano'], // leveled piano-only exercises (pentascales, inversion drills, ...)

@@ -727,7 +727,7 @@ function App() {
       drill: 'drills',
       soloOpener: 'soloOpener',
     };
-    if (tool !== 'minuteChanges' && !tabFor[tool]) return false;
+    if (tool !== 'minuteChanges' && tool !== 'triadNeck' && !tabFor[tool]) return false;
     const trainerOpen = !home && activeSection === 'practice' && practiceTab === 'trainer';
     if (home) {
       setHomeCard(null);
@@ -736,6 +736,10 @@ function App() {
       setLeftHome(true);
     }
     setActiveSection('practice');
+    if (tool === 'triadNeck') {
+      setPracticeTab('triadNeck');
+      return true;
+    }
     if (tool === 'minuteChanges') {
       setPendingMinuteChanges(spec);
       setMinuteSeed({ chords: spec.chords, n: Date.now() });
@@ -851,6 +855,7 @@ function App() {
   // Studies -> Chord Structure: the shape it shows on the neck ({position, tuning, labelMode} | null)
   const [chordBuilderStage, setChordBuilderStage] = useState(null);
   const [gpSheetOpen, setGpSheetOpen] = useState(false);
+  const [triadNeckStage, setTriadNeckStage] = useState(null); // Practice -> Triads across the neck
   const [triadStage, setTriadStage] = useState(null); // Theory -> Triads: the open unit's neck
   // The teacher's neck: null = no neck (outside a lesson), {position} in a lesson.
   const [teacherStage, setTeacherStage] = useState(null);
@@ -1717,6 +1722,8 @@ function App() {
             labelMode: 'note',
             quizFeedbackCell: rhythmGame.feedbackCell,
           }
+        : practiceTab === 'triadNeck'
+        ? triadNeckStage ?? { position: null }
         : practiceTab === 'scalePractice'
         ? // Always the whole shape (see scalePracticeShapeNotes above) — while
           // playing, one note is tagged isCurrent for the moving marker;
@@ -2658,6 +2665,7 @@ function App() {
           scaleFree={scaleFree}
           scalePracticeSeed={scalePracticeSeed}
           minuteSeed={minuteSeed}
+          onTriadNeckStage={setTriadNeckStage}
           onScalePracticeSeedConsumed={() => setScalePracticeSeed(null)}
           scalePracticeLabelMode={scalePracticeLabelMode}
           onScalePracticeLabelModeChange={setScalePracticeLabelMode}

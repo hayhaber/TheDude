@@ -4299,3 +4299,8 @@ no tools).
   its own (an intro) sits on the reading side (`dir` of the view), the
   chords still reading left to right as in the editor. Latin merging and
   the Tab4u PDF path unchanged. Node check + Playwright 390 HE.
+- v1.0.273 (user: "in Hebrew, right-align the headings — verse, chorus
+  — too"): the Performer's words view takes its direction from the SONG,
+  not the app language: any Hebrew in the words (or a label) = rtl, so
+  section labels, stage notes and chord rows sit on the right even with
+  the app in English. Playwright 390 EN app + Hebrew song: labels right.

@@ -74,7 +74,10 @@ const isSung = (l) => l.kind === 'words' && l.words.some((w) => (w.text || '').t
 /** The sung lines' texts, in order (what the timings are matched to). */
 const sungKeys = (sections) => sections.flatMap((s) => s.lines.filter(isSung).map((l) => lineKey(l.words.map((w) => w.text).join(' '))));
 
-function Words({ sections, chords, tr, flats, dir, t }) {
+function Words({ sections, chords, tr, flats, dir: appDir, t }) {
+  // a Hebrew song reads right to left whatever the app's language: its
+  // section labels, notes and chord rows sit on the right, as in the editor
+  const dir = sections.some((s) => HEB.test(s.label || '') || s.lines.some((l) => HEB.test(l.kind === 'words' ? l.words.map((w) => w.text || '').join(' ') : l.text || ''))) ? 'rtl' : appDir;
   let li = 0; // the sung line's number (data-li), for the lyrics timing
   return (
     <div className="stage-words" dir={dir}>

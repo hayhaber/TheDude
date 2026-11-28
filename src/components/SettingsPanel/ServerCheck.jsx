@@ -16,11 +16,13 @@ export function ServerCheck() {
     setState((s) => ({ ...s, busy: true, error: null }));
     try {
       const [{ cloudClient }, { checkServer }] = await Promise.all([import('../../cloud/cloudSync'), import('../../cloud/serverCheck')]);
-      // no answer in 10 s = offline (the client retries a lost connection for long)
-      const res = await Promise.race([checkServer(cloudClient()), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 10000))]);
+      // every probe runs at once; no answer at all in 20 s = too slow
+      const slow = new Promise((_, no) => setTimeout(() => no(Object.assign(new Error('timeout'), { kind: 'slow' })), 20000));
+      const res = await Promise.race([checkServer(cloudClient()), slow]);
       setState({ busy: false, res, error: null });
     } catch (e) {
-      setState({ busy: false, res: null, error: e?.message || 'offline' });
+      const kind = e?.kind || (typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error');
+      setState({ busy: false, res: null, error: { kind, msg: kind === 'error' ? e?.message || '' : '' } });
     }
   }, []);
 
@@ -35,7 +37,10 @@ export function ServerCheck() {
   if (!signedIn) line = t('srv.signIn');
   else if (state.busy && !res) line = t('srv.checking');
   else if (state.error) {
-    line = t('srv.offline');
+    line = t({ offline: 'srv.offline', slow: 'srv.slow', session: 'srv.session' }[state.error.kind] || 'srv.error');
+    tone = 'is-warn';
+  } else if (res && !res.missing.length && res.unsure.length) {
+    line = t('srv.unsure', { n: res.unsure.length });
     tone = 'is-warn';
   } else if (res && !res.missing.length) {
     line = t('srv.ok');
@@ -58,6 +63,17 @@ export function ServerCheck() {
           </Button>
         )}
       </div>
+      {state.error?.msg && (
+        <p className="set-footnote srv-why" dir="ltr">
+          {state.error.msg}
+        </p>
+      )}
+      {res && !res.missing.length && res.unsure.length > 0 && (
+        <p className="set-footnote" dir="ltr">
+          {res.unsure.map((u) => String(u.n).padStart(3, '0')).join(' · ')}
+          {res.unsure[0]?.why ? ' — ' + res.unsure[0].why : ''}
+        </p>
+      )}
       {res && res.missing.length > 0 && (
         <>
           <ul className="srv-list">

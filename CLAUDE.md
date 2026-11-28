@@ -4559,3 +4559,16 @@ no tools).
   B drops it; old-key device -> the old library's file upserted to the
   account and the key cleared; 017 missing -> the setup line; smoke test
   28 + 28 screens, 0 problems.
+- v1.0.290 (user: Settings › Advanced › Server said "no connection"):
+  the check ran its ~22 probes ONE AFTER ANOTHER inside a 10 s limit —
+  on a phone line (each request + the auth lock ~0.5 s) it ran out and
+  every failure was reported as "offline". Now `checkServer` reads the
+  session once, then runs every probe at once (Promise.all), each probe
+  has its own 12 s limit (supabase-js retries a lost request for long),
+  the whole check 20 s. Outcomes told apart: offline (navigator.onLine
+  false / nothing answered for the network) · too slow · sign-in needs
+  refreshing (no session) · an error (its message shown LTR under the
+  line) · some scripts couldn't be checked ("Couldn't check n" + their
+  numbers, not "missing"). Fake Supabase: 1.2 s per request -> "Up to
+  date" (before: timeout), one table reset -> "couldn't check 012",
+  all aborted -> no internet.

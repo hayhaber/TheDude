@@ -39,24 +39,53 @@ export const SCRIPTS = [
   { n: 17, file: '017_gp_imports.sql', probe: [col('gp_imports', 'grp,records'), bucket('gp')] },
 ];
 
+const netError = (e) => e?.name === 'TypeError' || /fetch|network|load failed|timed? ?out/i.test(e?.message || '');
+
+// 'ok' | 'missing' | 'net' (no answer) | 'error' (an answer we can't read)
 const one = async (sb, probe) => {
-  const res = await probe(sb);
+  let res;
+  try {
+    // the client keeps retrying a lost request: 12 s without an answer = no answer
+    res = await Promise.race([probe(sb), new Promise((_, no) => setTimeout(() => no(new TypeError('timed out')), 12000))]);
+  } catch (e) {
+    return { s: netError(e) ? 'net' : 'error', msg: e?.message };
+  }
   const error = res?.error;
-  if (missing(error)) return 'missing';
+  if (missing(error)) return { s: 'missing' };
   // a storage listing answers "Bucket not found" through its own error shape
-  if (error && /bucket/i.test(error.message || '') && /not.?found/i.test(error.message || '')) return 'missing';
-  if (error && (error.name === 'TypeError' || /fetch|network/i.test(error.message || ''))) throw error;
-  return 'ok';
+  if (error && /bucket/i.test(error.message || '') && /not.?found/i.test(error.message || '')) return { s: 'missing' };
+  if (error && netError(error)) return { s: 'net', msg: error.message };
+  return { s: 'ok' };
 };
 
-/** -> { results: [{n, file, ok}], missing: [...] } ; throws when offline. */
-export async function checkServer(sb) {
-  const results = [];
-  for (const s of SCRIPTS) {
-    const probes = Array.isArray(s.probe) ? s.probe : [s.probe];
-    let ok = true;
-    for (const p of probes) if ((await one(sb, p)) === 'missing') ok = false;
-    results.push({ n: s.n, file: s.file, ok, also: s.also || [] });
+export class ServerCheckError extends Error {
+  constructor(kind, message) {
+    super(message || kind);
+    this.kind = kind; // 'offline' | 'session' | 'error'
   }
-  return { results, missing: results.filter((r) => !r.ok), at: Date.now() };
+}
+
+/**
+ * -> { results: [{n, file, ok, unsure}], missing: [...], unsure: [...] }.
+ * Every probe runs at once (one after another took > 10 s on a slow phone
+ * line). Throws ServerCheckError when nothing answered.
+ */
+export async function checkServer(sb) {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new ServerCheckError('offline');
+  if (!sb) throw new ServerCheckError('session', 'no client');
+  // one session read first, so the probes don't all queue on the auth lock
+  const session = (await sb.auth.getSession().catch(() => null))?.data?.session;
+  if (!session) throw new ServerCheckError('session', 'not signed in');
+  const results = await Promise.all(
+    SCRIPTS.map(async (s) => {
+      const probes = Array.isArray(s.probe) ? s.probe : [s.probe];
+      const outs = await Promise.all(probes.map((p) => one(sb, p)));
+      const miss = outs.some((o) => o.s === 'missing');
+      const bad = outs.find((o) => o.s === 'net' || o.s === 'error');
+      return { n: s.n, file: s.file, ok: !miss && !bad, unsure: !miss && !!bad, why: bad?.msg || '', net: bad?.s === 'net', also: s.also || [] };
+    }),
+  );
+  const unsure = results.filter((r) => r.unsure);
+  if (unsure.length === results.length) throw new ServerCheckError(unsure.every((r) => r.net) ? 'offline' : 'error', unsure[0]?.why);
+  return { results, missing: results.filter((r) => !r.ok && !r.unsure), unsure, at: Date.now() };
 }

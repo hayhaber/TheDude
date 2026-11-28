@@ -74,7 +74,7 @@ export const PIANO_SKILLS = [
   { id: 'p-rh-c', level: 0, title: L('Right hand in C position', `יד ימין בתנוחת ${H('C')}`), check: { kind: 'play' } },
   { id: 'p-lh-c', level: 0, title: L('Left hand in C position', `יד שמאל בתנוחת ${H('C')}`), check: { kind: 'play' } },
   { id: 'p-ode-rh', level: 0, title: L('“Ode to Joy”, right hand', '„האודה לשמחה”, יד ימין'), check: { kind: 'play' } },
-  { id: 'p-note-values', level: 0, title: L('Quarter, half, whole and dotted notes', 'רבע, חצי, שלם ותו מנוקד'), check: { kind: 'quiz' } },
+  { id: 'p-note-values', level: 0, title: L('Quarter, half, whole and dotted notes', 'תו רבע, חצי, שלם ותו מנוקד'), check: { kind: 'quiz' } },
   { id: 'p-count', level: 0, title: L('Playing in time with the click', 'לנגן בזמן עם המטרונום'), check: { kind: 'self' } },
   { id: 'p-read-treble', level: 1, title: L('Reading the treble staff', 'קריאה במפתח סול'), check: { kind: 'quiz' } },
   { id: 'p-read-bass', level: 1, title: L('Reading the bass staff', 'קריאה במפתח פה'), check: { kind: 'quiz' } },
@@ -302,18 +302,18 @@ const lessonRhythm = {
   steps: [
     {
       kind: 'staff',
-      title: L('How long a note lasts', 'כמה זמן צליל נמשך'),
+      title: L('Note values', 'ערכי תווים'),
       staff: { clef: 'treble', notes: 'C4 C4 C4 C4 C4_2 C4_2 C4_4' },
       text: L(
-        'Music runs on a steady beat. A QUARTER note (black, with a stem) lasts 1 beat, a HALF note (white with a stem) 2 beats, a WHOLE note (white, no stem) 4 beats. Most music groups the beats in fours: one BAR = 4 beats, counted “1 2 3 4”.',
-        'מוזיקה נשענת על פעמה קבועה. רבע (שחור עם מקל) נמשך פעמה אחת, חצי (לבן עם מקל) 2 פעמות, שלם (לבן בלי מקל) 4 פעמות. רוב המוזיקה מקבצת את הפעמות בארבע: תיבה אחת = 4 פעמות, וסופרים ״1 2 3 4״.'
+        'Music runs on a steady beat, and a note’s shape tells how many beats it lasts — its note value. A QUARTER note (filled head with a stem) lasts 1 beat, a HALF note (hollow head with a stem) 2 beats, a WHOLE note (hollow head, no stem) 4 beats. Most music groups the beats in fours: one BAR = 4 beats, counted “1 2 3 4”.',
+        'מוזיקה נשענת על פעמה קבועה, וצורת התו אומרת כמה פעמות הוא נמשך — זה ערך התו. תו רבע (ראש מלא עם גבעול) נמשך פעמה אחת, תו חצי (ראש חלול עם גבעול) 2 פעמות, תו שלם (ראש חלול בלי גבעול) 4 פעמות. רוב המוזיקה מקבצת את הפעמות בארבע: תיבה אחת = 4 פעמות, וסופרים ״1 2 3 4״.'
       ),
     },
     {
       kind: 'quiz',
       skill: 'p-note-values',
       title: L('Half a bar', 'חצי תיבה'),
-      question: L('How many beats does a HALF note last?', 'כמה פעמות נמשך חצי?'),
+      question: L('How many beats does a HALF note last?', 'כמה פעמות נמשך תו חצי?'),
       options: [L('1', '1'), L('2', '2'), L('4', '4')],
       answer: 1,
       why: L('Quarter 1, half 2, whole 4 — each is twice the one before.', 'רבע 1, חצי 2, שלם 4 — כל אחד כפול מהקודם.'),

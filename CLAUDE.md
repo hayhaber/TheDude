@@ -4733,3 +4733,10 @@ no tools).
   and the console with the MIDI key is hidden in phone lessons
   (`.keys-only`, < 900 px). Playwright 1180 EN + 390 HE: C4 x3 -> still
   note 2 + message, C3 / C5 / C6 -> done.
+- v1.0.297 (user: "is 'black with a stick' right? use only proper music
+  terms"): the piano teacher's p0-rhythm step is "Note values" / "ערכי
+  תווים" and names the parts by theory terms — תו רבע (ראש מלא עם גבעול),
+  תו חצי (ראש חלול עם גבעול), תו שלם (ראש חלול בלי גבעול); "quarter note
+  (filled head with a stem)…" in English. Rule for lesson text: theory
+  terms only (ראש התו, גבעול, ערך, פעמה, תיבה, סימני היתק…), never
+  colloquial descriptions like "שחור עם מקל".

@@ -17,6 +17,7 @@ const HIGHEST_MIDI = 108; // C8
 const WHITE_PITCH_CLASSES = new Set([0, 2, 4, 5, 7, 9, 11]); // C D E F G A B
 const BLACK_AFTER_PITCH_CLASS = new Set([0, 2, 5, 7, 9]); // C D F G A each have a black key right after
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const NOTE_NAMES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 const MIDDLE_C_MIDI = 60;
 
 // Ableton Live-style "computer keyboard as piano" mapping — one row of
@@ -129,6 +130,8 @@ export function PianoKeyboard({
   chordColor,
   colorMode = 'chord',
   labelMode = 'note',
+  // v1.0.299: label black keys with flats (a lesson in a flat key)
+  flatNames = false,
   onNoteClick,
   quizKeys = null,
   quizRevealKeys = [],
@@ -1197,7 +1200,7 @@ export function PianoKeyboard({
                         aria-label={t('fretboard.playNote', { note: noteLabel(blackMidi) })}
                       >
                         {showAllLabels || blackFill ? (
-                          <span className="piano-key-black-label">{NOTE_NAMES[w.blackKey.pitchClass]}</span>
+                          <span className="piano-key-black-label">{(flatNames ? NOTE_NAMES_FLAT : NOTE_NAMES)[w.blackKey.pitchClass]}</span>
                         ) : null}
                         {computerKeyByMidi.has(blackMidi) && (
                           <span className="piano-key-hint piano-key-hint-black">{computerKeyByMidi.get(blackMidi)}</span>

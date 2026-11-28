@@ -7,7 +7,7 @@ import { PIANO_LESSONS, PIANO_LEVELS, pianoSkillById } from './curriculum/piano'
 // Where the student starts (the teacher's one question): never played = the
 // first lesson; C position and simple tunes = reading (level 1); both hands
 // and chords = the scales (level 2).
-export const START_AT = { none: 'p0-keyboard', little: 'p1-reading', some: 'p2-scale-c' };
+export const START_AT = { none: 'p0-keyboard', little: 'p1-reading', some: 'p2-scale-c', more: 'p3-eighths' };
 const startIndex = (state) => {
   const id = START_AT[state.intake?.experience] ?? START_AT.none;
   return Math.max(0, PIANO_LESSONS.findIndex((l) => l.id === id));

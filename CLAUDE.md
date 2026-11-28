@@ -4757,3 +4757,32 @@ no tools).
   the taller controls fit (no zoom at 390 / 1180). VolumeRow export kept.
   Playwright 390 HE + 1180 HE dark tool screen, drawer 390 HE + 1180 EN:
   start -> beat dot lit, stop, no errors; smoke 28 + 28.
+- PIANO TEACHER LEVEL 3 = Grade 2 (v1.0.299; user: "build the next part
+  of the piano teacher"; the USER reviews them). Method: Faber Piano
+  Adventures 2A–2B / Alfred Adult L1–2 order + ABRSM Grade 2 scales.
+  PIANO_LEVELS 3 "Rhythm, pedal, new keys", 18 skills, 7 lessons:
+  p3-eighths (eighth notes counted "1 and", 3/4, the strong beat, Petzold's
+  Minuet in G RH bars 1–8), p3-minuet (our bass G B C B A G D D, hands
+  together, phrases / half cadence / slur), p3-pedal (the sustain pedal,
+  legato pedalling "hands then foot", C–Am–F–G–C with the root in the LH;
+  the pedal itself is a checklist — nothing can hear it), p3-scales-ht
+  (C major hands together two octaves apart; contrary motion from C3 / C4
+  = same fingers), p3-new-keys (F major RH 1234-1234 + LH, D major both,
+  key signatures quiz, I–IV–V7 in F = F–A–C · F–B♭–D · E–B♭–C), p3-minor-keys
+  (relative minors, harmonic minor's raised 7th, E and D harmonic minor
+  both hands, Dm–Gm–Dm–A–Dm), p3-waltz (bass–chord–chord G C G D G, "New
+  Britain" / Amazing Grace melody with the upbeat, hands together over the
+  waltz). Start pick gained "Yes — I read and play pieces" (START_AT
+  `more` -> p3-eighths). StaffNotation (vexflow) now draws accidentals
+  (outside the key signature), dotted notes ('hd' / 'qd'; teacher VF map
+  3 / 1.5) and a key signature (`keySig` prop: C Am G Em D Bm F Dm Bb Gm;
+  flat keys spell flats) — the piano teacher's staff steps take
+  `staff.key`; G major's staff now shows its signature. Pure check: every
+  scale = its step pattern (major 2212221, harmonic minor 2122131), chords
+  = their pitch classes, bars add up (minuet 24 beats, Amazing Grace 22),
+  homework steps valid. Playwright walked all 7 with the screen keys.
+  NOT verified with a real piano.
+  Also: StaffNotation formats into the room after clef + signature (the
+  last note was cut); a lesson step in a flat key (F, Dm, Bb, Gm, or notes
+  written with b) passes `flatNames` to the keys -> PianoKeyboard's black
+  labels read B♭-style ("Bb", not "A#").

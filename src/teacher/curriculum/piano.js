@@ -1,4 +1,4 @@
-// The piano teacher's curriculum (v1.0.294) — levels 0–2.
+// The piano teacher's curriculum (v1.0.294) — levels 0–2; level 3 (Grade 2) v1.0.299.
 //
 // Order and content follow the established beginner method books and the
 // graded syllabi (rule 14), in the order a private teacher uses them:
@@ -33,6 +33,7 @@ export const PIANO_LEVELS = [
   { n: 0, grade: 'Pre-Initial', title: L('First steps', 'צעדים ראשונים') },
   { n: 1, grade: 'Initial', title: L('Both hands, first chords', 'שתי ידיים, אקורדים ראשונים') },
   { n: 2, grade: 'Grade 1', title: L('Scales, triads, accompaniment', 'סולמות, משולשים, ליווי') },
+  { n: 3, grade: 'Grade 2', title: L('Rhythm, pedal, new keys', 'קצב, דוושה, סולמות חדשים') },
 ];
 
 // ---- the notes language ---------------------------------------------------------------
@@ -102,6 +103,24 @@ export const PIANO_SKILLS = [
   { id: 'p-broken', level: 2, title: L('Broken-chord accompaniment', 'ליווי באקורדים שבורים'), check: { kind: 'play' } },
   { id: 'p-dynamics', level: 2, title: L('Dynamics and touch', 'דינמיקה ומגע'), check: { kind: 'quiz' } },
   { id: 'p-ode-broken', level: 2, title: L('A melody over a moving bass', 'מנגינה מעל בס נע'), check: { kind: 'play' } },
+  { id: 'p-eighths', level: 3, title: L('Eighth notes', 'תווי שמינית'), check: { kind: 'quiz' } },
+  { id: 'p-three-four', level: 3, title: L('3/4 time', `משקל ${H('3/4')}`), check: { kind: 'quiz' } },
+  { id: 'p-minuet-rh', level: 3, title: L('Minuet in G, right hand', `מנואט ב־${H('G')}, יד ימין`), check: { kind: 'play' } },
+  { id: 'p-minuet-ht', level: 3, title: L('Minuet in G, hands together', `מנואט ב־${H('G')}, שתי ידיים`), check: { kind: 'play' } },
+  { id: 'p-pedal', level: 3, title: L('When to change the pedal', 'מתי מחליפים דוושה'), check: { kind: 'quiz' } },
+  { id: 'p-pedal-chords', level: 3, title: L('Chords with legato pedalling', 'אקורדים בפדל לגאטו'), check: { kind: 'play' } },
+  { id: 'p-scale-ht', level: 3, title: L('C major hands together', `${H('C')} מז׳ור בשתי ידיים`), check: { kind: 'play' } },
+  { id: 'p-scale-contrary', level: 3, title: L('C major in contrary motion', `${H('C')} מז׳ור בתנועה מנוגדת`), check: { kind: 'play' } },
+  { id: 'p-scale-f', level: 3, title: L('F major scale', `סולם ${H('F')} מז׳ור`), check: { kind: 'play' } },
+  { id: 'p-scale-d', level: 3, title: L('D major scale', `סולם ${H('D')} מז׳ור`), check: { kind: 'play' } },
+  { id: 'p-key-sigs', level: 3, title: L('Key signatures up to two sharps / one flat', 'סימני היתק עד שני דיאזים / במול אחד'), check: { kind: 'quiz' } },
+  { id: 'p-chords-f', level: 3, title: L('I–IV–V7 in F', `${H('I–IV–V7')} ב־${H('F')}`), check: { kind: 'play' } },
+  { id: 'p-harm-minor', level: 3, title: L('The harmonic minor’s raised 7th', 'השביעית המוגבהת במינור ההרמוני'), check: { kind: 'quiz' } },
+  { id: 'p-scale-em', level: 3, title: L('E harmonic minor', `${H('E')} מינור הרמוני`), check: { kind: 'play' } },
+  { id: 'p-scale-dm', level: 3, title: L('D harmonic minor', `${H('D')} מינור הרמוני`), check: { kind: 'play' } },
+  { id: 'p-minor-dm', level: 3, title: L('i–iv–V in D minor', `${H('i–iv–V')} ב־${H('D')} מינור`), check: { kind: 'play' } },
+  { id: 'p-waltz', level: 3, title: L('Waltz accompaniment', 'ליווי ולס'), check: { kind: 'play' } },
+  { id: 'p-amazing', level: 3, title: L('“Amazing Grace”, hands together', '„אמייזינג גרייס”, שתי ידיים'), check: { kind: 'play' } },
 ];
 export const pianoSkillById = (id) => PIANO_SKILLS.find((s) => s.id === id);
 
@@ -704,7 +723,7 @@ const lessonScaleG = {
     {
       kind: 'staff',
       title: L('Why F♯?', `למה ${H('F♯')}?`),
-      staff: { clef: 'treble', notes: 'G4 A4 B4 C5 D5 E5 F#5 G5' },
+      staff: { clef: 'treble', key: 'G', notes: 'G4 A4 B4 C5 D5 E5 F#5 G5' },
       text: L(
         'Every major scale has the same pattern of steps: tone, tone, semitone, tone, tone, tone, semitone. Starting on G, the 7th note must be a semitone below the top G — so it is F♯, the black key. The KEY SIGNATURE shows it once at the start of every line: a sharp on the F line.',
         `לכל סולם מז׳ור אותה תבנית צעדים: טון, טון, חצי טון, טון, טון, טון, חצי טון. כשמתחילים ב־${H('G')}, הצליל השביעי חייב להיות חצי טון מתחת ל־${H('G')} העליון — ולכן הוא ${H('F♯')}, הקליד השחור. סימני ההיתק מראים אותו פעם אחת בתחילת כל שורה: דיאז על קו ה־${H('F')}.`
@@ -969,6 +988,485 @@ const lessonAccompaniment = {
   homework: [{ id: 'oded', kind: 'play', skill: 'p-ode-broken', step: 4, text: L('“Ode to Joy” with the broken-chord bass, every day.', '„האודה לשמחה” עם בס באקורדים שבורים, כל יום.') }],
 };
 
+// ---- level 3 · Grade 2 (v1.0.299) ---------------------------------------------------
+// Faber "Piano Adventures" 2A–2B and Alfred's Adult Level 1–2 order: eighth notes and
+// 3/4, a classical minuet, the sustain pedal (legato pedalling), then the ABRSM
+// Grade 2 scales — C hands together and in contrary motion, F and D major, E and D
+// harmonic minor — and the waltz accompaniment. Pieces: Petzold's Minuet in G (from
+// the 1725 Notebook for Anna Magdalena Bach) and the hymn tune “New Britain”
+// (“Amazing Grace”, 1829) — both public domain; the bass lines are ours.
+
+const MINUET_RH =
+  'D5.5 G4.1_0.5 A4.2_0.5 B4.3_0.5 C5.4_0.5 D5.5 G4.1 G4.1 E5.3 C5.1_0.5 D5.2_0.5 E5.3_0.5 F#5.4_0.5 G5.5 G4.1 G4.1 C5.4 D5.5_0.5 C5.4_0.5 B4.3_0.5 A4.2_0.5 B4.3 C5.4_0.5 B4.3_0.5 A4.2_0.5 G4.1_0.5 F#4.2 G4.1_0.5 A4.2_0.5 B4.3_0.5 G4.1_0.5 A4.2_3';
+const MINUET_LH = 'G2.5_3 B2.3_3 C3.2_3 B2.3_3 A2.4_3 G2.5_3 D3.1_3 D3.1_3';
+const MINUET_HT =
+  'D5.5+G2.5 G4.1_0.5 A4.2_0.5 B4.3_0.5 C5.4_0.5 D5.5+B2.3 G4.1 G4.1 E5.3+C3.2 C5.1_0.5 D5.2_0.5 E5.3_0.5 F#5.4_0.5 G5.5+B2.3 G4.1 G4.1 C5.4+A2.4 D5.5_0.5 C5.4_0.5 B4.3_0.5 A4.2_0.5 B4.3+G2.5 C5.4_0.5 B4.3_0.5 A4.2_0.5 G4.1_0.5 F#4.2+D3.1 G4.1_0.5 A4.2_0.5 B4.3_0.5 G4.1_0.5 A4.2+D3.1_3';
+
+const lessonEighths = {
+  id: 'p3-eighths',
+  level: 3,
+  minutes: 25,
+  title: L('Eighth notes, 3/4 and a minuet', `תווי שמינית, משקל ${H('3/4')} ומנואט`),
+  objective: L('Count eighth notes, feel three beats in a bar and play the Minuet in G with the right hand.', `לספור תווי שמינית, להרגיש שלוש פעמות בתיבה ולנגן את המנואט ב־${H('G')} ביד ימין.`),
+  skills: ['p-eighths', 'p-three-four', 'p-minuet-rh'],
+  steps: [
+    {
+      kind: 'staff',
+      title: L('Two notes in one beat', 'שני צלילים בפעמה אחת'),
+      staff: { clef: 'treble', notes: 'C5_0.5 D5_0.5 E5_0.5 F5_0.5 G5_2' },
+      text: L(
+        'An EIGHTH NOTE (a filled note head, a stem and a flag; two or more are joined by a beam) lasts half a beat. Count the beat “1”, and the eighth between the beats “and”: 1 and 2 and 3 … Here: four eighths (1 and 2 and), then a half note (3 4).',
+        'תו שמינית (ראש מלא, גבעול ודגל; שניים או יותר מחוברים בקורה) נמשך חצי פעמה. את הפעמה סופרים „1”, ואת השמינית שבין הפעמות „ו”: 1 ו־2 ו־3 … כאן: ארבע שמיניות (1 ו־2 ו), ואז תו חצי (3 4).'
+      ),
+    },
+    {
+      kind: 'quiz',
+      skill: 'p-eighths',
+      title: L('How many?', 'כמה?'),
+      question: L('How many eighth notes last as long as one half note?', 'כמה תווי שמינית נמשכים כמו תו חצי אחד?'),
+      options: [L('2', '2'), L('4', '4'), L('8', '8')],
+      answer: 1,
+      why: L('A half note = 2 beats; an eighth = ½ beat; 2 ÷ ½ = 4.', 'תו חצי = 2 פעמות; שמינית = ½ פעמה; 2 ÷ ½ = 4.'),
+    },
+    {
+      kind: 'explain',
+      title: L('Three beats in a bar', 'שלוש פעמות בתיבה'),
+      text: L(
+        'The TIME SIGNATURE 3/4 means three quarter-note beats in every bar: ONE two three, ONE two three — the first beat is the strong one. Minuets and waltzes are in 3/4. A dotted half note fills a whole 3/4 bar (2 + 1 = 3 beats).',
+        `המשקל ${H('3/4')} פירושו שלוש פעמות של תו רבע בכל תיבה: אחת שתיים שלוש, אחת שתיים שלוש — הפעמה הראשונה היא החזקה. מנואטים וולסים כתובים ב־${H('3/4')}. תו חצי מנוקד ממלא תיבה שלמה של ${H('3/4')} (2 + 1 = 3 פעמות).`
+      ),
+    },
+    {
+      kind: 'quiz',
+      skill: 'p-three-four',
+      title: L('The strong beat', 'הפעמה החזקה'),
+      question: L('In 3/4, which beat of the bar is the strong one?', `במשקל ${H('3/4')}, איזו פעמה בתיבה חזקה?`),
+      options: [L('The first', 'הראשונה'), L('The second', 'השנייה'), L('The third', 'השלישית')],
+      answer: 0,
+      why: L('Every bar starts on a strong beat; in 3/4 it is followed by two weak ones.', `כל תיבה מתחילה בפעמה חזקה; ב־${H('3/4')} אחריה באות שתי חלשות.`),
+    },
+    {
+      kind: 'checklist',
+      metronome: 72,
+      title: L('Count out loud', 'לספור בקול'),
+      items: [
+        L('Set the click to 3 beats (Tools › Metronome › 3/4) and count “1 and 2 and 3 and”.', `לכוון את המטרונום ל־3 פעמות (כלים › מטרונום › ${H('3/4')}) ולספור „1 ו־2 ו־3 ו”.`),
+        L('Tap the beat with your foot; clap the eighths with your hands.', 'להקיש את הפעמה ברגל; למחוא כפיים את השמיניות.'),
+        L('Clap bar 1 of the minuet: a quarter, then four eighths.', 'למחוא את תיבה 1 של המנואט: רבע, ואז ארבע שמיניות.'),
+      ],
+    },
+    {
+      kind: 'play',
+      skill: 'p-minuet-rh',
+      bpm: 72,
+      title: L('Minuet in G, right hand', `מנואט ב־${H('G')}, יד ימין`),
+      notes: MINUET_RH,
+      text: L(
+        'Christian Petzold’s minuet, the first 8 bars. The hand starts in G position (G A B C D = 1 2 3 4 5); in bar 3 it moves up for E–F♯–G, and in bar 7 finger 2 crosses over the thumb to F♯. The last A is a dotted half note: hold it for three beats.',
+        `המנואט של כריסטיאן פֶּצוֹלְד, 8 התיבות הראשונות. היד מתחילה בתנוחת ${H('G')} (${H('G A B C D')} = 1 2 3 4 5); בתיבה 3 היא עולה בשביל ${H('E–F♯–G')}, ובתיבה 7 אצבע 2 עוברת מעל האגודל אל ${H('F♯')}. ה־${H('A')} האחרון הוא תו חצי מנוקד: מחזיקים אותו שלוש פעמות.`
+      ),
+    },
+  ],
+  homework: [{ id: 'mrh', kind: 'play', skill: 'p-minuet-rh', step: 5, text: L('Minuet, right hand, counting “1 and 2 and 3 and”, every day.', 'המנואט, יד ימין, סופרים „1 ו־2 ו־3 ו”, כל יום.') }],
+};
+
+const lessonMinuet = {
+  id: 'p3-minuet',
+  level: 3,
+  minutes: 20,
+  title: L('The minuet with both hands', 'המנואט בשתי ידיים'),
+  objective: L('Play the Minuet in G hands together, shaping each phrase.', `לנגן את המנואט ב־${H('G')} בשתי ידיים, ולעצב כל משפט.`),
+  skills: ['p-minuet-ht'],
+  steps: [
+    {
+      kind: 'play',
+      title: L('The bass alone', 'הבס לבד'),
+      notes: MINUET_LH,
+      text: L(
+        'One note a bar, each a dotted half note: G B C B A G D D. They are the ROOTS (or 3rds) of the harmony — G major, C, A minor, and D, the dominant, at the end of the phrase. Left hand in G position: G = 5, A = 4, B = 3, C = 2, D = 1.',
+        `צליל אחד בכל תיבה, כל אחד תו חצי מנוקד: ${H('G B C B A G D D')}. אלה היסודות (או הטרצות) של ההרמוניה — ${H('G')} מז׳ור, ${H('C')}, ${H('A')} מינור, ו־${H('D')}, הדומיננטה, בסוף המשפט. יד שמאל בתנוחת ${H('G')}: ${H('G')} = 5, ${H('A')} = 4, ${H('B')} = 3, ${H('C')} = 2, ${H('D')} = 1.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-minuet-ht',
+      bpm: 66,
+      title: L('Hands together', 'שתי ידיים יחד'),
+      notes: MINUET_HT,
+      text: L('The bass goes down together with the first note of every bar, and is held while the right hand goes on. Slowly — the click is at 66.', 'הבס יורד יחד עם הצליל הראשון של כל תיבה, ומוחזק בזמן שיד ימין ממשיכה. לאט — המטרונום ב־66.'),
+    },
+    {
+      kind: 'explain',
+      title: L('Phrases', 'משפטים'),
+      text: L(
+        'Music breathes in PHRASES, like sentences. These 8 bars are two 4-bar phrases: the first ends on G (bar 4), the second on A over D — a HALF CADENCE, a comma that waits for an answer. A curved line over a phrase (a SLUR) means legato; at its end lift the hand gently, like taking a breath.',
+        `המוזיקה נושמת במשפטים, כמו משפטים בשפה. 8 התיבות האלה הן שני משפטים של 4 תיבות: הראשון נגמר על ${H('G')} (תיבה 4), השני על ${H('A')} מעל ${H('D')} — חצי קדנצה, פסיק שמחכה לתשובה. קו מעוגל מעל משפט (לֶגָטו, „קשת”) פירושו מחובר; בסופו מרימים את היד בעדינות, כמו נשימה.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      metronome: 80,
+      title: L('Make it a dance', 'להפוך את זה לריקוד'),
+      items: [
+        L('Beat 1 of each bar a little stronger; beats 2 and 3 lighter.', 'פעמה 1 של כל תיבה מעט חזקה; פעמות 2 ו־3 קלות יותר.'),
+        L('The eighths even, legato, with no rush.', 'השמיניות אחידות, לגאטו, בלי למהר.'),
+        L('A small breath after bar 4 and at the end.', 'נשימה קטנה אחרי תיבה 4 ובסוף.'),
+        L('At 66, then at 80.', 'ב־66, ואז ב־80.'),
+      ],
+    },
+  ],
+  homework: [{ id: 'mht', kind: 'play', skill: 'p-minuet-ht', step: 1, text: L('Minuet hands together, slowly, every day.', 'המנואט בשתי ידיים, לאט, כל יום.') }],
+};
+
+const lessonPedal = {
+  id: 'p3-pedal',
+  level: 3,
+  minutes: 20,
+  title: L('The sustain pedal', 'דוושת הקיום'),
+  objective: L('Use the right pedal to join chords without blurring them.', 'להשתמש בדוושה הימנית כדי לחבר אקורדים בלי לטשטש אותם.'),
+  skills: ['p-pedal', 'p-pedal-chords'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('What the right pedal does', 'מה הדוושה הימנית עושה'),
+      text: L(
+        'The right pedal is the SUSTAIN pedal: while it is down, the dampers lift off the strings and every note keeps ringing after you let go of the key. Heel on the floor, the ball of the right foot on the pedal; press and release with the ankle, quietly. In the music it is marked “Ped.” or with a line under the staff.',
+        'הדוושה הימנית היא דוושת הקיום: כשהיא לחוצה, המשתיקים מתרוממים מהמיתרים וכל צליל ממשיך להדהד גם אחרי שעוזבים את הקליד. העקב על הרצפה, כרית כף הרגל הימנית על הדוושה; לוחצים ומשחררים מהקרסול, בשקט. בתווים היא מסומנת ⁦Ped.⁩ או בקו מתחת לחמשה.'
+      ),
+    },
+    {
+      kind: 'explain',
+      title: L('Change it after the chord', 'להחליף אחרי האקורד'),
+      text: L(
+        'If the pedal stays down from one chord to the next, both ring together and blur. LEGATO PEDALLING: play the new chord, and just as it sounds lift the pedal and put it straight down again — “hands, then foot”. The new chord is caught, the old one is cleared, and nothing breaks between them.',
+        'אם הדוושה נשארת לחוצה מאקורד לאקורד, שניהם מהדהדים יחד ומיטשטשים. פדל לגאטו: מנגנים את האקורד החדש, ובדיוק כשהוא נשמע מרימים את הדוושה ומורידים אותה מיד שוב — „קודם ידיים, אחר כך רגל”. האקורד החדש נתפס, הישן נמחק, ואין הפסקה ביניהם.'
+      ),
+    },
+    {
+      kind: 'quiz',
+      skill: 'p-pedal',
+      title: L('When to change', 'מתי להחליף'),
+      question: L('In legato pedalling, when do you change the pedal?', 'בפדל לגאטו, מתי מחליפים את הדוושה?'),
+      options: [L('Before playing the new chord', 'לפני שמנגנים את האקורד החדש'), L('Just after the new chord sounds', 'מיד אחרי שהאקורד החדש נשמע'), L('Only at the end of the piece', 'רק בסוף היצירה')],
+      answer: 1,
+      why: L('Lifting before the chord leaves a gap; lifting after it joins the chords without mixing them.', 'הרמה לפני האקורד משאירה חור; הרמה אחריו מחברת את האקורדים בלי לערבב אותם.'),
+    },
+    {
+      kind: 'play',
+      skill: 'p-pedal-chords',
+      split: 55,
+      title: L('I – vi – IV – V with the pedal', H('I – vi – IV – V')),
+      notes: 'C4.1+E4.3+G4.5+C3.5_4 C4.1+E4.2+A4.5+A2.5_4 C4.1+F4.3+A4.5+F2.5_4 B3.1+D4.2+G4.5+G2.5_4 C4.1+E4.3+G4.5+C3.5_4',
+      text: L(
+        'C – Am – F – G – C: tonic, its relative minor, subdominant, dominant, tonic. The right hand keeps C on top of the thumb and moves the least; the left hand plays each chord’s root. Change the pedal on every chord.',
+        `${H('C – Am – F – G – C')}: טוניקה, המינור המקביל שלה, סאבדומיננטה, דומיננטה, טוניקה. יד ימין משאירה את ה־${H('C')} תחת האגודל וזזה מעט ככל האפשר; יד שמאל מנגנת את היסוד של כל אקורד. מחליפים דוושה בכל אקורד.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      metronome: 60,
+      title: L('Listen for a clean change', 'להקשיב להחלפה נקייה'),
+      items: [
+        L('Play the chord on beat 1, change the pedal on “and”.', 'מנגנים את האקורד בפעמה 1, מחליפים דוושה ב„ו”.'),
+        L('No blur between two chords; no silent gap either.', 'אין טשטוש בין שני אקורדים; וגם אין חור שקט.'),
+        L('The heel stays on the floor all the time.', 'העקב נשאר על הרצפה כל הזמן.'),
+        L('On the screen keys: Free play › Pedal, or hold Space.', 'על הקלידים במסך: נגינה חופשית › דוושה, או להחזיק רווח.'),
+      ],
+    },
+  ],
+  homework: [{ id: 'ped', kind: 'play', skill: 'p-pedal-chords', step: 3, text: L('The four chords with legato pedalling, every day.', 'ארבעת האקורדים בפדל לגאטו, כל יום.') }],
+};
+
+const lessonScalesHT = {
+  id: 'p3-scales-ht',
+  level: 3,
+  minutes: 20,
+  title: L('Scales hands together', 'סולמות בשתי ידיים'),
+  objective: L('Play C major hands together, in similar and in contrary motion.', `לנגן ${H('C')} מז׳ור בשתי ידיים, בתנועה מקבילה ובתנועה מנוגדת.`),
+  skills: ['p-scale-ht', 'p-scale-contrary'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Different fingers at the same moment', 'אצבעות שונות באותו רגע'),
+      text: L(
+        'Hands together in SIMILAR MOTION (both going up), the thumbs do not cross at the same place: the right thumb passes under on F, the left hand’s 3rd finger crosses over on A. Say the fingers of the hand that changes. Here the hands are two octaves apart so they don’t bump.',
+        `בשתי ידיים בתנועה מקבילה (שתיהן עולות), האגודלים לא עוברים באותו מקום: האגודל הימני עובר מתחת על ${H('F')}, ואצבע 3 של יד שמאל עוברת מעל על ${H('A')}. אומרים בקול את האצבעות של היד שמחליפה. כאן הידיים במרחק שתי אוקטבות כדי שלא ייתקלו.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-ht',
+      bpm: 60,
+      title: L('Up and down together', 'למעלה ולמטה יחד'),
+      notes:
+        'C4.1+C2.5 D4.2+D2.4 E4.3+E2.3 F4.1+F2.2 G4.2+G2.1 A4.3+A2.3 B4.4+B2.2 C5.5+C3.1 B4.4+B2.2 A4.3+A2.3 G4.2+G2.1 F4.1+F2.2 E4.3+E2.3 D4.2+D2.4 C4.1+C2.5',
+      text: L('Slowly, both notes exactly together. Play each hand alone first if it falls apart.', 'לאט, שני הצלילים בדיוק יחד. אם זה מתפרק, קודם כל יד לבד.'),
+    },
+    {
+      kind: 'explain',
+      title: L('Contrary motion: a mirror', 'תנועה מנוגדת: מראה'),
+      keys: 'C4.1+C3.1',
+      text: L(
+        'In CONTRARY MOTION the right hand goes up while the left goes down, from C. Now the fingers are the SAME in both hands at every moment: 1 2 3, both thumbs pass under together, 1 2 3 4 5. That is why teachers start hands together with this one.',
+        `בתנועה מנוגדת יד ימין עולה כשיד שמאל יורדת, מ־${H('C')}. עכשיו האצבעות זהות בשתי הידיים בכל רגע: 1 2 3, שני האגודלים עוברים מתחת יחד, 1 2 3 4 5. לכן מורים מתחילים איתו את הנגינה בשתי ידיים.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-contrary',
+      bpm: 60,
+      title: L('Out and back', 'החוצה וחזרה'),
+      notes: 'C4.1+C3.1 D4.2+B2.2 E4.3+A2.3 F4.1+G2.1 G4.2+F2.2 A4.3+E2.3 B4.4+D2.4 C5.5+C2.5 B4.4+D2.4 A4.3+E2.3 G4.2+F2.2 F4.1+G2.1 E4.3+A2.3 D4.2+B2.2 C4.1+C3.1',
+      text: L('The hands open like a fan and close again; the thumbs meet at F and G.', `הידיים נפתחות כמו מניפה ונסגרות שוב; האגודלים נפגשים ב־${H('F')} וב־${H('G')}.`),
+    },
+    {
+      kind: 'checklist',
+      metronome: 72,
+      title: L('Grade 2 standard', 'רמת כיתה 2'),
+      items: [
+        L('Similar motion, one octave, at 60, then 72.', 'תנועה מקבילה, אוקטבה אחת, ב־60, ואז ב־72.'),
+        L('Contrary motion, at 72.', 'תנועה מנוגדת, ב־72.'),
+        L('Even and legato, the same loudness in both hands.', 'אחיד ולגאטו, אותה עוצמה בשתי הידיים.'),
+      ],
+    },
+  ],
+  homework: [{ id: 'sht', kind: 'play', skill: 'p-scale-ht', step: 1, text: L('C major hands together, both ways, every day.', `${H('C')} מז׳ור בשתי ידיים, בשתי הצורות, כל יום.`) }],
+};
+
+const lessonNewKeys = {
+  id: 'p3-new-keys',
+  level: 3,
+  minutes: 25,
+  title: L('F and D major', `${H('F')} ו־${H('D')} מז׳ור`),
+  objective: L('Play F and D major in each hand, know their key signatures and the I–IV–V7 chords in F.', `לנגן ${H('F')} ו־${H('D')} מז׳ור בכל יד, להכיר את סימני ההיתק שלהם ואת אקורדי ${H('I–IV–V7')} ב־${H('F')}.`),
+  skills: ['p-scale-f', 'p-scale-d', 'p-key-sigs', 'p-chords-f'],
+  steps: [
+    {
+      kind: 'staff',
+      title: L('F major: one flat', `${H('F')} מז׳ור: במול אחד`),
+      staff: { clef: 'treble', key: 'F', notes: 'F4 G4 A4 Bb4 C5 D5 E5 F5' },
+      text: L(
+        'The major pattern from F (tone, tone, semitone, tone, tone, tone, semitone) needs B♭: from A, a semitone up is B♭, not B. Its key signature is one FLAT, on the B line. B♭ is the 4th degree, the subdominant’s note.',
+        `תבנית המז׳ור מ־${H('F')} (טון, טון, חצי טון, טון, טון, טון, חצי טון) צריכה ${H('B♭')}: מ־${H('A')}, חצי טון למעלה הוא ${H('B♭')}, לא ${H('B')}. סימני ההיתק שלו הם במול אחד, על קו ה־${H('B')}. ${H('B♭')} הוא הדרגה הרביעית, הצליל של הסאבדומיננטה.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-f',
+      title: L('F major, right hand', `${H('F')} מז׳ור, יד ימין`),
+      notes: 'F4.1 G4.2 A4.3 Bb4.4 C5.1 D5.2 E5.3 F5.4 E5.3 D5.2 C5.1 Bb4.4 A4.3 G4.2 F4.1',
+      text: L(
+        'F major’s right hand is the exception: 1 2 3 4 on F G A B♭, then the thumb passes under to C, and 1 2 3 4 to the top F. The thumb never plays the black B♭ — finger 4 does.',
+        `ביד ימין ${H('F')} מז׳ור הוא היוצא מן הכלל: 1 2 3 4 על ${H('F G A B♭')}, ואז האגודל עובר מתחת אל ${H('C')}, ו־1 2 3 4 עד ה־${H('F')} העליון. האגודל אף פעם לא מנגן את ה־${H('B♭')} השחור — אצבע 4 מנגנת אותו.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-f',
+      title: L('F major, left hand', `${H('F')} מז׳ור, יד שמאל`),
+      notes: 'F2.5 G2.4 A2.3 Bb2.2 C3.1 D3.3 E3.2 F3.1 E3.2 D3.3 C3.1 Bb2.2 A2.3 G2.4 F2.5',
+      text: L('The left hand is regular: 5 4 3 2 1, finger 3 over to D, 2 1.', `יד שמאל רגילה: 5 4 3 2 1, אצבע 3 מעל אל ${H('D')}, 2 1.`),
+    },
+    {
+      kind: 'staff',
+      title: L('D major: two sharps', `${H('D')} מז׳ור: שני דיאזים`),
+      staff: { clef: 'treble', key: 'D', notes: 'D4 E4 F#4 G4 A4 B4 C#5 D5' },
+      text: L(
+        'From D the pattern needs F♯ (the 3rd) and C♯ (the 7th, the leading note). The key signature has two sharps, F♯ and C♯ — always written in that order.',
+        `מ־${H('D')} התבנית צריכה ${H('F♯')} (הטרצה) ו־${H('C♯')} (השביעית, הצליל המוביל). בסימני ההיתק שני דיאזים, ${H('F♯')} ו־${H('C♯')} — תמיד בסדר הזה.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-d',
+      title: L('D major, right hand', `${H('D')} מז׳ור, יד ימין`),
+      notes: 'D4.1 E4.2 F#4.3 G4.1 A4.2 B4.3 C#5.4 D5.5 C#5.4 B4.3 A4.2 G4.1 F#4.3 E4.2 D4.1',
+      text: L('Like C and G: 1 2 3, thumb under to G, 2 3 4 5. Fingers 3 and 4 play the black keys.', `כמו ${H('C')} ו־${H('G')}: 1 2 3, אגודל מתחת אל ${H('G')}, 2 3 4 5. אצבעות 3 ו־4 מנגנות את השחורים.`),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-d',
+      title: L('D major, left hand', `${H('D')} מז׳ור, יד שמאל`),
+      notes: 'D2.5 E2.4 F#2.3 G2.2 A2.1 B2.3 C#3.2 D3.1 C#3.2 B2.3 A2.1 G2.2 F#2.3 E2.4 D2.5',
+      text: L('5 4 3 2 1, finger 3 over to B, 2 on C♯, 1 on D.', `5 4 3 2 1, אצבע 3 מעל אל ${H('B')}, 2 על ${H('C♯')}, 1 על ${H('D')}.`),
+    },
+    {
+      kind: 'quiz',
+      skill: 'p-key-sigs',
+      title: L('Key signatures', 'סימני היתק'),
+      question: L('A key signature with two sharps, F♯ and C♯, is…', `סימני היתק עם שני דיאזים, ${H('F♯')} ו־${H('C♯')}, הם של…`),
+      options: [L('G major', `${H('G')} מז׳ור`), L('D major', `${H('D')} מז׳ור`), L('F major', `${H('F')} מז׳ור`)],
+      answer: 1,
+      why: L('G major has one sharp (F♯), D major two (F♯, C♯), F major one flat (B♭).', `ל־${H('G')} מז׳ור דיאז אחד (${H('F♯')}), ל־${H('D')} מז׳ור שניים (${H('F♯, C♯')}), ול־${H('F')} מז׳ור במול אחד (${H('B♭')}).`),
+    },
+    {
+      kind: 'play',
+      skill: 'p-chords-f',
+      split: 63,
+      title: L('I – IV – V7 – I in F', `${H('I – IV – V7 – I')} ב־${H('F')}`),
+      notes: 'F3.5+A3.3+C4.1_2 F3.5+Bb3.2+D4.1_2 E3.5+Bb3.2+C4.1_2 F3.5+A3.3+C4.1_4',
+      text: L(
+        'The same hand shapes as C – F – G7 in C, moved to F. F (I) = F–A–C, 5-3-1; B♭ (IV) = F–B♭–D, 5-2-1 — F stays; C7 (V7) = E–B♭–C, 5-2-1 — E is the leading note, B♭ the 7th, C the root; back to F.',
+        `אותן צורות יד כמו ${H('C – F – G7')} ב־${H('C')}, מועברות ל־${H('F')}. ${H('F')} (${H('I')}) = ${H('F–A–C')}, 5-3-1; ${H('B♭')} (${H('IV')}) = ${H('F–B♭–D')}, 5-2-1 — ה־${H('F')} נשאר; ${H('C7')} (${H('V7')}) = ${H('E–B♭–C')}, 5-2-1 — ${H('E')} הוא הצליל המוביל, ${H('B♭')} השביעית, ${H('C')} היסוד; וחזרה ל־${H('F')}.`
+      ),
+    },
+  ],
+  homework: [
+    { id: 'f', kind: 'play', skill: 'p-scale-f', step: 1, text: L('F major, each hand, every day.', `${H('F')} מז׳ור, כל יד, כל יום.`) },
+    { id: 'd', kind: 'play', skill: 'p-scale-d', step: 4, text: L('D major, each hand, every day.', `${H('D')} מז׳ור, כל יד, כל יום.`) },
+  ],
+};
+
+const lessonMinorKeys = {
+  id: 'p3-minor-keys',
+  level: 3,
+  minutes: 25,
+  title: L('E and D minor: the harmonic minor', `${H('E')} ו־${H('D')} מינור: המינור ההרמוני`),
+  objective: L('Play E and D harmonic minor in each hand and i–iv–V in D minor.', `לנגן ${H('E')} ו־${H('D')} מינור הרמוני בכל יד ואת ${H('i–iv–V')} ב־${H('D')} מינור.`),
+  skills: ['p-harm-minor', 'p-scale-em', 'p-scale-dm', 'p-minor-dm'],
+  steps: [
+    {
+      kind: 'staff',
+      title: L('The relative minor, with a raised 7th', 'המינור המקביל, עם שביעית מוגבהת'),
+      staff: { clef: 'treble', key: 'Em', notes: 'E4 F#4 G4 A4 B4 C5 D#5 E5' },
+      text: L(
+        'E minor is G major’s RELATIVE minor: the same key signature (one sharp, F♯), starting on E — the 6th degree of G. In the HARMONIC MINOR the 7th degree is raised a semitone: D becomes D♯, the leading note under E. It is written as an accidental in the music, not in the key signature.',
+        `${H('E')} מינור הוא המינור המקביל של ${H('G')} מז׳ור: אותם סימני היתק (דיאז אחד, ${H('F♯')}), מתחיל ב־${H('E')} — הדרגה השישית של ${H('G')}. במינור ההרמוני הדרגה השביעית מוגבהת בחצי טון: ${H('D')} נעשה ${H('D♯')}, הצליל המוביל מתחת ל־${H('E')}. הוא נכתב כסימן מקרי בתווים, לא בסימני ההיתק.`
+      ),
+    },
+    {
+      kind: 'quiz',
+      skill: 'p-harm-minor',
+      title: L('The 7th', 'השביעית'),
+      question: L('In D harmonic minor, the 7th degree is…', `ב־${H('D')} מינור הרמוני, הדרגה השביעית היא…`),
+      options: [L('C', H('C')), L('C♯', H('C♯')), L('B♭', H('B♭'))],
+      answer: 1,
+      why: L('D minor’s key signature is one flat (B♭, like F major); the harmonic minor raises C to C♯, the leading note.', `סימני ההיתק של ${H('D')} מינור הם במול אחד (${H('B♭')}, כמו ${H('F')} מז׳ור); המינור ההרמוני מגביה את ${H('C')} ל־${H('C♯')}, הצליל המוביל.`),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-em',
+      title: L('E harmonic minor, right hand', `${H('E')} מינור הרמוני, יד ימין`),
+      notes: 'E4.1 F#4.2 G4.3 A4.1 B4.2 C5.3 D#5.4 E5.5 D#5.4 C5.3 B4.2 A4.1 G4.3 F#4.2 E4.1',
+      text: L('1 2 3, thumb under to A, 2 3 4 5. Between C and D♯ there is a step and a half (three semitones) — that gap gives the harmonic minor its colour.', `1 2 3, אגודל מתחת אל ${H('A')}, 2 3 4 5. בין ${H('C')} ל־${H('D♯')} יש טון וחצי (שלושה חצאי טונים) — הרווח הזה נותן למינור ההרמוני את הצבע שלו.`),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-em',
+      title: L('E harmonic minor, left hand', `${H('E')} מינור הרמוני, יד שמאל`),
+      notes: 'E2.5 F#2.4 G2.3 A2.2 B2.1 C3.3 D#3.2 E3.1 D#3.2 C3.3 B2.1 A2.2 G2.3 F#2.4 E2.5',
+      text: L('5 4 3 2 1, finger 3 over to C, 2 on D♯, 1 on E.', `5 4 3 2 1, אצבע 3 מעל אל ${H('C')}, 2 על ${H('D♯')}, 1 על ${H('E')}.`),
+    },
+    {
+      kind: 'staff',
+      title: L('D minor', `${H('D')} מינור`),
+      staff: { clef: 'treble', key: 'Dm', notes: 'D4 E4 F4 G4 A4 Bb4 C#5 D5' },
+      text: L('F major’s relative minor: one flat, B♭, and the raised 7th, C♯.', `המינור המקביל של ${H('F')} מז׳ור: במול אחד, ${H('B♭')}, והשביעית המוגבהת, ${H('C♯')}.`),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-dm',
+      title: L('D harmonic minor, right hand', `${H('D')} מינור הרמוני, יד ימין`),
+      notes: 'D4.1 E4.2 F4.3 G4.1 A4.2 Bb4.3 C#5.4 D5.5 C#5.4 Bb4.3 A4.2 G4.1 F4.3 E4.2 D4.1',
+      text: L('The C-major fingering again: thumb under to G.', `שוב האצבוע של ${H('C')} מז׳ור: אגודל מתחת אל ${H('G')}.`),
+    },
+    {
+      kind: 'play',
+      skill: 'p-scale-dm',
+      title: L('D harmonic minor, left hand', `${H('D')} מינור הרמוני, יד שמאל`),
+      notes: 'D2.5 E2.4 F2.3 G2.2 A2.1 Bb2.3 C#3.2 D3.1 C#3.2 Bb2.3 A2.1 G2.2 F2.3 E2.4 D2.5',
+      text: L('5 4 3 2 1, finger 3 over to B♭, 2 on C♯, 1 on D.', `5 4 3 2 1, אצבע 3 מעל אל ${H('B♭')}, 2 על ${H('C♯')}, 1 על ${H('D')}.`),
+    },
+    {
+      kind: 'play',
+      skill: 'p-minor-dm',
+      title: L('Dm – Gm – Dm – A – Dm', H('Dm – Gm – Dm – A – Dm')),
+      notes: 'D3.5+F3.3+A3.1_4 D3.5+G3.2+Bb3.1_4 D3.5+F3.3+A3.1_4 C#3.5+E3.3+A3.1_4 D3.5+F3.3+A3.1_4',
+      text: L(
+        'i – iv – i – V – i, the same shapes as Am – Dm – E: Dm = D–F–A (5-3-1), Gm = D–G–B♭ (5-2-1) — D stays, A = C♯–E–A (5-3-1) — the little finger steps down to the leading note, the thumb stays on A.',
+        `${H('i – iv – i – V – i')}, אותן צורות כמו ${H('Am – Dm – E')}: ${H('Dm')} = ${H('D–F–A')} (5-3-1), ${H('Gm')} = ${H('D–G–B♭')} (5-2-1) — ה־${H('D')} נשאר, ${H('A')} = ${H('C♯–E–A')} (5-3-1) — הזרת יורדת לצליל המוביל, האגודל נשאר על ${H('A')}.`
+      ),
+    },
+  ],
+  homework: [
+    { id: 'em', kind: 'play', skill: 'p-scale-em', step: 2, text: L('E harmonic minor, each hand, every day.', `${H('E')} מינור הרמוני, כל יד, כל יום.`) },
+    { id: 'dm', kind: 'play', skill: 'p-minor-dm', step: 7, text: L('D harmonic minor and its chords, every day.', `${H('D')} מינור הרמוני והאקורדים שלו, כל יום.`) },
+  ],
+};
+
+const WALTZ = (root, a, b) => `${root}.5 ${a}.2+${b}.1 ${a}.2+${b}.1`;
+const lessonWaltz = {
+  id: 'p3-waltz',
+  level: 3,
+  minutes: 25,
+  title: L('Waltz accompaniment: “Amazing Grace”', 'ליווי ולס: „אמייזינג גרייס”'),
+  objective: L('Accompany a melody in 3/4 with a bass–chord–chord left hand.', `ללוות מנגינה ב־${H('3/4')} ביד שמאל של בס–אקורד–אקורד.`),
+  skills: ['p-waltz', 'p-amazing'],
+  steps: [
+    {
+      kind: 'explain',
+      title: L('Oom – pah – pah', 'אוּם – פָּה – פָּה'),
+      keys: 'G2.5 B2.2+D3.1 B2.2+D3.1',
+      text: L(
+        'The WALTZ accompaniment in 3/4: the ROOT alone on beat 1 (strong, low), then the chord’s 3rd and 5th together on beats 2 and 3 (light, short). G: G, then B+D, B+D. Little finger on the bass, fingers 2 and 1 on the chord.',
+        `ליווי הוולס ב־${H('3/4')}: היסוד לבד בפעמה 1 (חזק, נמוך), ואז הטרצה והקווינטה של האקורד יחד בפעמות 2 ו־3 (קלות, קצרות). ${H('G')}: ${H('G')}, ואז ${H('B+D')}, ${H('B+D')}. זרת על הבס, אצבעות 2 ו־1 על האקורד.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-waltz',
+      bpm: 84,
+      title: L('G – C – G – D – G', H('G – C – G – D – G')),
+      notes: [WALTZ('G2', 'B2', 'D3'), WALTZ('C3', 'E3', 'G3'), WALTZ('G2', 'B2', 'D3'), WALTZ('D3', 'F#3', 'A3'), 'G2.5+B2.2+D3.1_3'].join(' '),
+      text: L(
+        'Tonic, subdominant, tonic, dominant, tonic — one bar each. C: C, E+G, E+G. D: D, F♯+A, F♯+A. The hand moves with the bass; keep the beats 2 and 3 lighter than beat 1.',
+        `טוניקה, סאבדומיננטה, טוניקה, דומיננטה, טוניקה — תיבה לכל אחד. ${H('C')}: ${H('C')}, ${H('E+G')}, ${H('E+G')}. ${H('D')}: ${H('D')}, ${H('F♯+A')}, ${H('F♯+A')}. היד זזה עם הבס; פעמות 2 ו־3 קלות מפעמה 1.`
+      ),
+    },
+    {
+      kind: 'play',
+      title: L('The melody', 'המנגינה'),
+      bpm: 84,
+      notes: 'D4.1 G4.3_2 B4.5_0.5 G4.3_0.5 B4.5_2 A4.4 G4.3_2 E4.2 D4.1_2 D4.1 G4.3_2 B4.5_0.5 G4.3_0.5 B4.5_2 A4.4 D5.5_3',
+      text: L(
+        'The hymn tune “New Britain” (1829). It starts with an UPBEAT: one note before the first full bar — count “3”, then play D, and G falls on the strong beat 1. Hand in G position from D (D = 1, E = 2, G = 3, A = 4, B = 5); for the last D the hand moves up.',
+        `לחן ההמנון „ניו בריטן” (1829). הוא מתחיל בקדם־פעמה (אנקרוזה): צליל אחד לפני התיבה המלאה הראשונה — סופרים „3”, מנגנים ${H('D')}, וה־${H('G')} נופל על הפעמה החזקה 1. היד מ־${H('D')} (${H('D')} = 1, ${H('E')} = 2, ${H('G')} = 3, ${H('A')} = 4, ${H('B')} = 5); לקראת ה־${H('D')} האחרון היד עולה.`
+      ),
+    },
+    {
+      kind: 'play',
+      skill: 'p-amazing',
+      bpm: 72,
+      title: L('Hands together', 'שתי ידיים יחד'),
+      notes: [
+        'D4.1',
+        'G4.3+G2.5 B2.2+D3.1 B4.5+B2.2+D3.1_0.5 G4.3_0.5',
+        'B4.5+G2.5 B2.2+D3.1 A4.4+B2.2+D3.1',
+        'G4.3+C3.5 E3.2+G3.1 E4.2+E3.2+G3.1',
+        'D4.1+G2.5 B2.2+D3.1 D4.1+B2.2+D3.1',
+        'G4.3+G2.5 B2.2+D3.1 B4.5+B2.2+D3.1_0.5 G4.3_0.5',
+        'B4.5+G2.5 B2.2+D3.1 A4.4+B2.2+D3.1',
+        'D5.5+D3.5_3',
+      ].join(' '),
+      text: L(
+        'The melody over the waltz: G, G, C, G, G, G, then D — the phrase ends on the dominant, waiting for the next line. Where the melody holds a note, only the left hand plays. Melody mf, accompaniment p.',
+        `המנגינה מעל הוולס: ${H('G, G, C, G, G, G')}, ואז ${H('D')} — המשפט נגמר על הדומיננטה, ומחכה לשורה הבאה. איפה שהמנגינה מחזיקה צליל, רק יד שמאל מנגנת. המנגינה ⁦mf⁩, הליווי ⁦p⁩.`
+      ),
+    },
+    {
+      kind: 'checklist',
+      metronome: 72,
+      title: L('Sing it on the piano', 'לשיר את זה על הפסנתר'),
+      items: [
+        L('The melody clearly on top; the chords light and short.', 'המנגינה בבירור מעל; האקורדים קלים וקצרים.'),
+        L('Pedal: down on beat 1 of each bar, change at the next bar.', 'דוושה: למטה בפעמה 1 של כל תיבה, החלפה בתיבה הבאה.'),
+        L('At 72, then at 88, without stopping.', 'ב־72, ואז ב־88, בלי לעצור.'),
+      ],
+    },
+  ],
+  homework: [{ id: 'ag', kind: 'play', skill: 'p-amazing', step: 3, text: L('“Amazing Grace” hands together, every day.', '„אמייזינג גרייס” בשתי ידיים, כל יום.') }],
+};
+
 export const PIANO_LESSONS = [
   lessonKeyboard,
   lessonCPosition,
@@ -982,5 +1480,12 @@ export const PIANO_LESSONS = [
   lessonTriads,
   lessonMinor,
   lessonAccompaniment,
+  lessonEighths,
+  lessonMinuet,
+  lessonPedal,
+  lessonScalesHT,
+  lessonNewKeys,
+  lessonMinorKeys,
+  lessonWaltz,
 ];
 export const pianoLessonById = (id) => PIANO_LESSONS.find((l) => l.id === id);

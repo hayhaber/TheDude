@@ -156,13 +156,13 @@ function HandsPicture({ hands = 'both', active = [] }) {
 }
 
 const handOf = (n) => (n.hand === 'L' ? 'left' : 'right');
-const VF = { 4: 'w', 2: 'h', 1: 'q', 0.5: '8' };
+const VF = { 4: 'w', 3: 'hd', 2: 'h', 1.5: 'qd', 1: 'q', 0.5: '8' };
 
 function Staff({ staff, highlight = null }) {
   const notes = useMemo(() => parseEvents(staff.notes).map((e) => ({ midi: e.notes[0].midi, duration: VF[e.beats] ?? 'q' })), [staff.notes]);
   return (
     <div className="pt-staff" dir="ltr">
-      <StaffNotation notes={notes} clef={staff.clef} width={Math.min(420, 90 + notes.length * 44)} highlightMidi={highlight} />
+      <StaffNotation notes={notes} clef={staff.clef} keySig={staff.key ?? null} width={Math.min(460, 90 + (staff.key ? 30 : 0) + notes.length * 40)} highlightMidi={highlight} />
     </div>
   );
 }
@@ -518,7 +518,11 @@ function HomeworkRows({ items, tx, onPractise }) {
   );
 }
 
-function LessonPlayer({ lesson, startAt = null, onClose, setStage, noteRef, metro }) {
+// v1.0.299: a step written in a flat key labels the black keys with flats (B♭, not A♯).
+const FLAT_STAFF_KEYS = new Set(['F', 'Dm', 'Bb', 'Gm']);
+const stepFlats = (step) => FLAT_STAFF_KEYS.has(step?.staff?.key) || /[A-G]b\d/.test(`${step?.notes ?? ''} ${step?.keys ?? ''} ${step?.staff?.notes ?? ''}`);
+
+function LessonPlayer({ lesson, startAt = null, onClose, setStage: setStageRaw, noteRef, metro }) {
   const { t, lang } = useLanguage();
   const tx = useCallback((x) => (x ? x[lang] ?? x.en : ''), [lang]);
   const [state] = useTeacher();
@@ -528,6 +532,8 @@ function LessonPlayer({ lesson, startAt = null, onClose, setStage, noteRef, metr
   const [ticks, setTicks] = useState({});
   const [picked, setPicked] = useState(null);
   const step = lesson.steps[i];
+  const flatNames = stepFlats(step);
+  const setStage = useCallback((st) => setStageRaw(st ? { ...st, flatNames } : st), [setStageRaw, flatNames]);
   const topRef = useRef(null);
   const [heardAt, playHear] = useHearing();
   const stepEvents = useMemo(() => {
@@ -651,13 +657,14 @@ const START = [
   { key: 'none', title: L('Never — I’m new to the piano', 'אף פעם — אני חדש בפסנתר'), desc: L('From sitting at the keys to your first melody', 'מהישיבה ליד הקלידים ועד המנגינה הראשונה') },
   { key: 'little', title: L('A little — simple tunes, one hand', 'קצת — מנגינות פשוטות, יד אחת'), desc: L('Reading notes, both hands, first chords', 'קריאת תווים, שתי ידיים, אקורדים ראשונים') },
   { key: 'some', title: L('Yes — both hands and chords', 'כן — שתי ידיים ואקורדים'), desc: L('Scales, triads, minor, accompaniment', 'סולמות, משולשים, מינור, ליווי') },
+  { key: 'more', title: L('Yes — I read and play pieces', 'כן — אני קורא תווים ומנגן יצירות'), desc: L('Eighth notes and 3/4, the pedal, new keys, waltz', 'שמיניות ו־⁦3/4⁩, הדוושה, סולמות חדשים, ולס') },
 ];
 
 function StartPick({ tx, onPick, current }) {
   return (
     <div className="ph-group pt-start">
       {START.map((s, k) => (
-        <LibraryRow key={s.key} color={['#34c759', '#007aff', '#af52de'][k]} icon="freeplay" title={tx(s.title)} desc={tx(s.desc)} tag={current === s.key ? '✓' : undefined} tagTone="neutral" onClick={() => onPick(s.key)} />
+        <LibraryRow key={s.key} color={['#34c759', '#007aff', '#af52de', '#ff9500'][k]} icon="freeplay" title={tx(s.title)} desc={tx(s.desc)} tag={current === s.key ? '✓' : undefined} tagTone="neutral" onClick={() => onPick(s.key)} />
       ))}
     </div>
   );

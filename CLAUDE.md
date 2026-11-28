@@ -4596,3 +4596,42 @@ no tools).
   song -> MP3 in u/u1/…, row band null, nothing left in IndexedDB, plays
   via a signed URL; B (same account) lists it, deletes it -> tombstone +
   file removed; version 17 -> the take waits here with the setup line.
+- OCR + SMALL IMPROVEMENTS (v1.0.292, user: "build the OCR and the small
+  improvements"). (1) SCANNED CHARTS: `api/chart-ocr.js` (Vercel): POST
+  {pages: [base64 JPEG], name} with the user's Supabase access token
+  (checked against /auth/v1/user — only signed-in users; each call costs)
+  -> Claude (env ANTHROPIC_API_KEY, model env CHART_OCR_MODEL default
+  claude-sonnet-5) reads the pages into the app's words format ([Section],
+  [Am]word, {note}); NO_SONG -> ''. GET = {ready} (Settings › Advanced ›
+  Server shows "Reading scanned charts: ready / not set up"). No key = 503
+  {setup}. Client `music/sheets/chartOcr.js`: pages drawn by pdf.js
+  (~1500 px wide, max 8, JPEG quality / size lowered to fit 3.6 MB),
+  `readChart(blob, name)` (OcrError codes setup / signin / offline / empty
+  / error), store `ocrState` / `readChartWords(id)`. chartCloud
+  `takeWords`: a PDF with text = as before; a PDF with (almost) NO text
+  (< 40 letters: scan / photo / "Microsoft Print to PDF") is read in the
+  background when signed in. Band: the row says "Reading the words…",
+  a toast when done / why not; song ••• "Read Words from the Chart" (has a
+  chart, no words); the words editor's PDF tab falls back to it. Transposing
+  a scanned chart = in the Words + chords view (the picture itself can't
+  move). Privacy page: chart pictures go through our server to Anthropic.
+  THE USER sets ANTHROPIC_API_KEY in Vercel. Checked with a mocked API:
+  photo added -> pages sent, words written, toast; 503 -> setup toast;
+  handler unit: no key 503, bad token 401, no pages 400, fences stripped.
+  NOT run against the real Anthropic API. (2) CAPO in the guitar Chord
+  Library (Advanced › Capo: None / fret 1–9, pref `capo`): the chosen chord
+  is the SOUNDING one; shapes are searched in the tuning raised by the capo
+  (frets relative to it), the name shows "Capo 3 · A shape" (both views),
+  the neck draws the real frets, sound = right pitch; no lesson link with a
+  capo. (3) GuitarPro Chords view in the FILE'S tuning: `chartTuning(score,
+  track)` (6-string guitar track, null = standard) + `chordShapeIn(name,
+  tuning)` — a whole-guitar shift (E♭, D standard…) keeps the usual shapes
+  a step up (November Rain in E♭: D#m7 = the open Em7 shape, F# = G), other
+  tunings (drop D, open G) searched with libraryVoicings; Hear plays the
+  file's tuning; a line "Shapes for the song's tuning: E♭ A♭ …". (4) The
+  intake's "songs you'd like to learn" is used: Teacher home group "Songs
+  you want to learn" (one row per line, max 8): in the GuitarPro library
+  (title match, niqqud / punctuation ignored) -> the solo-goal form
+  preselected (or today's plan when it is the goal already); not there ->
+  opens a tab search (Tab4u for Hebrew, Ultimate Guitar otherwise). New
+  LineIcon `search`. Smoke test 28 + 28, no problems.

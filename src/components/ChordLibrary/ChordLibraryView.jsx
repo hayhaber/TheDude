@@ -69,12 +69,17 @@ export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPra
       }
       return next;
     });
-    if ('root' in patch || 'type' in patch || 'bass' in patch || 'tuning' in patch || 'advanced' in patch) setPick({ group: 0, index: 0 });
+    if ('root' in patch || 'type' in patch || 'bass' in patch || 'tuning' in patch || 'capo' in patch || 'advanced' in patch) setPick({ group: 0, index: 0 });
   };
 
   const { root, type, advanced } = prefs;
   const labels = advanced ? prefs.labels : 'note';
-  const tuning = (GUITAR_TUNINGS.find((x) => x.id === prefs.tuning) ?? GUITAR_TUNINGS[0]).midis;
+  const baseTuning = (GUITAR_TUNINGS.find((x) => x.id === prefs.tuning) ?? GUITAR_TUNINGS[0]).midis;
+  // A capo (v1.0.292) = the strings tuned up: the chord chosen is the one that
+  // SOUNDS; the shapes are fingered from the capo (fret 0 = the capo).
+  const capo = Math.max(0, Math.min(9, Number(prefs.capo) || 0));
+  const tuning = useMemo(() => baseTuning.map((m) => m + capo), [baseTuning, capo]);
+  const shapeRoot = (((root - capo) % 12) + 12) % 12;
   const tones = useMemo(() => chordTones(root, type), [root, type]);
   const chordType = typeByKey(type);
   // Simple view: root position only.
@@ -106,9 +111,11 @@ export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPra
       onStage?.(null);
       return;
     }
-    const position = { ...toPosition(root, type, voicing.frets, tuning, labels === 'interval' ? 'interval' : 'note', group.bass), fingers: voicing.fing.fingers };
-    onStage?.({ position, tuning, labelMode: labels === 'finger' ? 'finger' : 'note' });
-  }, [voicing, group, root, type, tuning, labels, onStage]);
+    // the neck shows the real frets (shape + capo)
+    const frets = voicing.frets.map((f) => (f == null ? null : f + capo));
+    const position = { ...toPosition(root, type, frets, baseTuning, labels === 'interval' ? 'interval' : 'note', group.bass), fingers: voicing.fing.fingers };
+    onStage?.({ position, tuning: baseTuning, labelMode: labels === 'finger' ? 'finger' : 'note' });
+  }, [voicing, group, root, type, baseTuning, capo, labels, onStage]);
   useEffect(() => () => onStage?.(null), [onStage]);
   useEffect(() => () => clearTimeout(addedTimer.current), []);
   // Keep the chosen key / type pill in view in a strip that scrolls.
@@ -131,7 +138,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPra
   // chord the teacher knows they play.
   const [teacher] = useTeacher();
   const lvl = studentLevel();
-  const lessonCand = prefs.tuning === 'standard' && !(lvl != null && lvl >= 2) ? lessonForChord(baseSymbol) : null;
+  const lessonCand = prefs.tuning === 'standard' && !capo && !(lvl != null && lvl >= 2) ? lessonForChord(baseSymbol) : null;
   const lessonOf = lessonCand && !knowsChord(baseSymbol, teacher, lessonCand) ? lessonCand : null;
   const lessonLink = lessonOf ? { tool: 'lesson', id: lessonOf.id, title: lessonOf.title[lang] ?? lessonOf.title.en } : null;
   const formula = tones.map((x) => x.interval).join(' – ');
@@ -201,6 +208,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPra
           <div className="cl-simple-name" dir="ltr">
             {group?.name ?? chordName(root, type)}
             {tuningObj.id !== 'standard' && <span className="cl-simple-tuning">{t(`tuning.${tuningObj.id}`)}</span>}
+            {capo > 0 && <span className="cl-simple-tuning">{t('chordlib.capoShape', { n: capo, shape: chordName(shapeRoot, type) })}</span>}
           </div>
           {big ? (
             <div className="cl-simple-box" dir="ltr">
@@ -309,6 +317,17 @@ export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPra
           </Select>
         </label>
         <label className="cl-field">
+          <span>{t('chordlib.capo')}</span>
+          <Select value={String(capo)} onChange={(e) => set({ capo: Number(e.target.value) })}>
+            <option value="0">{t('chordlib.capoOff')}</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+              <option key={n} value={n}>
+                {t('chordlib.capoFret', { n })}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label className="cl-field">
           <span>{t('chordlib.labels')}</span>
           <Select value={labels} onChange={(e) => set({ labels: e.target.value })}>
             <option value="note">{t('chordlib.labels.note')}</option>
@@ -322,6 +341,7 @@ export function ChordLibraryView({ onStage, onAddToCompose, onOpenCompose, onPra
       <section className="cl-info">
         <div className="cl-name" dir="ltr">
           {group?.name ?? chordName(root, type)}
+          {capo > 0 && <small className="cl-capo-note">{t('chordlib.capoShape', { n: capo, shape: chordName(shapeRoot, type) })}</small>}
         </div>
         <div className="cl-tones" dir="ltr">
           {tones.map((x) => (

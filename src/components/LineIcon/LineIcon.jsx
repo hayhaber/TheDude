@@ -257,6 +257,12 @@ export const ICON_PATHS = {
       <path d="M15 14.4c2.6-.4 4.8 1.3 5.6 4.6" />
     </>
   ),
+  search: (
+    <>
+      <circle cx="10.5" cy="10.5" r="6" />
+      <path d="M15 15l5 5" />
+    </>
+  ),
   stage: (
     <>
       <rect x="5" y="3.5" width="14" height="10.5" rx="1.2" />

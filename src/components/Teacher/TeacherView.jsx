@@ -271,6 +271,7 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
   // today | path | intake | lesson | coach | practise
   // today | path | goal | soloGoal | soloPlan | skillGoal | rewards | intake | lesson | practise
   const coach = useCoach();
+  const [pickSolo, setPickSolo] = useState(null); // a wanted song found in GuitarPro (v1.0.292)
   const coachGoal = activeGoal(coach.state);
   const coachGoalDef = coachGoal ? goalByKey(coachGoal.goalKey) : null;
   const [screen, setScreen] = useState(() =>
@@ -342,7 +343,7 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
       <GoalPick tx={tx} hasSolos={!!gp?.solos?.length} onSolo={() => setScreen('soloGoal')} onSkill={() => setScreen('skillGoal')} />
     );
   if (screen === 'soloGoal' && gp?.solos?.length)
-    return sub(t('teacher.goalPick.solo'), <SoloGoalForm tx={tx} solos={gp.solos} initial={state.goal} onDone={() => setScreen('soloPlan')} />);
+    return sub(t('teacher.goalPick.solo'), <SoloGoalForm tx={tx} solos={gp.solos} initial={pickSolo ? { soloId: pickSolo } : state.goal} onDone={() => setScreen('soloPlan')} />);
   if (screen === 'soloPlan' && solo)
     return sub(
       typeof solo.title === 'string' ? solo.title : tx(solo.title),
@@ -400,6 +401,10 @@ export function TeacherView({ initialScreen = 'today', initialLesson = null, onS
           gp={gp}
           onOpen={open}
           onScreen={setScreen}
+          onPickSolo={(id) => {
+            setPickSolo(id);
+            setScreen('soloGoal');
+          }}
           onPractise={(item) => {
             setPractise(item);
             setScreen('practise');

@@ -98,7 +98,36 @@ function Hero({ eyebrow, title, meta, children, action, onAction, tone }) {
   );
 }
 
-export function TeacherHome({ state, tx, coachGoal, coachGoalTitle, gp, onOpen, onScreen, onPractise }) {
+// "Songs you'd like to learn" from the intake (v1.0.292): one per line. A song
+// that is in the GuitarPro library becomes the teacher's goal (sections,
+// tempos, today's session); one that isn't -> find its tab, then Add it.
+const norm = (x) =>
+  String(x || '')
+    .toLowerCase()
+    .replace(/[\u0591-\u05C7]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+export function wantedSongs(text, solos, lang) {
+  return String(text || '')
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 1)
+    .slice(0, 8)
+    .map((line) => {
+      const words = norm(line);
+      const hit = (solos || []).find((s) => {
+        const title = norm(titleOf(s, lang)) || norm(titleOf(s, 'en'));
+        return title.length > 2 && (words.includes(title) || title.includes(words));
+      });
+      return { line, solo: hit ?? null };
+    });
+}
+const tabSearch = (line) =>
+  /[\u0590-\u05FF]/.test(line)
+    ? 'https://www.tab4u.com/resultsSimple?tab=songs&q=' + encodeURIComponent(line)
+    : 'https://www.ultimate-guitar.com/search.php?search_type=title&value=' + encodeURIComponent(line);
+
+export function TeacherHome({ state, tx, coachGoal, coachGoalTitle, gp, onOpen, onScreen, onPractise, onPickSolo }) {
   const { t, lang } = useLanguage();
   const prog = levelProgress(state);
   const hw = openHomework(state);
@@ -106,6 +135,7 @@ export function TeacherHome({ state, tx, coachGoal, coachGoalTitle, gp, onOpen, 
   const solo = soloGoal ? gp?.solos?.find((s) => s.id === soloGoal.soloId) : null;
   const plan = useMemo(() => (solo ? soloPlan(solo, soloGoal) : null), [solo, soloGoal]);
   const showGoal = goalVisible(state, coachGoal);
+  const wanted = useMemo(() => wantedSongs(state.intake?.songs, gp?.solos, lang), [state.intake?.songs, gp?.solos, lang]);
   const next = prog.next;
   const nextSaved = next && state.lessons[next.id];
   const nextInProgress = nextSaved && !nextSaved.done && (nextSaved.step ?? 0) > 0;
@@ -223,6 +253,39 @@ export function TeacherHome({ state, tx, coachGoal, coachGoalTitle, gp, onOpen, 
         )}
         <LibraryRow color="#af52de" icon="studies" title={t('teacher.rewards.title')} desc={t('teacher.rewards.text')} onClick={() => onScreen('rewards')} />
       </div>
+
+      {wanted.length > 0 && (
+        <div className="tc-section">
+          <span className="tc-section-head">{tx(L('Songs you want to learn', 'שירים שרצית ללמוד'))}</span>
+          <div className="ph-group">
+            {wanted.map((w) =>
+              w.solo ? (
+                <LibraryRow
+                  key={w.line}
+                  color="#ff3b30"
+                  icon="guitarpro"
+                  title={w.line}
+                  desc={
+                    soloGoal?.soloId === w.solo.id
+                      ? tx(L('Your goal now — open today’s plan', 'היעד שלך עכשיו — לתוכנית של היום'))
+                      : tx(L('In your GuitarPro library — make it your goal', 'בספריית ה־GuitarPro שלך — לקבוע אותו כיעד'))
+                  }
+                  onClick={() => (soloGoal?.soloId === w.solo.id ? onScreen('soloPlan') : onPickSolo?.(w.solo.id))}
+                />
+              ) : (
+                <LibraryRow
+                  key={w.line}
+                  color="#8e8e93"
+                  icon="search"
+                  title={w.line}
+                  desc={tx(L('Not in your library yet — find its tab, then Add it in GuitarPro', 'עוד לא בספרייה — למצוא טאב ולהוסיף אותו ב־GuitarPro'))}
+                  onClick={() => window.open(tabSearch(w.line), '_blank', 'noopener')}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

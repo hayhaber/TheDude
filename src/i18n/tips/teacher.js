@@ -54,7 +54,7 @@ export const TIPS_TEACHER = {
     'teacher.intake.minutes': 'Time to practise each day',
     'teacher.min': '{n} minutes',
     'teacher.intake.songs': 'Songs you would like to learn',
-    'teacher.intake.songsHint': 'One per line: song + artist. Kept with your profile for now — lessons built from your songs are not ready yet.',
+    'teacher.intake.songsHint': 'One per line: song + artist. A song in your GuitarPro library can become your goal; for the others the teacher finds the tab.',
     'teacher.intake.save': 'Save',
 
     'teacher.next.label': 'Your next lesson',
@@ -177,7 +177,7 @@ export const TIPS_TEACHER = {
     'teacher.intake.minutes': 'זמן תרגול ביום',
     'teacher.min': '{n} דקות',
     'teacher.intake.songs': 'שירים שהיית רוצה ללמוד',
-    'teacher.intake.songsHint': 'שיר בכל שורה: שם השיר + המבצע. נשמר בפרופיל בינתיים — שיעורים שנבנים מהשירים שלך עוד לא מוכנים.',
+    'teacher.intake.songsHint': 'שיר בכל שורה: שם השיר + המבצע. שיר שנמצא בספריית ה־GuitarPro שלך יכול להפוך ליעד; לשאר המורה מוצא טאב.',
     'teacher.intake.save': 'שמור',
 
     'teacher.next.label': 'השיעור הבא שלך',

@@ -6,7 +6,7 @@ import { getAudioContext } from '../../audio/audioContext';
 import { PIANO_PROFILE_GM_PROGRAM, BASS_PROFILE_GM_PROGRAM } from '../../audio/instrumentProfiles';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { describeScore, isGuitarTrack, trackKind, labelChords, fixKeysOctave, bassTrackIndex, suggestedBassLine, addSuggestedBassTrack } from '../../music/lickTrainer/gpImport';
-import { buildChordChart, chordAt } from '../../music/chordChart';
+import { buildChordChart, chartTuning, chordAt } from '../../music/chordChart';
 import { ChordChartView } from './ChordChartView';
 import { useChordPlayAlong } from './useChordPlayAlong';
 import { fixHebrew } from '../Songwriter/ScoreView';
@@ -913,6 +913,11 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile, view = 'so
     return chordsView && score ? buildChordChart(score, { simple: simpleChords }) : null;
   }, [chordsView, scoreVersion, simpleChords]); // eslint-disable-line react-hooks/exhaustive-deps
   chartRef.current = chart;
+  // the song's guitar tuning: shapes as the player fingers them (v1.0.292)
+  const chartTuningOf = useMemo(
+    () => (chordsView ? chartTuning(apiRef.current?.score, trackIndex) : null),
+    [chordsView, scoreVersion, trackIndex] // eslint-disable-line react-hooks/exhaustive-deps
+  );
   useEffect(() => {
     // Opening the chart: where the song is right now.
     const pos = posRef.current;
@@ -1125,6 +1130,7 @@ export function GpSongPlayer({ trainer, t, pianoProfile, bassProfile, view = 'so
                   if (lookup && api) api.tickPosition = lookup.start;
                 }}
                 playAlong={playAlong}
+                tuning={chartTuningOf}
                 t={t}
               />
             ) : (

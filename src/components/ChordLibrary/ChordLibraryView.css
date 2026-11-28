@@ -859,3 +859,13 @@
     animation: none;
   }
 }
+
+/* capo (v1.0.292): the shape that is fingered, under the chord's name */
+.cl-capo-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0;
+}

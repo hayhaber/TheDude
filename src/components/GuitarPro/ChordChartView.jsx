@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { ChordShapeDiagram } from './ChordShapeDiagram';
-import { chordShape, chordAt, nextChordAfter } from '../../music/chordChart';
-import { playPosition } from '../../audio/chordPlayer';
+import { chordShapeIn, chordAt, nextChordAfter } from '../../music/chordChart';
+import { playMidis } from '../../audio/chordPlayer';
 
 const BARS_PER_LINE = 4;
 
-function strum(name) {
-  const shape = chordShape(name);
-  if (shape) playPosition(shape.map((fret) => ({ fret })));
+function strum(name, tuning) {
+  const x = chordShapeIn(name, tuning);
+  if (x) playMidis(x.shape.map((f, i) => (f == null ? null : x.tuning[i] + f)).filter((m) => m != null), 0.035);
 }
 
 // The song's sections (a marker starts a new one), each a grid of bars.
@@ -26,8 +26,8 @@ function sectionsOf(chart) {
   return out;
 }
 
-function ShapeCard({ label, name, t, onHear }) {
-  const shape = name ? chordShape(name) : null;
+function ShapeCard({ label, name, t, onHear, tuning }) {
+  const shape = name ? chordShapeIn(name, tuning)?.shape ?? null : null;
   return (
     // The whole card plays the chord too (phones show no Hear button).
     <div className="gpc-shape" onClick={() => name && onHear?.(name)}>
@@ -57,7 +57,9 @@ function ShapeCard({ label, name, t, onHear }) {
 // GuitarPro -> Chords: the song as a chord sheet (Rocksmith's chords
 // arrangement): bars in lines of 4, the chord at its beat, section markers
 // as headings; the bar being played lights up and stays in view.
-export function ChordChartView({ chart, pos, playing, simple, onSimple, onSeek, playAlong, t }) {
+const PC = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+
+export function ChordChartView({ chart, pos, playing, simple, onSimple, onSeek, playAlong, t, tuning = null }) {
   const { lang } = useLanguage();
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const boxRef = useRef(null);
@@ -121,10 +123,17 @@ export function ChordChartView({ chart, pos, playing, simple, onSimple, onSeek, 
             {t(sourceKey)}
             <InfoTooltip text={t('gpx.tip.source')} />
           </span>
+          {tuning && (
+            <span className="gpc-source lt-muted lt-small">
+              <span>
+                {t('gpx.tuning')} <bdi dir="ltr">{tuning.map((m) => PC[m % 12]).join(' ')}</bdi>
+              </span>
+            </span>
+          )}
         </div>
         <div className="gpc-shapes">
-          <ShapeCard label={picked ? t('gpx.picked') : t('gpx.now')} name={nowName} t={t} onHear={strum} />
-          {!picked && next && <ShapeCard label={t('gpx.next')} name={next.name} t={t} onHear={strum} />}
+          <ShapeCard label={picked ? t('gpx.picked') : t('gpx.now')} name={nowName} t={t} tuning={tuning} onHear={(n) => strum(n, tuning)} />
+          {!picked && next && <ShapeCard label={t('gpx.next')} name={next.name} t={t} tuning={tuning} onHear={(n) => strum(n, tuning)} />}
           {pa.on && (
             <div className={'gpc-judge' + (pa.live.match === true ? ' ok' : pa.live.match === false ? ' off' : '')} role="status">
               <span className="gpc-judge-row">
@@ -196,7 +205,7 @@ export function ChordChartView({ chart, pos, playing, simple, onSimple, onSeek, 
                         onClick={(e) => {
                           e.stopPropagation();
                           setPicked(c.name);
-                          strum(c.name);
+                          strum(c.name, tuning);
                         }}
                       >
                         {c.name}

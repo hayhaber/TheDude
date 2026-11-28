@@ -527,14 +527,20 @@ onSheetLyrics((id) => {
 
 /** Add PDFs (to my charts, or a band's) and send them up. */
 /** The words + chords of a text PDF -> the song's words (v1.0.283), unless it
-    has words already; a scan / photo / a PDF that isn't a song = nothing. */
+    has words already. A chart with NO text at all (a scan / photo / letters
+    printed as shapes) is read by Claude in the background (v1.0.292,
+    chartOcr.js) when signed in; a PDF with text that isn't a song = nothing. */
 async function takeWords(id, file) {
   try {
     const rec = await getSheet(id);
     if (!rec || (rec.lyrics || '').trim()) return;
     const { pdfWords } = await import('./pdfWords');
-    const text = await pdfWords(file, { song: true });
-    if (text) await setSheetLyrics(id, text);
+    const all = await pdfWords(file);
+    const wordy = all.split('\n').filter((l) => /\p{L}{2,}/u.test(l)).length;
+    if (wordy >= 3) await setSheetLyrics(id, all);
+    else if (all.replace(/\s/g, '').length < 40 && signedIn()) {
+      import('./chartOcr').then(({ readChartWords }) => readChartWords(id)).catch(() => {});
+    }
   } catch {
     /* a PDF pdf.js can't read: the chart alone */
   }

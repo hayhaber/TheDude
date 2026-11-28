@@ -51,6 +51,7 @@ import { openCount, useNotesVersion } from '../../music/sheets/songNotes';
 import { SuggestionsView } from './SuggestionsView';
 import { cleanLink, embedOf, serviceOf } from '../../music/sheets/songLink';
 import { openListen } from '../../music/sheets/listenStore';
+import { ocrState, onOcr, readChartWords } from '../../music/sheets/chartOcr';
 import { ListenDock } from './ListenDock';
 import { SongSearchField } from './SongSearchField';
 import { linkFor, songLabel } from '../../music/sheets/songSearch';
@@ -1216,6 +1217,28 @@ export function StageView({ onAccount, start = null }) {
     return () => clearTimeout(id);
   }, [msg]);
 
+  // reading a scanned chart's words (v1.0.292): a line on the row while it
+  // runs, a toast when it's done
+  const ocr = useSyncExternalStore(onOcr, ocrState, ocrState);
+  const ocrSeen = useRef(ocr.last?.at ?? 0);
+  useEffect(() => {
+    const l = ocr.last;
+    if (!l || l.at <= ocrSeen.current) return;
+    ocrSeen.current = l.at;
+    const name = splitName(byIdRef.current.get(l.id)?.name || '').title;
+    if (l.ok) setMsg(t('stage.ocr.done', { name }));
+    else if (l.code !== 'signin') setMsg(t('stage.ocr.' + (['setup', 'offline', 'empty'].includes(l.code) ? l.code : 'failed')));
+  }, [ocr.last, t]);
+  const ocrItem = (id) => {
+    const rec = byIdRef.current.get(id);
+    if (!rec?.pdf || (rec.lyrics || '').trim() || !isIn) return null;
+    return (
+      <button type="button" className="more-menu-item" disabled={ocr.busy.includes(id)} onClick={() => readChartWords(id)}>
+        {t('stage.ocr.item')}
+      </button>
+    );
+  };
+
   const fail = (e) => setMsg(navigator.onLine === false ? t('stage.cloud.offline') : t('stage.cloud.failed') + (e?.message ? ` (${e.message})` : ''));
 
   const scoped = (sheets ?? []).filter((s) => (s.band ?? null) === bandId);
@@ -1934,6 +1957,7 @@ export function StageView({ onAccount, start = null }) {
                     {byId.get(s.id).pdf ? t('stage.replace') : t('stage.attach')}
                   </button>
                 )}
+                {!s.missing && ocrItem(s.id)}
                 {!s.missing && (
                   <button type="button" className="more-menu-item" onClick={() => openListen(s.id, byId.get(s.id)?.name || s.name)}>
                     {t('stage.info.item')}
@@ -2236,8 +2260,10 @@ export function StageView({ onAccount, start = null }) {
                     </span>
                     {notesBadge(s.id)}
                     {readyMark(s.id)}
-                    {(durOf(s.id) || (isIn && !s.cloud)) && (
-                      <span className="stg-detail">{[durOf(s.id), isIn && !s.cloud ? t('stage.cloud.notYet') : null].filter(Boolean).join(' · ')}</span>
+                    {(durOf(s.id) || (isIn && !s.cloud) || ocr.busy.includes(s.id)) && (
+                      <span className="stg-detail">
+                        {[ocr.busy.includes(s.id) ? t('stage.ocr.reading') : null, durOf(s.id), isIn && !s.cloud ? t('stage.cloud.notYet') : null].filter(Boolean).join(' · ')}
+                      </span>
                     )}
                   </button>
                 )}
@@ -2255,6 +2281,7 @@ export function StageView({ onAccount, start = null }) {
                   <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
                     {s.pdf ? t('stage.replace') : t('stage.attach')}
                   </button>
+                  {ocrItem(s.id)}
                   {!band &&
                     cloud.bands.map((b) => (
                       <button

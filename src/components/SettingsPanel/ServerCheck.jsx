@@ -11,6 +11,7 @@ export function ServerCheck() {
   const cloud = useCloud();
   const signedIn = !!cloud.email;
   const [state, setState] = useState({ busy: false, res: null, error: null });
+  const [ocr, setOcr] = useState(null);
 
   const run = useCallback(async () => {
     setState((s) => ({ ...s, busy: true, error: null }));
@@ -20,6 +21,11 @@ export function ServerCheck() {
       const slow = new Promise((_, no) => setTimeout(() => no(Object.assign(new Error('timeout'), { kind: 'slow' })), 20000));
       const res = await Promise.race([checkServer(cloudClient()), slow]);
       setState({ busy: false, res, error: null });
+      // reading scanned charts needs the AI key on Vercel (v1.0.292)
+      fetch('/api/chart-ocr')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => d && setOcr(!!d.ready))
+        .catch(() => {});
     } catch (e) {
       const kind = e?.kind || (typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error');
       setState({ busy: false, res: null, error: { kind, msg: kind === 'error' ? e?.message || '' : '' } });
@@ -73,6 +79,9 @@ export function ServerCheck() {
           {res.unsure.map((u) => String(u.n).padStart(3, '0')).join(' · ')}
           {res.unsure[0]?.why ? ' — ' + res.unsure[0].why : ''}
         </p>
+      )}
+      {ocr != null && (
+        <p className="set-footnote">{ocr ? t('srv.ocrOk') : t('srv.ocrSetup')}</p>
       )}
       {res && res.missing.length > 0 && (
         <>

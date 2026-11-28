@@ -20,6 +20,9 @@ import { describeScore, trackKind, inFlatKey, pianoPartOf } from './lickTrainer/
 import { computeChordPositions } from './computeChordPositions';
 import { parseChordSymbol } from './chordSymbolParser';
 import { CHORD_QUALITIES } from './chordQualities';
+import { transposeChord } from './sheets/chartChords';
+import { parseChartChord } from './sheets/chordView';
+import { libraryVoicings } from './chordLibrary';
 
 const TPB = 960; // ticks per quarter note
 const NAME_RE = /^([A-G])(#|b)?(.*?)(?:\/([A-G](?:#|b)?))?$/;
@@ -470,4 +473,44 @@ export function chordShape(name) {
     }
   }
   return null;
+}
+
+// ---- the file's own tuning (v1.0.292) -----------------------------------------------
+// A song in E♭ / D standard / drop D was drawn with standard-tuning shapes:
+// the chart's chord names are what SOUNDS, so an E♭-tuned "E♭" came out as a
+// barre at fret 6 instead of the open E shape the player really uses.
+const STD = [40, 45, 50, 55, 59, 64];
+
+/** The guitar tuning of the song (low string first), from the shown track if
+    it is a 6-string guitar, else the first one; null = standard / none. */
+export function chartTuning(score, preferIndex = null) {
+  const six = (tr) => {
+    const st = tr?.staves?.[0];
+    const t = st?.stringTuning?.tunings ?? st?.tuning;
+    return Array.isArray(t) && t.length === 6 && !st.isPercussion ? [...t].reverse() : null;
+  };
+  const tracks = score?.tracks ?? [];
+  const pick = (preferIndex != null && six(tracks[preferIndex])) || tracks.map(six).find(Boolean);
+  if (!pick || pick.every((m, i) => m === STD[i])) return null;
+  return pick;
+}
+
+/** How to play `name` in `tuning` (low string first; null = standard):
+    {shape, tuning}. A whole-guitar shift (E♭, D standard…) keeps the usual
+    shapes, named a step up; any other tuning is searched. */
+export function chordShapeIn(name, tuning) {
+  if (!tuning) {
+    const shape = chordShape(name);
+    return shape ? { shape, tuning: STD } : null;
+  }
+  const d = tuning.map((m, i) => m - STD[i]);
+  if (d.every((x) => x === d[0]) && Math.abs(d[0]) <= 6) {
+    const shape = chordShape(transposeChord(String(name), -d[0]));
+    return shape ? { shape, tuning } : null;
+  }
+  const c = parseChartChord(name);
+  if (!c) return null;
+  const list = libraryVoicings(c.rootPc, c.typeKey, { tuning, bassPc: c.bassPc ?? c.rootPc }, 8);
+  const v = list.find((x) => x.easiest) ?? list[0];
+  return v ? { shape: v.frets.slice(), tuning } : null;
 }

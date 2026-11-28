@@ -4635,3 +4635,12 @@ no tools).
   preselected (or today's plan when it is the goal already); not there ->
   opens a tab search (Tab4u for Hebrew, Ultimate Guitar otherwise). New
   LineIcon `search`. Smoke test 28 + 28, no problems.
+- OCR ON HOLD (v1.0.293, user: "not now — put it on hold"): the key isn't
+  set, and the feature stays QUIET until it is: `ocrReady()` (chartOcr.js,
+  GET /api/chart-ocr once per session) gates everything — no background
+  reading of a scanned chart, no "Read Words from the Chart" item, no setup
+  toast; the words editor's PDF tab shows the old "no text in this PDF"
+  line. Adding ANTHROPIC_API_KEY in Vercel (+ redeploy) turns it all on
+  with no code change. Discussed before turning it on: a spend cap in the
+  Anthropic console + an allow-list of emails (not built — user said not
+  now); a per-user monthly quota only if the app opens to the public.

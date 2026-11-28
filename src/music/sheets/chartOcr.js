@@ -88,9 +88,28 @@ export async function readChart(blob, name = '') {
   return text;
 }
 
+// ---- is it set up? (v1.0.293: on hold until the key is added — nothing shows) ----------
+let readyP = null;
+/** true once the server has its AI key; asked once per session. */
+export function ocrReady() {
+  if (!readyP) {
+    readyP = fetch('/api/chart-ocr')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        set({ ready: !!d?.ready });
+        return !!d?.ready;
+      })
+      .catch(() => {
+        readyP = null;
+        return false;
+      });
+  }
+  return readyP;
+}
+
 // ---- one song at a time, watched by the screens --------------------------------------
 
-let state = { busy: [], last: null }; // last = {id, ok, code}
+let state = { busy: [], last: null, ready: null }; // last = {id, ok, code}
 const subs = new Set();
 const set = (p) => {
   state = { ...state, ...p };
@@ -108,6 +127,7 @@ export async function readChartWords(id, { force = false } = {}) {
   if (state.busy.includes(id)) return false;
   const rec = await getSheet(id);
   if (!rec?.blob || (!force && (rec.lyrics || '').trim())) return false;
+  if (!(await ocrReady())) return false; // not set up: stay quiet
   set({ busy: [...state.busy, id] });
   try {
     const text = await readChart(rec.blob, rec.name);

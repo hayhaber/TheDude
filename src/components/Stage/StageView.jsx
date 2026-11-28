@@ -51,7 +51,7 @@ import { openCount, useNotesVersion } from '../../music/sheets/songNotes';
 import { SuggestionsView } from './SuggestionsView';
 import { cleanLink, embedOf, serviceOf } from '../../music/sheets/songLink';
 import { openListen } from '../../music/sheets/listenStore';
-import { ocrState, onOcr, readChartWords } from '../../music/sheets/chartOcr';
+import { ocrReady, ocrState, onOcr, readChartWords } from '../../music/sheets/chartOcr';
 import { ListenDock } from './ListenDock';
 import { SongSearchField } from './SongSearchField';
 import { linkFor, songLabel } from '../../music/sheets/songSearch';
@@ -1229,9 +1229,12 @@ export function StageView({ onAccount, start = null }) {
     if (l.ok) setMsg(t('stage.ocr.done', { name }));
     else if (l.code !== 'signin') setMsg(t('stage.ocr.' + (['setup', 'offline', 'empty'].includes(l.code) ? l.code : 'failed')));
   }, [ocr.last, t]);
+  useEffect(() => {
+    if (isIn) ocrReady();
+  }, [isIn]);
   const ocrItem = (id) => {
     const rec = byIdRef.current.get(id);
-    if (!rec?.pdf || (rec.lyrics || '').trim() || !isIn) return null;
+    if (!ocr.ready || !rec?.pdf || (rec.lyrics || '').trim() || !isIn) return null;
     return (
       <button type="button" className="more-menu-item" disabled={ocr.busy.includes(id)} onClick={() => readChartWords(id)}>
         {t('stage.ocr.item')}

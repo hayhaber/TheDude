@@ -69,9 +69,13 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
       let all = await pdfWords(rec.blob);
       if (all.replace(/\s/g, '').length < 40) {
         // no text in the PDF (a scan / photo / letters as shapes): Claude reads it
+        const { readChart, ocrReady } = await import('../../music/sheets/chartOcr');
+        if (!(await ocrReady())) {
+          setPdfState('none'); // reading scans is on hold: the old message
+          return;
+        }
         setPdfState('reading');
         try {
-          const { readChart } = await import('../../music/sheets/chartOcr');
           all = await readChart(rec.blob, rec.name);
         } catch (e) {
           setPdfState(['setup', 'signin', 'offline', 'empty'].includes(e?.code) ? 'ocr-' + e.code : 'error');
@@ -190,6 +194,7 @@ export function LyricsSheet({ songId = null, name: initialName = '', text: initi
             <button type="button" className="stg-capsule is-primary" onClick={fromPdf} disabled={pdfState === 'busy' || pdfState === 'reading'}>
               {pdfState === 'busy' ? '…' : pdfState === 'reading' ? t('stage.ocr.reading') : t('stage.ly.pdfBtn')}
             </button>
+            {pdfState === 'none' && <p className="stg-err">{t('stage.ly.pdfNone')}</p>}
             {pdfState === 'reading' && <p className="stg-sheet-text">{t('stage.ocr.readingNote')}</p>}
             {pdfState?.startsWith('ocr-') && <p className="stg-err">{t('stage.ocr.' + pdfState.slice(4))}</p>}
             {pdfState === 'error' && <p className="stg-err">{t('stage.error')}</p>}

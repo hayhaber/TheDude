@@ -40,7 +40,7 @@ const CARDS = [
     titleKey: 'home.piano.title',
     descKey: 'home.piano.desc',
     options: [
-      { group: 'learn', section: 'studies', icon: 'teacher', labelKey: 'nav.group.learn' },
+      { group: 'learn', section: 'teacher', icon: 'teacher', labelKey: 'nav.group.learn' },
       { section: 'practice', icon: 'practice' },
       { section: 'chords', icon: 'pianoChords' },
       { group: 'play', section: 'guitarpro', icon: 'play', labelKey: 'nav.group.play' },
@@ -548,6 +548,12 @@ export function HomeMenu({ onOpen, onContinue, onNextLesson, nextLesson = null, 
         return { label: START, caption: `${t('home.primary.weak')}: ${what}${spot}`, go };
       }
       if (learn.kind === 'today') return { label: START, caption: `${t('home.primary.today')}: ${t(learn.nameKey)}`, go };
+      if (learn.kind === 'pianoLesson')
+        return {
+          label: learn.started ? CONT : START,
+          caption: [`${t('home.primary.lessonSub')}: ${loc(learn.name)}`, learn.minutes ? t('home.primary.min', { n: learn.minutes }) : null].filter(Boolean).join(' · '),
+          go,
+        };
       if (learn.kind === 'next') return { label: START, caption: `${t('home.primary.next')}: ${loc(learn.name)}`, go };
     }
     const here = place && (card.key === 'vocal' ? place.section === 'vocal' : place.instrument === inst && place.section !== 'vocal');

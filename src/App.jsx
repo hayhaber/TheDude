@@ -21,6 +21,7 @@ import { VocalTrainingView } from './components/VocalTrainingView/VocalTrainingV
 import { CoachView } from './components/Coach/CoachView';
 import { CoachBanner } from './components/Coach/CoachBanner';
 import { TeacherView } from './components/Teacher/TeacherView';
+import { PianoTeacherView } from './components/PianoTeacher/PianoTeacher';
 import { BassPracticeView } from './components/BassPractice/BassPracticeView';
 import { useBassPractice } from './hooks/useBassPractice';
 import { useCoach } from './coach/useCoach';
@@ -120,7 +121,8 @@ import { forYou, studentLevel, itemFor } from './components/PracticeView/practic
 import { registerLauncher, setPendingMinuteChanges } from './coach/launchBus';
 import { Onboarding } from './components/Onboarding/Onboarding';
 import { homeCardFor, loadOnboarding, needsOnboarding } from './onboarding/onboardingState';
-import { getTeacher } from './teacher/teacherState';
+import { getTeacher, pianoTeacherStore } from './teacher/teacherState';
+import { nextPianoLesson } from './teacher/pianoTeacher';
 import { nextLesson as teacherNextLesson } from './teacher/mastery';
 import { pendingJoinCode } from './music/sheets/joinLink';
 import './App.css';
@@ -859,6 +861,9 @@ function App() {
   const [triadStage, setTriadStage] = useState(null); // Theory -> Triads: the open unit's neck
   // The teacher's neck: null = no neck (outside a lesson), {position} in a lesson.
   const [teacherStage, setTeacherStage] = useState(null);
+  // the piano teacher's keys (v1.0.294): {playNotes, fingerNumbers, quizFeedbackKey}; null = no keyboard
+  const [pianoTeacherStage, setPianoTeacherStage] = useState(null);
+  const pianoTeacherNoteRef = useRef(null);
   // Which teacher screen the home card opened: {screen, n} (n re-keys the view).
   const [teacherStart, setTeacherStart] = useState({ screen: 'today', n: 0 });
   // Bass Practice opened on one exercise (the home's next step): {id, key, rootString, n}.
@@ -1913,7 +1918,14 @@ function App() {
   // active), so it always needs these two regardless of which branch's
   // notes/labelMode/etc. is in play.
   const stagePianoPropsBase =
-    activeSection === 'chords'
+    activeSection === 'teacher'
+      ? {
+          notes: [],
+          ...(pianoTeacherStage ?? {}),
+          onNoteEvent: (e) => pianoTeacherNoteRef.current?.(e),
+          keyHeight: narrowScreen ? 124 : undefined,
+        }
+      : activeSection === 'chords'
       ? {
           notes: [],
           playNotes: (pianoChordKeys ?? []).map((k) => ({ midi: k.midi, hand: k.hand })),
@@ -2315,6 +2327,26 @@ function App() {
       if (l) return { kind: 'lesson' };
       return null;
     }
+    // the piano teacher's next lesson (v1.0.294), once the student started with it
+    if (inst === 'piano') {
+      const pst = pianoTeacherStore.getTeacher();
+      const pl = pst.intake ? nextPianoLesson(pst) : null;
+      if (pl)
+        return {
+          kind: 'pianoLesson',
+          name: pl.title,
+          minutes: pl.minutes,
+          started: (pst.lessons?.[pl.id]?.at ?? 0) > 0 && !pst.lessons?.[pl.id]?.done,
+          go: () => {
+            enter('piano');
+            enteredCardRef.current = 'piano';
+            setTeacherStart((v) => ({ screen: 'lesson', n: v.n + 1 }));
+            setActiveSection('teacher');
+            setHome(false);
+            setLeftHome(true);
+          },
+        };
+    }
     if (weakItem) return weakItem;
     const today = new Date().toDateString();
     const doneToday = (tool) => perf.some((e) => e.tool === tool && new Date(e.at).toDateString() === today);
@@ -2517,7 +2549,7 @@ function App() {
         activeSection === 'vocal' ||
         activeSection === 'freeplay' ||
         activeSection === 'coach' ||
-        (activeSection === 'teacher' && !teacherStage) ||
+        (activeSection === 'teacher' && (instrument === 'piano' ? !pianoTeacherStage : !teacherStage)) ||
         (activeSection === 'practice' && (practiceTab === 'minuteChanges' || practiceTab === 'home')) ||
         // Nothing to show on the neck yet (flow review 2026-11-06: an empty
         // neck took a third of a phone): it appears once there is.
@@ -2778,8 +2810,11 @@ function App() {
       {activeSection === 'vocal' && <VocalTrainingView key={vocalStart.n} initialScreen={vocalStart.screen} />}
       {activeSection === 'coach' && <CoachView />}
       {activeSection === 'bassPractice' && <BassPracticeView bp={bassPractice} free={bassFree} metronome={metronome} start={bassStart} />}
-      {activeSection === 'teacher' && (
+      {activeSection === 'teacher' && instrument !== 'piano' && (
         <TeacherView key={teacherStart.n} initialScreen={teacherStart.screen} initialLesson={teacherStart.lesson ?? null} onStage={setTeacherStage} metro={teacherMetro} gp={teacherGp} />
+      )}
+      {activeSection === 'teacher' && instrument === 'piano' && (
+        <PianoTeacherView key={teacherStart.n} initialScreen={teacherStart.screen} onStage={setPianoTeacherStage} noteRef={pianoTeacherNoteRef} metro={teacherMetro} />
       )}
     </AppShell>
     </>

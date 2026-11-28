@@ -4644,3 +4644,61 @@ no tools).
   with no code change. Discussed before turning it on: a spend cap in the
   Anthropic console + an allow-list of emails (not built — user said not
   now); a per-user monthly quota only if the app opens to the public.
+- PIANO TEACHER, levels 0–2 (v1.0.294, 2026-11-28; user: "build the piano
+  teacher" + his answers: a REAL piano via the mic + the screen keys;
+  levels 0–2 now, he reviews them). Learn on the piano = Teacher | Theory
+  (featureCapabilities `teacher: ['guitar','piano']`; the piano card's
+  Learn shortcut opens the teacher). Method (rule 14, sources in the file
+  header): Faber Piano Adventures Primer / Alfred's Basic Adult L1 order
+  + ABRSM / Trinity Initial–Grade 1 technique; pieces public domain (Ode
+  to Joy, Hot Cross Buns, Jingle Bells) or ours. `teacher/curriculum/
+  piano.js`: PIANO_LEVELS 0 Pre-Initial / 1 Initial / 2 Grade 1, 35
+  PIANO_SKILLS (play / quiz / self), 12 lessons, 75 steps, EN + HE:
+  p0-keyboard (posture, finger numbers, black-key map, find every C, the
+  white keys), p0-c-position (RH / LH C position, Ode to Joy RH),
+  p0-rhythm (note values, dot, counting with the click), p1-reading
+  (treble / bass landmarks G / F / middle C on a staff, Hot Cross Buns
+  read from the staff), p1-hands-together (a held LH bass under Ode),
+  p1-chords-c-g7 (LH C 5-3-1, G7 as B-F-G 5-2-1, Ode with I / V7),
+  p1-chord-f (F as C-F-A, I-IV-V7, Jingle Bells RH + hands together),
+  p2-scale-c (thumb under 1-2-3-1-2-3-4-5, LH mirror, degrees), p2-scale-g
+  (F♯, key signature, I-IV-V in G), p2-triads (root / 1st / 2nd
+  inversion, I–V–vi–IV with smooth RH voicings + LH roots), p2-minor (ear
+  quiz major vs minor, A five-finger + natural minor scale, i–iv–V with
+  the G♯ leading note), p2-accompaniment (broken chords / Alberti, p mf
+  f, legato / staccato, Ode over a moving bass). NOTES DSL `parseEvents`:
+  'E4.3+C3.5_1.5' (note.finger, '+' together, _beats for Hear only),
+  'C*' any C; hand = < split (default 60) left, step `hand` / `split`.
+  Store: teacherState.js is now `createTeacherStore(key)` (guitar = the
+  default store, exports unchanged) + `pianoTeacherStore`
+  ('dudestar-p-teacher-piano', personal + synced); logic
+  `teacher/pianoTeacher.js` (START_AT none / little / some ->
+  p0-keyboard / p1-reading / p2-scale-c, nextPianoLesson, pianoProgress,
+  pianoHomework, mastery = play on 2 days). UI `components/PianoTeacher/
+  PianoTeacher.jsx` (+ css; reuses Teacher.css tc-*, LessonPlayer's
+  exported ChecklistStep + MetroBox): first visit = hello card + "Where do
+  you start?" rows; home = hero next lesson (level · grade, ~min, step n,
+  Start / Continue), My progress -> the path by level, Today's practice
+  (homework, Practise opens the lesson at its play step); ••• path /
+  start level. Steps explain (keys + Hear) / checklist (+ metronome) /
+  quiz (staff picture, listen) / staff (StaffNotation + Hear) / play: the
+  next event lit on the Stage keys (green RH / blue LH) with finger
+  badges, wrong key = red flash; SCREEN KEYS exact (a chord's keys within
+  0.9 s); MIC = single notes via usePitchDetection (exact octave ±45 ¢,
+  twice, a repeated note must be struck again), notes together via
+  useMicChordDetector chroma (`chromaHit`: target pcs ≥ 55 % of the
+  chroma, each pc present; single note = top pc; 2 reads 120 ms apart).
+  App: `pianoTeacherStage` / `pianoTeacherNoteRef` -> stagePianoProps
+  (onNoteEvent), keyboard hidden outside a lesson; phones hide the piano
+  console in lessons (AppShell `.keys-only`, like Chords). Home piano
+  card primary = "Lesson: <next> · ~N min" once the student picked a
+  start (`kind: 'pianoLesson'`). No first-visit note on top of the hello
+  card (`intro.teacher.piano` = ''). Text `i18n/tips/pianoteacher.js`
+  (pt.*). Checks: pure (all notes parse, skills / homework steps valid,
+  every scale = its interval pattern, every LH / RH chord = C F G7 Am Dm E
+  G…); Playwright walked ALL 12 lessons with the screen keys, 1180 EN +
+  390 HE, no errors; fake mic (synthetic piano tones): Ode RH 15/15 in
+  11 s incl. repeated notes, C–G7–C chords 5/5, an F chord played instead
+  of C NOT accepted. NOT verified with a real piano; the USER reviews the
+  lessons. Mixed melody + chord steps via the mic are approximate (the
+  chroma, any octave) — the screen keys are exact.

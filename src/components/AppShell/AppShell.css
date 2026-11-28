@@ -472,7 +472,8 @@
 @media (max-width: 899px) {
   /* Piano chords on a phone: just the keys (the sound / volume console
      pushed the keyboard over the chord card; sound stays in Settings). */
-  .app-shell.no-tools .app-stage-anchor .piano-panel {
+  .app-shell.no-tools .app-stage-anchor .piano-panel,
+  .app-shell.keys-only .app-stage-anchor .piano-panel {
     display: none;
   }
 }

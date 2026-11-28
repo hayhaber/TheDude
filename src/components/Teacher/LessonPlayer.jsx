@@ -122,7 +122,7 @@ function TuneStep({ step, tx, onDone, done }) {
 }
 
 /** The metronome right in the step (the shared one — the tools button shows it running too). */
-function MetroBox({ bpm, metro, groove = null }) {
+export function MetroBox({ bpm, metro, groove = null }) {
   const { t } = useLanguage();
   const on = !!metro?.running && metro.bpm === bpm;
   // a step with a groove can play along with drums instead of the click
@@ -173,7 +173,7 @@ function MetroBox({ bpm, metro, groove = null }) {
   );
 }
 
-function ChecklistStep({ step, tx, ticks, setTicks, metro }) {
+export function ChecklistStep({ step, tx, ticks, setTicks, metro }) {
   const { t } = useLanguage();
   return (
     <>

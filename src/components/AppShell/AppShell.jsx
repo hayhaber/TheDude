@@ -163,7 +163,7 @@ export function AppShell({ activeSection, onSectionChange, onReselect, metronome
   const backSlots = useMemo(() => [stripSlot, barSlot], [stripSlot, barSlot]);
 
   return (
-    <div className={'app-shell' + (bare ? ' is-bare' : '') + (noTools ? ' no-tools' : '')}>
+    <div className={'app-shell' + (bare ? ' is-bare' : '') + (noTools ? ' no-tools' : '') + (activeSection === 'teacher' && instrument === 'piano' ? ' keys-only' : '')}>
       {/* Phone/tablet: the round Home button (back to the main menu), top-left. */}
       <HomeButton className="app-mobile-brand" onClick={() => onHome?.()} />
       {/* A screen's Back button lands here (beside Home) — see BackButton. */}

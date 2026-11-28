@@ -2243,7 +2243,6 @@ function App() {
     bassProfile,
     onBassProfileChange: setBassProfile,
     shortcuts,
-    syncTrainer: lickTrainer,
   };
 
   // The home screen's "Next lesson" pill (guitar students the Teacher knows).

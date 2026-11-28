@@ -4530,3 +4530,32 @@ no tools).
   fake Supabase: 4 missing shown (009 bucket, 012, 013, 016), all present
   = green, offline = "couldn't reach" after 10 s; error log 3 entries ->
   Clear; piano Theory staff renders with vexflow fetched on demand.
+- GUITARPRO FILES IN THE ACCOUNT (v1.0.289; user: "why is sync between
+  devices off?" — it was the OLD shared library (api/library.js + Vercel
+  Blob + a DUDESTAR_KEY typed per device), not the account sync; Claude
+  recommended folding it into the account, user: "yes"). NEW
+  `supabase/migrations/017_gp_imports.sql` (THE USER RUNS IT; bumps
+  `dudestar_schema()` to 17): table `gp_imports` (user_id + grp pk, name,
+  records jsonb = the import's records without the file, path, size,
+  deleted sticky; owner forced to auth.uid(); RLS own rows only; anon
+  none) + private bucket `gp` (<uid>/<group>.bin, 30 MB, own folder only).
+  Pure-ish `music/lickTrainer/accountLibrary.js`: `syncAccountLibrary`
+  (local records flagged `acct`; remote tombstone / vanished + acct =
+  deleted elsewhere -> dropped; local unflagged = uploaded; remote not
+  here = records + file downloaded), `uploadToAccount`,
+  `deleteFromAccount` (tombstone + file removed). useLickTrainer: status
+  off (signed out) / syncing / ok / offline / setup (017 missing) /
+  error; syncs at start, on return to the app and when a sign-in lands
+  (subscribeCloud); a device that still has the old DUDESTAR_KEY pulls
+  the old library once more (cloudLibrary.syncLibrary), its files go up
+  to the account, then the key is cleared. The Settings "Sync between
+  devices" block (LibraryBar) is GONE; GuitarPro shows one line only on a
+  problem (`gp.syncProblem` / `gp.syncSetup`). Server check lists 017.
+  api/library.js stays for that one-time move. Privacy page updated
+  (28 Nov). Checks: 017 twice on local Postgres + RLS (owner forced,
+  another user sees / changes nothing, deleted sticky, anon denied);
+  Playwright fake Supabase: A imports November Rain -> row + file, B (same
+  account) gets it in its file list, A deletes -> tombstone + file gone,
+  B drops it; old-key device -> the old library's file upserted to the
+  account and the key cleared; 017 missing -> the setup line; smoke test
+  28 + 28 screens, 0 problems.

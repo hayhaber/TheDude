@@ -22,7 +22,6 @@ import { InfoSwitchRow } from "./SwitchRow";
 import { ServerCheck } from "./ServerCheck";
 import { ErrorLogField } from "./ErrorLogField";
 import { getAudioInputSettings } from "../../audio/audioInputSettingsStore";
-import { LibraryBar } from "../LickTrainer/LickTrainer";
 import { createPortal } from "react-dom";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useInstrument } from "../../instruments/useInstrument";
@@ -300,7 +299,6 @@ export function SettingsBody({
   onBassProfileChange,
   shortcuts,
   // The Lick Trainer / GuitarPro state, for "Sync between devices".
-  syncTrainer = null,
   allSounds = false,
 }) {
   const { t, lang, setLang } = useLanguage();
@@ -619,14 +617,6 @@ export function SettingsBody({
               <ServerCheck />
               <h3 className="settings-drawer-subtitle">{t("errlog.title")}</h3>
               <ErrorLogField />
-              {syncTrainer && (
-                <>
-                  <h3 className="settings-drawer-subtitle">
-                    {t("lickTrainer.libTitle")}
-                  </h3>
-                  <LibraryBar trainer={syncTrainer} t={t} bare />
-                </>
-              )}
               <h3 className="settings-drawer-subtitle">
                 {t("settings.youtube")}
               </h3>

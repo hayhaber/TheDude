@@ -36,6 +36,7 @@ export const SCRIPTS = [
   { n: 14, file: '014_member_role_by_manager.sql', probe: (sb) => sb.rpc('set_member_role', { b: NIL, u: NIL, r: '' }) },
   // 015 can't be told apart from 014 without writing; 016 repeats it
   { n: 16, file: '016_schema_version.sql', probe: (sb) => sb.rpc('dudestar_schema'), also: [15] },
+  { n: 17, file: '017_gp_imports.sql', probe: [col('gp_imports', 'grp,records'), bucket('gp')] },
 ];
 
 const one = async (sb, probe) => {

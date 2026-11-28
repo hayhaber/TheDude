@@ -318,10 +318,9 @@ export function GuitarProView({ trainer, pianoProfile, bassProfile, onFindSongs,
         </p>
       )}
 
-      {/* Sync lives in Settings; here only a problem is mentioned. */}
-      {['bad-key', 'offline', 'error', 'too-big'].includes(trainer.library.status) && (
-        <p className="lt-warning lt-small">{t('gp.syncProblem')}</p>
-      )}
+      {/* Files follow the account; here only a problem is mentioned. */}
+      {['offline', 'error'].includes(trainer.library.status) && <p className="lt-warning lt-small">{t('gp.syncProblem')}</p>}
+      {trainer.library.status === 'setup' && <p className="lt-warning lt-small">{t('gp.syncSetup')}</p>}
 
       {trainer.error?.key === 'import' && !trainer.pendingImport && (
         <p className="lt-warning">{t('lickTrainer.error.import', { message: trainer.error.message })}</p>

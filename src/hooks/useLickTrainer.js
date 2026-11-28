@@ -26,7 +26,9 @@ import { identifyChord } from '../music/chordFromNotes';
 import { playReference, stopReference, preloadReference, referenceTracks, referenceScore, renderBacking } from '../audio/gpReferencePlayer';
 import { defaultMix } from '../music/lickTrainer/gpImport';
 import { getAudioInputSettings } from '../audio/audioInputSettingsStore';
-import { getLibraryKey, setLibraryKey, syncLibrary, uploadGroup, deleteGroup } from '../music/lickTrainer/cloudLibrary';
+import { getLibraryKey, setLibraryKey, syncLibrary } from '../music/lickTrainer/cloudLibrary';
+import { syncAccountLibrary, uploadToAccount, deleteFromAccount } from '../music/lickTrainer/accountLibrary';
+import { getLink } from '../cloud/cloudState';
 import { logPerf, loadPerf, onPerf } from '../coach/perfLog';
 import { fluentNps, GUITAR_SPEED_TOOLS } from '../coach/skillLevel';
 
@@ -299,50 +301,63 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
   // Licks imported in the app from Guitar Pro files (this device).
   const [userLicks, setUserLicks] = useState([]);
   const [pendingImport, setPendingImport] = useState(null); // { fileName, info, score }
-  // Shared library (all devices): 'off' (no key on this device) | 'syncing' |
-  // 'ok' | 'bad-key' | 'not-configured' | 'offline' | 'error'.
-  const [library, setLibrary] = useState(() => ({ status: getLibraryKey() ? 'syncing' : 'off' }));
+  // Imports follow the ACCOUNT (v1.0.289): 'off' (signed out = this device
+  // only) | 'syncing' | 'ok' | 'offline' | 'setup' (server script 017 not
+  // run) | 'error'. The old shared library (a DUDESTAR_KEY on this device)
+  // is read once more and its files move into the account.
+  const [library, setLibrary] = useState(() => ({ status: getLink() ? 'syncing' : 'off' }));
   const syncingRef = useRef(false);
   const sync = useCallback(async () => {
     if (syncingRef.current) return;
     syncingRef.current = true;
-    const local = await loadUserLicks();
-    setUserLicks(local.map(withDerived));
-    if (!getLibraryKey()) {
-      setLibrary({ status: 'off' });
-      syncingRef.current = false;
-      return;
-    }
-    setLibrary((l) => ({ ...l, status: 'syncing' }));
     try {
-      const merged = await syncLibrary(local);
+      let local = await loadUserLicks();
+      setUserLicks(local.map(withDerived));
+      if (getLibraryKey()) {
+        try {
+          local = await syncLibrary(local); // everything the old library holds, now local
+          setUserLicks(local.map(withDerived));
+          if (getLink()) setLibraryKey(''); // moved: the account carries them from here on
+        } catch {
+          /* old library unreachable: try again next time */
+        }
+      }
+      if (!getLink()) {
+        setLibrary({ status: 'off' });
+        return;
+      }
+      setLibrary((l) => ({ ...l, status: 'syncing' }));
+      const merged = await syncAccountLibrary(local);
       setUserLicks(merged.map(withDerived));
       setLibrary({ status: 'ok', count: new Set(merged.map((r) => r.importGroup ?? r.id)).size });
     } catch (err) {
-      if (err.code === 'bad-key') setLibraryKey('');
-      setLibrary({ status: err.code === 'bad-key' ? 'bad-key' : ['not-configured', 'offline'].includes(err.code) ? err.code : 'error' });
+      setLibrary({ status: ['signed-out'].includes(err?.code) ? 'off' : ['offline', 'setup'].includes(err?.code) ? err.code : 'error' });
     } finally {
       syncingRef.current = false;
     }
   }, []);
   useEffect(() => {
     sync();
-    // Pick up what was added/deleted on another device when coming back.
+    // Pick up what was added/deleted on another device when coming back,
+    // and everything once a sign-in lands.
     const onVisible = () => document.visibilityState === 'visible' && sync();
     document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    let linked = !!getLink();
+    let off = () => {};
+    import('../cloud/cloudState').then(({ subscribeCloud }) => {
+      off = subscribeCloud(() => {
+        const now = !!getLink();
+        if (now !== linked) {
+          linked = now;
+          sync();
+        }
+      });
+    });
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      off();
+    };
   }, [sync]);
-  const connectLibrary = useCallback(
-    (key) => {
-      setLibraryKey(key.trim());
-      sync();
-    },
-    [sync]
-  );
-  const disconnectLibrary = useCallback(() => {
-    setLibraryKey('');
-    setLibrary({ status: 'off' });
-  }, []);
   // The Arpeggio Builder's lick: arpeggios over the player's own progression.
   const [arpBuilt, setArpBuilt] = useState(() => {
     const v = readJson(ARP_KEY, null);
@@ -1409,11 +1424,11 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       const derived = raw.map(withDerived);
       setUserLicks((u) => [...u, ...derived]);
       setPendingImport(null);
-      // Into the shared library, so it's on every device.
-      if (getLibraryKey()) {
-        uploadGroup(raw[0].importGroup, raw)
+      // Into the account, so it's on every device.
+      if (getLink()) {
+        uploadToAccount(raw[0].importGroup, raw)
           .then(() => sync())
-          .catch((err) => setLibrary({ status: err.code === 'too-big' ? 'too-big' : err.code === 'offline' ? 'offline' : 'error' }));
+          .catch((err) => setLibrary({ status: ['offline', 'setup'].includes(err?.code) ? err.code : 'error' }));
       }
       if (saveAs === 'solo') {
         setMode('solos');
@@ -1438,22 +1453,20 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
       if (!target) return;
       const group = userLicks.filter((l) => l.importGroup === target.importGroup);
       const ids = group.map((l) => l.id);
-      // Remove it from the shared library first — otherwise the next sync
-      // would bring it back from the cloud.
-      if (group.some((l) => l.cloud)) {
+      // Remove it from the account first — otherwise the next sync would
+      // bring it back.
+      if (group.some((l) => l.acct)) {
         try {
-          await deleteGroup(target.importGroup);
+          await deleteFromAccount(target.importGroup);
         } catch (err) {
-          // Can't reach the library right now: keep it, or it would return.
-          if (err.code === 'offline' || err.code === 'storage') {
-            setLibrary({ status: err.code === 'offline' ? 'offline' : 'error' });
-            return;
-          }
+          // Can't reach the account right now: keep it, or it would return.
+          setLibrary({ status: err?.code === 'offline' ? 'offline' : 'error' });
+          return;
         }
       }
       await deleteUserLicks(ids);
       setUserLicks((u) => u.filter((l) => !ids.includes(l.id)));
-      if (getLibraryKey()) sync();
+      if (getLink()) sync();
       if (target.kind === 'solo') selectSolo(SOLOS[0]?.id ?? null);
       else selectLick(LICKS[0].id);
     },
@@ -1497,8 +1510,6 @@ export function useLickTrainer({ instrument = 'guitar' } = {}) {
     backingTracks,
     followPlayhead: setPlayheadBeat,
     library,
-    connectLibrary,
-    disconnectLibrary,
     syncLibrary: sync,
     genre,
     setGenre,

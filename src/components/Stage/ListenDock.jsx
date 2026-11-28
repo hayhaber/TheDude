@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { addListenHost, closeListen, listenNow, openListen, reportYt, setYtSender, subscribeListen, ytInfo } from '../../music/sheets/listenStore';
@@ -34,6 +34,86 @@ export function ListenDock() {
       html.style.removeProperty('--stage-dock-h');
     };
   }, [now?.n, !!now]); // eslint-disable-line react-hooks/exhaustive-deps
+  // v1.0.302 (user: "can the YouTube player be dragged around the
+  // screen?"): Picture-in-Picture style — drag it by its title bar, on
+  // release it glides to the nearest corner (top / bottom × left / right),
+  // kept per device. The iframe ignores the finger while dragging.
+  const [corner, setCorner] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('dudestar-listen-corner') || 'null');
+    } catch {
+      return null;
+    }
+  });
+  const [dragging, setDragging] = useState(false);
+  const flipRef = useRef(null);
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.toggle('listen-dock-top', corner?.y === 'top');
+    return () => html.classList.remove('listen-dock-top');
+  }, [corner]);
+  useLayoutEffect(() => {
+    const el = dockRef.current;
+    const from = flipRef.current;
+    if (!el || !from) return;
+    flipRef.current = null;
+    el.style.transition = 'none';
+    el.style.transform = '';
+    const to = el.getBoundingClientRect();
+    el.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px)`;
+    el.getBoundingClientRect(); // commit the start
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    el.style.transition = reduce ? 'none' : 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)';
+    el.style.transform = '';
+  }, [corner]);
+  const startDrag = (e) => {
+    if (e.button > 0 || e.target.closest('button, a')) return;
+    const el = dockRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    let moved = false;
+    el.setPointerCapture?.(e.pointerId);
+    el.style.transition = 'none';
+    const move = (ev) => {
+      const dx = ev.clientX - x0;
+      const dy = ev.clientY - y0;
+      if (!moved && Math.hypot(dx, dy) < 6) return;
+      if (!moved) {
+        moved = true;
+        setDragging(true);
+      }
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+    };
+    const up = () => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      setDragging(false);
+      if (!moved) return;
+      const r = el.getBoundingClientRect();
+      const next = {
+        x: r.left + r.width / 2 < window.innerWidth / 2 ? 'left' : 'right',
+        y: r.top + r.height / 2 < window.innerHeight / 2 ? 'top' : 'bottom',
+      };
+      flipRef.current = r;
+      try {
+        localStorage.setItem('dudestar-listen-corner', JSON.stringify(next));
+      } catch {
+        /* private mode */
+      }
+      if (next.x === corner?.x && next.y === corner?.y) {
+        // same corner: glide back
+        el.style.transition = 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)';
+        el.style.transform = '';
+        flipRef.current = null;
+      } else setCorner(next);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  };
   const emb = now ? embedOf(now.link) : null;
   const frameRef = useRef(null);
   const loadedRef = useRef(null); // the link the YouTube player holds
@@ -137,8 +217,15 @@ export function ListenDock() {
   if (!emb || !url) return null;
   const svc = serviceOf(url);
   return createPortal(
-    <div ref={dockRef} className={'stg-dock glass is-' + emb.kind + (mini ? ' is-mini' : '')} dir={lang === 'he' ? 'rtl' : 'ltr'} role="region" aria-label={t('stage.listen.player')}>
-      <div className="stg-dock-head">
+    <div
+      ref={dockRef}
+      className={'stg-dock glass is-' + emb.kind + (mini ? ' is-mini' : '') + (corner ? ' at-' + corner.y + ' at-' + corner.x : '') + (dragging ? ' is-dragging' : '')}
+      dir={lang === 'he' ? 'rtl' : 'ltr'}
+      role="region"
+      aria-label={t('stage.listen.player')}
+    >
+      <div className="stg-dock-head" onPointerDown={startDrag} title={t('stage.listen.drag')}>
+        <span className="stg-dock-grab" aria-hidden="true" />
         <span className="stg-dock-title" dir="auto">
           <strong>{now.name}</strong>
           <span>{t('stage.listen.svc.' + svc)}</span>

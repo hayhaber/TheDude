@@ -3149,3 +3149,46 @@ html .stage-perf .stage-key.is-text.is-danger { color: #ff6961; }
   -webkit-backdrop-filter: blur(24px) saturate(1.6);
   backdrop-filter: blur(24px) saturate(1.6);
 }
+
+/* v1.0.302 — the listening player moves like Picture in Picture: dragged
+   by its title bar (a grabber on top says so), it settles in the nearest
+   corner. Corners are physical (the screen's), chosen by the user. */
+.stg-dock { touch-action: none; }
+.stg-dock-head {
+  position: relative;
+  cursor: grab;
+  padding-top: 8px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.stg-dock-grab {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 36px;
+  height: 5px;
+  margin-left: -18px;
+  border-radius: 3px;
+  background: var(--fill-secondary, rgba(120, 120, 128, 0.3));
+}
+.stg-dock.is-dragging { cursor: grabbing; scale: 1.03; box-shadow: 0 26px 60px rgba(0, 0, 0, 0.3); }
+.stg-dock.is-dragging .stg-dock-head { cursor: grabbing; }
+.stg-dock.is-dragging iframe { pointer-events: none; }
+html .stg-dock.at-right { left: auto; right: max(12px, env(safe-area-inset-right)); }
+html .stg-dock.at-left { right: auto; left: max(12px, env(safe-area-inset-left)); }
+html .stg-dock.at-top { bottom: auto; top: calc(env(safe-area-inset-top) + 64px); }
+@media (max-width: 560px) {
+  /* full width when open: only top / bottom matter */
+  html .stg-dock.at-left:not(.is-mini),
+  html .stg-dock.at-right:not(.is-mini) {
+    left: 12px;
+    right: 12px;
+  }
+}
+/* the Performer's end card doesn't lift for a player at the top */
+html.has-stage-perf.has-listen-dock.listen-dock-top .stage-endcard {
+  bottom: calc(env(safe-area-inset-bottom) + 12px + var(--stage-bar-lift, 56px) + 20px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stg-dock.is-dragging { scale: none; }
+}

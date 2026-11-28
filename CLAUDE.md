@@ -4810,3 +4810,15 @@ no tools).
   sheet-colour background (iOS sheet nav bar over a scroll edge).
   Playwright 1180x700 + 390x760, 8 results: list has no own scroll, its
   foot visible, header stays; smoke 28 + 28.
+- DRAGGABLE PLAYER (v1.0.302; user: "can the YouTube player be dragged
+  around the screen?"): ListenDock moves like iOS Picture in Picture —
+  drag it by its title bar (grabber capsule on top, `.stg-dock-grab`;
+  keys in the bar still tap; the iframe ignores the finger while
+  dragging; lifted = scale 1.03 + deeper shadow), on release it glides
+  (FLIP, ease-ios 0.42 s) to the nearest of 4 PHYSICAL corners
+  (`.at-top|bottom.at-left|right`, top = safe area + 64 px), kept per
+  device in `dudestar-listen-corner`. Phones, open = full width, so only
+  top / bottom count. At the top, the Performer's end card no longer
+  lifts above it (`html.listen-dock-top`). Playwright (fake YouTube) 1180
+  + 390: drag bottom-right -> top-left, fold still works, corner kept
+  after reload; smoke 28 + 28.

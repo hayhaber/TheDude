@@ -4719,3 +4719,17 @@ no tools).
   "Finger numbers" (both), p0-c-position "One finger per key" (R) and
   "The left hand" (L); Hear on them runs at 72 BPM. Playwright 1180 EN +
   390 HE dark: badge 5-4-3-2-1 / 1-2-3-4-5 in step with keys 48…67.
+- FIND THE Cs = DIFFERENT KEYS (v1.0.296; user: "four taps on the same C
+  on the screen keys shouldn't count as four"): a `C*` event (any C) now
+  accepts only a key not used before in the run — PlayStep `usedAny`
+  (exact midi, from the screen keys / USB-MIDI and from the mic's pitch
+  detector, which knows the octave for single notes); a repeat = no
+  advance + an orange line "You already played C4 — find a C in another
+  part of the piano" (`pt.sameC`, `.pt-again`, 2.2 s); played Cs carry a
+  ✓ badge on the keys (fingerNumbers); Again resets. Mic octave caveat:
+  only the chord (chroma) path is octave-blind. USB MIDI keyboards already
+  feed the teacher (PianoKeyboard Web MIDI -> onNoteEvent) — Chrome / Edge
+  on a computer / Android only; no Web MIDI in Safari / any iOS browser,
+  and the console with the MIDI key is hidden in phone lessons
+  (`.keys-only`, < 900 px). Playwright 1180 EN + 390 HE: C4 x3 -> still
+  note 2 + message, C3 / C5 / C6 -> done.

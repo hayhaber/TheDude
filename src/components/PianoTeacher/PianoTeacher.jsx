@@ -246,6 +246,23 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
   const [at, setAt] = useState(0);
   const [done, setDone] = useState(false);
   const [wrong, setWrong] = useState(null);
+  // 'C*' steps ("find every C"): each must be a DIFFERENT key / octave —
+  // the screen keys and the pitch detector both know the exact key.
+  const [usedAny, setUsedAny] = useState([]);
+  const usedAnyRef = useRef([]);
+  usedAnyRef.current = usedAny;
+  const [again, setAgain] = useState(null); // a C already played
+  const againTimer = useRef(0);
+  const sameAgain = (ev, midi) => ev.notes.some((n) => n.any) && usedAnyRef.current.includes(midi);
+  const takeAny = (ev, midi) => {
+    if (ev.notes.some((n) => n.any)) setUsedAny((u) => [...u, midi]);
+    setAgain(null);
+  };
+  const sayAgain = (midi) => {
+    setAgain(midi);
+    clearTimeout(againTimer.current);
+    againTimer.current = setTimeout(() => setAgain(null), 2200);
+  };
   const atRef = useRef(0);
   atRef.current = at;
   const doneRef = useRef(false);
@@ -288,10 +305,13 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
     setStage({
       notes: [],
       playNotes: ev ? ev.notes.filter((n) => n.midi != null).map((n) => ({ midi: n.midi, hand: handOf(n) })) : [],
-      fingerNumbers: ev ? ev.notes.filter((n) => n.finger).map((n) => ({ midi: n.midi, finger: n.finger })) : [],
+      fingerNumbers: [
+        ...(ev ? ev.notes.filter((n) => n.finger).map((n) => ({ midi: n.midi, finger: n.finger })) : []),
+        ...usedAny.map((midi) => ({ midi, finger: '✓' })),
+      ],
       quizFeedbackKey: wrong != null ? { midi: wrong, correct: false } : null,
     });
-  }, [at, done, wrong, events, setStage, heardAt]);
+  }, [at, done, wrong, events, setStage, heardAt, usedAny]);
 
   // screen keys / MIDI: exact notes; keys of a chord pressed together
   const held = useRef(new Map());
@@ -312,18 +332,28 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
         wrongTimer.current = setTimeout(() => setWrong(null), 450);
         return;
       }
+      if (sameAgain(ev, e.midi)) return sayAgain(e.midi);
       const all = ev.notes.every((n) => {
         if (n.any) return true;
         const at0 = held.current.get(n.midi);
         return at0 != null && now - at0 < 900;
       });
-      if (all) advance('keys');
+      if (all) {
+        takeAny(ev, e.midi);
+        advance('keys');
+      }
     };
     return () => {
       noteRef.current = null;
     };
   }, [events, noteRef, advance]);
-  useEffect(() => () => clearTimeout(wrongTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(wrongTimer.current);
+      clearTimeout(againTimer.current);
+    },
+    []
+  );
 
   // mic, single notes (the guitar teacher's wait mode)
   const hits = useRef(0);
@@ -349,9 +379,15 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
       hits.current = 0;
       return;
     }
+    if (want.any && sameAgain(ev, n.midi)) {
+      hits.current = 0;
+      sayAgain(n.midi);
+      return;
+    }
     hits.current += 1;
     if (hits.current < 2) return;
     hits.current = 0;
+    takeAny(ev, n.midi);
     const nxt = events[at + 1]?.notes[0];
     if (nxt && (want.any ? nxt.any && nxt.pc === want.pc : nxt.midi === want.midi)) reattack.current = { need: true, minLevel: level };
     advance('mic');
@@ -403,6 +439,8 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
   const restart = () => {
     setDone(false);
     doneRef.current = false;
+    setUsedAny([]);
+    setAgain(null);
     setAt(0);
     atRef.current = 0;
   };
@@ -434,7 +472,13 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
           </button>
         )}
       </span>
-      <p className="tc-hint">{listening ? t('pt.hintMic') : t('pt.hint')}</p>
+      {again != null ? (
+        <p className="tc-hint pt-again" aria-live="polite">
+          {t('pt.sameC', { note: iso(noteName(again)) })}
+        </p>
+      ) : (
+        <p className="tc-hint">{listening ? t('pt.hintMic') : t('pt.hint')}</p>
+      )}
       {err && <p className="tc-error">{String(err)}</p>}
     </>
   );

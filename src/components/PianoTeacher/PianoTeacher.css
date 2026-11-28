@@ -104,3 +104,11 @@
     transition: none;
   }
 }
+
+/* v1.0.296 a C already played in "Find the Cs" */
+.pt-again {
+  color: #c93400;
+}
+:root[data-theme='dark'] .pt-again {
+  color: #ff9f0a;
+}

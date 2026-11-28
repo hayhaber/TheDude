@@ -27,3 +27,80 @@
 .pt-start .ph-row {
   min-height: 60px;
 }
+
+/* v1.0.295 the hands picture: fingers numbered, the sounding one lit */
+.pt-hands {
+  display: flex;
+  justify-content: center;
+  gap: clamp(12px, 6vw, 48px);
+  margin: 4px 0 14px;
+}
+.pt-hands-one {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.pt-hands-one figcaption {
+  font-size: var(--type-footnote, 13px);
+  color: var(--text-secondary);
+  text-align: center;
+}
+.pt-hand {
+  width: clamp(96px, 30vw, 132px);
+  height: auto;
+  --hand-skin: #ececf0;
+  --hand-rim: #c7c7cc;
+  --hand-on: color-mix(in srgb, var(--accent) 28%, #ffffff);
+}
+.pt-hand line {
+  stroke-linecap: round;
+}
+.pt-hand-rim line {
+  stroke: var(--hand-rim);
+}
+.pt-hand-rim rect {
+  fill: var(--hand-rim);
+}
+.pt-hand-skin line {
+  stroke: var(--hand-skin);
+  transition: stroke var(--dur-fast, 0.15s) var(--ease-ios, ease);
+}
+.pt-hand-skin line.is-on {
+  stroke: var(--hand-on);
+}
+.pt-hand-skin rect {
+  fill: var(--hand-skin);
+}
+.pt-hand-badge circle {
+  fill: #ffffff;
+  stroke: var(--hand-rim);
+  stroke-width: 1;
+  transition: fill var(--dur-fast, 0.15s) var(--ease-ios, ease);
+}
+.pt-hand-badge text {
+  font: 600 12px -apple-system, system-ui, sans-serif;
+  fill: var(--text);
+}
+.pt-hand-badge.is-on circle {
+  fill: var(--accent-fill);
+  stroke: var(--accent-fill);
+}
+.pt-hand-badge.is-on text {
+  fill: #ffffff;
+}
+:root[data-theme='dark'] .pt-hand {
+  --hand-skin: #3a3a3c;
+  --hand-rim: #545458;
+  --hand-on: color-mix(in srgb, var(--accent) 45%, #3a3a3c);
+}
+:root[data-theme='dark'] .pt-hand-badge circle {
+  fill: #1c1c1e;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-hand-skin line,
+  .pt-hand-badge circle {
+    transition: none;
+  }
+}

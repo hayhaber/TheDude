@@ -29,20 +29,130 @@ const iso = (s) => '⁦' + s + '⁩';
 // ---- sound ----------------------------------------------------------------------------
 
 let stopHear = null;
-function hear(events, bpm = 76) {
+let hearTimers = [];
+let hearCb = null;
+/** Play the events; onStep(i) as event i SOUNDS (-1 at the end / when cut). */
+function hear(events, bpm = 76, onStep = null) {
   try {
     if (typeof stopHear === 'function') stopHear();
   } catch {
     /* already stopped */
   }
+  hearTimers.forEach(clearTimeout);
+  hearTimers = [];
+  if (hearCb) hearCb(-1);
+  hearCb = onStep;
   const beat = 60 / bpm;
   const notes = [];
+  const lead = 0.06;
+  const ctx = getAudioContext();
+  const lag = (ctx.outputLatency || ctx.baseLatency || 0) + lead;
   let t = 0;
-  for (const ev of events) {
+  events.forEach((ev, i) => {
     for (const n of ev.notes) if (n.midi != null) notes.push({ midi: n.midi, start: t, dur: Math.max(0.3, ev.beats * beat * 0.95) });
+    if (onStep) hearTimers.push(setTimeout(() => onStep(i), (t + lag) * 1000));
     t += ev.beats * beat;
+  });
+  if (onStep)
+    hearTimers.push(
+      setTimeout(() => {
+        if (hearCb === onStep) hearCb = null;
+        onStep(-1);
+      }, (t + lag) * 1000 + 150)
+    );
+  stopHear = schedulePianoNotes(notes, ctx.currentTime + lead);
+}
+/** Cut a playing Hear (a step left / closed). */
+function stopHearing() {
+  try {
+    if (typeof stopHear === 'function') stopHear();
+  } catch {
+    /* ok */
   }
-  stopHear = schedulePianoNotes(notes, getAudioContext().currentTime + 0.06);
+  stopHear = null;
+  hearTimers.forEach(clearTimeout);
+  hearTimers = [];
+  if (hearCb) hearCb(-1);
+  hearCb = null;
+}
+
+/** [index of the event sounding now (-1 = none), play(events, bpm)] */
+function useHearing() {
+  const [now, setNow] = useState(-1);
+  const play = useCallback((events, bpm) => hear(events, bpm, setNow), []);
+  useEffect(
+    () => () => {
+      if (hearCb === setNow) stopHearing();
+    },
+    []
+  );
+  return [now, play];
+}
+
+/** The keyboard while event `ev` sounds: its keys lit, every finger number kept. */
+function hearStage(ev, all) {
+  return {
+    notes: [],
+    playNotes: ev.notes.filter((n) => n.midi != null).map((n) => ({ midi: n.midi, hand: handOf(n) })),
+    fingerNumbers: all?.fingerNumbers ?? ev.notes.filter((n) => n.finger).map((n) => ({ midi: n.midi, finger: n.finger })),
+  };
+}
+const activeFingers = (ev) => (ev ? ev.notes.filter((n) => n.finger).map((n) => ({ hand: n.hand === 'L' ? 'L' : 'R', finger: n.finger })) : []);
+
+// ---- the hands picture: fingers numbered 1–5, the sounding one lit -------------------
+// Seen from above, palms down: the thumbs point to each other (left hand on the
+// left). Only digits inside the SVG — the words are HTML (WebKit reverses
+// Hebrew in SVG <text>).
+const FINGERS_R = [
+  { f: 1, x1: 54, y1: 142, x2: 16, y2: 98, w: 24 },
+  { f: 2, x1: 58, y1: 108, x2: 56, y2: 34, w: 21 },
+  { f: 3, x1: 81, y1: 104, x2: 81, y2: 20, w: 21 },
+  { f: 4, x1: 104, y1: 108, x2: 106, y2: 30, w: 20 },
+  { f: 5, x1: 124, y1: 116, x2: 130, y2: 58, w: 18 },
+];
+function OneHand({ side, active }) {
+  const m = side === 'L' ? (x) => 150 - x : (x) => x;
+  const fs = FINGERS_R.map((d) => ({ ...d, x1: m(d.x1), x2: m(d.x2) }));
+  const on = (f) => active.some((a) => a.hand === side && a.finger === f);
+  const palmX = side === 'L' ? 150 - 38 - 92 : 38;
+  return (
+    <svg className="pt-hand" viewBox="0 0 150 180" aria-hidden="true">
+      <g className="pt-hand-rim">
+        {fs.map((d) => (
+          <line key={d.f} x1={d.x1} y1={d.y1} x2={d.x2} y2={d.y2} strokeWidth={d.w + 3} />
+        ))}
+        <rect x={palmX - 1.5} y={90.5} width={95} height={81} rx={25} />
+      </g>
+      <g className="pt-hand-skin">
+        {fs.map((d) => (
+          <line key={d.f} className={on(d.f) ? 'is-on' : ''} x1={d.x1} y1={d.y1} x2={d.x2} y2={d.y2} strokeWidth={d.w} />
+        ))}
+        <rect x={palmX} y={92} width={92} height={78} rx={24} />
+      </g>
+      {fs.map((d) => (
+        <g key={d.f} className={'pt-hand-badge' + (on(d.f) ? ' is-on' : '')}>
+          <circle cx={d.x2} cy={d.y2 + 4} r={10.5} />
+          <text x={d.x2} y={d.y2 + 8.5} textAnchor="middle">
+            {d.f}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+function HandsPicture({ hands = 'both', active = [] }) {
+  const { t } = useLanguage();
+  const show = hands === 'both' ? ['L', 'R'] : [hands];
+  return (
+    <div className="pt-hands" dir="ltr">
+      {show.map((side) => (
+        <figure key={side} className="pt-hands-one">
+          <OneHand side={side} active={active} />
+          <figcaption>{t(side === 'L' ? 'pt.hand.left' : 'pt.hand.right')}</figcaption>
+        </figure>
+      ))}
+    </div>
+  );
 }
 
 const handOf = (n) => (n.hand === 'L' ? 'left' : 'right');
@@ -144,6 +254,7 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
   const pitch = usePitchDetection();
   const chroma = useMicChordDetector();
   const listening = single ? pitch.isListening : chroma.isListening;
+  const [heardAt, playHear] = useHearing();
 
   const advance = useCallback(
     (by) => {
@@ -172,6 +283,7 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
 
   // the keyboard: the next event lit (green right hand / blue left), its fingers
   useEffect(() => {
+    if (heardAt >= 0 && events[heardAt]) return setStage(hearStage(events[heardAt]));
     const ev = done ? null : events[at];
     setStage({
       notes: [],
@@ -179,7 +291,7 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
       fingerNumbers: ev ? ev.notes.filter((n) => n.finger).map((n) => ({ midi: n.midi, finger: n.finger })) : [],
       quizFeedbackKey: wrong != null ? { midi: wrong, correct: false } : null,
     });
-  }, [at, done, wrong, events, setStage]);
+  }, [at, done, wrong, events, setStage, heardAt]);
 
   // screen keys / MIDI: exact notes; keys of a chord pressed together
   const held = useRef(new Map());
@@ -300,7 +412,7 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
   return (
     <>
       {step.text && <p className="tc-text">{tx(step.text)}</p>}
-      {step.staff && <Staff staff={step.staff} />}
+      {step.staff && <Staff staff={step.staff} highlight={heardAt >= 0 ? events[heardAt]?.notes[0]?.midi ?? null : null} />}
       <div className="pt-progress" aria-hidden="true">
         <span style={{ width: Math.round(((done ? events.length : at) / events.length) * 100) + '%' }} />
       </div>
@@ -313,7 +425,7 @@ function PlayStep({ step, tx, setStage, noteRef, onPass }) {
         <button type="button" className={'tc-btn' + (listening ? '' : ' is-primary')} onClick={listen}>
           {listening ? t('teacher.step.stop') : t('pt.listen')}
         </button>
-        <button type="button" className="tc-btn" onClick={() => hear(events, step.bpm ?? 76)}>
+        <button type="button" className="tc-btn" onClick={() => playHear(events, step.bpm ?? 76)}>
           {t('teacher.step.hear')}
         </button>
         {(done || at > 0) && (
@@ -373,12 +485,18 @@ function LessonPlayer({ lesson, startAt = null, onClose, setStage, noteRef, metr
   const [picked, setPicked] = useState(null);
   const step = lesson.steps[i];
   const topRef = useRef(null);
+  const [heardAt, playHear] = useHearing();
+  const stepEvents = useMemo(() => {
+    const src = step.keys ?? step.staff?.notes;
+    return src && step.kind !== 'play' ? parseEvents(src, { hand: step.hand, split: step.split }) : [];
+  }, [step]);
 
   useEffect(() => {
     preparePiano();
   }, []);
   useEffect(() => {
     reachStep(lesson.id, i);
+    stopHearing();
     setTicks({});
     setPicked(null);
     topRef.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
@@ -389,8 +507,10 @@ function LessonPlayer({ lesson, startAt = null, onClose, setStage, noteRef, metr
     if (finished) return setStage(null);
     if (step.kind === 'play') return;
     if (step.kind === 'quiz' && !step.listen) return setStage(null);
-    setStage(keysStage(step.keys ?? step.staff?.notes, { hand: step.hand, split: step.split }));
-  }, [finished, step, setStage]);
+    const all = keysStage(step.keys ?? step.staff?.notes, { hand: step.hand, split: step.split });
+    if (heardAt >= 0 && stepEvents[heardAt]) return setStage(hearStage(stepEvents[heardAt], all));
+    setStage(all);
+  }, [finished, step, setStage, heardAt, stepEvents]);
 
   const pass = (id) => pianoSkillById(id) && recordPass(id);
   const canNext = step.kind === 'checklist' ? step.items.every((_, k) => ticks[k]) : step.kind === 'quiz' ? picked === step.answer : true;
@@ -440,10 +560,11 @@ function LessonPlayer({ lesson, startAt = null, onClose, setStage, noteRef, metr
         <h2>{tx(step.title)}</h2>
         {step.kind === 'explain' && (
           <>
+            {step.visual === 'hands' && <HandsPicture hands={step.hands} active={activeFingers(heardAt >= 0 ? stepEvents[heardAt] : null)} />}
             <p className="tc-text">{tx(step.text)}</p>
             {step.keys && (
               <span className="tc-actions">
-                <button type="button" className="tc-btn" onClick={() => hear(parseEvents(step.keys), 96)}>
+                <button type="button" className="tc-btn" onClick={() => playHear(stepEvents, step.visual === 'hands' ? 72 : 96)}>
                   {t('teacher.step.hear')}
                 </button>
               </span>
@@ -453,9 +574,9 @@ function LessonPlayer({ lesson, startAt = null, onClose, setStage, noteRef, metr
         {step.kind === 'staff' && (
           <>
             <p className="tc-text">{tx(step.text)}</p>
-            <Staff staff={step.staff} />
+            <Staff staff={step.staff} highlight={heardAt >= 0 ? stepEvents[heardAt]?.notes[0]?.midi ?? null : null} />
             <span className="tc-actions">
-              <button type="button" className="tc-btn" onClick={() => hear(parseEvents(step.staff.notes), 72)}>
+              <button type="button" className="tc-btn" onClick={() => playHear(stepEvents, 72)}>
                 {t('teacher.step.hear')}
               </button>
             </span>

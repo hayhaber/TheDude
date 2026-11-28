@@ -154,10 +154,11 @@ const lessonKeyboard = {
     {
       kind: 'explain',
       title: L('Finger numbers', 'מספרי האצבעות'),
+      visual: 'hands',
       keys: 'C3.5 D3.4 E3.3 F3.2 G3.1 C4.1 D4.2 E4.3 F4.4 G4.5',
       text: L(
-        'Pianists number the fingers the same way in both hands: thumb 1, index 2, middle 3, ring 4, little finger 5. Music shows these numbers above the notes. On the keyboard below, both hands lie ready: the thumbs point to each other, so the left hand’s 5 is on the lowest note.',
-        'פסנתרנים ממספרים את האצבעות באותה צורה בשתי הידיים: אגודל 1, אצבע מורה 2, אמה 3, קמיצה 4, זרת 5. בתווים המספרים האלה כתובים מעל התווים. במקלדת למטה שתי הידיים מוכנות: האגודלים פונים זה אל זה, ולכן ה־5 של יד שמאל נמצא על הצליל הנמוך ביותר.'
+        'Pianists number the fingers the same way in both hands: thumb 1, index 2, middle 3, ring 4, little finger 5. Music shows these numbers above the notes. On the keyboard below, both hands lie ready: the thumbs point to each other, so the left hand’s 5 is on the lowest note. Tap Hear: each key lights as it sounds, and its finger lights in the picture.',
+        'פסנתרנים ממספרים את האצבעות באותה צורה בשתי הידיים: אגודל 1, אצבע מורה 2, אמה 3, קמיצה 4, זרת 5. בתווים המספרים האלה כתובים מעל התווים. במקלדת למטה שתי הידיים מוכנות: האגודלים פונים זה אל זה, ולכן ה־5 של יד שמאל נמצא על הצליל הנמוך ביותר. הקש „שמע”: כל קליד נדלק כשהוא נשמע, והאצבע שלו נדלקת בתמונה.'
       ),
     },
     {
@@ -223,6 +224,8 @@ const lessonCPosition = {
     {
       kind: 'explain',
       title: L('One finger per key', 'אצבע לכל קליד'),
+      visual: 'hands',
+      hands: 'R',
       keys: 'C4.1 D4.2 E4.3 F4.4 G4.5',
       text: L(
         'In C position the right-hand thumb (1) sits on middle C and each finger takes the next white key: C D E F G = fingers 1 2 3 4 5. The hand does not move — the fingers do the work.',
@@ -239,6 +242,8 @@ const lessonCPosition = {
     {
       kind: 'explain',
       title: L('The left hand', 'יד שמאל'),
+      visual: 'hands',
+      hands: 'L',
       keys: 'C3.5 D3.4 E3.3 F3.2 G3.1',
       text: L(
         'The left hand mirrors it, one octave lower: little finger (5) on the C below middle C, then D E F G with 4 3 2 1 — the thumb ends on G.',

@@ -4702,3 +4702,20 @@ no tools).
   of C NOT accepted. NOT verified with a real piano; the USER reviews the
   lessons. Mixed melody + chord steps via the mic are approximate (the
   chroma, any octave) — the screen keys are exact.
+- HEAR IN SYNC + HANDS PICTURE (v1.0.295; user: "on the finger-numbers
+  card, light the key that sounds while Hear plays; maybe a picture of
+  the hands with a number by each finger?"): PianoTeacher `hear(events,
+  bpm, onStep)` calls onStep(i) as event i SOUNDS (timers from the audio
+  start + output latency; -1 at the end or when cut; a new Hear cuts the
+  last; leaving a step stops it). `useHearing()` = [index, play]. EVERY
+  piano-teacher Hear (explain / staff / play steps): while hearing, the
+  keyboard lights only the sounding key(s) (green RH / blue LH) with all
+  finger numbers kept, the staff note is highlighted; after, back to the
+  step's own keys / next target. `HandsPicture` (palms down, thumbs to
+  each other, left hand on the left — matches the keys; dir ltr; drawn
+  fingers + palm, numbered badges = digits only in the SVG, captions in
+  HTML): the sounding finger lights (accent tint + filled badge); dark
+  variant. Steps with `visual: 'hands'` (+ `hands: 'R' | 'L'`): p0
+  "Finger numbers" (both), p0-c-position "One finger per key" (R) and
+  "The left hand" (L); Hear on them runs at 72 BPM. Playwright 1180 EN +
+  390 HE dark: badge 5-4-3-2-1 / 1-2-3-4-5 in step with keys 48…67.

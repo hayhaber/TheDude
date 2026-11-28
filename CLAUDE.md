@@ -4801,3 +4801,12 @@ no tools).
   site). The screenshot becomes the chart; words from it only once OCR is
   on (ANTHROPIC_API_KEY). Playwright 390 + 1180: UG / Tab4u URLs, menu
   item opens a tab; smoke 28 + 28.
+- v1.0.301 (user, computer screenshot: the New Song sheet's search
+  results were cut at the bottom — two nested scrollbars): Band sheets
+  have ONE scroller, the sheet itself (`.stg-sheet > *` never shrink; in a
+  sheet `.stg-ss-list` has no max-height / own scroll); SongSearchField
+  scrolls its results into view when they open (`scrollIntoView nearest`);
+  the sheet's Cancel · title · Add row is sticky at the top with a blurred
+  sheet-colour background (iOS sheet nav bar over a scroll edge).
+  Playwright 1180x700 + 390x760, 8 results: list has no own scroll, its
+  foot visible, header stays; smoke 28 + 28.

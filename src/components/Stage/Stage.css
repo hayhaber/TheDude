@@ -3124,3 +3124,28 @@ html .stage-perf .stage-key.is-text.is-danger { color: #ff6961; }
   font-size: 15px;
   text-decoration: none;
 }
+
+/* v1.0.301 (user: the New Song sheet's search results were cut at the
+   bottom): ONE scroller — the sheet. Its parts never shrink, the results
+   list has no scroller of its own (two nested scrollbars, the last rows
+   hidden under the sheet's edge) and keeps clear of the sheet's foot. */
+.stg-sheet > * {
+  flex-shrink: 0;
+}
+.stg-sheet .stg-ss-list {
+  max-height: none;
+  overflow: visible;
+  scroll-margin-bottom: 16px;
+}
+/* the sheet's Cancel · title · Add row stays at the top while the form
+   scrolls under it (iOS sheet navigation bar = a scroll edge) */
+.stg-sheet > .stg-sheet-head {
+  position: sticky;
+  top: -14px;
+  z-index: 3;
+  margin: -14px -16px 0;
+  padding: 14px 16px 6px;
+  background: var(--glass-sheet, var(--glass-bg));
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+}

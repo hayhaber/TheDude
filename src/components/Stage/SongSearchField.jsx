@@ -39,6 +39,14 @@ export function SongSearchField({ label, value, onChange, onPick, placeholder, a
     return () => clearTimeout(id);
   }, [value, lang]);
 
+  // v1.0.301: the results open under the field — bring all of them into
+  // the sheet's view (the sheet scrolls as one; the list has no scroller)
+  const listRef = useRef(null);
+  const shown = open && list.length > 0;
+  useEffect(() => {
+    if (shown) listRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [shown, list]);
+
   const pick = (s) => {
     typed.current = false;
     setOpen(false);
@@ -75,7 +83,7 @@ export function SongSearchField({ label, value, onChange, onPick, placeholder, a
       </label>
       {busy && !list.length && <p className="stg-ss-note">{t('stage.ss.searching')}</p>}
       {open && list.length > 0 && (
-        <ul className="stg-ss-list" role="listbox" aria-label={t('stage.ss.title')}>
+        <ul ref={listRef} className="stg-ss-list" role="listbox" aria-label={t('stage.ss.title')}>
           {list.map((s) => (
             <li key={s.title + '|' + s.artist}>
               <button type="button" className="stg-ss-row" role="option" aria-selected="false" onClick={() => pick(s)}>

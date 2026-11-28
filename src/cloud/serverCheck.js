@@ -17,6 +17,12 @@ function missing(error) {
 const col = (table, cols) => (sb) => sb.from(table).select(cols).limit(0);
 const bucket = (name) => (sb) => sb.storage.from(name).list('', { limit: 1 });
 
+const atLeast = (v) => async (sb) => {
+  const r = await sb.rpc('dudestar_schema');
+  if (r.error) return r;
+  return Number(r.data) >= v ? {} : { error: { code: 'PGRST202', message: 'older server version' } };
+};
+
 // what each script adds (keys 'srv.m.<n>' name the feature it opens)
 export const SCRIPTS = [
   { n: 1, file: '001_user_kv.sql', probe: col('user_kv', 'key') },
@@ -37,6 +43,8 @@ export const SCRIPTS = [
   // 015 can't be told apart from 014 without writing; 016 repeats it
   { n: 16, file: '016_schema_version.sql', probe: (sb) => sb.rpc('dudestar_schema'), also: [15] },
   { n: 17, file: '017_gp_imports.sql', probe: [col('gp_imports', 'grp,records'), bucket('gp')] },
+  // from 018 on: the version function says which ran (policies can't be read)
+  { n: 18, file: '018_my_takes.sql', probe: atLeast(18) },
 ];
 
 const netError = (e) => e?.name === 'TypeError' || /fetch|network|load failed|timed? ?out/i.test(e?.message || '');

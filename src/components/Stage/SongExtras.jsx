@@ -2,8 +2,8 @@
 // the song's page (StageView) — and the Performer's record key.
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { addNote, canDelete, notesOf, notesReady, updateNote, useNotesVersion } from '../../music/sheets/songNotes';
-import { cacheTake, deleteTake, isSending, listTakes, onRehearsal, onTakesChange, rehearsalElapsed, rehearsalState, startRehearsal, stopRehearsal, takeAudio } from '../../audio/rehearsal';
-import { deleteBandTake, downloadBandTake, getChartCloud, signedIn, subscribeChartCloud } from '../../music/sheets/chartCloud';
+import { deleteTake, isSending, listTakes, onRehearsal, onTakesChange, rehearsalElapsed, rehearsalState, startRehearsal, stopRehearsal, takeAudio } from '../../audio/rehearsal';
+import { deleteBandTake, downloadBandTake, getChartCloud, signedIn, subscribeChartCloud, takeUrl } from '../../music/sheets/chartCloud';
 import { fmtDur } from '../../music/sheets/setlists';
 import { getLink } from '../../cloud/cloudState';
 import { MoreMenu } from '../MoreMenu/MoreMenu';
@@ -209,16 +209,17 @@ export function SongTakes({ song, band, t, lang }) {
     },
     []
   );
-  const shared = !!bandId && signedIn() && cloud.takesOk;
-  const rows = shared ? cloud.takes.filter((x) => x.chart === song.id) : [];
+  // every take lives in the cloud (v1.0.291): a band song's for the band, my
+  // own song's for my account (018); this device only holds takes not up yet
+  const inCloud = signedIn() && cloud.takesOk && (bandId ? true : cloud.myTakesOk !== false);
+  const rows = signedIn() && cloud.takesOk ? cloud.takes.filter((x) => x.chart === song.id && (bandId ? x.band === bandId : !x.band)) : [];
   const rowIds = new Set(rows.map((r) => r.id));
   const localById = new Map((local ?? []).map((x) => [x.id, x]));
-  // mine not up yet + (not shared) everything here; a shared take deleted by
-  // the band is gone from the cloud rows and so from here
-  const pending = (local ?? []).filter((x) => !rowIds.has(x.id) && !(shared && x.cloud));
+  // a copy here of a take that is up (older versions kept one) isn't listed twice
+  const pending = (local ?? []).filter((x) => !rowIds.has(x.id) && !x.cloud);
   const items = [
     ...rows.map((r) => ({ ...r, shared: true, here: localById.has(r.id) })),
-    ...pending.map((x) => ({ ...x, chart: x.song, shared: false, here: true, waiting: !!(bandId && !x.cloud) })),
+    ...pending.map((x) => ({ ...x, chart: x.song, shared: false, here: true, waiting: true })),
   ].sort((x, y) => y.at - x.at);
   // number per day, oldest first
   const num = new Map();
@@ -232,13 +233,13 @@ export function SongTakes({ song, band, t, lang }) {
     player?.pause();
     setPlaying(null);
   };
+  // the audio for sharing (in memory only)
   const blobOf = async (it) => {
     let blob = it.here ? await takeAudio(it.id) : null;
     if (!blob && it.shared) {
       setLoading(it.id);
       try {
         blob = await downloadBandTake(it.path);
-        cacheTake(it, blob);
       } catch {
         blob = null;
       } finally {
@@ -247,14 +248,32 @@ export function SongTakes({ song, band, t, lang }) {
     }
     return blob;
   };
+  // a take that is up plays straight from the cloud — nothing is kept here
   const play = async (it) => {
     if (playing === it.id) return stopPlay();
     player?.pause();
-    const blob = await blobOf(it);
-    if (!blob) return;
-    if (playerUrl) URL.revokeObjectURL(playerUrl);
-    playerUrl = URL.createObjectURL(blob);
-    player = new Audio(playerUrl);
+    let src = null;
+    if (it.here) {
+      const blob = await takeAudio(it.id);
+      if (blob) {
+        if (playerUrl) URL.revokeObjectURL(playerUrl);
+        playerUrl = URL.createObjectURL(blob);
+        src = playerUrl;
+      }
+    }
+    if (!src && it.shared) {
+      setLoading(it.id);
+      try {
+        src = await takeUrl(it.path);
+      } catch {
+        src = null;
+      } finally {
+        setLoading(null);
+      }
+    }
+    if (!src) return;
+    player = new Audio(src);
+    player.preload = 'auto';
     player.ontimeupdate = () => setPos(player.duration ? player.currentTime / player.duration : 0);
     player.onended = () => setPlaying(null);
     setPos(0);
@@ -285,7 +304,7 @@ export function SongTakes({ song, band, t, lang }) {
     if (it.shared) deleteBandTake(it).catch(() => {});
     if (it.here) deleteTake(it.id);
   };
-  const mayDelete = (it) => !it.shared || it.by === uid || (band && band.owner === uid);
+  const mayDelete = (it) => !it.shared || !it.band || it.by === uid || (band && band.owner === uid);
   const here = rh.on && rh.song === song.id;
   const elsewhere = rh.on && !here;
   const canShare = typeof navigator !== 'undefined' && !!navigator.share;
@@ -308,8 +327,16 @@ export function SongTakes({ song, band, t, lang }) {
           </button>
         )}
         {items.map((it) => {
-          const who = it.shared ? (it.by && it.by === uid ? t('stage.nt.you') : it.byName || t('stage.band.someone')) : '';
-          const state = it.waiting ? (isSending(it.id) ? t('stage.rh.uploading') : offline || !signedIn() ? t('stage.rh.later') : t('stage.rh.uploading')) : '';
+          const who = it.shared && it.band ? (it.by && it.by === uid ? t('stage.nt.you') : it.byName || t('stage.band.someone')) : '';
+          const state = !it.waiting
+            ? ''
+            : !signedIn()
+              ? t('stage.rh.signIn')
+              : !inCloud
+                ? t('stage.rh.onDevice')
+                : isSending(it.id) || !offline
+                  ? t(bandId ? 'stage.rh.uploading' : 'stage.rh.uploadingMine')
+                  : t(bandId ? 'stage.rh.later' : 'stage.rh.laterMine');
           return (
             <div key={it.id} className={'stg-row stg-take' + (playing === it.id ? ' is-playing' : '')}>
               <span className="ph-row stg-row-main">
@@ -350,13 +377,13 @@ export function SongTakes({ song, band, t, lang }) {
                   </button>
                 )}
                 {mayDelete(it) &&
-                  (it.shared && sure !== it.id ? (
+                  (it.shared && it.band && sure !== it.id ? (
                     <button type="button" className="more-menu-item is-danger" data-keep="1" onClick={() => setSure(it.id)}>
                       {t('stage.rh.deleteAll')}
                     </button>
                   ) : (
                     <button type="button" className="more-menu-item is-danger" onClick={() => remove(it)}>
-                      {it.shared ? t('stage.deleteSure') : t('stage.rh.delete')}
+                      {it.shared && it.band ? t('stage.deleteSure') : t('stage.rh.delete')}
                     </button>
                   ))}
               </MoreMenu>
@@ -374,7 +401,8 @@ export function SongTakes({ song, band, t, lang }) {
           ? t('stage.rh.denied')
           : rh.error === 'failed'
             ? t('stage.rh.failed')
-            : (items.length ? '' : t('stage.rh.empty') + ' ') + (bandId ? (shared ? t('stage.rh.band') : signedIn() ? t('stage.rh.setup') : t('stage.rh.local')) : t('stage.rh.local'))}
+            : (items.length ? '' : t('stage.rh.empty') + ' ') +
+              (!signedIn() ? t('stage.rh.local') : !inCloud ? t(bandId ? 'stage.rh.setup' : 'stage.rh.setupMine') : t(bandId ? 'stage.rh.band' : 'stage.rh.mine'))}
       </p>
     </>
   );

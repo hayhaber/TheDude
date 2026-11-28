@@ -4572,3 +4572,27 @@ no tools).
   numbers, not "missing"). Fake Supabase: 1.2 s per request -> "Up to
   date" (before: timeout), one table reset -> "couldn't check 012",
   all aborted -> no internet.
+- REHEARSAL TAKES LIVE IN THE CLOUD (v1.0.291; user: "a rehearsal
+  recording must reach every member, and there's no reason for it to sit
+  on the device — it only takes space"). Every take goes up: a band
+  song's to the band (009), a take of MY OWN song to my account — NEW
+  `supabase/migrations/018_my_takes.sql` (THE USER RUNS IT; bumps
+  `dudestar_schema()` to 18): song_takes.band_id may be null = mine
+  (read / add / change only by_user = me, only on a chart of mine, path
+  `u/<me>/…`), bucket `takes` gets my own folder `u/<uid>/<song>/<take>`.
+  IndexedDB holds a take only until it is up, then it is DELETED
+  (rehearsal.js sendUp -> chartCloud `uploadTake(rec, band|null)`, audio
+  first then the row); `retryUploads` (every Band sync) sends what waits
+  and drops copies older versions kept (`cloud: true`, the old
+  cacheTake — gone). Playing a take that is up = a signed URL streamed by
+  <audio> (`takeUrl`, 1 h), nothing saved; Share downloads to memory
+  only. Before 018 (sync reads `dudestar_schema`, state `myTakesOk`) a
+  take of my own song stays here with "On this device for now" + the
+  setup footnote; signed out = "sign in to keep it in the cloud". Server
+  check lists 018 (`atLeast(18)` probe). Privacy page + account intro
+  updated. Checked: 018 on local Postgres 16 twice + RLS (mine add /
+  read; another user sees / adds / deletes nothing, wrong folder refused,
+  anon denied); fake Supabase + fake mic: A records 4.5 s on a words
+  song -> MP3 in u/u1/…, row band null, nothing left in IndexedDB, plays
+  via a signed URL; B (same account) lists it, deletes it -> tombstone +
+  file removed; version 17 -> the take waits here with the setup line.

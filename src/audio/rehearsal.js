@@ -3,15 +3,18 @@
 // on the song that was playing and opens the next one at once (the mic stays
 // open between them, so nothing is lost but a few milliseconds).
 // Takes are MP3 (lamejs, 96 kbps mono — a 4-minute song ≈ 3 MB; WAV would be
-// 23 MB) in IndexedDB. A take of a BAND song also goes up to the band
-// (v1.0.245, migration 009) so every member can listen afterwards; a take
-// that couldn't go up (offline) is sent with the next sync (retryUploads).
+// 23 MB). Every take goes to the cloud (v1.0.291): a BAND song's take to the
+// band (migration 009) so every member can listen; a take of my own song to
+// my account (migration 018). IndexedDB only holds a take until it is up —
+// then the copy here is deleted (nothing sits on the phone); offline / signed
+// out it waits here and is sent with the next sync (retryUploads). Listening
+// streams from the cloud.
 import { createLiveContext, openLiveInput } from './amp/liveInput';
 import { createCapture, computePeaks, encodeWav } from './recorder';
 import { encodeMp3 } from './studio/mp3';
 import { activeProfile } from '../profile/profileStorage';
 import { getSheet } from '../music/sheets/sheetStore';
-import { signedIn, uploadBandTake } from '../music/sheets/chartCloud';
+import { signedIn, uploadTake } from '../music/sheets/chartCloud';
 
 const IS_IOS =
   typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
@@ -222,7 +225,7 @@ async function save(song, res) {
       profileId: profileId(),
     };
     await putTake(rec);
-    if (band) sendUp(rec);
+    sendUp(rec);
   } catch {
     setSt({ error: 'save' });
   } finally {
@@ -230,16 +233,17 @@ async function save(song, res) {
   }
 }
 
-// ---- band takes: up to the band, down to listen ------------------------------------
+// ---- up to the cloud; the copy here goes once it is up ---------------------------
 
 const sending = new Set();
 async function sendUp(rec) {
   if (sending.has(rec.id) || !signedIn()) return;
   sending.add(rec.id);
+  told();
   try {
-    if (await uploadBandTake(rec, rec.band)) await putTake({ ...rec, cloud: true });
+    if (await uploadTake(rec, rec.band || null)) await deleteTake(rec.id);
   } catch {
-    /* offline / not set up: the next sync tries again */
+    /* offline / not set up / its song not up yet: the next sync tries again */
   } finally {
     sending.delete(rec.id);
     told();
@@ -247,23 +251,19 @@ async function sendUp(rec) {
 }
 export const isSending = (id) => sending.has(id);
 
-/** Band takes recorded here that haven't gone up yet: send them now. */
+/** Takes still on this device: send them up now; drop copies already in the cloud. */
 export async function retryUploads() {
   if (!signedIn()) return;
   try {
     const d = await db();
     const all = await done(d.transaction('takes').objectStore('takes').getAll());
-    for (const rec of all) if (rec.band && !rec.cloud && rec.blob) await sendUp(rec);
+    const me = profileId();
+    for (const rec of all) {
+      if (rec.profileId && rec.profileId !== me) continue; // another profile's account
+      if (rec.cloud) await deleteTake(rec.id); // an older version kept a copy of what is up
+      else if (rec.blob) await sendUp(rec);
+    }
   } catch {
     /* next time */
-  }
-}
-
-/** Keep a band take downloaded to listen to on this device (offline later). */
-export async function cacheTake(t, blob) {
-  try {
-    await putTake({ id: t.id, song: t.chart, name: '', at: t.at, duration: t.duration, peaks: t.peaks, blob, band: t.band, cloud: true, profileId: profileId() });
-  } catch {
-    /* quota */
   }
 }

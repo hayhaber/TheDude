@@ -19,7 +19,7 @@ const CACHE = (uid) => `dudestar-stage-cloud:${uid}`; // device
 
 // ---- store -----------------------------------------------------------------
 
-let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, notes: [], notesOk: true, takes: [], takesOk: true, ledger: [], kitties: [], kittyOk: true, lastSync: null };
+let state = { status: 'off', error: null, bands: [], setlists: [], suggestions: [], suggestReady: true, ready: [], readyOk: true, notes: [], notesOk: true, takes: [], takesOk: true, myTakesOk: null, ledger: [], kitties: [], kittyOk: true, lastSync: null };
 const subs = new Set();
 function set(patch) {
   state = { ...state, ...patch };
@@ -396,6 +396,9 @@ export async function syncWith(sb, uid, local) {
   const tk = await sb.from('song_takes').select('id,band_id,chart_id,by_user,by_name,path,duration,peaks,size,deleted,created_at');
   if (tk.error && !missingTable(tk.error)) throw tk.error;
   const takes = tk.error ? [] : tk.data.filter((x) => !x.deleted).map(takeOf);
+  // takes of my own songs in the cloud need 018 (the server says its version)
+  const ver = await sb.rpc('dudestar_schema');
+  const myTakesOk = !ver.error && Number(ver.data) >= 18;
   // 8) the bands' kitty (migration 012; before it: not ready)
   const [lg, kt] = await Promise.all([
     sb.from('band_ledger').select('id,band_id,kind,amount,member,round_id,note,who,at,by_user,by_name,deleted,created_at'),
@@ -404,7 +407,7 @@ export async function syncWith(sb, uid, local) {
   if (lg.error && !missingTable(lg.error)) throw lg.error;
   const ledger = lg.error ? [] : lg.data.map(ledgerOf);
   const kitties = kt.error ? [] : kt.data.map((x) => ({ band: x.band_id, treasurer: x.treasurer || null, currency: x.currency || 'ILS' }));
-  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error, notes, notesOk: !sn.error, takes, takesOk: !tk.error, ledger, kitties, kittyOk: !lg.error };
+  return { bands, setlists, suggestions: suggestions ?? [], suggestReady: !sg.error, ready, readyOk: !rd.error, notes, notesOk: !sn.error, takes, takesOk: !tk.error, myTakesOk, ledger, kitties, kittyOk: !lg.error };
 }
 
 const LOCAL = { listSheets, getSheet, patchSheet, putSheet, deleteSheet, sheetPrefs, setSheetPrefs };
@@ -925,28 +928,49 @@ export async function setTreasurer(band, user) {
 
 const TAKES = 'takes';
 
-/** Send one take up. rec = {id, song, at, duration, peaks, blob}. */
-export async function uploadBandTake(rec, band) {
-  if (!signedIn() || !state.takesOk) return false;
+/**
+ * Send one take up. rec = {id, song, at, duration, peaks, blob}. A band song's
+ * take goes to the band (b/<band>/…, migration 009); a take of my own song to
+ * my own folder (u/<me>/…, migration 018) — only I see it, on every device.
+ */
+export async function uploadTake(rec, band) {
+  if (!signedIn() || !state.takesOk || (!band && state.myTakesOk === false)) return false;
+  const uid = getLink()?.userId;
+  if (!band && !uid) return false;
   const sb = await client();
   const ext = rec.blob.type === 'audio/mpeg' ? 'mp3' : 'wav';
-  const path = `b/${band}/${rec.song}/${rec.id}.${ext}`;
+  const path = band ? `b/${band}/${rec.song}/${rec.id}.${ext}` : `u/${uid}/${rec.song}/${rec.id}.${ext}`;
+  const row = { id: rec.id, band_id: band || null, chart_id: rec.song, by_name: myName() || null, path, duration: Math.round(rec.duration * 10) / 10, peaks: rec.peaks ?? null, size: rec.blob.size };
+  // the audio first (upsert: a retry overwrites it); before 018 my own folder
+  // is refused here
   const up = await sb.storage.from(TAKES).upload(path, rec.blob, { upsert: true, contentType: rec.blob.type || 'audio/mpeg' });
   if (up.error) {
     if (/bucket not found/i.test(up.error.message || '')) set({ takesOk: false });
     throw up.error;
   }
-  const row = { id: rec.id, band_id: band, chart_id: rec.song, by_name: myName() || null, path, duration: Math.round(rec.duration * 10) / 10, peaks: rec.peaks ?? null, size: rec.blob.size };
+  // a take of my own song whose song isn't in the cloud yet is refused here —
+  // the next sync (after the song goes up) tries again
   const { error } = await sb.from('song_takes').upsert(row);
   if (error) {
     if (missingTable(error)) set({ takesOk: false });
+    else if (!band && (error.code === '23502' || /band_id/.test(error.message || ''))) set({ myTakesOk: false });
     throw error;
   }
-  const x = takeOf({ ...row, by_user: getLink()?.userId ?? null, created_at: new Date(rec.at).toISOString() });
+  if (!band) set({ myTakesOk: true });
+  const x = takeOf({ ...row, by_user: uid ?? null, created_at: new Date(rec.at).toISOString() });
   set({ takes: [...state.takes.filter((t) => t.id !== x.id), x] });
   return true;
 }
 
+/** A short-lived address to play a take straight from the cloud (nothing kept here). */
+export async function takeUrl(path) {
+  const sb = await client();
+  const { data, error } = await sb.storage.from(TAKES).createSignedUrl(path, 3600);
+  if (error || !data?.signedUrl) throw error || new Error('no url');
+  return data.signedUrl;
+}
+
+/** The audio itself, in memory only (to share it). */
 export async function downloadBandTake(path) {
   const sb = await client();
   const { data, error } = await sb.storage.from(TAKES).download(path);

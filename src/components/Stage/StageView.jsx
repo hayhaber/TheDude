@@ -54,7 +54,7 @@ import { openListen } from '../../music/sheets/listenStore';
 import { ocrReady, ocrState, onOcr, readChartWords } from '../../music/sheets/chartOcr';
 import { ListenDock } from './ListenDock';
 import { SongSearchField } from './SongSearchField';
-import { linkFor, songLabel } from '../../music/sheets/songSearch';
+import { chartSite, linkFor, songLabel } from '../../music/sheets/songSearch';
 import { clearJoinCode, inviteUrl, pendingJoinCode } from '../../music/sheets/joinLink';
 
 // Stage (v1.0.176; user: "all the songs I play with the band, switch from
@@ -251,6 +251,23 @@ function ListenKey({ link, name, t }) {
   );
 }
 
+function FindGlyph() {
+  // SF Symbols' magnifyingglass
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M15.5 15.5 20 20" />
+    </svg>
+  );
+}
+
+/** "Find the chart on Tab4u / Ultimate Guitar" — opens the site's search for the song. */
+function findChart(name) {
+  const { title, artist } = splitName(name || '');
+  const hit = chartSite(title, artist);
+  if (hit) window.open(hit.url, '_blank', 'noopener');
+}
+
 /** Add / change / remove a song's listening link. */
 // v1.0.254 (user: "when I add a song and rename it, I can't add the band
 // too, or find a link or the album picture"): one SONG DETAILS sheet, like
@@ -335,6 +352,12 @@ function SongInfoSheet({ name, link, art: keptArt = null, onSave, onClose, dir, 
       {isNew && (
         <div className="stg-field stg-new-chart">
           <span>{t('stage.new.chart')}</span>
+          {!files.length && chartSite(title, artist) && (
+            <a className="stg-new-find" href={chartSite(title, artist).url} target="_blank" rel="noopener noreferrer">
+              <FindGlyph />
+              {t('stage.find.' + chartSite(title, artist).site)}
+            </a>
+          )}
           {files.length ? (
             <span className="stg-new-file">
               <span dir="auto">{files.length === 1 ? files[0].name : t('stage.new.photos', { n: files.length })}</span>
@@ -358,7 +381,7 @@ function SongInfoSheet({ name, link, art: keptArt = null, onSave, onClose, dir, 
               e.target.value = '';
             }}
           />
-          <small className="stg-new-hint">{t('stage.new.hint')}</small>
+          <small className="stg-new-hint">{t(chartSite(title, artist) ? 'stage.find.hint' : 'stage.new.hint')}</small>
         </div>
       )}
     </Sheet>
@@ -1955,6 +1978,11 @@ export function StageView({ onAccount, start = null }) {
                     {byId.get(s.id)?.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
                   </button>
                 )}
+                {!s.missing && byId.get(s.id) && !byId.get(s.id).pdf && chartSite(splitName(byId.get(s.id).name).title) && (
+                  <button type="button" className="more-menu-item" onClick={() => findChart(byId.get(s.id).name)}>
+                    {t('stage.find.' + chartSite(splitName(byId.get(s.id).name).title, splitName(byId.get(s.id).name).artist).site)}
+                  </button>
+                )}
                 {!s.missing && byId.get(s.id) && (
                   <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
                     {byId.get(s.id).pdf ? t('stage.replace') : t('stage.attach')}
@@ -2281,6 +2309,11 @@ export function StageView({ onAccount, start = null }) {
                   <button type="button" className="more-menu-item" onClick={() => openWords(s.id)}>
                     {s.lyrics ? t('stage.ly.edit') : t('stage.ly.add')}
                   </button>
+                  {!s.pdf && chartSite(splitName(s.name).title) && (
+                    <button type="button" className="more-menu-item" onClick={() => findChart(s.name)}>
+                      {t('stage.find.' + chartSite(splitName(s.name).title, splitName(s.name).artist).site)}
+                    </button>
+                  )}
                   <button type="button" className="more-menu-item" onClick={() => pickChart(s.id)}>
                     {s.pdf ? t('stage.replace') : t('stage.attach')}
                   </button>

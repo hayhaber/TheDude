@@ -3113,3 +3113,14 @@ html .stage-perf .stage-key.is-text.is-danger { color: #ff6961; }
     background: #1c1c1e;
   }
 }
+
+/* v1.0.300: "Find the chart on Tab4u / Ultimate Guitar" under the chart picker */
+.stg-new-find {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--accent);
+  font-size: 15px;
+  text-decoration: none;
+}

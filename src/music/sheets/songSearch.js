@@ -44,3 +44,16 @@ export async function fetchLrc(title, artist, dur) {
     return null;
   }
 }
+
+// v1.0.300 (user: "a button that opens the song's page — Ultimate Guitar for
+// an English song, Tab4u for a Hebrew one"): the chord site's own search for
+// the song, opened by the user. Nothing is fetched or copied by the app.
+const HEB = /[֐-׿]/;
+export function chartSite(title, artist = '') {
+  const t = String(title || '').trim();
+  const a = String(artist || '').trim();
+  if (!t) return null;
+  if (HEB.test(t + a))
+    return { site: 'tab4u', url: 'https://www.tab4u.com/resultsSimple?tab=songs&q=' + encodeURIComponent(t) };
+  return { site: 'ug', url: 'https://www.ultimate-guitar.com/search.php?search_type=title&value=' + encodeURIComponent((t + ' ' + a).trim()) };
+}

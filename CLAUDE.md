@@ -4786,3 +4786,18 @@ no tools).
   last note was cut); a lesson step in a flat key (F, Dm, Bb, Gm, or notes
   written with b) passes `flatNames` to the keys -> PianoKeyboard's black
   labels read B♭-style ("Bb", not "A#").
+- FIND THE CHART (v1.0.300; user wanted the app to fetch words + chords
+  from the web by itself — Claude declined automatic copying from chord
+  sites (the lyricists' copyright, the sites' terms, sharing to bands) and
+  offered a button the USER follows; user: "Ultimate Guitar for English,
+  Tab4u for Hebrew"). `chartSite(title, artist)` (songSearch.js): any
+  Hebrew -> Tab4u search by the title (`resultsSimple?tab=songs&q=`),
+  else UG search "title artist". New Song sheet: in the Chart field, above
+  the picker, an accent link "Find the Chart on Tab4u / Ultimate Guitar"
+  (magnifier glyph, `.stg-new-find`) + hint "take a screenshot there, come
+  back and choose it below"; song ••• (Songs + setlist rows) has the same
+  item while the song has no chart. The app fetches nothing. Only the
+  site's search page (no exact song page — that would mean reading their
+  site). The screenshot becomes the chart; words from it only once OCR is
+  on (ANTHROPIC_API_KEY). Playwright 390 + 1180: UG / Tab4u URLs, menu
+  item opens a tab; smoke 28 + 28.

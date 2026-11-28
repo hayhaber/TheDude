@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, RendererBackends, Stave, StaveNote, Voice, Formatter } from 'vexflow';
+import { useVexflow } from './vexflow';
 import './StaffNotation.css';
 
 const STAVE_WIDTH = 200;
@@ -28,7 +28,10 @@ export function midiToVexKey(midi) {
 export function StaffNotation({ notes = [], clef = 'treble', width = STAVE_WIDTH, height = STAVE_HEIGHT, highlightMidi = null }) {
   const containerRef = useRef(null);
 
+  const VF = useVexflow();
   useEffect(() => {
+    if (!VF) return;
+    const { Renderer, RendererBackends, Stave, StaveNote, Voice, Formatter } = VF;
     const container = containerRef.current;
     if (!container) return;
     container.innerHTML = '';
@@ -57,7 +60,7 @@ export function StaffNotation({ notes = [], clef = 'treble', width = STAVE_WIDTH
     voice.addTickables(staveNotes);
     new Formatter().joinVoices([voice]).format([voice], width - 60);
     voice.draw(context, stave);
-  }, [notes, clef, width, height, highlightMidi]);
+  }, [VF, notes, clef, width, height, highlightMidi]);
 
   return <div ref={containerRef} className="staff-notation" />;
 }

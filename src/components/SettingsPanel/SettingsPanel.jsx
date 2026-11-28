@@ -19,6 +19,8 @@ import { useProfiles } from "../../profile/profileStorage";
 import { Avatar } from "../../profile/ProfileChip";
 import { BackButton } from "../PracticeView/PracticeHome";
 import { InfoSwitchRow } from "./SwitchRow";
+import { ServerCheck } from "./ServerCheck";
+import { ErrorLogField } from "./ErrorLogField";
 import { getAudioInputSettings } from "../../audio/audioInputSettingsStore";
 import { LibraryBar } from "../LickTrainer/LickTrainer";
 import { createPortal } from "react-dom";
@@ -613,6 +615,10 @@ export function SettingsBody({
 
           {shown === "advanced" && (
             <div className="set-page settings-drawer-body">
+              <h3 className="settings-drawer-subtitle">{t("srv.title")}</h3>
+              <ServerCheck />
+              <h3 className="settings-drawer-subtitle">{t("errlog.title")}</h3>
+              <ErrorLogField />
               {syncTrainer && (
                 <>
                   <h3 className="settings-drawer-subtitle">

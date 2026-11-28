@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, RendererBackends, TabStave, TabNote, Voice, Formatter } from 'vexflow';
+import { useVexflow } from '../StaffNotation/vexflow';
 import './GuitarNotation.css';
 
 const STAVE_WIDTH = 260;
@@ -13,7 +13,10 @@ const MATCHED_COLOR = '#34c759'; // same green used for correct feedback in Pian
 export function GuitarNotation({ targetNote, isMatched, width = STAVE_WIDTH, height = STAVE_HEIGHT }) {
   const containerRef = useRef(null);
 
+  const VF = useVexflow();
   useEffect(() => {
+    if (!VF) return;
+    const { Renderer, RendererBackends, TabStave, TabNote, Voice, Formatter } = VF;
     const container = containerRef.current;
     if (!container) return;
     container.innerHTML = '';
@@ -38,7 +41,7 @@ export function GuitarNotation({ targetNote, isMatched, width = STAVE_WIDTH, hei
     voice.addTickables([note]);
     new Formatter().joinVoices([voice]).format([voice], width - 60);
     voice.draw(context, stave);
-  }, [targetNote, isMatched, width, height]);
+  }, [VF, targetNote, isMatched, width, height]);
 
   return <div ref={containerRef} className="guitar-notation" />;
 }

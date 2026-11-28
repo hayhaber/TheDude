@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, RendererBackends, TabStave, TabNote, Voice, Formatter, Annotation } from 'vexflow';
+import { useVexflow } from '../StaffNotation/vexflow';
 import { STANDARD_TUNING } from '../../music/notes';
 import { TECHNIQUE_ACTION_COLOR } from '../../styles/colors';
 import './LickNotation.css';
@@ -27,7 +27,10 @@ function vexflowString(arrayIndex) {
 export function LickNotation({ notes, activeIndex = null }) {
   const containerRef = useRef(null);
 
+  const VF = useVexflow();
   useEffect(() => {
+    if (!VF) return;
+    const { Renderer, RendererBackends, TabStave, TabNote, Voice, Formatter, Annotation } = VF;
     const container = containerRef.current;
     if (!container) return;
     container.innerHTML = '';
@@ -63,7 +66,7 @@ export function LickNotation({ notes, activeIndex = null }) {
     voice.addTickables(tabNotes);
     new Formatter().joinVoices([voice]).format([voice], width - STAVE_PADDING);
     voice.draw(context, stave);
-  }, [notes, activeIndex]);
+  }, [VF, notes, activeIndex]);
 
   return <div ref={containerRef} className="lick-notation" />;
 }

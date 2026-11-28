@@ -20,6 +20,25 @@ if (!commit) {
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Big libraries in chunks of their own (v1.0.288): they change only when
+  // the library is upgraded, so after a deploy the phone re-downloads just
+  // the app's own code (was one 5.6 MB file every time). Libraries that are
+  // loaded lazily (supabase, lamejs) are left out on purpose — grouping them
+  // here would load them at start.
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'lib-alphatab', test: /node_modules[\\/]@coderline[\\/]alphatab/ },
+            { name: 'lib-pdfjs', test: /node_modules[\\/]pdfjs-dist/ },
+            { name: 'lib-react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: 'lib-audio', test: /node_modules[\\/](smplr|pitchy|fft\.js)[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),

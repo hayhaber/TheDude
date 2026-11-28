@@ -16,9 +16,14 @@ import { InstallPage } from './install/InstallPage.jsx'
 import { startCloud } from './cloud/cloudState.js'
 import { CloudPrompt } from './cloud/CloudPrompt.jsx'
 import { PrivacyPage } from './privacy/PrivacyPage.jsx'
+import { installErrorLog } from './debug/errorLog.js'
+import { ErrorBoundary } from './debug/ErrorBoundary.jsx'
 
 // The browser's "install this app" event fires once, early: keep it for the
 // Install buttons (install/pwaInstall.js).
+// errors on this device, for Settings › Advanced (debug/errorLog.js)
+installErrorLog()
+
 captureInstallPrompt()
 captureJoinCode()
 
@@ -99,7 +104,9 @@ function Root() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <LanguageProvider>
-      <Root />
+      <ErrorBoundary>
+        <Root />
+      </ErrorBoundary>
     </LanguageProvider>
   </StrictMode>,
 )

@@ -1,0 +1,45 @@
+.err-page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg, #f2f2f7);
+  color: var(--text);
+  text-align: center;
+}
+.err-card {
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.err-card h1 {
+  margin: 4px 0 0;
+  font-size: 22px;
+  text-align: center;
+}
+.err-card p {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: center;
+}
+.err-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff9500;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 700;
+}
+.err-card .ui-btn.is-lg {
+  min-width: 220px;
+}

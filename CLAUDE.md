@@ -4496,3 +4496,37 @@ no tools).
   setlist rows, the add-songs sheet and the song page pass the id.
   Playwright 1180 (search + image mocked): pick Yesterday -> cover, edit
   artist to "הביטלס" -> cover stays in the sheet, the row and after reload.
+- STABILITY PASS (v1.0.288, 2026-11-28; user asked "what's missing?",
+  then "all" of: server check, device checklist, tests + bundle split,
+  error log). (1) SERVER CHECK: Settings › Advanced › Server
+  (`SettingsPanel/ServerCheck.jsx` + pure-ish `cloud/serverCheck.js`):
+  when signed in it probes every migration with harmless reads (empty
+  select of the table / column it adds, a storage bucket listing, rpc
+  set_member_role with nil ids = 42501 if present / PGRST202 if not),
+  10 s timeout = offline; green "Up to date" or the missing ones by
+  number + what each opens (`srv.m.<n>`) + the file name + how to run.
+  015 can't be probed without writing, so NEW `016_schema_version.sql`
+  repeats 015 and adds `public.dudestar_schema()` (returns 16) — THE USER
+  RUNS IT; every later migration bumps that number and gets a SCRIPTS
+  entry. (2) ERROR LOG: `debug/errorLog.js` (device key
+  `dudestar-error-log`, last 40, repeats within a minute folded,
+  browser noise ignored; installed first thing in main.jsx: window error +
+  unhandledrejection) + `debug/ErrorBoundary.jsx` around Root (a screen
+  that throws = an iOS-style "Something went wrong" page with Reload +
+  Send report instead of a blank page) + Settings › Advanced › "Errors on
+  this device" (count, last time, Share = system share / copy as text,
+  Clear). Nothing is sent anywhere by itself. (3) BUNDLE: vite.config.js
+  `build.rolldownOptions.output.codeSplitting.groups` = lib-alphatab /
+  lib-pdfjs / lib-react / lib-audio chunks (a deploy re-downloads only the
+  app's code; lazy libs supabase / lamejs deliberately NOT grouped), and
+  vexflow (1.1 MB) loads only when a notation draws
+  (`StaffNotation/vexflow.js` `useVexflow()`, used by StaffNotation,
+  GuitarNotation, LickNotation). Main chunk 5.66 MB -> 2.72 MB; first load
+  4.5 MB total. (4) SMOKE TEST: `scripts/smoke-test.cjs` (`npm run
+  test:smoke`, needs the preview on :4187 + global Playwright) opens every
+  home card x every shortcut at 390 HE + 1180 EN, fails on page errors,
+  blank screens or the error page — 7 cards / 28 screens each, 0
+  problems. Run it before pushes. Checks: 016 twice on local Postgres;
+  fake Supabase: 4 missing shown (009 bucket, 012, 013, 016), all present
+  = green, offline = "couldn't reach" after 10 s; error log 3 entries ->
+  Clear; piano Theory staff renders with vexflow fetched on demand.

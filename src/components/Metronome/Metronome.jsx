@@ -2,8 +2,11 @@ import { CLICK_SOUND_OPTIONS } from '../../audio/metronome';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { WoodMetronome } from './WoodMetronome';
 import { BpmField } from './BpmField';
+import { Select } from '../ui/Select';
+import { Button, ControlRow, PlayGlyph, SpeakerGlyph, StopGlyph } from '../ui/controls';
 import './Metronome.css';
 import './WoodMetronome.css';
+import './DrumMachine.css';
 
 export const TIME_SIGNATURES = [
   { beats: 2, label: '2/4' },
@@ -80,10 +83,13 @@ export function Metronome({
     edit: t('piano.metronome.editHint'),
   };
 
+  // v1.0.298 (user: "would Apple design it like this?"): the wooden face
+  // stays (a device), everything under it speaks the drum machine's
+  // language — the tempo big with round − +, a dot per beat, an inset list
+  // of pop-ups, a volume row, ONE filled Start, no card around it.
+  const beat = isRunning ? currentBeat : -1;
   return (
-    <div className="metronome mw">
-      <h2 className="metronome-title">{t('metronome.title')}</h2>
-
+    <div className="metronome-face mw dmx">
       <div className="mw-stage">
         <WoodMetronome
           bpm={bpm}
@@ -97,49 +103,68 @@ export function Metronome({
         />
       </div>
 
-      <div className="mw-tiles">
-        <div className="mw-tile">
-          <BpmField value={bpm} onChange={setBpm} min={minBpm} max={maxBpm} labels={bpmLabels} className="mw-bpm" />
-          <span className="mw-tile-label">BPM</span>
+      <section className="dmx-card dmx-tempo">
+        <div className="dmx-tempo-row">
+          <div className="dmx-tempo-num">
+            <BpmField value={bpm} onChange={setBpm} min={minBpm} max={maxBpm} labels={bpmLabels} className="dmx-bpm" />
+            <span className="dmx-unit">BPM</span>
+          </div>
+          <Button variant="gray" onClick={tapTempo} className="dmx-tap">
+            {t('metronome.tapTempo')}
+          </Button>
         </div>
-        <label className="mw-tile">
-          <select
-            className="mw-tile-select"
-            value={beatsPerMeasure}
-            onChange={(e) => setBeatsPerMeasure(Number(e.target.value))}
-            aria-label={t('metronome.timeSignature')}
-          >
+        <div className="dmx-beats" dir="ltr" aria-hidden="true">
+          {Array.from({ length: beatsPerMeasure }, (_, i) => (
+            <span key={i} className={'dmx-beat' + (i === beat ? ' is-now' : '') + (i === 0 ? ' is-one' : '')} />
+          ))}
+        </div>
+      </section>
+
+      <section className="dmx-group">
+        <ControlRow label={t('metronome.timeSignature')}>
+          <Select value={beatsPerMeasure} aria-label={t('metronome.timeSignature')} onChange={(e) => setBeatsPerMeasure(Number(e.target.value))}>
             {TIME_SIGNATURES.map((ts) => (
               <option key={ts.beats} value={ts.beats}>
                 {ts.label}
               </option>
             ))}
-          </select>
-          <span className="mw-tile-label">{t('metronome.timeSignature')}</span>
-        </label>
-        <label className="mw-tile">
-          <select className="mw-tile-select" value={soundKey} onChange={(e) => setSoundKey(e.target.value)} aria-label={t('metronome.sound')}>
+          </Select>
+        </ControlRow>
+        <ControlRow label={t('metronome.sound')}>
+          <Select value={soundKey} aria-label={t('metronome.sound')} onChange={(e) => setSoundKey(e.target.value)}>
             {CLICK_SOUND_OPTIONS.map((opt) => (
               <option key={opt.key} value={opt.key}>
                 {t(`metronome.sound.${opt.key}`)}
               </option>
             ))}
-          </select>
-          <span className="mw-tile-label">{t('metronome.sound')}</span>
-        </label>
-      </div>
+          </Select>
+        </ControlRow>
+        <div className="ui-row dmx-level">
+          <button
+            type="button"
+            className={'dmx-speaker' + (isMuted ? ' is-muted' : '')}
+            onClick={toggleMute}
+            aria-pressed={isMuted}
+            aria-label={isMuted ? t('metronome.unmute') : t('metronome.mute')}
+          >
+            <SpeakerGlyph off={isMuted || volume === 0} />
+          </button>
+          <input
+            type="range"
+            className="ui-slider dmx-slider"
+            min={0}
+            max={100}
+            value={isMuted ? 0 : volume}
+            onChange={(e) => setVolume(e.target.value)}
+            style={{ '--fill': `${isMuted ? 0 : volume}%` }}
+            aria-label={t('metronome.volume')}
+          />
+        </div>
+      </section>
 
-      <VolumeRow className="mw-volume" volume={volume} setVolume={setVolume} isMuted={isMuted} toggleMute={toggleMute} />
-
-      <div className="mw-actions">
-        <button type="button" className="mw-btn" onClick={tapTempo}>
-          {t('metronome.tapTempo')}
-        </button>
-        <button type="button" className={'mw-btn mw-start' + (isRunning ? ' running' : '')} onClick={start}>
-          {isRunning ? t('metronome.stop') : t('metronome.start')}
-        </button>
-      </div>
-
+      <Button variant={isRunning ? 'gray' : 'filled'} size="lg" danger={isRunning} className="dmx-start" onClick={start} icon={isRunning ? <StopGlyph /> : <PlayGlyph size={15} />}>
+        {(isRunning ? t('metronome.stop') : t('metronome.start')).replace(/^[▶■⏹◼]\uFE0F?\s*/u, '')}
+      </Button>
     </div>
   );
 }

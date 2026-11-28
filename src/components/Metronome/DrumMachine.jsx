@@ -4,7 +4,7 @@ import { InfoTooltip } from '../InfoTooltip/InfoTooltip';
 import { BpmField } from './BpmField';
 import { TIME_SIGNATURES } from './Metronome';
 import { Select } from '../ui/Select';
-import { Button, ControlRow, PlayGlyph, Segmented, Switch } from '../ui/controls';
+import { Button, ControlRow, PlayGlyph, Segmented, SpeakerGlyph, Switch } from '../ui/controls';
 import {
   DRUM_INSTRUMENTS,
   RESOLUTIONS,
@@ -442,19 +442,6 @@ function StopGlyph() {
   return (
     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
       <rect x="5" y="5" width="14" height="14" rx="2.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function SpeakerGlyph({ off }) {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" />
-      {off ? (
-        <path d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      ) : (
-        <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      )}
     </svg>
   );
 }

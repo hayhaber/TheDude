@@ -105,7 +105,7 @@ export function WoodMetronome({ bpm, setBpm, minBpm, maxBpm, isRunning, currentB
   const lampX0 = PIVOT_X - (lampGap * (beatsPerMeasure - 1)) / 2;
 
   return (
-    <svg
+    <svg direction="ltr"
       ref={svgRef}
       className="wood-metronome"
       viewBox={`0 0 ${W} 330`}
@@ -165,8 +165,8 @@ export function WoodMetronome({ bpm, setBpm, minBpm, maxBpm, isRunning, currentB
       </g>
       <polygon points="80,8 160,8 160,12 80,12" fill="#2a1205" opacity="0.35" />
       {/* the scale panel, recessed */}
-      <polygon points="99,22 141,22 150,238 90,238" fill="#2a1205" opacity="0.45" />
-      <polygon points="101,24 139,24 147,236 93,236" fill="url(#wm-ivory)" />
+      <polygon points="93,22 147,22 156,238 84,238" fill="#2a1205" opacity="0.45" />
+      <polygon points="95,24 145,24 153,236 87,236" fill="url(#wm-ivory)" />
       {SCALE_MARKS.filter((m) => m >= minBpm && m <= maxBpm).map((m) => {
         const y = PIVOT_Y - weightDistance(m, minBpm, maxBpm);
         if (y < 30 || y > 232) return null;
@@ -176,7 +176,7 @@ export function WoodMetronome({ bpm, setBpm, minBpm, maxBpm, isRunning, currentB
             {/* ticks right of the rod, numbers left of it (the rod rests on the centre line) */}
             <line x1={125} x2={big ? 136 : 131} y1={y} y2={y} stroke="#6b4a22" strokeWidth="1" />
             {big && (
-              <text x={115} y={y + 3} textAnchor="end" className="wm-scale-text">
+              <text x={116} y={y + 3.5} textAnchor="end" className="wm-scale-text">
                 {m}
               </text>
             )}

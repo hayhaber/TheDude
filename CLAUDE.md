@@ -4740,3 +4740,20 @@ no tools).
   (filled head with a stem)…" in English. Rule for lesson text: theory
   terms only (ראש התו, גבעול, ערך, פעמה, תיבה, סימני היתק…), never
   colloquial descriptions like "שחור עם מקל".
+- METRONOME, the Apple way (v1.0.298; user: "does the metronome fit our
+  design rules? would Apple design it so?" -> no): the wooden face stays
+  (a device), everything under it now speaks the drum machine's language
+  (Metronome.jsx root `.metronome-face.mw.dmx`, reuses DrumMachine.css):
+  tempo card (46 px number between round − / +, BPM caption, gray Tap, a
+  dot per beat — beat 1 orange — lit while running), ONE inset group
+  (Time signature + Sound = ControlRow + `<Select>` pop-ups, volume row
+  with `SpeakerGlyph` (moved to ui/controls, shared with the drums) +
+  ui-slider), ONE filled Start (gray red Stop, Play/Stop glyphs). Gone:
+  the hairline tiles, serif selects, emoji speaker, "▶" in the label, the
+  card around it (tool-screen `:has(.dmx)` rule), the h2. Wood: the ivory
+  scale panel widened (93–147 / 84–156), numbers 10 px system sans,
+  tabular; the SVG has direction="ltr" — in Hebrew textAnchor "end" had
+  flipped and the numbers sat ON the rod. Drawer wood min(210px, 58%) so
+  the taller controls fit (no zoom at 390 / 1180). VolumeRow export kept.
+  Playwright 390 HE + 1180 HE dark tool screen, drawer 390 HE + 1180 EN:
+  start -> beat dot lit, stop, no errors; smoke 28 + 28.

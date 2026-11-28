@@ -54,8 +54,9 @@
 }
 
 .wm-scale-text {
-  font: 700 9px Georgia, 'Times New Roman', serif;
-  fill: #5a3a14;
+  font: 600 10px -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  fill: #3d2508;
 }
 
 .wm-plaque-text {
@@ -235,4 +236,12 @@
   .mw-tiles .mw-tile:first-child {
     grid-column: 1 / -1;
   }
+}
+
+/* v1.0.298: the face sits on the page; the wood breathes above the groups */
+.metronome-face .mw-stage {
+  padding: 4px 0 2px;
+}
+.tool-screen-card:has(.metronome-face) .wood-metronome {
+  width: min(240px, 64%);
 }
